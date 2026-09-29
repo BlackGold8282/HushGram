@@ -151,10 +151,10 @@ public class ClearLogBufferPreferenceTest {
 
     /*
      * API 29, not 30: from API 30 AtomicFile writes a new file and renames it over the old one.
-     * A phone's rename replaces the target, but a Windows host's refuses to, so there the newer
-     * crash never lands and this fails whichever write wins. API 29's AtomicFile moves the old
-     * file aside first, which behaves the same everywhere, and the lock under test is the same
-     * at every level. HushGram's floor is API 28.
+     * A phone's rename replaces the target, and so does JDK 25's on Windows, but JDK 21's on
+     * Windows refuses to, so there the newer crash never lands and this fails whichever write
+     * wins. API 29's AtomicFile moves the old file aside first, which behaves the same on every
+     * JDK, and the lock under test is the same at every level. HushGram's floor is API 28.
      */
     @Config(manifest = Config.NONE, sdk = 29)
     @Test public void undoDoesNotOverwriteACrashSavedWhileItRestores() throws Exception {
