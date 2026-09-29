@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
 
 /**
  * The launcher shortcut on every Android Instagram 449 runs on. Android 11 added
@@ -41,7 +42,9 @@ public class SettingsEntryShortcutTest {
     private ShortcutManager manager;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+        // A shortcut check another class queued on a background thread would race this one's.
+        Utils.awaitBackgroundTasksForTests();
         context = RuntimeEnvironment.getApplication();
         manager = context.getSystemService(ShortcutManager.class);
         Shadows.shadowOf(manager).setMaxShortcutCountPerActivity(5);
