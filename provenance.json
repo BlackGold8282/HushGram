@@ -1,0 +1,56 @@
+{
+  "note": "Where every shipped source file under patches/ and extensions/ came from. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. A Meta-app repository named here also has to be allowed by sources/instagram-sources.json.",
+  "rules": [
+    {
+      "paths": [
+        "extensions/shared/**",
+        "patches/src/main/kotlin/app/morphe/util/**",
+        "patches/src/main/kotlin/app/morphe/patches/shared/**",
+        "patches/stub/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/extension/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/settings/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/LinkCleaner.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Packages moved from app.morphe.extension to app.hushgram.extension so the payload can't collide with another Morphe source's classes. Instagram's hosts and cookie names in DiagnosticRedactor, Instagram wording in user-facing messages, HushfacebookPause renamed HushgramPause with its keys and marker file. The settings screen cut down to HushGram's patches: no Material You theme, search, section navigation, backups, release check or downloads. The Facebook compatibility target replaced with Instagram 449.0.0.52.84 and its two signer digests. LinkCleaner's key lists replaced with Instagram's own and limited to Instagram's hosts, with clipboard and share sheet stand-ins added. The extension and settings patches rewritten for InstagramAppShell and InstagramMainActivity. The translation tables pruned to the strings HushGram shows, with its new strings translated. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/resignedtrust/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/InstagramSignature.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/andrewliang25/morphe-patches",
+      "commit": "5db2e57e133aede5297c48b419168cf30fd89953",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0",
+      "changes": "Taken from Hushfacebook c15d4f7930505824789684d35039d3c78c8b0903, which rewrote Andrew Liang's Facebook fix. Pointed at Instagram: its package, and its two original certificates (Kevin Systrom's and Meta's rotated one) answered as its signing history. Hushfacebook's same-key Meta family trust and Messenger link test left out."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/instagram/ads/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/analytics/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/buildexpiry/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/sharelinks/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/ads/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "license": "GPL-3.0-only"
+    }
+  ]
+}
