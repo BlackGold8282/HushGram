@@ -9,6 +9,8 @@ package app.hushgram.extension.instagram.settings;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
+import android.app.DialogFragment;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -56,7 +58,7 @@ public final class SettingsEntry {
 
     /** Exported, and what every launcher alias of Instagram's targets. A manifest name is kept. */
     static final String MAIN_ACTIVITY = "com.instagram.mainactivity.InstagramMainActivity";
-    private static final String DIALOG_TAG = "hushgram_settings";
+    static final String DIALOG_TAG = "hushgram_settings";
 
     /** A request older than this is dropped rather than opened over some later screen. */
     private static final long REQUEST_LIFETIME_MS = 30_000;
@@ -284,8 +286,34 @@ public final class SettingsEntry {
         @Override
         public void onActivityResumed(Activity activity) {
             resumed = new WeakReference<>(activity);
+            followToFront(activity);
             if (openPending) openWhenSettled(activity);
             relabelIfStale(activity);
+        }
+
+        /**
+         * Signed out, Instagram's login screen opens its modal over itself a moment after it
+         * resumes, and the screen shown over the login screen ends up underneath, where nobody
+         * sees it. The person can't open an Instagram screen while this one fills the display,
+         * so a screen that resumes over it soon after the request is Instagram's own, and the
+         * screen moves to it.
+         */
+        private static void followToFront(Activity activity) {
+            WeakReference<Activity> shownOver = host;
+            Activity previous = shownOver == null ? null : shownOver.get();
+            if (previous == null || previous == activity || closedByUser) return;
+            if (SystemClock.elapsedRealtime() - requestedAt > REQUEST_LIFETIME_MS) return;
+            host = null;
+            try {
+                // A dismiss in code isn't a cancel, so this doesn't count as the person closing it.
+                Fragment shown = previous.getFragmentManager().findFragmentByTag(DIALOG_TAG);
+                if (shown instanceof DialogFragment) ((DialogFragment) shown).dismissAllowingStateLoss();
+            } catch (Exception ex) {
+                Logger.printException(() -> "Settings entry: could not close the covered screen", ex);
+            }
+            openPending = true;
+            Logger.printInfo(() -> activity.getClass().getSimpleName() + " came up over the settings on "
+                    + previous.getClass().getSimpleName() + "; moving them to the front");
         }
 
         @Override
