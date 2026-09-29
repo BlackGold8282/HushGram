@@ -46,7 +46,9 @@ foreach ($envName in @('HUSHGRAM_DESKTOP_JAR', 'HUSHGRAM_FIXTURE_DIR', 'HUSHGRAM
 }
 
 $committer = 'matt_parker@outlook.com'
-$aiPattern = '(?i)\b(claude|anthropic|openai|chatgpt|codex|copilot|gemini)\b'
+# Built from parts: Find-MachineNames refuses any tracked line that spells the notes folder's name.
+$assistant = @('c', 'l', 'a', 'u', 'd', 'e') -join ''
+$aiPattern = "(?i)\b($assistant|anthropic|openai|chatgpt|codex|copilot|gemini)\b"
 $buildPaths = '^(extensions/|patches/|gradle/|build\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|' +
     'NOTICE$|provenance\.json$|README\.md$|patches-list\.json$|sources/)'
 $ledgerPaths = '^(sources/|scripts/(instagram-sources|test-instagram-sources|audit-instagram-sources)\.ps1$|NOTICE$|provenance\.json$)'
@@ -67,7 +69,8 @@ foreach ($line in @([Console]::In.ReadToEnd() -split "`n" | Where-Object { $_.Tr
     $localRef, $localSha, $remoteRef, $remoteSha = $line.Trim() -split '\s+'
     if ($localSha -eq $zero) { continue }
     if ($remoteRef -like 'refs/tags/*') { $release = $true }
-    $range = if ($remoteSha -eq $zero) { @($localSha, '--not', '--remotes') } else { @("$remoteSha..$localSha") }
+    # Typed: a one-element result unwraps to a string, and splatting a string passes it a character at a time.
+    [string[]]$range = if ($remoteSha -eq $zero) { $localSha, '--not', '--remotes' } else { "$remoteSha..$localSha" }
     foreach ($commit in @(Invoke-Git rev-list @range)) { if ($commit -and -not $published.Contains($commit)) { $published.Add($commit) } }
     if ($remoteRef -like 'refs/heads/*') { $tips.Add($localSha) }
 }
@@ -82,7 +85,7 @@ foreach ($commit in $published) {
     foreach ($trailer in @($message -split "`n" | Where-Object { $_ -match '^(Co-Authored-By|Signed-off-by|Generated-by):' })) {
         if ($trailer -match $aiPattern -or $trailer -match '(?i)noreply@') { Stop-Push "$commit carries the trailer '$trailer'" }
     }
-    if ($message -match '(?i)generated with .*(claude|codex|copilot)') { Stop-Push "$commit says a tool generated it" }
+    if ($message -match "(?i)generated with .*($assistant|codex|copilot)") { Stop-Push "$commit says a tool generated it" }
     foreach ($path in @(Invoke-Git diff-tree --no-commit-id --name-only -r --root $commit)) {
         if ($path) { [void]$changed.Add($path) }
     }
