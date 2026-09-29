@@ -62,7 +62,12 @@ The other patches keep their switches in `HushGram settings`, so Morphe Manager 
 
 ## Settings
 
-Long-press Instagram's icon on your home screen and tap **HushGram settings**. The screen opens over Instagram.
+Long-press Instagram's icon on your home screen and tap **HushGram settings**. The screen opens over Instagram, and that works before you sign in too.
+
+<p>
+  <img src="assets/settings-switches.png" alt="HushGram settings: the on card and the Ads and privacy switches" width="270">
+  <img src="assets/settings-pause-and-diagnostics.png" alt="HushGram settings: Set when you patched, Pause and Debug logging" width="270">
+</p>
 
 At the top, a card says whether HushGram is on or paused. Below it:
 
