@@ -68,11 +68,15 @@ class ResumeLongVideosHookTest {
 
         context.resumeLongVideos()
 
-        for ((name, hook) in listOf("GMo" to STARTED, "A0c" to STOPPED, "A0g" to STOPPED, "A0b" to REBOUND,
-            "F9i" to ENDED, "FcE" to ENDED)) {
+        for ((name, hook) in listOf("GMo" to STARTED, "A0b" to REBOUND, "F9i" to ENDED, "FcE" to ENDED)) {
             val first = context.method(player, name).code()[0]
             assertEquals(name, hook, first.referenceText())
             assertEquals("$name: the player alone", 1, (first as RegisterRangeInstruction).registerCount)
+        }
+        for (name in listOf("A0c", "A0g")) {
+            val first = context.method(player, name).code()[0]
+            assertEquals(name, STOPPED, first.referenceText())
+            assertEquals("$name: the player and the reason", 2, (first as RegisterRangeInstruction).registerCount)
         }
         val seek = context.method(player, "A0X").code()[0] as RegisterRangeInstruction
         assertEquals(SEEKING, (seek as Instruction).referenceText())

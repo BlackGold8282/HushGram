@@ -80,7 +80,7 @@ public class ResumePlaybackTest {
     private static void leftAt(Video video, int at) {
         Player player = new Player(video);
         player.position = at;
-        ResumePlayback.stopped(player);
+        ResumePlayback.stopped(player, "scroll");
     }
 
     /** A new player of [video] started at 0, with the resume it posts run. */
@@ -257,13 +257,30 @@ public class ResumePlaybackTest {
         // A seek of a playing video can pause it first, which runs the stop hook at the old
         // position, and restart it, which runs the start hook.
         player.duringSeek = () -> {
-            ResumePlayback.stopped(player);
+            ResumePlayback.stopped(player, "scroll");
             ResumePlayback.started(player);
         };
         assertEquals(Collections.singletonList(600_000), openedWith(player).seeks);
         assertTrue(report(), report().contains("point saved 1") && report().contains("resumed 1"));
         // The point is still 10:00.
         assertEquals(Collections.singletonList(600_000), opened(video).seeks);
+    }
+
+    @Test
+    public void aSeeksOwnPauseSavesNothing() {
+        Video video = longVideo("111111111");
+        Player player = new Player(video);
+        openedWith(player);
+        // A drag of the scrubber on a playing video: Instagram pauses it for the seek, at the place
+        // it's leaving, and plays on from the new one.
+        player.position = 5 * MINUTE;
+        for (String reason : TapToPlay.MOMENTARY) ResumePlayback.stopped(player, reason);
+        assertTrue("a seek's pause saved a point", opened(video).seeks.isEmpty());
+        assertFalse(report(), report().contains("point saved"));
+
+        // The control: a real pause at the same place saves it.
+        ResumePlayback.stopped(player, "fragment_paused");
+        assertEquals(Collections.singletonList(300_000), opened(video).seeks);
     }
 
     @Test
@@ -293,7 +310,7 @@ public class ResumePlaybackTest {
         Player released = new Player(video);
         released.released = true;
         released.position = 20 * MINUTE;
-        ResumePlayback.stopped(released);
+        ResumePlayback.stopped(released, "fragment_stopped");
         ResumePlayback.rebound(released);
         assertEquals("the unreadable length moved the point", Collections.singletonList(600_000), opened(video).seeks);
         String missing = HookStatus.missing(FamilyNames.RESUME_LONG_VIDEOS).toString();
@@ -359,7 +376,7 @@ public class ResumePlaybackTest {
         ResumePlayback.access = ResumePlayback.PATCHED;
         Player player = new Player(video);
         ResumePlayback.started(player);
-        ResumePlayback.stopped(player);
+        ResumePlayback.stopped(player, "scroll");
         ResumePlayback.ended(player);
         ResumePlaybackForTests.runLater();
         assertTrue(player.seeks.isEmpty());
@@ -376,9 +393,9 @@ public class ResumePlaybackTest {
         // A player with no video, and a null player.
         ResumePlaybackForTests.install();
         ResumePlayback.started(new Player(null));
-        ResumePlayback.stopped(new Player(null));
+        ResumePlayback.stopped(new Player(null), "scroll");
         ResumePlayback.started(null);
-        ResumePlayback.stopped(null);
+        ResumePlayback.stopped(null, null);
         ResumePlayback.seeking(null, 5);
         ResumePlayback.ended(null);
         ResumePlayback.rebound(null);
@@ -398,7 +415,7 @@ public class ResumePlaybackTest {
         };
         Player player = new Player(video);
         ResumePlayback.started(player);
-        ResumePlayback.stopped(player);
+        ResumePlayback.stopped(player, "scroll");
         ResumePlayback.rebound(player);
         ResumePlaybackForTests.runLater();
         assertTrue(player.seeks.isEmpty());

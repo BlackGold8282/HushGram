@@ -43,7 +43,8 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *       video starts playing. The first start of a video in a player looks up the point saved for
  *       it and, when there is one, seeks there once Instagram's start is done.</li>
  *   <li>{@link #stopped}, first thing in its pause and its stop, which save where the video is, or
- *       forget its point near the end. Its release stops it first.</li>
+ *       forget its point near the end. Its release stops it first. A pause Instagram makes on its
+ *       way through a seek, a pinch or a replay saves nothing, since the video plays on.</li>
  *   <li>{@link #rebound}, first thing where it's given a video, which saves the one it had and
  *       starts the player over.</li>
  *   <li>{@link #ended}, first thing where the video plays to its end or loops, which forgets its
@@ -233,13 +234,18 @@ public final class ResumePlayback {
         }
     }
 
-    /** The hook, first thing in IgVideoPlayerImpl's pause and its stop. */
-    public static void stopped(Object player) {
+    /**
+     * The hook, first thing in IgVideoPlayerImpl's pause and its stop, with Instagram's reason for
+     * it. A seek of a playing video pauses it first with a reason of {@link TapToPlay#MOMENTARY}
+     * and plays on from the new place, so that pause saves nothing: the point would be where you
+     * scrubbed away from.
+     */
+    public static void stopped(Object player, @Nullable String reason) {
         try {
             HookStatus.invoked(FAMILY);
             if (!on() || player == null) return;
             HookStatus.bound(FAMILY, "player pause");
-            if (PLAYERS.seekingNow(player)) return;
+            if (PLAYERS.seekingNow(player) || (reason != null && TapToPlay.MOMENTARY.contains(reason))) return;
             remember(player, System.currentTimeMillis());
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "player pause", failure);
@@ -313,7 +319,7 @@ public final class ResumePlayback {
         String skip = skipReason(facts, length);
         if (skip != null) {
             count(skip);
-            if (!SHORT.equals(skip)) log(() -> "Resume long videos: left a start alone, " + skip);
+            log(() -> "Resume long videos: left a start alone, " + skip + " (" + clock(length) + ")");
             return;
         }
         ResumePoints store = points();
@@ -394,6 +400,8 @@ public final class ResumePlayback {
             store.put(facts.videoId, at, now);
             count(SAVED);
             log(() -> "Resume long videos: saved " + clock(at) + " of " + clock(length));
+        } else {
+            log(() -> "Resume long videos: stopped at " + clock(at) + " of " + clock(length) + ", too early to save");
         }
     }
 

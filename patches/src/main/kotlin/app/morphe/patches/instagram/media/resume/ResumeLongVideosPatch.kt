@@ -34,7 +34,7 @@ private const val PATCH = "Resume long videos"
 
 internal const val RESUME_PLAYBACK = "$EXTENSION_PACKAGE/media/ResumePlayback;"
 internal const val STARTED = "$RESUME_PLAYBACK->started(Ljava/lang/Object;)V"
-internal const val STOPPED = "$RESUME_PLAYBACK->stopped(Ljava/lang/Object;)V"
+internal const val STOPPED = "$RESUME_PLAYBACK->stopped(Ljava/lang/Object;Ljava/lang/String;)V"
 internal const val REBOUND = "$RESUME_PLAYBACK->rebound(Ljava/lang/Object;)V"
 internal const val ENDED = "$RESUME_PLAYBACK->ended(Ljava/lang/Object;)V"
 internal const val SEEKING = "$RESUME_PLAYBACK->seeking(Ljava/lang/Object;I)V"
@@ -125,8 +125,10 @@ internal fun BytecodePatchContext.resumeLongVideos() {
             it.returnType == method.returnType
     }
     mutable(found.started).addInstruction(0, "invoke-static/range { p0 .. p0 }, $STARTED")
-    mutable(found.pause).addInstruction(0, "invoke-static/range { p0 .. p0 }, $STOPPED")
-    mutable(found.stop).addInstruction(0, "invoke-static/range { p0 .. p0 }, $STOPPED")
+    // The pause and the stop each take Instagram's reason first, which the extension reads to
+    // tell a seek's pause from a real one.
+    mutable(found.pause).addInstruction(0, "invoke-static/range { p0 .. p1 }, $STOPPED")
+    mutable(found.stop).addInstruction(0, "invoke-static/range { p0 .. p1 }, $STOPPED")
     mutable(found.bind).addInstruction(0, "invoke-static/range { p0 .. p0 }, $REBOUND")
     mutable(found.seek).addInstruction(0, "invoke-static/range { p0 .. p1 }, $SEEKING")
     mutable(found.completed).addInstruction(0, "invoke-static/range { p0 .. p0 }, $ENDED")
@@ -340,6 +342,8 @@ private class ResumeStubs(
                 return p0
             """,
         )
+        // The stub's own registers are its four parameters, p0 to p3, all below v16, so the
+        // plain invoke names them.
         seekPlayer.addInstructionsWithLabels(
             0,
             """
