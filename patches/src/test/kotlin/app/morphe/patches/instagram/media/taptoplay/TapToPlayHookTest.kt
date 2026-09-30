@@ -160,6 +160,10 @@ class TapToPlayHookTest {
             "two buttons" to classes(buttons = 2),
             "two starts" to classes(twoStarts = true),
             "event written over" to classes(clobberedEvent = true),
+            "start read twice" to classes(start = Start.READ_TWICE),
+            "start written over before the call" to classes(start = Start.WRITTEN_OVER),
+            "another Function0 handed over" to classes(start = Start.OTHER),
+            "two calls" to classes(start = Start.TWO_CALLS),
             "no binder" to classes(binder = false),
             "a state that isn't an enum" to classes(enumState = false),
         )) {
@@ -384,6 +388,7 @@ class TapToPlayHookTest {
         clobberedEvent: Boolean = false,
         binder: Boolean = true,
         enumState: Boolean = true,
+        start: Start = Start.HANDED_OVER,
     ): List<ClassDef> {
         val videoPlayer = classDef(
             player,
@@ -457,7 +462,7 @@ class TapToPlayHookTest {
             ),
         )
         return listOfNotNull(videoPlayer, grootPlayer, autoplayChecker, if (activity) fragmentActivity else null) +
-            reelClasses(reel) + playButtonClasses(buttons, twoStarts, clobberedEvent, binder, enumState) +
+            reelClasses(reel) + playButtonClasses(buttons, twoStarts, clobberedEvent, binder, enumState, start) +
             ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
     }
 
@@ -467,7 +472,14 @@ class TapToPlayHookTest {
      * button's click on one arm, handing the start to the data saver check, and another click on
      * the other, which branches to the instruction after that call. The event is p1, v6.
      */
-    private fun playButtonClasses(buttons: Int, twoStarts: Boolean, clobberedEvent: Boolean, binder: Boolean, enumState: Boolean): List<ClassDef> {
+    private fun playButtonClasses(
+        buttons: Int,
+        twoStarts: Boolean,
+        clobberedEvent: Boolean,
+        binder: Boolean,
+        enumState: Boolean,
+        start: Start,
+    ): List<ClassDef> {
         val binderClass = classDef(
             this.binder,
             listOf(
@@ -507,17 +519,30 @@ class TapToPlayHookTest {
             iget-object v1, v0, $button->A01:$session
             iget-object v2, v0, $button->A00:Lfixture/Module;
             iget-object v3, v0, $button->A02:$function0
+            ${if (start == Start.WRITTEN_OVER) "const/4 v3, 0x0" else ""}
             const/4 v0, 0x0
-            invoke-static { v0, v2, v1, v3 }, $dataSaver
+            invoke-static { v0, v2, v1, ${if (start == Start.OTHER) "v4" else "v3"} }, $dataSaver
+            ${if (start == Start.TWO_CALLS) "invoke-static { v0, v2, v1, v3 }, $dataSaver" else ""}
             :done
             const/4 v0, 0x0
             return-object v0
             :other
             move-object v5, p1
+            ${if (start == Start.READ_TWICE) "iget-object v4, v0, $button->A02:$function0" else ""}
             goto :done
         """)
         val lambdaClass = classDef(lambdas, listOf(click), listOf(field(lambdas, "kind", "I"), field(lambdas, "A01", objectType)))
         return listOfNotNull(if (binder) binderClass else null) + stateClass + holderClass + buttonClasses + lambdaClass
+    }
+
+    /** How the play button's click hands its start to the data saver check. */
+    private enum class Start {
+        /** As 449 does: read once, straight into the call's last argument. */
+        HANDED_OVER,
+        READ_TWICE,
+        WRITTEN_OVER,
+        OTHER,
+        TWO_CALLS,
     }
 
     /** How a test's Reels tap stand-ins differ from 449's. */

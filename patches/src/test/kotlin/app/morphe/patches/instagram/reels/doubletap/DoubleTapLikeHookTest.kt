@@ -37,6 +37,7 @@ import org.junit.Test
 class DoubleTapLikeHookTest {
     private val feed = "Lfixture/MediaHolderGestureDelegate;"
     private val carousel = "Lfixture/CarouselGestureDelegate;"
+    private val video = "Lfixture/VideoGestureDelegate;"
     private val liker = "Lfixture/DoubleTapLiker;"
     private val tags = "Lfixture/ProductTags;"
     private val handler = "Lfixture/GestureActionHandler;"
@@ -67,7 +68,7 @@ class DoubleTapLikeHookTest {
         context.turnOffDoubleTapLikes()
 
         assertGuardFirst("the feed's double-tap like", context.mutableClassDefBy(liker).methods.single { it.name == "like" }.code())
-        for (delegate in listOf(feed, carousel)) {
+        for (delegate in listOf(feed, carousel, video)) {
             assertTrue(
                 "$delegate was touched",
                 context.mutableClassDefBy(delegate).methods.single().code().none { it.referenceText() == HOLD_BACK_POST },
@@ -91,7 +92,9 @@ class DoubleTapLikeHookTest {
             classes(likeCalls = 2) to "calls 2 methods with a view and the post",
             classes(likeMissing = true) to "isn't in the app",
             classes(likeStatic = true) to "isn't an instance method",
-            classes(carouselCalls = false) to "has 1 caller",
+            classes(carouselCalls = false) to "is called by 2 posts' delegates",
+            classes(carouselCalls = false, videoCalls = false, lambdaCalls = true) to "is called by 1 posts' delegates",
+            classes(mapCallsAnotherLike = true) to "a second like shaped as",
             classes(likeLocals = 0) to "has no local register",
             classes(handlers = 0) to "marked $HANDLE_DOUBLE_TAP, found 0",
             classes(setterElsewhere = true) to "isn't in $handler",
@@ -193,8 +196,10 @@ class DoubleTapLikeHookTest {
     /**
      * The single photo's gesture delegate, whose onDoubleTapMedia files its report without an
      * activity, hands the double tap to the shared like and then shows the photo's product tags; the
-     * carousel's delegate hands it to the same like. The Reels gesture handler's double tap reads
-     * the like action and skips the like without one, and its setter stores that action.
+     * carousel's and the video's delegates hand it to the same like. Each delegate is handed the
+     * post and the like's other arguments beside a state of its own. A map's delegate likes nothing,
+     * and a lambda takes Objects. The Reels gesture handler's double tap reads the like action and
+     * skips the like without one, and its setter stores that action.
      */
     private fun classes(
         feeds: Int = 1,
@@ -202,6 +207,9 @@ class DoubleTapLikeHookTest {
         likeMissing: Boolean = false,
         likeStatic: Boolean = false,
         carouselCalls: Boolean = true,
+        videoCalls: Boolean = true,
+        lambdaCalls: Boolean = false,
+        mapCallsAnotherLike: Boolean = false,
         likeLocals: Int = 1,
         handlers: Int = 1,
         setterElsewhere: Boolean = false,
@@ -211,10 +219,11 @@ class DoubleTapLikeHookTest {
     ): List<ClassDef> {
         val invoke = if (likeStatic) "invoke-static { v0, v0, p1, v2 }" else "invoke-virtual { v0, v0, v0, p1, v2 }"
         val likeCall = listOf("like", "likeAgain").take(likeCalls).joinToString("\n") { "$invoke, $liker->$it$likeShape" }
+        val delegateOf = { state: String -> listOf("Lcom/instagram/feed/media/Media;", "Ljava/lang/Object;", state, "I") }
         val feedClass = classDef(
             feed,
             (0 until feeds).map { copy ->
-                method(feed, if (copy == 0) "onDoubleTap" else "onDoubleTapAgain", listOf("Ljava/lang/Object;"), "V", 5, """
+                method(feed, if (copy == 0) "onDoubleTap" else "onDoubleTapAgain", delegateOf("Lfixture/PhotoState;"), "V", 8, """
                     const-string v0, "$FEED_DOUBLE_TAP"
                     const/4 v0, 0x0
                     const/4 v2, 0x0
@@ -224,13 +233,29 @@ class DoubleTapLikeHookTest {
                 """)
             },
         )
-        val carouselClass = classDef(
-            carousel,
+        val delegate = { type: String, state: String, calls: String? ->
+            classDef(
+                type,
+                listOf(
+                    method(type, "onDoubleTap", delegateOf(state), "V", 8, """
+                        const/4 v0, 0x0
+                        const/4 v2, 0x0
+                        ${if (calls != null) "$invoke, $liker->$calls$likeShape" else ""}
+                        return-void
+                    """),
+                ),
+            )
+        }
+        val carouselClass = delegate(carousel, "Lfixture/CarouselState;", if (carouselCalls) "like" else null)
+        val videoClass = delegate(video, "Lfixture/VideoState;", if (videoCalls) "like" else null)
+        val mapClass = delegate("Lfixture/MapDelegate;", "Lfixture/MapState;", if (mapCallsAnotherLike) "likeAgain" else null)
+        val lambdaClass = classDef(
+            "Lfixture/LikeLambda;",
             listOf(
-                method(carousel, "onDoubleTap", listOf("Ljava/lang/Object;"), "V", 5, """
+                method("Lfixture/LikeLambda;", "invoke", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "V", 5, """
                     const/4 v0, 0x0
                     const/4 v2, 0x0
-                    ${if (carouselCalls) "$invoke, $liker->like$likeShape" else ""}
+                    ${if (lambdaCalls) "$invoke, $liker->like$likeShape" else ""}
                     return-void
                 """),
             ),
@@ -277,6 +302,9 @@ class DoubleTapLikeHookTest {
         return listOfNotNull(
             feedClass,
             carouselClass,
+            videoClass,
+            mapClass,
+            lambdaClass,
             if (likeMissing) null else likerClass,
             handlerClass,
             if (setterElsewhere) classDef(setterOwner, listOf(setter)) else null,

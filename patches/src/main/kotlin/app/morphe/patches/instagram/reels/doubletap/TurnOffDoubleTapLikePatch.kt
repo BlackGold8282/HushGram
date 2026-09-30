@@ -39,6 +39,12 @@ internal const val LIKE_ACTION = "$DOUBLE_TAP_LIKE->likeAction(Ljava/lang/Object
 /** The report the feed's onDoubleTapMedia files when it has no activity: the one string it holds. */
 internal const val FEED_DOUBLE_TAP = "DefaultMediaHolderGestureDetectorDelegateImpl#onDoubleTapMedia called with null activity"
 
+/**
+ * How many kinds of post must hand a double tap to the feed's like: the single photo and at least
+ * two more, as a carousel and a video do. 449 has seven.
+ */
+private const val MIN_LIKE_DELEGATES = 3
+
 /** The first two parameters of the feed's double-tap like: the post's view, then the post. */
 private val DOUBLE_TAP_LIKE_STARTS = listOf("Landroid/view/View;", "Lcom/instagram/feed/media/Media;")
 
@@ -91,7 +97,8 @@ internal fun BytecodePatchContext.findDoubleTaps(): DoubleTaps {
     val reels = mutableListOf<Method>()
     val setters = mutableListOf<Method>()
     // Every method called with a post's view and the post, and the methods that call it.
-    val likeCallers = mutableMapOf<String, MutableSet<String>>()
+    val likeShapes = mutableMapOf<String, MethodReference>()
+    val likeCallers = mutableMapOf<String, MutableMap<String, Method>>()
     classDefForEach { classDef ->
         classDef.methods.forEach { method ->
             val code = method.code()
@@ -100,7 +107,8 @@ internal fun BytecodePatchContext.findDoubleTaps(): DoubleTaps {
             if (HANDLE_DOUBLE_TAP in markers) reels += method
             if (SET_LIKE_ACTION in markers) setters += method
             code.mapNotNull { it.likeShapedCall() }.forEach { call ->
-                likeCallers.getOrPut(call.text()) { mutableSetOf() } += method.text()
+                likeShapes.putIfAbsent(call.text(), call)
+                likeCallers.getOrPut(call.text()) { mutableMapOf() }[method.text()] = method
             }
         }
     }
@@ -118,9 +126,20 @@ internal fun BytecodePatchContext.findDoubleTaps(): DoubleTaps {
     if (AccessFlags.STATIC.isSet(like.accessFlags) || AccessFlags.ABSTRACT.isSet(like.accessFlags) || like.implementation == null) {
         refuse("the feed's double-tap like ${like.text()} isn't an instance method with a body")
     }
-    // With one caller, the other kinds of post like somewhere the guard doesn't reach.
-    val callers = likeCallers[like.text()].orEmpty().size
-    if (callers < 2) refuse("the feed's double-tap like ${like.text()} has $callers caller, so other posts like elsewhere")
+    // Each delegate is handed what the like takes after the view, the post among it. Fewer than the
+    // photo's and two other kinds of post's calling the like means the others like somewhere the
+    // guard doesn't reach, and so does a delegate calling a second method shaped exactly like it.
+    val carried = like.parameterTypes.drop(1).map(Any::toString)
+    val carries = { method: Method -> method.parameterTypes.map(Any::toString).toMutableList().let { left -> carried.all(left::remove) } }
+    val delegates = likeCallers[like.text()].orEmpty().values.count(carries)
+    if (delegates < MIN_LIKE_DELEGATES) {
+        refuse("the feed's double-tap like ${like.text()} is called by $delegates posts' delegates, expected at least $MIN_LIKE_DELEGATES, so other posts like elsewhere")
+    }
+    val likeParameters = like.parameterTypes.map(Any::toString)
+    likeShapes.values.firstOrNull { other ->
+        other.text() != like.text() && other.parameterTypes.map(Any::toString) == likeParameters &&
+            likeCallers[other.text()].orEmpty().values.any(carries)
+    }?.let { refuse("a post's delegate calls ${it.text()}, a second like shaped as ${like.text()} is, so its posts like where the guard doesn't reach") }
     // The guard borrows v0 at index 0.
     if (like.localRegisterCount() < 1) refuse("the feed's double-tap like ${like.text()} has no local register")
 

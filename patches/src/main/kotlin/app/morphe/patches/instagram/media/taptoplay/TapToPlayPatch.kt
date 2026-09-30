@@ -27,8 +27,10 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -253,8 +255,10 @@ internal fun BytecodePatchContext.findPlayerHooks(): PlayerHooks {
  * and the one enum every binder takes is the button's state. The Litho button is the one class
  * holding that state and a Function0, the video's start, and its click is the one method reading that
  * Function0, an invoke(Object) taking the click event, which hands it to a static (Context, *,
- * UserSession, Function0) that asks about mobile data before it starts the video. The event must
- * still be in its own register at that call, where the hook reads it.
+ * UserSession, Function0) that asks about mobile data before it starts the video. The click must
+ * read the start once and make that one call, with the start it read, so the hook after the call
+ * is sure to follow the button's own start. The event must still be in its own register at that
+ * call, where the hook reads it.
  */
 internal fun BytecodePatchContext.findPlayButtonClick(): PlayButtonClick {
     val binders = mutableListOf<Method>()
@@ -293,14 +297,35 @@ internal fun BytecodePatchContext.findPlayButtonClick(): PlayButtonClick {
         throw PatchException("$PATCH: ${click.definingClass}->${click.name}, the play button's click, isn't an instance Object invoke(Object)")
     }
     val code = click.code()
-    val read = code.indexOfFirst { it.opcode == Opcode.IGET_OBJECT && it.fieldReference()?.definingClass == button.type && it.fieldReference()?.name == start.name }
-    val call = (read + 1 until code.size).firstOrNull { index ->
+    val where = "${click.definingClass}->${click.name}, the play button's click,"
+    val reads = code.indices.filter { index ->
+        code[index].opcode == Opcode.IGET_OBJECT && code[index].fieldReference()?.let { it.definingClass == button.type && it.name == start.name } == true
+    }
+    val read = reads.singleOrNull() ?: throw PatchException("$PATCH: $where reads its start ${reads.size} times, expected once")
+    val calls = code.indices.filter { index ->
         val reference = code[index].methodReference()
         code[index].opcode == Opcode.INVOKE_STATIC && reference != null && reference.returnType == "V" &&
             reference.parameterTypes.map(Any::toString).let { it.size == 4 && it[0] == CONTEXT && it[2] == USER_SESSION && it[3] == FUNCTION0 }
-    } ?: throw PatchException("$PATCH: ${click.definingClass}->${click.name}, the play button's click, never hands its start to a static (Context, *, UserSession, Function0)")
+    }
+    val call = calls.singleOrNull()
+        ?: throw PatchException("$PATCH: $where makes ${calls.size} static (Context, *, UserSession, Function0) calls, expected one handing over its start")
+    val loaded = (code[read] as TwoRegisterInstruction).registerA
+    if (call < read || code[call].argumentRegisters().lastOrNull() != loaded) {
+        throw PatchException("$PATCH: $where doesn't hand the start it read, v$loaded, to ${code[call].methodReference()}")
+    }
+    (read + 1 until call).firstOrNull { index ->
+        val set = code[index] as? OneRegisterInstruction
+        set != null && code[index].opcode.setsRegister() &&
+            (set.registerA == loaded || code[index].opcode.setsWideRegister() && set.registerA + 1 == loaded)
+    }?.let { throw PatchException("$PATCH: $where writes over its start, v$loaded, at instruction $it, before it hands it over") }
     click.requireParameterIntact(PATCH, 0, listOf(call))
     return PlayButtonClick(click, call)
+}
+
+private fun Instruction.argumentRegisters(): List<Int> = when (this) {
+    is RegisterRangeInstruction -> List(registerCount) { startRegister + it }
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    else -> emptyList()
 }
 
 /**
