@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.os.SystemClock;
 import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 
 import org.junit.After;
 import org.junit.Before;
@@ -450,6 +451,111 @@ public class TapToPlayTest {
         assertFalse(TapToPlay.resumeOnTap(false, new Object()));
         missing = HookStatus.missing(FamilyNames.TAP_TO_PLAY);
         assertTrue(missing.toString(), missing.contains("a working 'Reels tap' hook (it threw "
+                + IllegalStateException.class.getName() + ")"));
+    }
+
+    /** A press held [heldFor] ms that ended at [upAt]. */
+    private static void holdEnded(long upAt, long heldFor) {
+        TapClock.record(MotionEvent.ACTION_DOWN, 50, 50, upAt - heldFor, 8);
+        TapClock.record(MotionEvent.ACTION_UP, 51, 52, upAt, 8);
+    }
+
+    private static long aHold() {
+        return ViewConfiguration.getLongPressTimeout() + 200;
+    }
+
+    /**
+     * The sequence on the phone. Instagram advanced to a story by itself and the gate held its start.
+     * A press, a hold and a release: the story player's resume answers no, since the story never
+     * played, and the hook turns that into a yes. The start that resume makes goes ahead on the
+     * release, and the story plays.
+     */
+    @Test
+    public void theReleaseOfAHoldStartsAHeldStory() {
+        Object groot = new Object();
+        Object storyPlayer = new Object();
+        TapToPlay.storyPlayers = asked -> {
+            assertSame(storyPlayer, asked);
+            return groot;
+        };
+        assertFalse("Instagram's advance, with no tap", TapToPlay.allowDirectStart(groot, "autoplay"));
+        holdEnded(SystemClock.uptimeMillis(), aHold());
+        assertTrue("the release takes the resume path", TapToPlay.resumeHeldStory(false, storyPlayer));
+        assertTrue("the resume's start, on the release", TapToPlay.allowDirectStart(groot, "resume"));
+        assertTrue("armed, so it plays on", TapToPlay.armed(groot));
+        assertFalse("it played, so it's no longer held", TapToPlay.resumeHeldStory(false, storyPlayer));
+        assertTrue(HookStatus.missing(FamilyNames.TAP_TO_PLAY).toString(), HookStatus.missing(FamilyNames.TAP_TO_PLAY).isEmpty());
+    }
+
+    /**
+     * A quick tap moves between stories, so its release gets Instagram's answer, and so do a release
+     * long after the hold (a sheet closing), a story the gate never held, one with no player yet and
+     * a held player that has been given a new story since.
+     */
+    @Test
+    public void onlyAHoldsReleaseOnAHeldStoryStartsIt() {
+        Object groot = new Object();
+        TapToPlay.storyPlayers = asked -> groot;
+        assertFalse(TapToPlay.allowDirectStart(groot, "autoplay"));
+        long now = SystemClock.uptimeMillis();
+        holdEnded(now, 90);
+        assertFalse("a quick tap", TapToPlay.resumeHeldStory(false, new Object()));
+        holdEnded(now - TapToPlay.TAP_WINDOW_MS - 1, aHold());
+        assertFalse("a hold that ended too long ago", TapToPlay.resumeHeldStory(false, new Object()));
+
+        holdEnded(now, aHold());
+        TapToPlay.storyPlayers = asked -> new Object();
+        assertFalse("a story the gate never held", TapToPlay.resumeHeldStory(false, new Object()));
+        TapToPlay.storyPlayers = asked -> null;
+        assertFalse("no player yet", TapToPlay.resumeHeldStory(false, new Object()));
+        assertFalse(TapToPlay.resumeHeldStory(false, null));
+        TapToPlay.storyPlayers = asked -> groot;
+        assertTrue("the control: the same release on the held story", TapToPlay.resumeHeldStory(false, new Object()));
+        TapToPlay.rebound(groot);
+        assertFalse("the held player got a new story", TapToPlay.resumeHeldStory(false, new Object()));
+    }
+
+    /** A story Instagram paused while it played already resumes. The reader isn't asked. */
+    @Test
+    public void instagramsOwnStoryResumeNeverAsksTheReader() {
+        TapToPlay.storyPlayers = asked -> {
+            throw new AssertionError("asked about a resume Instagram already makes");
+        };
+        holdEnded(SystemClock.uptimeMillis(), aHold());
+        assertTrue(TapToPlay.resumeHeldStory(true, new Object()));
+        assertTrue(HookStatus.missing(FamilyNames.TAP_TO_PLAY).toString(), HookStatus.missing(FamilyNames.TAP_TO_PLAY).isEmpty());
+    }
+
+    @Test
+    public void offPausedOrNotReadyAStoryReleaseDoesWhatInstagramDecided() {
+        Object groot = new Object();
+        TapToPlay.storyPlayers = asked -> groot;
+        assertFalse(TapToPlay.allowDirectStart(groot, "autoplay"));
+        holdEnded(SystemClock.uptimeMillis(), aHold());
+        Settings.TAP_TO_PLAY.save(false);
+        assertFalse(TapToPlay.resumeHeldStory(false, new Object()));
+        Settings.TAP_TO_PLAY.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse(TapToPlay.resumeHeldStory(false, new Object()));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> assertFalse(TapToPlay.resumeHeldStory(false, new Object())));
+        assertTrue("the control: on, the same release starts the story", TapToPlay.resumeHeldStory(false, new Object()));
+    }
+
+    @Test
+    public void anUnfilledStoryReaderOrAFailureLeavesTheReleaseToInstagram() {
+        holdEnded(SystemClock.uptimeMillis(), aHold());
+        // forget() put back the stub the patch fills in.
+        assertFalse(TapToPlay.resumeHeldStory(false, new Object()));
+        List<String> missing = HookStatus.missing(FamilyNames.TAP_TO_PLAY);
+        assertTrue(missing.toString(), missing.contains("field the story player#its IgGrootPlayer"));
+
+        TapToPlay.storyPlayers = asked -> {
+            throw new IllegalStateException("the story player failed");
+        };
+        assertFalse(TapToPlay.resumeHeldStory(false, new Object()));
+        missing = HookStatus.missing(FamilyNames.TAP_TO_PLAY);
+        assertTrue(missing.toString(), missing.contains("a working 'story release' hook (it threw "
                 + IllegalStateException.class.getName() + ")"));
     }
 

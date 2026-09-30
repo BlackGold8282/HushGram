@@ -19,8 +19,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>Every touch on an Instagram activity passes through {@code IgFragmentActivity.dispatchTouchEvent},
  * and the patch hands each one here before Instagram sees it. A tap is a finger that went down and
  * came up again without moving further than the touch slop, however long it stayed: a quick tap and
- * a long press both count, a scroll, a fling or a second finger don't. Only the time the finger came
- * up is kept, on the clock {@link MotionEvent#getEventTime()} uses. A later non-tap gesture
+ * a long press both count, a scroll, a fling or a second finger don't. The time the finger came up
+ * is kept, on the clock {@link MotionEvent#getEventTime()} uses, and how long it stayed down, which
+ * tells a press and hold from a tap ({@link TapToPlay#resumeHeldStory}). A later non-tap gesture
  * invalidates that tap, so swiping to another reel can't borrow it.
  *
  * <p>It only reads the event. It never changes, consumes or recycles one, and the hook returns
@@ -33,6 +34,8 @@ public final class TapClock {
     static volatile int slopForTests = -1;
 
     private static volatile long lastTapUp = NO_TAP;
+    private static volatile long lastTapHeld = -1;
+    private static long downTime;
     private static int slop = -1;
     private static boolean tracking;
     private static boolean moved;
@@ -60,6 +63,7 @@ public final class TapClock {
                 moved = false;
                 downX = x;
                 downY = y;
+                downTime = time;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 // A second finger makes a pinch or a zoom, not a tap.
@@ -69,8 +73,12 @@ public final class TapClock {
                 if (tracking && beyond(x, y, touchSlop)) invalidateTap();
                 break;
             case MotionEvent.ACTION_UP:
-                if (tracking && !moved && !beyond(x, y, touchSlop)) lastTapUp = time;
-                else if (tracking) invalidateTap();
+                if (tracking && !moved && !beyond(x, y, touchSlop)) {
+                    lastTapHeld = time - downTime;
+                    lastTapUp = time;
+                } else if (tracking) {
+                    invalidateTap();
+                }
                 tracking = false;
                 break;
             case MotionEvent.ACTION_CANCEL:
@@ -84,6 +92,7 @@ public final class TapClock {
 
     private static void invalidateTap() {
         lastTapUp = NO_TAP;
+        lastTapHeld = -1;
         if (!moved) TapToPlay.nonTapGesture();
         moved = true;
     }
@@ -109,8 +118,14 @@ public final class TapClock {
         return now - at;
     }
 
+    /** How long the finger stayed down for the last tap, or -1 when there's none. */
+    static long heldMs() {
+        return lastTapUp == NO_TAP ? -1 : lastTapHeld;
+    }
+
     static synchronized void forget() {
         lastTapUp = NO_TAP;
+        lastTapHeld = -1;
         tracking = false;
         moved = false;
         slop = -1;

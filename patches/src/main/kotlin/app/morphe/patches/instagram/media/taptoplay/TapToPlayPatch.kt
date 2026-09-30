@@ -77,6 +77,8 @@ private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
  * is, so its click tells the extension, which hides it while the video it started plays. A tap on a
  * reel resumes it only when Instagram knows you paused it, so the Reels tap's decision goes past the
  * extension too, which sends a tap on a reel that isn't playing down the resume path ([hookReelTap]).
+ * The story player resumes on the release of a press and hold only a story that played before the
+ * press, so the flag its resume checks goes past the extension as well ([hookStoryRelease]).
  *
  * Everything is found before anything changes, so a build that differs stops the patch naming
  * what it couldn't find, and nothing is half done.
@@ -118,6 +120,7 @@ internal class PlayButtonClick(val method: Method, val call: Int)
 internal fun BytecodePatchContext.holdStartsWithoutATap() {
     val hooks = findPlayerHooks()
     val reelTap = findReelTap()
+    val storyRelease = findStoryRelease(hooks.prepare.definingClass)
 
     mutable(hooks.playInternal).apply {
         requireLocals(PATCH, 1)
@@ -173,6 +176,7 @@ internal fun BytecodePatchContext.holdStartsWithoutATap() {
         "invoke-static/range { p1 .. p1 }, $PLAY_BUTTON_TAPPED",
     )
     hookReelTap(reelTap)
+    hookStoryRelease(storyRelease)
 }
 
 /**

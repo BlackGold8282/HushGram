@@ -79,6 +79,24 @@ public class TapClockTest {
         assertEquals(0, TapClock.msSinceTap(3_000));
     }
 
+    /** How long the finger stayed down is kept with the tap, and goes with it. */
+    @Test
+    public void aTapKeepsHowLongItWasHeld() {
+        assertEquals("nothing yet", -1, TapClock.heldMs());
+        down(100, 100, 1_000);
+        assertEquals("still down", -1, TapClock.heldMs());
+        up(101, 100, 1_090);
+        assertEquals(90, TapClock.heldMs());
+        down(100, 100, 2_000);
+        up(100, 100, 2_700);
+        assertEquals(700, TapClock.heldMs());
+
+        down(100, 100, 3_000);
+        move(100, 100 + SLOP + 1, 3_020);
+        up(100, 100, 3_900);
+        assertEquals("a scroll held as long is no tap", -1, TapClock.heldMs());
+    }
+
     @Test
     public void aScrollIsntATapEvenIfItComesBack() {
         down(100, 100, 1_000);

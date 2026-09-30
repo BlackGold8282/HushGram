@@ -8,6 +8,7 @@ package app.hushgram.extension.instagram.media;
 
 import android.os.SystemClock;
 import android.view.View;
+import android.view.ViewConfiguration;
 
 import androidx.annotation.Nullable;
 
@@ -58,8 +59,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * tap started a video from, until that start ends ({@link PlayButtons}). A tap on a reel resumes it
  * only when Instagram knows you paused it yourself, so a tap on a held reel would go down the pause
  * path and do nothing: {@link #resumeOnTap} sends a tap on a reel that's waiting down the resume
- * path instead. Off, paused, before the settings are ready, or when anything here throws, every
- * start goes ahead and the check answers what Instagram decided, as it would unpatched.
+ * path instead. The story viewer resumes on the release of a press and hold only a story it paused
+ * while it played, and {@link #resumeHeldStory} gives a story this patch held the same resume.
+ * Off, paused, before the settings are ready, or when anything here throws, every start goes ahead
+ * and the check answers what Instagram decided, as it would unpatched.
  */
 public final class TapToPlay {
     /** How long after a tap ends a start still counts as that tap's. */
@@ -109,7 +112,9 @@ public final class TapToPlay {
 
     private static final String SOURCE = "TapToPlay";
 
-    private static final ArmedPlayers ARMED = new ArmedPlayers();
+    private static final Players ARMED = new Players();
+    /** The players whose last start this gate held, until one goes ahead or they get a new video. */
+    private static final Players HELD = new Players();
     private static final Object TAP_LOCK = new Object();
     /** The end of the last tap a start went ahead on, so only its first start gets the load window. */
     private static long usedTap = TapClock.NO_TAP;
@@ -148,7 +153,7 @@ public final class TapToPlay {
         try {
             HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
             HookStatus.bound(FamilyNames.TAP_TO_PLAY, "player pause");
-            if ((reason == null || !MOMENTARY.contains(reason)) && ARMED.disarm(player)) {
+            if ((reason == null || !MOMENTARY.contains(reason)) && ARMED.remove(player)) {
                 PlayButtons.ended(player);
                 logEnded(() -> "a pause for " + (reason == null ? "no reason" : reason));
             }
@@ -162,7 +167,8 @@ public final class TapToPlay {
         try {
             HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
             HookStatus.bound(FamilyNames.TAP_TO_PLAY, "player prepare");
-            if (ARMED.disarmUnlessArmedSince(player, SystemClock.uptimeMillis() - BIND_GRACE_MS)) {
+            HELD.remove(player);
+            if (ARMED.removeUnlessAddedSince(player, SystemClock.uptimeMillis() - BIND_GRACE_MS)) {
                 PlayButtons.ended(player);
                 logEnded(() -> "a new video");
             }
@@ -261,6 +267,56 @@ public final class TapToPlay {
         }
     }
 
+    /**
+     * The hook in the story viewer's video player's resume, with its own answer to whether a resume
+     * should start the story and the player. Instagram answers yes only for a story it paused while
+     * it played, and a press on a story pauses it only then, so a story this patch held on its first
+     * frame never started on the release of a press and hold: the only way to watch it was a tap back
+     * and forward again. While the switch is on, the release of a press held at least a long press
+     * starts a story whose last start the gate held, and that start comes inside the release's tap
+     * window, so it goes ahead. A quick tap still only moves between stories, and every other resume,
+     * a sheet or a dialog closing included, gets Instagram's answer. Off, paused, before the settings
+     * are ready, or when anything here throws, the resume does what Instagram decided.
+     */
+    public static boolean resumeHeldStory(boolean resume, @Nullable Object storyPlayer) {
+        try {
+            HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
+            RuntimeException failure = failNext;
+            if (failure != null) {
+                failNext = null;
+                throw failure;
+            }
+            if (resume || storyPlayer == null || !on()) return resume;
+            HookStatus.bound(FamilyNames.TAP_TO_PLAY, "story release");
+            long sinceTap = TapClock.msSinceTap(SystemClock.uptimeMillis());
+            if (sinceTap < 0 || sinceTap > TAP_WINDOW_MS || TapClock.heldMs() < ViewConfiguration.getLongPressTimeout()) {
+                return resume;
+            }
+            Object groot = storyPlayers.grootOf(storyPlayer);
+            if (groot == NOT_PATCHED) {
+                HookStatus.missingMember(FamilyNames.TAP_TO_PLAY, "field", "the story player", "its IgGrootPlayer");
+                return resume;
+            }
+            boolean start = groot != null && HELD.contains(groot);
+            Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> "Tap to play: a hold's release on a "
+                    + (start ? "held story starts it" : "story that wasn't held goes to Instagram"));
+            return start;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.TAP_TO_PLAY, "story release", failure);
+            return resume;
+        }
+    }
+
+    /** The IgGrootPlayer of the story player a release landed on. Tests put their own in. */
+    interface StoryPlayers {
+        /** The story player's IgGrootPlayer, null when it has none, or {@link #NOT_PATCHED}. */
+        @Nullable
+        Object grootOf(Object storyPlayer);
+    }
+
+    /** Reaches the reader only through this, from inside {@link #resumeHeldStory}'s try, as {@link #reelStates}. */
+    static StoryPlayers storyPlayers = StoryPlayerReader::grootOf;
+
     /** The state of the reel a tap landed on. Tests put their own in. */
     interface ReelStates {
         /** IgVideoPlayerImpl's state enum, null when the tap's reel has no player, or {@link #NOT_PATCHED}. */
@@ -306,11 +362,13 @@ public final class TapToPlay {
 
     /** The rule, with the clock passed in. Arms the player when it lets the start through. */
     static boolean decide(@Nullable Object player, @Nullable String reason, long now, String path) {
-        boolean armed = ARMED.armed(player);
+        boolean armed = ARMED.contains(player);
         long sinceTap = TapClock.msSinceTap(now);
         boolean covered = tapCovers(sinceTap, now, armed);
         boolean allowed = armed || covered;
-        if (allowed && !armed) ARMED.arm(player, now);
+        if (allowed && !armed) ARMED.add(player, now);
+        if (allowed) HELD.remove(player);
+        else HELD.add(player, now);
         if (covered) PlayButtons.started(player, now);
         logDecision(allowed, reason, sinceTap, armed, path);
         return allowed;
@@ -372,11 +430,13 @@ public final class TapToPlay {
     }
 
     /**
-     * Forgets every armed player, the hidden play button and the log's counts, and puts the patched
-     * reel state reader back. For tests.
+     * Forgets every armed and held player, the hidden play button and the log's counts, and puts the
+     * patched readers back. For tests.
      */
     static void forget() {
         ARMED.clear();
+        HELD.clear();
+        storyPlayers = StoryPlayerReader::grootOf;
         PlayButtons.forget();
         synchronized (TAP_LOCK) {
             usedTap = TapClock.NO_TAP;
@@ -394,7 +454,7 @@ public final class TapToPlay {
     }
 
     static boolean armed(Object player) {
-        return ARMED.armed(player);
+        return ARMED.contains(player);
     }
 
     static int armedCount() {
@@ -402,25 +462,26 @@ public final class TapToPlay {
     }
 
     /**
-     * The players a start was let through on, by identity and weakly: a player Instagram drops is
-     * forgotten with it, and one whose equals says it's another player is still itself.
+     * Players by identity and weakly, the ones a start was let through on ({@link #ARMED}) or held on
+     * ({@link #HELD}): a player Instagram drops is forgotten with it, and one whose equals says it's
+     * another player is still itself.
      */
-    static final class ArmedPlayers {
+    static final class Players {
         private final Map<Key, Long> armedAt = new HashMap<>();
         private final ReferenceQueue<Object> gone = new ReferenceQueue<>();
 
-        synchronized void arm(@Nullable Object player, long now) {
+        synchronized void add(@Nullable Object player, long now) {
             purge();
             if (player != null) armedAt.put(new Key(player, gone), now);
         }
 
-        synchronized boolean armed(@Nullable Object player) {
+        synchronized boolean contains(@Nullable Object player) {
             purge();
             return player != null && armedAt.containsKey(new Key(player, null));
         }
 
-        /** True when [player] was armed. */
-        synchronized boolean disarm(@Nullable Object player) {
+        /** True when [player] was there. */
+        synchronized boolean remove(@Nullable Object player) {
             purge();
             return player != null && armedAt.remove(new Key(player, null)) != null;
         }
@@ -430,8 +491,8 @@ public final class TapToPlay {
             armedAt.replaceAll((player, at) -> Long.MIN_VALUE);
         }
 
-        /** Disarms [player] unless its start came at or after [since]. True when it did. */
-        synchronized boolean disarmUnlessArmedSince(@Nullable Object player, long since) {
+        /** Removes [player] unless it was added at or after [since]. True when it removes it. */
+        synchronized boolean removeUnlessAddedSince(@Nullable Object player, long since) {
             purge();
             if (player == null) return false;
             Key key = new Key(player, null);

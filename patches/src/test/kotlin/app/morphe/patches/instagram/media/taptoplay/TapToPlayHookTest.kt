@@ -57,6 +57,9 @@ class TapToPlayHookTest {
     private val button = "Lfixture/LithoPlayButton;"
     private val lambdas = "Lfixture/Lambdas;"
     private val session = "Lcom/instagram/common/session/UserSession;"
+    private val storyPlayerInterface = "Lfixture/StoryVideoPlayer;"
+    private val storyPlayer = "Lfixture/StoryPlayer;"
+    private val storyPlayerOther = "Lfixture/StoryPlayerOverVideoPlayer;"
     private val dataSaver = "Lfixture/DataSaverDialog;->A00(Landroid/content/Context;Lfixture/Module;$session$function0)V"
 
     /** What the controller's pause logs, which the fixture check finds it by. */
@@ -65,7 +68,7 @@ class TapToPlayHookTest {
     /** Every hook the patch writes is in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED)) {
+        for (hook in listOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED, RESUME_HELD_STORY)) {
             val type = hook.substringBefore("->")
             val declared = ExtensionDex.classDef(type).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
@@ -78,6 +81,9 @@ class TapToPlayHookTest {
             val stub = "$name(${objectType.repeat(count)})$objectType"
             assertTrue("the stub $stub is not in the extension: $stubs", stub in stubs)
         }
+        val grootOf = ExtensionDex.classDef(STORY_PLAYER_READER).methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        assertTrue("the stub $GROOT_OF is not in the extension: $grootOf", "$GROOT_OF($objectType)$objectType" in grootOf)
     }
 
     /**
@@ -131,6 +137,42 @@ class TapToPlayHookTest {
         assertEquals(listOf(controller, "$controller->A0R:$lookup"), filled(context, "playersOf"))
         assertEquals(listOf(lookup, holder, "$lookup->A01($holder)$reelPlayer"), filled(context, "playerFor"))
         assertEquals(listOf(reelPlayer, "$reelPlayer->Cyy()$state"), filled(context, "stateOf"))
+        assertStoryReleaseHooked(context.method(storyPlayer, "Gk2").code(), "$storyPlayer->A0W:Z", flag = 0, playerRegister = 7)
+        assertEquals(listOf(storyPlayer, "$storyPlayer->A0E:$groot"), filled(context, GROOT_OF, STORY_PLAYER_READER))
+        assertTrue("the player over IgVideoPlayerImpl", context.method(storyPlayerOther, "Gk2").code().none { it.referenceText() == RESUME_HELD_STORY })
+    }
+
+    /**
+     * The flag the story player's resume reads goes past the extension, with the player, between
+     * the read and the branch testing it, and the extension's answer replaces it.
+     */
+    private fun assertStoryReleaseHooked(code: List<Instruction>, flagField: String, flag: Int, playerRegister: Int, what: String = "the story release") {
+        val hook = code.indices.single { code[it].referenceText() == RESUME_HELD_STORY }
+        assertEquals("$what: right after the flag's read", listOf(Opcode.IGET_BOOLEAN, flagField), listOf(code[hook - 1].opcode, code[hook - 1].referenceText()))
+        assertEquals("$what: the flag and the player", listOf(flag, playerRegister), (code[hook] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        assertEquals(
+            "$what: the answer replaces the flag, and the branch tests it", listOf(Opcode.MOVE_RESULT, flag, Opcode.IF_EQZ, flag),
+            listOf(code[hook + 1].opcode, (code[hook + 1] as OneRegisterInstruction).registerA, code[hook + 2].opcode, (code[hook + 2] as OneRegisterInstruction).registerA),
+        )
+    }
+
+    /** Each story player the patch can't hook safely fails at patch time with what it found, before anything is written. */
+    @Test
+    fun aStoryPlayerThePatchCantReadFailsBeforeAnythingChanges() {
+        val cases = listOf(
+            Story(fragment = false) to "this build has no $REEL_VIEWER_FRAGMENT",
+            Story(secondGrootPlayer = true) to "expected one $storyPlayerInterface holding one $groot, found 2",
+            Story(pauseSetsFlag = false) to "expected one flag $storyPlayer->Gk2 reads",
+            Story(resumeClearsFlag = false) to "expected one flag $storyPlayer->Gk2 reads",
+            Story(thisWrittenOver = true) to "writes over this (v7)",
+            Story(privateGroot = true) to "can't reach $storyPlayer->A0E",
+        )
+        for ((story, expected) in cases) {
+            val context = PatchContexts.of(classes(story = story))
+            val failure = assertThrows(PatchException::class.java) { context.holdStartsWithoutATap() }
+            assertTrue("$story: ${failure.message}", failure.message!!.contains(expected))
+            assertUntouched(context)
+        }
     }
 
     /**
@@ -175,8 +217,8 @@ class TapToPlayHookTest {
     }
 
     /** What the filled stub [name] names before its first return. Its own body stays behind it, unreached. */
-    private fun filled(context: BytecodePatchContext, name: String): List<String> =
-        context.method(REEL_STATE_READER, name).code().takeWhile { it.opcode != Opcode.RETURN_OBJECT }.mapNotNull { it.referenceText() }
+    private fun filled(context: BytecodePatchContext, name: String, reader: String = REEL_STATE_READER): List<String> =
+        context.method(reader, name).code().takeWhile { it.opcode != Opcode.RETURN_OBJECT }.mapNotNull { it.referenceText() }
 
     /** The decision goes past the extension, with the navigator, just before the branch to the pause path. */
     private fun assertReelTapHooked(code: List<Instruction>, decision: Int, navigatorRegister: Int, what: String = "the Reels tap") {
@@ -259,16 +301,23 @@ class TapToPlayHookTest {
                 val pauses = reel.flatMap { it.methods }.filter { pauseCurrentPlayerLog in it.strings() }
                 val near = FixtureDex.classes(bundle, pauses.flatMap { it.namedTypes() }.toSet()).values.toList()
                 val returned = FixtureDex.classes(bundle, near.flatMap { it.methods }.map { it.returnType }.toSet()).values.toList()
+                // The story viewer, and every class implementing its video player's interface.
+                val viewer = FixtureDex.classes(bundle, setOf(REEL_VIEWER_FRAGMENT)).values.toList()
+                val storyInterface = viewer.single().fields.single { it.name == VIDEO_PLAYER_FIELD }.type
+                val storyPlayers = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex -> dex.classes.filterTo(storyPlayers) { storyInterface in it.interfaces } }
                 val classes = (
                     FixtureDex.classesHolding(bundle, PLAY_INTERNAL) + FixtureDex.classesHolding(bundle, GROOT_PREPARE) +
                         FixtureDex.classesHolding(bundle, AUTOPLAY_CHECKER.last()) +
                         listOfNotNull(FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY))[FRAGMENT_ACTIVITY]) +
-                        reel + near + returned + playButtonClasses(bundle) +
-                        ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
+                        reel + near + returned + playButtonClasses(bundle) + viewer + storyPlayers +
+                        ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER) + ExtensionDex.classDef(STORY_PLAYER_READER)
                     ).distinctBy { it.type }
                 val context = PatchContexts.of(classes)
                 val hooks = context.findPlayerHooks()
                 val reelTap = context.findReelTap()
+                val storyRelease = context.findStoryRelease(hooks.prepare.definingClass)
+                val flagField = storyRelease.resume.code()[storyRelease.read].referenceText()!!
                 assertEquals("${bundle.name}: the player's IgGrootPlayer field", hooks.prepare.definingClass, hooks.grootField.type)
                 assertEquals("${bundle.name}: play and prepare are one class's", hooks.prepare.definingClass, hooks.play.definingClass)
                 assertEquals("${bundle.name}: pause is theirs too", hooks.prepare.definingClass, hooks.pause.definingClass)
@@ -291,6 +340,15 @@ class TapToPlayHookTest {
                 assertReelTapHooked(after(reelTap.tap), reelTap.decision, reelTap.tap.implementation!!.registerCount - 4, "${bundle.name}: the Reels tap")
                 assertEquals("${bundle.name}: the state stub", reelTap.state.toString(), filled(context, "stateOf").last())
                 assertEquals("${bundle.name}: the controller stub", "$function0->invoke()$objectType", filled(context, "controllerOf").last())
+                // `this` is the first register past the locals: the count less the two declared parameters and itself.
+                assertStoryReleaseHooked(
+                    after(storyRelease.resume), flagField, storyRelease.flag, storyRelease.resume.implementation!!.registerCount - 3,
+                    "${bundle.name}: the story release",
+                )
+                assertEquals(
+                    "${bundle.name}: the story player stub", listOf(storyRelease.resume.definingClass, storyRelease.groot.toString()),
+                    filled(context, GROOT_OF, STORY_PLAYER_READER),
+                )
                 val click = hooks.playButton.method
                 assertPlayButtonHooked(after(click), click.implementation!!.registerCount - 1, "${bundle.name}: the play button's click")
                 checked += version
@@ -311,12 +369,16 @@ class TapToPlayHookTest {
     }
 
     private fun assertUntouched(context: BytecodePatchContext) {
-        val hooks = setOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED)
+        val hooks = setOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED, RESUME_HELD_STORY)
         for ((type, name) in listOf(player to "A0J", groot to "A0X", groot to "A0V", groot to "A0S", checker to "A01", navigator to "A01", lambdas to "invoke")) {
             assertTrue("$type->$name changed", context.method(type, name).code().none { it.referenceText() in hooks })
         }
         for ((name, _) in REEL_STUBS) {
             assertEquals("the stub $name was filled", Opcode.SGET_OBJECT, context.method(REEL_STATE_READER, name).code().first().opcode)
+        }
+        assertEquals("the stub $GROOT_OF was filled", Opcode.SGET_OBJECT, context.method(STORY_PLAYER_READER, GROOT_OF).code().first().opcode)
+        context.classDefByOrNull(storyPlayer)?.let { player ->
+            assertTrue("$storyPlayer->Gk2 changed", player.methods.first { it.name == "Gk2" }.code().none { it.referenceText() in hooks })
         }
     }
 
@@ -389,6 +451,7 @@ class TapToPlayHookTest {
         binder: Boolean = true,
         enumState: Boolean = true,
         start: Start = Start.HANDED_OVER,
+        story: Story = Story(),
     ): List<ClassDef> {
         val videoPlayer = classDef(
             player,
@@ -462,8 +525,8 @@ class TapToPlayHookTest {
             ),
         )
         return listOfNotNull(videoPlayer, grootPlayer, autoplayChecker, if (activity) fragmentActivity else null) +
-            reelClasses(reel) + playButtonClasses(buttons, twoStarts, clobberedEvent, binder, enumState, start) +
-            ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
+            reelClasses(reel) + playButtonClasses(buttons, twoStarts, clobberedEvent, binder, enumState, start) + storyClasses(story) +
+            ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER) + ExtensionDex.classDef(STORY_PLAYER_READER)
     }
 
     /**
@@ -661,6 +724,89 @@ class TapToPlayHookTest {
             ),
         )
         return listOf(tap, clipsController, players, holderClass, playerInterface, stateEnum)
+    }
+
+    /** How a test's story player stand-ins differ from 449's. */
+    private data class Story(
+        val fragment: Boolean = true,
+        /** A second player over IgGrootPlayer, beside the one 449 has. */
+        val secondGrootPlayer: Boolean = false,
+        val pauseSetsFlag: Boolean = true,
+        val resumeClearsFlag: Boolean = true,
+        /** The resume writes over `this` before it reads the flag. */
+        val thisWrittenOver: Boolean = false,
+        val privateGroot: Boolean = false,
+    )
+
+    /**
+     * The story viewer, shaped like 449's: its video player field, its pause and resume logging
+     * their strings and calling the player, the player interface, the player over IgGrootPlayer with
+     * its bound flag, its resume flag and a preparing flag, and the other player over
+     * IgVideoPlayerImpl, which the patch leaves alone.
+     */
+    private fun storyClasses(story: Story): List<ClassDef> {
+        val flagField = { owner: String, name: String -> ImmutableField(owner, name, "Z", AccessFlags.PUBLIC.value, null, null, null) }
+        val viewer = classDef(
+            REEL_VIEWER_FRAGMENT,
+            listOf(
+                method(REEL_VIEWER_FRAGMENT, "A10", listOf(REEL_VIEWER_FRAGMENT, string), "V", 3, static = true, body = """
+                    iget-object v0, p0, $REEL_VIEWER_FRAGMENT->$VIDEO_PLAYER_FIELD:$storyPlayerInterface
+                    invoke-interface { v0, p1 }, $storyPlayerInterface->GS9($string)V
+                    const-string v1, "$PAUSE_STORY"
+                    return-void
+                """),
+                method(REEL_VIEWER_FRAGMENT, "A11", listOf(REEL_VIEWER_FRAGMENT, string, "Z"), "V", 5, static = true, body = """
+                    const-string v1, "${RESUME_STORY[0]}"
+                    iget-object v0, p0, $REEL_VIEWER_FRAGMENT->$VIDEO_PLAYER_FIELD:$storyPlayerInterface
+                    invoke-interface { v0, p1, p2 }, $storyPlayerInterface->Gk2(${string}Z)V
+                    const-string v1, "${RESUME_STORY[1]}"
+                    return-void
+                """),
+            ),
+            listOf(ImmutableField(REEL_VIEWER_FRAGMENT, VIDEO_PLAYER_FIELD, storyPlayerInterface, AccessFlags.PUBLIC.value, null, null, null)),
+        )
+        val playerInterface = ImmutableClassDef(
+            storyPlayerInterface, AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value or AccessFlags.INTERFACE.value,
+            objectType, null, null, null, emptyList(),
+            listOf(abstractMethod(storyPlayerInterface, "GS9", listOf(string), "V"), abstractMethod(storyPlayerInterface, "Gk2", listOf(string, "Z"), "V")),
+        )
+        val self = "p0"
+        val implementer = { type: String, heldType: String ->
+            ImmutableClassDef(
+                type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, objectType, listOf(storyPlayerInterface), null, null,
+                listOf(
+                    ImmutableField(type, "A0E", heldType, if (story.privateGroot) AccessFlags.PRIVATE.value else AccessFlags.PUBLIC.value, null, null, null),
+                    flagField(type, "A0T"), flagField(type, "A0W"), flagField(type, "A0i"),
+                ),
+                listOf(
+                    method(type, "GS9", listOf(string), "V", 6, static = false, body = """
+                        const/4 v2, 0x1
+                        ${if (story.pauseSetsFlag) "iput-boolean v2, $self, $type->A0W:Z" else ""}
+                        return-void
+                    """),
+                    method(type, "Gk2", listOf(string, "Z"), "V", 10, static = false, body = """
+                        ${if (story.thisWrittenOver) "move-object/from16 p0, p0" else ""}
+                        const/4 v4, 0x0
+                        iget-boolean v0, $self, $type->A0i:Z
+                        if-eqz v0, :end
+                        iget-boolean v0, $self, $type->A0W:Z
+                        if-eqz v0, :end
+                        ${if (story.resumeClearsFlag) "iput-boolean v4, $self, $type->A0W:Z" else ""}
+                        iget-boolean v0, $self, $type->A0T:Z
+                        if-nez v0, :end
+                        return-void
+                        :end
+                        return-void
+                    """),
+                ),
+            )
+        }
+        return listOfNotNull(
+            if (story.fragment) viewer else null,
+            playerInterface,
+            implementer(storyPlayer, groot),
+            implementer(storyPlayerOther, if (story.secondGrootPlayer) groot else player),
+        )
     }
 
     private fun abstractMethod(owner: String, name: String, parameters: List<String>, returns: String): Method = ImmutableMethod(

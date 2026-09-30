@@ -206,6 +206,9 @@ once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(Z)
 # "clips_pause" path, so the call isn't first. Two other methods load "clips_pause"; the tap is the
 # one carrying its togglePause marker.
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeOnTap(ZLjava/lang/Object;)Z in instance (Landroid/view/View;*)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause clips_pause
+# The story player's resume hands the flag it starts a story on to resumeHeldStory() between reading
+# it and branching on it. The resume holds no string and every field it touches is its own class's
+# Redex name, so no rule can pick it; TapToPlayHookTest checks it on each declared build.
 start-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 once-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 # The feed's Litho play button tells playButtonTapped() right after its click hands the video to
