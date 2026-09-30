@@ -107,3 +107,28 @@ Hide creation and promotion pills	Ocultar las etiquetas de creación y promoció
 Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.	Etiquetas como Edits, Usar plantilla, Meta AI y las gafas Ray-Ban Meta. Una insignia de directo y la etiqueta de medio controlado por el Estado se quedan.
 Hide friends' activity and comment previews	Ocultar la actividad de amigos y la vista previa de comentarios
 The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.	Las burbujas de amigos que dieron me gusta o comentaron, el comentario que aparece bajo un reel y la fila de amigos que lo vieron. Los comentarios siguen a un toque.
+Downloads	Descargas
+Save videos other apps can open	Guardar videos que otras apps puedan abrir
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Para WhatsApp, editores de video como CapCut e InShot, o una galería o un reproductor que reproduzca sin sonido los videos guardados. Puede bajar la calidad.
+Download quality	Calidad de descarga
+Best	La mejor
+Smallest	La más pequeña
+Each video saves at the best quality the player streams.	Cada video se guarda con la mejor calidad que ofrece el reproductor.
+Each video saves at its lowest quality, for the smallest file.	Cada video se guarda con su calidad más baja, para que el archivo sea lo más pequeño posible.
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Cada video se guarda en %1$s o en la calidad más cercana por debajo. Si un video no tiene ninguna tan baja, se guarda en la más cercana por encima.
+Save folder	Carpeta de guardado
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Elige un nombre de carpeta en Movies y Pictures. Los caracteres no válidos se convierten en guiones bajos. Déjalo vacío para usar la carpeta predeterminada, %1$s.
+Save	Guardar
+Folder name	Nombre de carpeta
+Folder set to %1$s.	Carpeta establecida en %1$s.
+Video file name	Nombre de archivo de los videos
+%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s se convierte en la fecha y la hora del guardado, %2$s en el número del video en Instagram, %3$s en quien lo publicó y %4$s en el día en que se publicó. Lo que el guardado no sabe se omite, y a un nombre sin ninguno de ellos se le añade la fecha. Si el nombre ya está en la carpeta, se le añade al final la hora del guardado. Los caracteres no válidos se convierten en guiones bajos. Déjalo vacío para usar el nombre predeterminado, %5$s.
+File name	Nombre de archivo
+File name set to %1$s.	Nombre de archivo establecido en %1$s.
+Videos go to %1$s and photos to %2$s.	Los videos van a %1$s y las fotos a %2$s.
+Example without post details	Ejemplo sin datos de la publicación
+Cancel saving this video	Cancelar el guardado de este video
+Cancel saving this photo	Cancelar el guardado de esta foto
+Download on reels	Descargar en los reels
+Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.	Añade Descargar al menú de más opciones de cada reel, con tu calidad de descarga. Desactivado o en pausa, vuelve el menú propio de Instagram.
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Los videos se llaman %1$s. Las fotos siempre se llaman %2$s seguido de la fecha y la hora.

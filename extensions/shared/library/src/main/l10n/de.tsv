@@ -107,3 +107,28 @@ Hide creation and promotion pills	Hinweise zum Erstellen und Werbung ausblenden
 Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.	Hinweise wie Edits, Vorlage verwenden, Meta AI und Ray-Ban Meta Brillen. Ein Live-Abzeichen und ein Hinweis auf staatlich kontrollierte Medien bleiben.
 Hide friends' activity and comment previews	Aktivität von Freunden und Kommentarvorschau ausblenden
 The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.	Die Blasen von Freunden, die etwas mit Gefällt mir markiert oder kommentiert haben, der Kommentar unter einem Reel und die Reihe der Freunde, die es gesehen haben. Die Kommentare sind weiterhin nur einen Tipp entfernt.
+Downloads	Downloads
+Save videos other apps can open	Videos speichern, die andere Apps öffnen können
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Für WhatsApp, Videoeditoren wie CapCut und InShot oder wenn eine Galerie oder ein Player gespeicherte Videos ohne Ton abspielt. Kann die Qualität senken.
+Download quality	Download-Qualität
+Best	Beste
+Smallest	Kleinste
+Each video saves at the best quality the player streams.	Jedes Video wird in der besten Qualität gespeichert, die der Player streamt.
+Each video saves at its lowest quality, for the smallest file.	Jedes Video wird in seiner niedrigsten Qualität gespeichert, damit die Datei so klein wie möglich ist.
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Jedes Video wird in %1$s oder der nächstniedrigeren Qualität gespeichert. Hat ein Video keine so niedrige Qualität, wird es in der nächsthöheren gespeichert.
+Save folder	Speicherordner
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Wähle einen Ordnernamen unter Movies und Pictures. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardordner %1$s zu verwenden.
+Save	Speichern
+Folder name	Ordnername
+Folder set to %1$s.	Ordner auf %1$s gesetzt.
+Video file name	Dateiname für Videos
+%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s wird zu Datum und Uhrzeit des Speicherns, %2$s zur Nummer des Videos auf Instagram, %3$s zum Namen dessen, der es gepostet hat, und %4$s zum Tag der Veröffentlichung. Was beim Speichern nicht bekannt ist, wird weggelassen, und ein Name ohne eines davon bekommt das Datum angehängt. Gibt es den Namen im Ordner schon, wird die Uhrzeit des Speicherns angehängt. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardnamen %5$s zu verwenden.
+File name	Dateiname
+File name set to %1$s.	Dateiname auf %1$s gesetzt.
+Videos go to %1$s and photos to %2$s.	Videos landen in %1$s und Fotos in %2$s.
+Example without post details	Beispiel ohne Beitragsdetails
+Cancel saving this video	Speichern dieses Videos abbrechen
+Cancel saving this photo	Speichern dieses Fotos abbrechen
+Download on reels	Herunterladen bei Reels
+Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.	Fügt dem Mehr-Menü jedes Reels die Option Herunterladen hinzu, gespeichert in deiner Download-Qualität. Ausgeschaltet oder pausiert kommt Instagrams eigenes Menü zurück.
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Videos heißen %1$s. Fotos heißen immer %2$s, gefolgt von Datum und Uhrzeit.
