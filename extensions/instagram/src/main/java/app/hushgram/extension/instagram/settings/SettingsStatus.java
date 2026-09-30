@@ -37,4 +37,8 @@ public final class SettingsStatus {
     public static boolean restoreTrust() {
         return false;
     }
+
+    public static boolean reelWatchHistory() {
+        return false;
+    }
 }

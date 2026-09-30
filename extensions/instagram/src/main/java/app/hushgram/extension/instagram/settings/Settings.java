@@ -44,4 +44,12 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting REMOVE_BUILD_EXPIRED_POPUP =
             new BooleanSetting("hushgram_remove_build_expired_popup", TRUE);
+
+    /**
+     * The reels you watch, and how far into each you got, which Instagram posts to
+     * clips/write_seen_state/ to rank your Reels. Nobody else sees it. Held back, reels you've
+     * watched may come back.
+     */
+    public static final BooleanSetting DONT_SEND_REEL_WATCH_HISTORY =
+            new BooleanSetting("hushgram_dont_send_reel_watch_history", TRUE);
 }

@@ -52,6 +52,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 | Patch | What it does |
 |---|---|
 | `Disable analytics` | Sends Instagram's usage events to an address on your phone that refuses them, instead of to Instagram's and Facebook's logging servers. Restart Instagram after changing the switch. |
+| `Don't send reel watch history` | Stops telling Instagram which reels you watched and how far into them you got. It's used to rank your Reels, and nobody else sees it. Reels you've already watched may come back. |
 | `Hide ads` | Hides sponsored posts, reels and stories. Instagram is told the ad didn't go in, so no gap is left where it would have been. |
 | `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too. |
 | `Remove build expired popup` | Stops Instagram from locking you out with a screen that says this version is too old. A patched build doesn't update on its own, so without this it would stop working after a few weeks. |
@@ -72,6 +73,7 @@ Long-press Instagram's icon on your home screen and tap **HushGram settings**. O
 At the top, a card says whether HushGram is on or paused. Below it:
 
 - **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links and Disable analytics.
+- **Reels** holds the switch for Don't send reel watch history.
 - **Updates** holds the switch for the build expired screen.
 - **Set when you patched** lists what was fixed at patch time and can't be switched off here, such as the re-signed build fix.
 - **Pause and diagnostics** has the Pause switch, Debug logging, and the diagnostic report. Copy a quick report, or save the full one to Download/Morphe (on Android 9, a Download/Morphe folder inside Instagram's own folder, and the message says where). Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it.
@@ -84,6 +86,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 ## Known limitations
 
 - Sanitize sharing links covers Copy link, the Android share sheet, the app buttons in Instagram's own share sheet, a profile's share link and the post and story links Instagram's server hands out. Bio links open without Instagram's click tracker. Links in messages and story link stickers haven't been checked on a phone yet.
+- Don't send reel watch history keeps reels out of the list from the moment it's on. A list Instagram saved before you patched can still go out once.
 - Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. Instagram has other reporting paths, and this patch doesn't claim to stop every one.
 - A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
 - Only one Instagram build has been checked so far. Expect a patch to stop on a newer one until it's checked.
@@ -131,7 +134,7 @@ The diagnostic report stays on your phone until you copy or share it yourself.
 | [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) at `5db2e57`, by way of Hushfacebook | The fix for re-signed builds, pointed here at Instagram's own two signing certificates. |
 | [SysAdminDoc/hushfeed](https://github.com/SysAdminDoc/hushfeed), [tiktok-patches-for-morphe](https://github.com/icysymmetra/tiktok-patches-for-morphe), [Morphe](https://github.com/MorpheApp) and [ReVanced](https://gitlab.com/ReVanced/revanced-patches) | Where Hushfacebook's foundation came from: the patcher, the patch template and the shared library. |
 
-Hide ads, Disable analytics, Remove build expired popup and the Instagram side of Sanitize sharing links were written here.
+Hide ads, Disable analytics, Remove build expired popup, Don't send reel watch history and the Instagram side of Sanitize sharing links were written here.
 
 Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its licence. [docs/sources.md](docs/sources.md) covers the other Instagram patch sources and what each one does. The ledger behind it, [sources/instagram-sources.json](sources/instagram-sources.json), pins each source's licence, and code is only ported from a source it lists as adopted.
 

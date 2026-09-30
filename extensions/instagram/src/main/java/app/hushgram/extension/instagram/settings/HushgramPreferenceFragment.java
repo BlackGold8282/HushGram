@@ -133,6 +133,17 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : privacy) section.addPreference(row);
         }
 
+        List<Preference> reels = new ArrayList<>();
+        if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
+            reels.add(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY, L10n.t("Don't send reel watch history"),
+                    L10n.t("Instagram isn't told which reels you watched or how far into them you got. It ranks "
+                            + "your Reels with that, and nobody else sees it. Reels you've watched may come back.")));
+        }
+        if (!reels.isEmpty()) {
+            PreferenceCategory section = category(screen, L10n.t("Reels"));
+            for (Preference row : reels) section.addPreference(row);
+        }
+
         if (build.contains(PatchFamily.BUILD_EXPIRED_POPUP)) {
             PreferenceCategory updates = category(screen, L10n.t("Updates"));
             updates.addPreference(toggle(context, Settings.REMOVE_BUILD_EXPIRED_POPUP,

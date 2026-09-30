@@ -39,6 +39,14 @@ once-call Lapp/hushgram/extension/instagram/misc/BuildExpiry;->suppress()Z in (L
 # calls it, whoever else does.
 shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String; in static (Ljava/lang/String;Z)Ljava/lang/String; holding https:// /pigeon_nest /logging_client_events
 #
+# Don't send reel watch history asks the extension first thing in both record methods of the batch
+# Instagram posts to clips/write_seen_state/. The one recording a reel reached, an instance method
+# taking two strings, is the only method of that shape holding the purge flag name below on 449.
+# The other, recording watch progress, holds no string, so no rule can pick it; the extension's
+# holdBack() is called from both, so the rule is shared-call.
+start-call Lapp/hushgram/extension/instagram/reels/ReelWatchHistory;->holdBack()Z in instance (Ljava/lang/String;Ljava/lang/String;)V holding android_purge_26_q2_IgAppCheckImpl_getCurrentAppType
+shared-call Lapp/hushgram/extension/instagram/reels/ReelWatchHistory;->holdBack()Z in instance (Ljava/lang/String;Ljava/lang/String;)V holding android_purge_26_q2_IgAppCheckImpl_getCurrentAppType
+#
 # Sanitize sharing links passes the link each of Instagram's two share link parsers reads through
 # the extension, once, before the parser stores it: the permalink parser for a post or reel and the
 # parser for a story's share URL. Each is the one instance parser holding its field name and its

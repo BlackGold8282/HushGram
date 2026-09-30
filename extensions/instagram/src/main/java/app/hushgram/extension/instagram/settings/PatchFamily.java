@@ -41,7 +41,9 @@ public enum PatchFamily {
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics", null, Settings.DISABLE_ANALYTICS),
     BUILD_EXPIRED_POPUP(FamilyNames.BUILD_EXPIRED_POPUP, "buildExpiredPopup", null,
             Settings.REMOVE_BUILD_EXPIRED_POPUP),
-    RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix");
+    RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix"),
+    REEL_WATCH_HISTORY(FamilyNames.REEL_WATCH_HISTORY, "reelWatchHistory", null,
+            Settings.DONT_SEND_REEL_WATCH_HISTORY);
 
     /** The name Morphe Manager lists the patch under. */
     public final String patchName;
