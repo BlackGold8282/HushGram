@@ -116,7 +116,7 @@ function Get-SourcesNewerThanBundle {
         rules (*.pro at extensions/ and in each module, extensions/proguard-rules.pro being the
         one every extension's R8 step reads), and NOTICE, which :extensions:instagram compiles
         into the payload for its Licenses row. Build output is never under src/main, so it is not
-        walked. build-release-receipt.ps1 refuses a bundle this finds anything newer than.
+        walked. patch-for-device.ps1 refuses a bundle this finds anything newer than.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Root,
@@ -302,48 +302,6 @@ function Get-MergedApk {
             'the CLI patches, so there is nothing to hold the patched APK to.')
     }
     return $Destination
-}
-
-function Assert-UrlReachable {
-    <#
-    .SYNOPSIS
-        A HEAD request that has to answer 200, or a throw naming the address and what it said.
-    .DESCRIPTION
-        validate-release-facts.ps1 fetches the indexed bundle and the Morphe add-source page
-        with this on every run. It lives here so the contract tests can call it on its own:
-        through the release check, an address has to pass the shape, scheme and host checks
-        before it is fetched, and the one case that meant to try a dead link tripped the shape
-        check first and never reached the fetch.
-    #>
-    param(
-        [Uri]$Uri,
-        [string]$Description,
-        [string]$FailureHint
-    )
-    # -SkipHttpErrorCheck is PowerShell 7 only, and the pre-push hook runs whichever shell it
-    # found, so a 404 has to be read out of the thrown response instead. That is the answer this
-    # check exists for: the index once named a tag that did not exist yet.
-    $status = 0
-    try {
-        # -UseBasicParsing because Windows PowerShell otherwise hands the reply to the IE
-        # parser, which throws a null reference on a HEAD with no body. PowerShell 7 accepts
-        # the switch and ignores it.
-        $response = Invoke-WebRequest -Uri $Uri -Method Head -MaximumRedirection 5 `
-            -TimeoutSec 60 -UseBasicParsing
-        $status = [int]$response.StatusCode
-    } catch {
-        $failed = $_.Exception.Response
-        if ($failed -and $failed.StatusCode) {
-            $status = [int]$failed.StatusCode
-        } else {
-            throw ("Could not reach the ${Description} ${Uri}: $($_.Exception.Message). " +
-                'If the network is down, push with HUSHGRAM_SKIP_PRE_PUSH=1 and run this again later.')
-        }
-    }
-    if ($status -ne 200) {
-        throw ("The ${Description} ${Uri} answered HTTP ${status}. " + $FailureHint)
-    }
-    Write-Host ("[release] ${Description} answers 200: " + $Uri)
 }
 
 function Find-MachineNames {
