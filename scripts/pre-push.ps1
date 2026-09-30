@@ -18,7 +18,14 @@
     HUSHGRAM_FIXTURE_DIR holds it. A change to the verification scripts or their contract and
     allowlist files counts as a build change too, so the declared builds are verified again with
     them. The ledger's rules run when the ledger or its scripts move, and the injected-register,
-    device helper and resource table suites when their own files move. Set
+    device helper, resource table and release tooling suites when their own files move.
+
+    A push that changes a published file (README.md, CHANGELOG.md, the catalog, the version, the
+    bug form, the index or the lists and scripts the release check reads) runs
+    scripts/validate-release-facts.ps1 on the pushed tip: in place when the checkout is a clean
+    copy of it, otherwise in a clean worktree. The index push that follows a release is held to the
+    published release itself (-VerifyPublishedAsset), so it has to come from a clean checkout of
+    the commit it pushes, with the receipt build-release-receipt.ps1 wrote beside it. Set
     HUSHGRAM_SKIP_PRE_PUSH=1 to push anyway.
 #>
 [CmdletBinding()]
@@ -142,6 +149,32 @@ $injectedRegisterDevicePaths = @(
     'scripts/verify-injected-registers.ps1'
 )
 $touchesInjectedRegisterDevice = @($changed | Where-Object { $_ -in $injectedRegisterDevicePaths }).Count -gt 0
+# The release tooling's suite runs on copies of the files the release check reads, so it runs when
+# they move as well as when the scripts do.
+$releaseToolingPaths = @(
+    '.github/ISSUE_TEMPLATE/bug_report.yml',
+    'CHANGELOG.md',
+    'README.md',
+    'gradle.properties',
+    'gradle/libs.versions.toml',
+    'patches-list.json',
+    'sources/instagram-sources.json',
+    'scripts/advisory-exceptions.txt',
+    'scripts/apk-facts.ps1',
+    'scripts/build-release-receipt.ps1',
+    'scripts/common.ps1',
+    'scripts/instagram-sources.ps1',
+    'scripts/manifest-delta-allowlist.txt',
+    'scripts/patch-report.ps1',
+    'scripts/patch-target.ps1',
+    'scripts/pre-push.ps1',
+    'scripts/release-advisories.ps1',
+    'scripts/release-receipt.ps1',
+    'scripts/script-wiring.ps1',
+    'scripts/test-release-tooling.ps1',
+    'scripts/validate-release-facts.ps1'
+)
+$touchesReleaseTooling = @($changed | Where-Object { $_ -in $releaseToolingPaths }).Count -gt 0
 $suites = @()
 if ($touchesInjectedRegisterVerifier) {
     $suites += , @('scripts/test-injected-registers.ps1', 'the injected-register verifier changed, running its fixture tests')
@@ -152,6 +185,9 @@ if ($touchesResourceTableCheck) {
 if ($touchesInjectedRegisterDevice) {
     $suites += , @('scripts/test-injected-register-device.ps1', 'the injected-register device helper changed, running its cleanup fixtures')
 }
+if ($touchesReleaseTooling) {
+    $suites += , @('scripts/test-release-tooling.ps1', 'the release tooling or a file it reads changed, running its contract tests')
+}
 foreach ($suite in $suites) {
     $suiteScript = Join-Path $Root $suite[0]
     if (-not (Test-Path -LiteralPath $suiteScript -PathType Leaf)) {
@@ -160,6 +196,78 @@ foreach ($suite in $suites) {
     Write-Step $suite[1]
     & pwsh -NoProfile -File $suiteScript -Root $Root
     if ($LASTEXITCODE -ne 0) { Stop-Push "$($suite[0]) failed" }
+}
+
+# The release facts, when a published file or a list or script the check reads moves. Every push
+# but the index push leaves the description's test counts alone and lets the index lag a version
+# still being prepared. The index push, the one that hands a release to Manager users, is held to
+# the published release: its bundle, SBOM, receipt and SHA256SUMS.txt, the tag, and the census.
+$releaseFactPaths = @(
+    '.github/ISSUE_TEMPLATE/bug_report.yml',
+    'CHANGELOG.md',
+    'README.md',
+    'gradle.properties',
+    'gradle/libs.versions.toml',
+    'patches-bundle.json',
+    'patches-list.json',
+    'sources/instagram-sources.json',
+    'scripts/advisory-exceptions.txt',
+    'scripts/apk-facts.ps1',
+    'scripts/common.ps1',
+    'scripts/instagram-sources.ps1',
+    'scripts/manifest-delta-allowlist.txt',
+    'scripts/patch-target.ps1',
+    'scripts/release-advisories.ps1',
+    'scripts/release-receipt.ps1',
+    'scripts/validate-release-facts.ps1'
+)
+if (@($changed | Where-Object { $_ -in $releaseFactPaths }).Count -gt 0 -and $tips.Count -gt 0) {
+    $factsTip = $tips[$tips.Count - 1]
+    $inPlace = "$(Invoke-Git rev-parse HEAD)".Trim() -eq $factsTip -and
+        @(Invoke-Git status --porcelain --untracked-files=no).Count -eq 0
+    if ($changed.Contains('patches-bundle.json')) {
+        if (-not $inPlace) {
+            Stop-Push ("an index push checks the bundle and receipt this checkout built, so push it from a clean " +
+                "checkout of $factsTip")
+        }
+        $indexVersion = [string](Get-Content -LiteralPath (Join-Path $Root 'patches-bundle.json') -Raw | ConvertFrom-Json).version
+        $builtHere = Join-Path $Root "patches/build/release/patches-$indexVersion.mpp"
+        $factsArguments = @('-Root', $Root, '-VerifyPublishedAsset')
+        if (Test-Path -LiteralPath $builtHere -PathType Leaf) {
+            Write-Step "a new index, checking the published release against patches-$indexVersion.mpp built here"
+            $factsArguments += @('-ArtifactPath', $builtHere)
+        } else {
+            Write-Step "a new index and no patches-$indexVersion.mpp built here, so the published asset is checked on its own"
+            $factsArguments += '-ArtifactIsHosted'
+        }
+        & pwsh -NoProfile -File (Join-Path $Root 'scripts/validate-release-facts.ps1') @factsArguments
+        if ($LASTEXITCODE -ne 0) { Stop-Push 'the published release does not agree with the index' }
+    } elseif ($inPlace) {
+        Write-Step 'a published file changed, checking the release facts'
+        & pwsh -NoProfile -File (Join-Path $Root 'scripts/validate-release-facts.ps1') -Root $Root `
+            -SkipDescriptionTestCount -AllowPublishedIndexLag
+        if ($LASTEXITCODE -ne 0) { Stop-Push 'the release facts do not agree' }
+    } else {
+        # The pushed commit's own check, in a worktree of it. Its build folders can hold another
+        # commit's test results, so they're left unread.
+        $factsTree = Join-Path ([System.IO.Path]::GetTempPath()) ('hushgram-facts-' + [guid]::NewGuid().ToString('N').Substring(0, 12))
+        Write-Step "a published file changed, checking the release facts of $($factsTip.Substring(0, 12)) in a clean worktree"
+        Invoke-Git worktree add --detach $factsTree $factsTip | Out-Null
+        $factsExit = 0
+        try {
+            $factsCheck = Join-Path $factsTree 'scripts/validate-release-facts.ps1'
+            if (Test-Path -LiteralPath $factsCheck -PathType Leaf) {
+                & pwsh -NoProfile -File $factsCheck -Root $factsTree -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipTestResults
+                $factsExit = $LASTEXITCODE
+            } else {
+                Write-Step "$($factsTip.Substring(0, 12)) has no release check of its own"
+            }
+        } finally {
+            & git -C $Root worktree remove --force $factsTree 2>$null | Out-Null
+            if (Test-Path -LiteralPath $factsTree) { Remove-Item -LiteralPath $factsTree -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+        if ($factsExit -ne 0) { Stop-Push 'the release facts do not agree' }
+    }
 }
 
 if (@($changed | Where-Object { $_ -match $buildPaths }).Count -eq 0 -or $tips.Count -eq 0) {

@@ -93,6 +93,7 @@
         "scripts/build-release-receipt.ps1",
         "scripts/release-advisories.ps1",
         "scripts/release-receipt.ps1",
+        "scripts/test-release-tooling.ps1",
         "scripts/validate-release-facts.ps1"
       ],
       "origin": "ported",
@@ -102,7 +103,7 @@
         "https://github.com/SysAdminDoc/hushfeed"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Hushfacebook's release tooling: the provenance receipt and its SBOM, the receipt builder, the OSV advisory gate with its exceptions file, and the release facts check. The receipt builder reads the declared Instagram builds out of HUSHGRAM_FIXTURE_DIR, finds the desktop CLI the way the other scripts here do, and writes SHA256SUMS.txt beside the bundle. The release facts check reads Instagram's package, build and bug form and HushGram's source ledger, and it has a mode for the time before the first release, when there's no patches-bundle.json yet. Morphe Manager's changelog scope is Instagram, and the SBOM's first-party mark is HushGram's. The Assert-UrlReachable helper came over into common.ps1 from the same commit. Changed files carry a 'Modified for HushGram' line."
+      "changes": "Hushfacebook's release tooling: the provenance receipt and its SBOM, the receipt builder, the OSV advisory gate with its exceptions file, and the release facts check. The receipt builder reads the declared Instagram builds out of HUSHGRAM_FIXTURE_DIR, finds the desktop CLI the way the other scripts here do, and writes SHA256SUMS.txt beside the bundle. The release facts check reads Instagram's package, build and bug form and HushGram's source ledger, and it has a mode for the time before the first release, when there's no patches-bundle.json yet. Morphe Manager's changelog scope is Instagram, and the SBOM's first-party mark is HushGram's. The receipt, advisory, resolver, CHANGELOG and release sections of Hushfacebook's script contract suite became test-release-tooling.ps1, held to Instagram's one declared build and the manifest removals HushGram approves. The Assert-UrlReachable helper came over into common.ps1 from the same commit. Changed files carry a 'Modified for HushGram' line."
     },
     {
       "paths": [
