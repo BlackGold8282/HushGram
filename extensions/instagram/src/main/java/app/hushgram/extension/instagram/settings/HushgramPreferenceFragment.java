@@ -16,6 +16,9 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.EditTextPreference;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
@@ -26,11 +29,14 @@ import android.text.util.Linkify;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ScrollView;
@@ -40,15 +46,23 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import app.hushgram.extension.instagram.download.DownloadQuality;
+import app.hushgram.extension.instagram.download.FileNameTemplate;
+import app.hushgram.extension.instagram.download.SaveControl;
+import app.hushgram.extension.instagram.download.SaveFolder;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.BooleanSetting;
 import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.Setting;
 import app.hushgram.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.hushgram.extension.shared.settings.preference.ClearLogBufferPreference;
 import app.hushgram.extension.shared.settings.preference.ExportDiagnosticReportPreference;
@@ -77,6 +91,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** The page's dialogs that may still be on screen, which would outlive it. */
     private final List<Dialog> shownDialogs = new ArrayList<>();
 
+    /** The Downloads section, where the running saves are listed, or null when no download patch is in. */
+    @Nullable
+    private PreferenceCategory downloads;
+
+    /** The rows of the saves running now, by save number. */
+    private final Map<Integer, SaveRow> saveRows = new HashMap<>();
+
+    /** Keeps the rows in step with the saves while the page is showing. Saves tell it from their own thread. */
+    private final SaveControl.Watcher saves = () -> Utils.runOnMainThread(this::showSaves);
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -86,6 +110,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             list.setDividerHeight(0);
             list.setBackgroundColor(Color.BLACK);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        SaveControl.watch(saves);
+        showSaves();
+    }
+
+    @Override
+    public void onPause() {
+        SaveControl.unwatch(saves);
+        super.onPause();
     }
 
     @Override
@@ -154,6 +191,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Instagram isn't told which reels you watched or how far into them you got. It ranks "
                             + "your Reels with that, and nobody else sees it. Reels you've watched may come back.")));
         }
+        if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
+            reels.add(toggle(context, Settings.DOWNLOAD_REELS, L10n.t("Download on reels"),
+                    L10n.t("Adds Download to every reel's more menu, saved at your download quality. Off or paused, "
+                            + "Instagram's own menu returns.")));
+        }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"));
             for (Preference row : reels) section.addPreference(row);
@@ -163,6 +205,20 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             PreferenceCategory stories = category(screen, L10n.t("Stories"));
             stories.addPreference(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
                     L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.")));
+        }
+
+        // Any download patch brings this section, so each one that saves joins this condition.
+        if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
+            PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
+            this.downloads = downloads;
+            // Every save reads it, whichever download patch started it, so it's here above the
+            // quality it keeps within.
+            downloads.addPreference(toggle(context, Settings.DOWNLOAD_COMPATIBLE, L10n.t("Save videos other apps can open"),
+                    L10n.t("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves "
+                            + "without sound. May lower quality.")));
+            downloads.addPreference(qualityRow(context));
+            downloads.addPreference(folderRow(context));
+            downloads.addPreference(fileNameRow(context));
         }
 
         if (build.contains(PatchFamily.BUILD_EXPIRED_POPUP)) {
@@ -236,6 +292,35 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             return true;
         });
         about.addPreference(mark(licenses, SettingsIcons.LICENSE));
+    }
+
+    /**
+     * Lists each save running now at the top of Downloads, and takes a finished one away. The
+     * notification was the only way to follow or stop a save, and with Instagram's notifications or
+     * the saves channel off there wasn't one. A row that stays is changed in place.
+     */
+    void showSaves() {
+        PreferenceCategory group = downloads;
+        if (group == null) return;
+        List<SaveControl.Running> running = SaveControl.running();
+        Set<Integer> now = new HashSet<>();
+        for (SaveControl.Running save : running) now.add(save.id);
+        for (java.util.Iterator<Map.Entry<Integer, SaveRow>> rows = saveRows.entrySet().iterator(); rows.hasNext(); ) {
+            Map.Entry<Integer, SaveRow> row = rows.next();
+            if (now.contains(row.getKey())) continue;
+            group.removePreference(row.getValue());
+            rows.remove();
+        }
+        for (SaveControl.Running save : running) {
+            SaveRow row = saveRows.get(save.id);
+            if (row != null) {
+                row.show(save);
+                continue;
+            }
+            row = new SaveRow(group.getContext(), save);
+            saveRows.put(save.id, row);
+            group.addPreference(row);
+        }
     }
 
     /**
@@ -381,6 +466,157 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return preference;
     }
 
+    /**
+     * The quality a video save asks for. The list's values are the setting's own names, which is
+     * what the shared page syncs a list by, and the summary says what the choice does.
+     */
+    static QualityRow qualityRow(Context context) {
+        QualityRow row = new QualityRow(context);
+        row.setKey(Settings.DOWNLOAD_QUALITY.key);
+        row.setTitle(L10n.t("Download quality"));
+        row.setDialogTitle(L10n.t("Download quality"));
+        // A list's dialog keeps DialogPreference's Cancel, which Android fills in the activity's
+        // language unless it's set here, as the folder and file name rows' are.
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        DownloadQuality[] qualities = DownloadQuality.values();
+        CharSequence[] entries = new CharSequence[qualities.length];
+        CharSequence[] values = new CharSequence[qualities.length];
+        for (int i = 0; i < qualities.length; i++) {
+            entries[i] = qualityLabel(qualities[i]);
+            values[i] = qualities[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.DOWNLOAD_QUALITY.savedValue().name());
+        return row;
+    }
+
+    /** What the list shows for [quality]: a word for the two ends, the label itself between them. */
+    static String qualityLabel(DownloadQuality quality) {
+        switch (quality) {
+            case BEST:
+                return L10n.t("Best");
+            case SMALLEST:
+                return L10n.t("Smallest");
+            default:
+                return L10n.isolate(quality.ceilingLabel());
+        }
+    }
+
+    /**
+     * What a save does with [quality], for the row's summary. A cap takes the best rendition at or
+     * under it, and only a video with nothing that low goes above it ({@link DownloadQuality}), so
+     * the sentence names both directions: "the closest quality" alone read as 1080p beating 240p
+     * under a 720p cap, and the save picks 240p.
+     */
+    static String qualitySummary(DownloadQuality quality) {
+        switch (quality) {
+            case BEST:
+                return L10n.t("Each video saves at the best quality the player streams.");
+            case SMALLEST:
+                return L10n.t("Each video saves at its lowest quality, for the smallest file.");
+            default:
+                return L10n.f("Each video saves at %1$s or the closest quality below it. A video with nothing "
+                        + "that low saves at the closest quality above.", L10n.isolate(quality.ceilingLabel()));
+        }
+    }
+
+    /** The quality row's summary is a sentence of its own rather than the chosen entry. */
+    @Override
+    protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
+        if (listPreference instanceof QualityRow) {
+            ((QualityRow) listPreference).showSummary();
+        } else {
+            super.updateListPreferenceSummary(listPreference, setting);
+        }
+    }
+
+    /**
+     * The folder every save goes to. What's typed is cleaned before it's kept, so the row, the
+     * setting and the next save all show the one folder name the save will use.
+     */
+    static FolderRow folderRow(Context context) {
+        FolderRow row = new FolderRow(context);
+        row.setKey(Settings.SAVE_FOLDER.key);
+        row.setTitle(L10n.t("Save folder"));
+        row.setDialogTitle(L10n.t("Save folder"));
+        row.setDialogMessage(L10n.f("Choose a folder name under Movies and Pictures. Invalid characters become "
+                + "underscores. Leave it blank to use the default folder, %1$s.", L10n.isolate(SaveFolder.DEFAULT)));
+        row.setPositiveButtonText(L10n.t("Save"));
+        // Unset, Android fills in its own Cancel in the activity's language, which can differ
+        // from Instagram's, and the dialog read "Speichern" next to "Cancel".
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        field.setSingleLine(true);
+        field.setHint(L10n.t("Folder name"));
+        row.setText(Settings.SAVE_FOLDER.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString();
+            String clean = SaveFolder.sanitize(raw);
+            if (clean.equals(raw)) return true;
+            // Keeps the clean name in place of what was typed. The store changes, and the shared
+            // page reads the setting from the row as it does for any change.
+            ((FolderRow) preference).setText(clean);
+            Utils.showToastShort(L10n.f("Folder set to %1$s.", L10n.isolate(clean)));
+            return false;
+        });
+        return row;
+    }
+
+    /**
+     * The name every saved video gets, next to the folder it goes to. What's typed is cleaned the
+     * way the folder is, and held to the gallery's naming, so the row, the setting and the next
+     * save all show the one template the save will use.
+     */
+    static FileNameRow fileNameRow(Context context) {
+        FileNameRow row = new FileNameRow(context);
+        row.setKey(Settings.FILENAME_TEMPLATE.key);
+        row.setTitle(L10n.t("Video file name"));
+        row.setDialogTitle(L10n.t("Video file name"));
+        row.setDialogMessage(L10n.f("%1$s becomes the date and time of the save, %2$s the video's number on "
+                        + "Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is "
+                        + "left out, and a name with none of these gets the date added. When the name is already in "
+                        + "the folder, the time of the save goes on the end. Invalid characters become underscores. "
+                        + "Leave it blank to use the default, %5$s.",
+                L10n.isolate(FileNameTemplate.DATE), L10n.isolate(FileNameTemplate.VIDEO_ID),
+                L10n.isolate(FileNameTemplate.OWNER), L10n.isolate(FileNameTemplate.POSTED),
+                L10n.isolate(FileNameTemplate.DEFAULT)));
+        row.setPositiveButtonText(L10n.t("Save"));
+        // Android's own Cancel follows the activity's language, as the folder row's did.
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        field.setSingleLine(true);
+        field.setHint(L10n.t("File name"));
+        row.setText(Settings.FILENAME_TEMPLATE.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString();
+            String clean = FileNameTemplate.sanitize(raw);
+            if (clean.equals(raw)) return true;
+            // Keeps the clean template in place of what was typed, as the folder row does.
+            ((FileNameRow) preference).setText(clean);
+            Utils.showToastShort(L10n.f("File name set to %1$s.", L10n.isolate(clean)));
+            return false;
+        });
+        return row;
+    }
+
+    /**
+     * "Videos are named IG_VID_{date}. Photos are always named IG_IMG_ followed by the date and
+     * time." for [template]. The photo prefix is HushGram's, not Instagram's, so it isn't called
+     * Instagram's own naming.
+     */
+    static String fileNameSummary(String template) {
+        return L10n.f("Videos are named %1$s. Photos are always named %2$s followed by the date and time.",
+                L10n.isolate(template), L10n.isolate(FileNameTemplate.PHOTO_PREFIX));
+    }
+
+    /** "Videos go to Movies/Instagram and photos to Pictures/Instagram." for the folder [leaf]. */
+    static String folderSummary(String leaf) {
+        String videos = Environment.DIRECTORY_MOVIES + "/" + leaf;
+        String photos = Environment.DIRECTORY_PICTURES + "/" + leaf;
+        return L10n.f("Videos go to %1$s and photos to %2$s.", L10n.isolate(videos), L10n.isolate(photos));
+    }
+
     private static Preference mark(Preference row, String icon) {
         row.setIcon(SettingsIcons.icon(row.getContext(), icon, ScreenColors.DEFAULT.heading));
         return row;
@@ -472,6 +708,255 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             showAllText(view);
             ScreenColors.row(view, this);
             view.setAccessibilityDelegate(new RowSemantics(this, Switch.class));
+        }
+    }
+
+    /**
+     * A running save: what it is, what it's doing, how far it has got, and a Cancel button. Its text
+     * changes in place: a row rebuilt under a finger loses the tap on its button.
+     */
+    static final class SaveRow extends Preference {
+        /** Before every setting of the section, oldest save first. */
+        private static final int FIRST = Integer.MIN_VALUE / 2;
+
+        final int id;
+        private final boolean video;
+        private String status;
+        @Nullable
+        private View bound;
+
+        SaveRow(Context context, SaveControl.Running save) {
+            super(context);
+            id = save.id;
+            video = save.video;
+            status = SaveControl.status(save);
+            setKey("running_save_" + save.id);
+            setPersistent(false);
+            setSelectable(false);
+            setOrder(FIRST + save.id);
+            setTitle(video ? L10n.t("Saving a video") : L10n.t("Saving a photo"));
+        }
+
+        @Override
+        public CharSequence getSummary() {
+            return status;
+        }
+
+        void show(SaveControl.Running save) {
+            String next = SaveControl.status(save);
+            if (next.equals(status)) return;
+            status = next;
+            TextView summary = bound == null ? null : bound.findViewById(android.R.id.summary);
+            if (summary != null) summary.setText(next);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            bound = view;
+            showAllText(view);
+            ScreenColors.row(view, this);
+            android.view.ViewGroup frame = view.findViewById(android.R.id.widget_frame);
+            if (frame == null) return;
+            frame.removeAllViews();
+            Button cancel = new Button(getContext());
+            cancel.setText(L10n.t("Cancel"));
+            // Two saves can be listed at once, so the button says whose it is.
+            cancel.setContentDescription(video ? L10n.t("Cancel saving this video") : L10n.t("Cancel saving this photo"));
+            cancel.setAllCaps(false);
+            cancel.setTextSize(14);
+            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            cancel.setTextColor(colors.heading);
+            cancel.setBackgroundColor(Color.TRANSPARENT);
+            int touch = Math.round(48 * view.getResources().getDisplayMetrics().density);
+            cancel.setMinWidth(touch);
+            cancel.setMinimumWidth(touch);
+            cancel.setMinHeight(touch);
+            cancel.setMinimumHeight(touch);
+            cancel.setPadding(touch / 4, 0, touch / 4, 0);
+            cancel.setOnClickListener(ignored -> {
+                cancel.setEnabled(false);
+                SaveControl.cancel(id);
+            });
+            frame.addView(cancel, new android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+            frame.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * An edit dialog shrinks to fit above the keyboard instead of going under it. Android's own
+     * EditTextPreference only asks for the keyboard, so at a large font size a long message pushed
+     * the dialog's Save and Cancel behind the keyboard, where nobody could reach them. The dialog's
+     * keyboard state is kept; only how it adjusts changes.
+     */
+    static void fitAboveKeyboard(Dialog dialog) {
+        Window window = dialog == null ? null : dialog.getWindow();
+        if (window == null) return;
+        int mode = window.getAttributes().softInputMode;
+        window.setSoftInputMode((mode & ~WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST)
+                | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+    }
+
+    /**
+     * The save folder's row. Its summary follows its text, whoever sets it: the person, the shared
+     * page syncing it from the setting, or an import.
+     */
+    static final class FolderRow extends EditTextPreference {
+        FolderRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(folderSummary(SaveFolder.sanitize(text)));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            fitAboveKeyboard(getDialog());
+        }
+    }
+
+    /**
+     * The video file name's row. Its summary follows its text, whoever sets it: the person, the
+     * shared page syncing it from the setting, or an import. Its dialog shows what the typed
+     * template names a video, as it's typed.
+     */
+    static final class FileNameRow extends EditTextPreference {
+        @Nullable private TextView preview;
+        private java.util.Date previewDate;
+
+        FileNameRow(Context context) {
+            super(context);
+            getEditText().addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
+                @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
+                    if (preview != null) preview.setText(previewName(text.toString(), previewDate));
+                }
+                @Override public void afterTextChanged(android.text.Editable text) { }
+            });
+        }
+
+        static String previewName(String text, java.util.Date when) {
+            return FileNameTemplate.videoName(FileNameTemplate.sanitize(text), when, "123456") + ".mp4";
+        }
+
+        @Override protected View onCreateDialogView() {
+            Context context = getContext();
+            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            int pad = Math.round(20 * context.getResources().getDisplayMetrics().density);
+            android.widget.LinearLayout content = new android.widget.LinearLayout(context);
+            content.setOrientation(android.widget.LinearLayout.VERTICAL);
+            content.setPadding(pad, pad / 2, pad, pad);
+            EditText field = getEditText();
+            if (field.getParent() instanceof android.view.ViewGroup) ((android.view.ViewGroup) field.getParent()).removeView(field);
+            content.addView(field, new android.widget.LinearLayout.LayoutParams(-1, -2));
+            TextView label = new TextView(context);
+            label.setText(L10n.t("Example without post details"));
+            label.setTextSize(12);
+            label.setTextColor(colors.summary);
+            label.setPadding(0, pad, 0, pad / 4);
+            content.addView(label);
+            previewDate = new java.util.Date();
+            preview = new TextView(context);
+            preview.setTextSize(14);
+            preview.setTextColor(colors.title);
+            preview.setText(previewName(getText(), previewDate));
+            content.addView(preview);
+            TextView help = new TextView(context);
+            help.setId(android.R.id.message);
+            help.setText(getDialogMessage());
+            help.setTextSize(14);
+            help.setTextColor(colors.summary);
+            help.setPadding(0, pad, 0, 0);
+            content.addView(help);
+            ScrollView scroll = new ScrollView(context);
+            scroll.addView(content);
+            return scroll;
+        }
+
+        @Override protected void onBindDialogView(View view) {
+            // The input is already in the custom scroll container, before its explanatory text.
+            getEditText().setText(getText());
+        }
+
+        @Override protected void onDialogClosed(boolean positive) {
+            super.onDialogClosed(positive);
+            preview = null;
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(fileNameSummary(FileNameTemplate.sanitize(text)));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours, as the folder's does. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            fitAboveKeyboard(getDialog());
+        }
+    }
+
+    /**
+     * The download quality's row. Its summary follows its value, whoever sets it: the person, the
+     * shared page syncing it from the setting, or an import.
+     */
+    static final class QualityRow extends ListPreference {
+        QualityRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            DownloadQuality quality = DownloadQuality.BEST;
+            for (DownloadQuality candidate : DownloadQuality.values()) {
+                if (candidate.name().equals(getValue())) quality = candidate;
+            }
+            setSummary(qualitySummary(quality));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
         }
     }
 
