@@ -154,6 +154,16 @@ class DownloadStoryHookTest {
         assertTrue("the listener changed", context.method(listener, "onClick").code().none { it.referenceText() == SAVE_STORY })
     }
 
+    /** A jump onto the lookup reaches it without the builder's call, so the menu isn't known there, and nothing changes. */
+    @Test
+    fun aJumpOntoTheLookupFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(jumpToLookup = true))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertTrue(failure.message!!, failure.message!!.contains("a jump lands between"))
+        assertUntouched(context)
+        assertTrue("the listener changed", context.method(listener, "onClick").code().none { it.referenceText() == SAVE_STORY })
+    }
+
     /** storyMedia() reads the menu's story, then the story's Media the builders read. */
     @Test
     fun theStoryBridgeReadsTheMenusMedia() {
@@ -344,6 +354,7 @@ class DownloadStoryHookTest {
         leaveOutCandidates: Boolean = false,
         handlerLocals: Int = 11,
         arrayReadAgain: Boolean = false,
+        jumpToLookup: Boolean = false,
     ): List<ClassDef> {
         // An old dialog's click listener: the tapped label is the builder's labels at `which`.
         val oldDialog = ImmutableClassDef(
@@ -352,9 +363,11 @@ class DownloadStoryHookTest {
             listOf(
                 method(listener, "onClick", listOf("Landroid/content/DialogInterface;", "I"), "V", 8, static = false, body = """
                     iget-object v4, p0, $listener->menu:Ljava/lang/Object;
+                    ${if (jumpToLookup) "if-eqz v4, :lookup" else ""}
                     check-cast v4, $helper
                     invoke-static { v4 }, $helper->A0o($helper)$labels
                     move-result-object v0
+                    :lookup
                     aget-object v2, v0, p2
                     ${if (arrayReadAgain) "array-length v0, v0" else "iget-object v0, v4, $helper->other:$label"}
                     return-void

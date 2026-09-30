@@ -97,7 +97,9 @@ internal fun BytecodePatchContext.offerDownloadOnEveryStory() {
         if (CLICK_LISTENER in classDef.interfaces) {
             listeners += classDef.methods.filter { method ->
                 method.name == "onClick" && method.returnType == "V" && method.parameterTypes.map(Any::toString) == CLICK_PARAMETERS &&
-                    method.implementation?.instructions?.any { it.opcode == Opcode.INVOKE_STATIC && (it.methodReference())?.returnType == LABEL_ARRAY } == true
+                    method.implementation?.instructions?.any {
+                        (it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE) && it.methodReference()?.returnType == LABEL_ARRAY
+                    } == true
             }
         }
     }
@@ -247,13 +249,18 @@ internal fun Method.labelLookups(type: String, builders: List<Method>): List<Lab
         lookup as ThreeRegisterInstruction
         val label = lookup.registerA
         val parameters = code[call].methodReference()!!.parameterTypes.map(Any::toString)
-        val menu = code[call].argumentRegisters()[parameters.indexOf(type)]
+        // A long or a double ahead of the menu takes two registers.
+        val menu = code[call].argumentRegisters()[parameters.take(parameters.indexOf(type)).sumOf { if (it == "J" || it == "D") 2 else 1 }]
         val setsArray = next is TwoRegisterInstruction && next.opcode.setsRegister() && next.registerA == array && next.registerB != array ||
             next.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.SGET_OBJECT) && (next as OneRegisterInstruction).registerA == array
         if (lookup.registerB != array || label == array || menu == array || menu == label || label > 15 || menu > 15 || !setsArray) {
             throw PatchException("$PATCH: in $where the lookup at ${call + 2} doesn't leave a register this patch can use")
         }
-        if (call + 3 in targets) throw PatchException("$PATCH: in $where a jump lands right after the lookup at ${call + 2}")
+        // A jump onto the answer, the lookup or the instruction after it would reach the check
+        // with registers the builder's call never set, or skip it.
+        if ((call + 1..call + 3).any { it in targets }) {
+            throw PatchException("$PATCH: in $where a jump lands between the labels built at $call and the instruction after the lookup")
+        }
         LabelLookup(this, call + 2, label, menu, array)
     }
 }

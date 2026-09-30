@@ -46,7 +46,11 @@ internal fun BytecodePatchContext.wrapMqttAnalyticsEndpoint(endpoint: String): S
     }
     val settings = constructors.singleOrNull()
         ?: return "expected one constructor reading the MQTT client's settings, found ${constructors.size}"
-    val code = settings.implementation!!.instructions.toList()
+    // Read from the copy that gets changed, so an earlier target's change to it can't shift the index.
+    val mutable = mutableClassDefBy(settings.definingClass).methods.single {
+        it.name == "<init>" && it.parameterTypes.map(Any::toString) == listOf("Lorg/json/JSONObject;")
+    }
+    val code = mutable.implementation!!.instructions.toList()
     val reads = code.indices.filter { index ->
         val call = (code[index] as? ReferenceInstruction)?.reference as? MethodReference
         call?.definingClass == "Lorg/json/JSONObject;" && call.name == "optString" && call.parameterTypes.size == 2 &&
@@ -57,9 +61,15 @@ internal fun BytecodePatchContext.wrapMqttAnalyticsEndpoint(endpoint: String): S
     val value = code.getOrNull(read + 1)
     if (value?.opcode != Opcode.MOVE_RESULT_OBJECT) return "${settings.definingClass} doesn't keep $ANALYTICS_KEY's value"
     val register = (value as OneRegisterInstruction).registerA
-    mutableClassDefBy(settings.definingClass).methods.single {
-        it.name == "<init>" && it.parameterTypes.map(Any::toString) == listOf("Lorg/json/JSONObject;")
-    }.addInstructionsAtControlFlowLabel(
+    val address = IntArray(code.size + 1)
+    code.forEachIndexed { index, instruction -> address[index + 1] = address[index] + instruction.codeUnits }
+    val landsInside = code.indices.any { index ->
+        val jump = code[index] as? OffsetInstruction ?: return@any false
+        (jump.opcode.name.startsWith("if-") || jump.opcode.name.startsWith("goto")) &&
+            address.indexOf(address[index] + jump.codeOffset) in read + 1..read + 2
+    }
+    if (landsInside) return "${settings.definingClass} jumps to where $ANALYTICS_KEY's value is kept, with no value read"
+    mutable.addInstructionsAtControlFlowLabel(
         read + 2,
         """
             invoke-static/range { v$register .. v$register }, $endpoint
