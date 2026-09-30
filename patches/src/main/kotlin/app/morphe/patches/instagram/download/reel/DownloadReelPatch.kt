@@ -7,6 +7,7 @@ package app.morphe.patches.instagram.download.reel
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -43,12 +44,16 @@ private const val REEL_DOWNLOAD = "$EXTENSION_PACKAGE/download/ReelDownload;"
 internal const val OFFER = "$REEL_DOWNLOAD->offer(Z)Z"
 internal const val WITHHOLD = "$REEL_DOWNLOAD->withhold(Z)Z"
 internal const val SAVE = "$REEL_DOWNLOAD->save(Ljava/lang/Object;Landroid/app/Activity;)Z"
+internal const val ADD_TO = "$REEL_DOWNLOAD->addTo(Ljava/util/List;Ljava/lang/Object;)V"
 
 /** The reel menu's handler of a tapped option, in the class that runs the menu. */
 internal const val HANDLER_MARKER = "ClipsOrganicMoreOptionsHelper_handleOptionSelected"
 
 /** Instagram's check of whether a reel's owner lets other people download it. */
 internal const val ELIGIBLE_MARKER = "ClipsDownloadUtil_isMediaEligibleForThirdPartyDownloads"
+
+/** The options of the reduced reel menu, a short list that never had a Download row. */
+internal const val REDUCED_MARKER = "ClipsOrganicMediaItemViewMoreOptionsController_getReducedMenuOptions"
 
 /**
  * Download in every reel's more menu, saving through HushGram's own pipeline.
@@ -58,6 +63,10 @@ internal const val ELIGIBLE_MARKER = "ClipsDownloadUtil_isMediaEligibleForThirdP
  * flag says so. A tap asks Instagram's server, then saves a copy with a watermark. This patch
  * shows the row on every reel and has a tap save the reel from the addresses its Media already
  * holds, at the Download quality, the way Hushfacebook's reel download does.
+ *
+ * Some accounts get a reduced menu instead: a short list of options (Playback, Interested, Report
+ * and a few more) that never includes Download. Its list gets Download added before it's shown,
+ * and its rows go through the same handler.
  *
  * Everything is found before anything changes, so a build that differs stops the patch naming
  * what it couldn't find, and nothing is half done.
@@ -91,11 +100,13 @@ internal fun BytecodePatchContext.offerDownloadOnEveryReel() {
     val handlers = mutableListOf<Method>()
     val eligibles = mutableListOf<Method>()
     val loaders = mutableListOf<Method>()
+    val reducedLists = mutableListOf<Method>()
     classDefForEach { classDef ->
         classDef.methods.forEach { method ->
             val markers = method.markers()
             if (HANDLER_MARKER in markers) handlers += method
             if (ELIGIBLE_MARKER in markers) eligibles += method
+            if (REDUCED_MARKER in markers) reducedLists += method
             if (method.code().any { it.opcode == Opcode.SGET_OBJECT && it.referenceText() == DOWNLOAD }) loaders += method
         }
     }
@@ -113,6 +124,8 @@ internal fun BytecodePatchContext.offerDownloadOnEveryReel() {
     val builders = loaders.filter { it.calls(eligible) && (it.definingClass == helper || it.uses(helper)) }
     if (builders.isEmpty()) throw PatchException("$PATCH: no builder of the reel menu adds Download after the download check")
     val gates = builders.associateWith { it.downloadGates(eligible) }
+    val reduced = one(reducedLists, REDUCED_MARKER)
+    val reducedReturns = reduced.optionListReturns()
     val media = instanceField(helper, MEDIA)
     val activity = instanceField(helper, FRAGMENT_ACTIVITY)
     val writeBridges = mediaBridges(PATCH)
@@ -130,6 +143,23 @@ internal fun BytecodePatchContext.offerDownloadOnEveryReel() {
                 """,
             )
         }
+    }
+
+    // Each return of the reduced list hands the list through the extension first. The return is
+    // replaced rather than preceded, because a jump to the return lands on what replaces it and
+    // would skip anything put in front of it.
+    val list = mutable(reduced)
+    reducedReturns.sortedDescending().forEach { index ->
+        val register = (list.getInstruction(index) as OneRegisterInstruction).registerA
+        val scratch = if (register == 0) 1 else 0
+        list.replaceInstruction(index, "sget-object v$scratch, $DOWNLOAD")
+        list.addInstructions(
+            index + 1,
+            """
+                invoke-static { v$register, v$scratch }, $ADD_TO
+                return-object v$register
+            """,
+        )
     }
 
     val menu = mutable(handler)
@@ -215,6 +245,27 @@ internal fun Method.downloadGates(eligible: Method): List<Gate> {
             else -> throw PatchException("$PATCH: in $where the branch at $index keeps Download out in a way this patch doesn't know")
         }
     }
+}
+
+/**
+ * The returns of [this], the reduced reel menu's list of options. It must answer a list, and each
+ * return's register must fit a plain call, next to one more register the hook loads Download into.
+ */
+internal fun Method.optionListReturns(): List<Int> {
+    val where = "$definingClass->$name"
+    if (returnType != "Ljava/util/ArrayList;" && returnType != "Ljava/util/List;") {
+        throw PatchException("$PATCH: $where, the reduced menu's options, doesn't answer a list")
+    }
+    val code = code()
+    val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+    if (returns.isEmpty()) throw PatchException("$PATCH: $where, the reduced menu's options, never returns")
+    if ((implementation?.registerCount ?: 0) < 2) throw PatchException("$PATCH: $where has no register to spare")
+    returns.forEach { index ->
+        if ((code[index] as OneRegisterInstruction).registerA > 15) {
+            throw PatchException("$PATCH: $where returns its options from a register above v15")
+        }
+    }
+    return returns
 }
 
 internal fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()

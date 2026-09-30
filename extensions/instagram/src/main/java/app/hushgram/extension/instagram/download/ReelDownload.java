@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -54,6 +55,28 @@ public final class ReelDownload {
     /** Instagram's flag [held] that keeps the Download row out, or no with the switch on. Never throws. */
     public static boolean withhold(boolean held) {
         return held && !on();
+    }
+
+    /** The options the reduced reel menu lists above Download, by the names Instagram keeps. */
+    private static final List<String> ABOVE_DOWNLOAD = Arrays.asList("SHOP_SIMILAR", "SAVE", "UNSAVE");
+
+    /**
+     * Adds [download], Instagram's Download option, to [options], the list the reduced reel menu
+     * shows, with the switch on. It goes after the save rows, which puts it above Playback as in the
+     * full menu. A list that has it already is left alone. Never throws.
+     */
+    public static void addTo(List<Object> options, Object download) {
+        try {
+            if (options == null || download == null || !on() || options.contains(download)) return;
+            int at = 0;
+            for (int i = 0; i < options.size(); i++) {
+                Object option = options.get(i);
+                if (option instanceof Enum && ABOVE_DOWNLOAD.contains(((Enum<?>) option).name())) at = i + 1;
+            }
+            options.add(at, download);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.REEL_DOWNLOAD, "reduced reel menu", t);
+        }
     }
 
     /**

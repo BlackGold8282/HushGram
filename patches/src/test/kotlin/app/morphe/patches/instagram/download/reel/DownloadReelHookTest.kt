@@ -51,7 +51,7 @@ class DownloadReelHookTest {
     /** The hooks the patch writes are in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(OFFER, WITHHOLD, SAVE)) {
+        for (hook in listOf(OFFER, WITHHOLD, SAVE, ADD_TO)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -76,6 +76,36 @@ class DownloadReelHookTest {
         assertFiltered(redesign, check, OFFER)
         assertFiltered(redesign, "Lfixture/MobileConfig;->A1A(Ljava/lang/Object;J)Z", WITHHOLD)
         assertEquals("the feed's menu was touched", feedSheetCode().size, context.method(feedSheet, "invoke").code().size)
+    }
+
+    /**
+     * The reduced menu's list goes through addTo() with Download where it returns. The return is
+     * replaced, so the jump that used to land on it runs the call too.
+     */
+    @Test
+    fun theReducedMenuListsDownload() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryReel()
+
+        val code = context.method(controller, "A03").code()
+        val end = code.size - 3
+        assertEquals(listOf(Opcode.SGET_OBJECT, Opcode.INVOKE_STATIC, Opcode.RETURN_OBJECT), code.drop(end).map { it.opcode })
+        assertEquals(DOWNLOAD, code[end].referenceText())
+        assertEquals("Download's register", 0, (code[end] as OneRegisterInstruction).registerA)
+        assertEquals(ADD_TO, code[end + 1].referenceText())
+        val call = code[end + 1] as Instruction35c
+        assertEquals("addTo()'s arguments", listOf(1, 0), listOf(call.registerC, call.registerD))
+        assertEquals("the list returned", 1, (code[end + 2] as OneRegisterInstruction).registerA)
+        assertEquals("the jump to the return", end, code.target(code.indexOfFirst { it.opcode == Opcode.IF_EQZ }))
+    }
+
+    @Test
+    fun aMissingReducedMenuFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(reducedMarker = "ClipsOrganicMediaItemViewMoreOptionsController_somethingElse"))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryReel() }
+        assertTrue(failure.message!!, failure.message!!.contains(REDUCED_MARKER))
+        assertUntouched(context)
     }
 
     /** A tap on Download asks save() first, with the menu's media and activity; any other option goes on. */
@@ -159,14 +189,15 @@ class DownloadReelHookTest {
 
     /**
      * In each declared build, every builder of the reel menu gets the download check's filter once
-     * and the flag's at most once, at least one has the flag, the handler asks save() first, and
-     * every bridge is written.
+     * and the flag's at most once, at least one has the flag, the reduced menu's list passes through
+     * addTo() at each return and no jump skips that, the handler asks save() first, and every
+     * bridge is written.
      */
     @Test
     fun eachDeclaredBuildOffersDownloadOnEveryReel() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
         val types = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION)
-        val markers = setOf(HANDLER_MARKER, ELIGIBLE_MARKER)
+        val markers = setOf(HANDLER_MARKER, ELIGIBLE_MARKER, REDUCED_MARKER)
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
@@ -209,6 +240,17 @@ class DownloadReelHookTest {
                     flags += withheld
                 }
                 assertTrue("${bundle.name}: no builder read the flag", flags > 0)
+                val reduced = all.single { REDUCED_MARKER in it.markers() }
+                val list = context.method(reduced.definingClass, reduced.name, reduced.parameterTypes.map(Any::toString)).code()
+                val returns = list.indices.filter { list[it].opcode == Opcode.RETURN_OBJECT }
+                assertTrue("${bundle.name}: the reduced menu doesn't return", returns.isNotEmpty())
+                returns.forEach { at ->
+                    assertEquals("${bundle.name}: before the reduced menu's return at $at", listOf(DOWNLOAD, ADD_TO),
+                        listOf(list[at - 2].referenceText(), list[at - 1].referenceText()))
+                }
+                // Opcode.name is the smali name, "if-eqz" or "goto/16".
+                list.indices.filter { index -> list[index] is OffsetInstruction && list[index].opcode.name.let { it.startsWith("if-") || it.startsWith("goto") } }
+                    .forEach { jump -> assertTrue("${bundle.name}: the jump at $jump skips addTo()", list.target(jump) !in returns) }
                 val bridges = context.classDefBy(INSTAGRAM_MEDIA).methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) }
                 bridges.forEach { assertEquals("${bundle.name}: ${it.name}", Opcode.CHECK_CAST, it.code().first().opcode) }
                 checked += version
@@ -231,6 +273,7 @@ class DownloadReelHookTest {
     private fun assertUntouched(context: BytecodePatchContext) {
         assertTrue("a builder changed", context.method(helper, "A06").code().none { it.referenceText() == OFFER })
         assertTrue("a builder changed", context.method(controller, "A08").code().none { it.referenceText() == OFFER })
+        assertTrue("the reduced menu changed", context.method(controller, "A03").code().none { it.referenceText() == ADD_TO })
         assertEquals("the handler changed", Opcode.CONST_STRING, context.method(helper, "A0T").code().first().opcode)
         assertEquals("a bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "videoVersions").code().first().opcode)
     }
@@ -254,6 +297,7 @@ class DownloadReelHookTest {
         leaveOutField: String? = null,
         secondMedia: Boolean = false,
         handlerMarker: String = HANDLER_MARKER,
+        reducedMarker: String = REDUCED_MARKER,
     ): List<ClassDef> {
         val helperFields = listOfNotNull(
             field(helper, "media", MEDIA),
@@ -301,6 +345,20 @@ class DownloadReelHookTest {
                     invoke-virtual { v1, v3 }, $helper->A0P($OPTION)V
                     :skip
                     return-void
+                """),
+                // The reduced menu's list, which never had Download. Its return is also a jump's target.
+                method(controller, "A03", listOf("Lfixture/ClipsItem;", MEDIA), "Ljava/util/ArrayList;", 6, static = false, body = """
+                    const-string v0, "android_purge_26_q3_$reducedMarker"
+                    new-instance v1, Ljava/util/ArrayList;
+                    invoke-direct { v1 }, Ljava/util/ArrayList;-><init>()V
+                    sget-object v0, $OPTION->PLAYBACK_CONTROLS:$OPTION
+                    invoke-virtual { v1, v0 }, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+                    const/4 v2, 0x0
+                    if-eqz v2, :done
+                    sget-object v0, $OPTION->REPORT:$OPTION
+                    invoke-virtual { v1, v0 }, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+                    :done
+                    return-object v1
                 """),
             ),
             listOf(field(controller, "helper", helper)),

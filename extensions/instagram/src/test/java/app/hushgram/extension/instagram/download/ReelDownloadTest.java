@@ -12,6 +12,10 @@ import static org.junit.Assert.assertTrue;
 import android.app.Activity;
 import android.os.Looper;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +56,37 @@ public class ReelDownloadTest {
         assertTrue(ReelDownload.withhold(true));
         assertFalse(ReelDownload.withhold(false));
         assertFalse("a tap was taken from Instagram", ReelDownload.save(new Object(), null));
+        List<Object> reduced = options(Option.PLAYBACK_CONTROLS, Option.REPORT);
+        ReelDownload.addTo(reduced, Option.DOWNLOAD);
+        assertEquals(options(Option.PLAYBACK_CONTROLS, Option.REPORT), reduced);
+    }
+
+    /** Instagram's option names, as the reduced reel menu's list holds them. */
+    private enum Option { SHOP_SIMILAR, SAVE, UNSAVE, PLAYBACK_CONTROLS, DOWNLOAD, WHY_AM_I_SEEING_THIS, REPORT }
+
+    private static List<Object> options(Object... options) {
+        return new ArrayList<>(Arrays.asList(options));
+    }
+
+    /** The reduced menu gets Download after its save rows, which is above Playback, and only once. */
+    @Test
+    public void theReducedMenuGetsDownloadAboveItsRows() {
+        List<Object> plain = options(Option.PLAYBACK_CONTROLS, Option.WHY_AM_I_SEEING_THIS, Option.REPORT);
+        ReelDownload.addTo(plain, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD, Option.PLAYBACK_CONTROLS, Option.WHY_AM_I_SEEING_THIS, Option.REPORT), plain);
+
+        List<Object> saved = options(Option.SHOP_SIMILAR, Option.UNSAVE, Option.PLAYBACK_CONTROLS, Option.REPORT);
+        ReelDownload.addTo(saved, Option.DOWNLOAD);
+        assertEquals(options(Option.SHOP_SIMILAR, Option.UNSAVE, Option.DOWNLOAD, Option.PLAYBACK_CONTROLS, Option.REPORT), saved);
+
+        List<Object> already = options(Option.DOWNLOAD, Option.REPORT);
+        ReelDownload.addTo(already, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD, Option.REPORT), already);
+
+        List<Object> empty = options();
+        ReelDownload.addTo(empty, Option.DOWNLOAD);
+        assertEquals(options(Option.DOWNLOAD), empty);
+        ReelDownload.addTo(null, Option.DOWNLOAD);
     }
 
     /**
