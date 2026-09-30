@@ -141,6 +141,8 @@ Instagram changed the part that patch looks for. Leave that patch out to get a w
 
 **Could my account be suspended?** Nobody can promise it won't be. Meta's [Terms of Use](https://help.instagram.com/581066165581870) don't allow modified versions of its apps, and Meta can disable accounts that break them. If you'd rather not risk the account you care about, try HushGram with a spare account first.
 
+**Lower the odds.** The riskiest moment is signing a fresh account into a patched build, which is where most reported suspensions happen. So sign in once on the normal Instagram app, then install HushGram over the top. The patcher keeps you logged in, so you skip a fresh login on the modified build. Don't clear Instagram's storage or data afterward, since that forces a new login. An older account you already use is treated better than a brand-new or long-idle one. And if Instagram ever asks you to confirm your phone or that you're a real person, do it from the normal app, not mid-patch.
+
 ## Getting help
 
 For something that's broken, use the [bug form](https://github.com/SysAdminDoc/HushGram/issues/new?template=bug_report.yml) and attach the diagnostic report it asks for, since it answers most of what we'd need to know. Ideas go on the [feature form](https://github.com/SysAdminDoc/HushGram/issues/new?template=feature_request.yml). When Morphe Manager misbehaves with every app, not only Instagram, [Morphe's own tracker](https://github.com/MorpheApp/morphe-manager/issues) is the place.
