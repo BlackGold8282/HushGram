@@ -176,6 +176,70 @@ class ProvenanceTest {
             headerProblem("z/A.java", "/*\n * Forked from:\n * https://www.GitHub.com/MorpheApp/morphe-patches\n */", morphe))
     }
 
+    /**
+     * A rule may name files outside the shipped trees, the way the release scripts ported from
+     * Hushfacebook are named. The shipped-source walk never reaches them, so each one named has to
+     * exist, fall under that one rule and carry a header that agrees with it.
+     */
+    @Test
+    fun everyNamedFileExistsAndAgreesWithItsRule() {
+        val shipped = RepoFiles.shippedSources().map { RepoFiles.relative(it) }.toSet()
+        val named = rules.flatMap { it.paths }.filterNot { it.endsWith("/**") }.distinct()
+        assertTrue("No rule names a script, so this check saw nothing", named.any { it.startsWith("scripts/") })
+        val problems = named.mapNotNull { path ->
+            val file = File(RepoFiles.root, path)
+            val count = rulesFor(path).size
+            when {
+                !file.isFile -> "$path is named in provenance.json, but there's no such file"
+                path in shipped -> null
+                count != 1 -> "$path matches $count provenance rules"
+                else -> headerProblem(path, headerOf(file), rulesFor(path).single())
+            }
+        }
+        if (problems.isNotEmpty()) fail(problems.joinToString("\n"))
+    }
+
+    /** Positive control: a header ends where the file's own text begins, whatever the file is. */
+    @Test
+    fun aHeaderEndsWhereTheFileBegins() {
+        val dir = kotlin.io.path.createTempDirectory("provenance").toFile()
+        try {
+            val script = File(dir, "x.ps1").apply {
+                writeText("<#\n.DESCRIPTION\n    Taken from https://github.com/SysAdminDoc/Hushfacebook.\n#>\n" +
+                    "\$page = 'https://github.com/evil/other'\n")
+            }
+            val list = File(dir, "x.txt").apply {
+                writeText("# Taken from https://github.com/SysAdminDoc/Hushfacebook.\n#\n" +
+                    "GHSA-aaaa-bbbb-cccc https://github.com/evil/other\n# https://github.com/evil/other\n")
+            }
+            val rule = Rule(listOf("x/**"), "ported", listOf("https://github.com/SysAdminDoc/Hushfacebook"))
+            assertEquals(null, headerProblem("x.ps1", headerOf(script), rule))
+            assertEquals(null, headerProblem("x.txt", headerOf(list), rule))
+            assertTrue("a script's body counted as its header", "evil" !in headerOf(script))
+            assertTrue("a list's entries counted as its header", "evil" !in headerOf(list))
+            // And a header that names the wrong repository is still read as one.
+            script.writeText("<#\n    Taken from https://github.com/evil/other.\n#>\n")
+            assertTrue("a script naming a repository outside its chain passed",
+                headerProblem("x.ps1", headerOf(script), rule) != null)
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
+
+    /**
+     * The part of a file that says where it came from: a script's comment-based help, a list's
+     * leading comment lines, or everything above a Java or Kotlin package line.
+     */
+    private fun headerOf(file: File): String {
+        val text = file.readText().replace("\r\n", "\n")
+        return when (file.extension) {
+            "ps1" -> if (text.startsWith("<#")) text.substringBefore("\n#>") else ""
+            "txt" -> text.lineSequence().takeWhile { it.startsWith("#") }.joinToString("\n")
+            "java", "kt" -> text.substringBefore("\npackage ")
+            else -> error("${file.path} has no header format this check knows")
+        }
+    }
+
     /** provenance.json's note says every rule states its licence, so every rule has to. */
     @Test
     fun everyRuleNamesItsLicence() {
