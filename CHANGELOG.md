@@ -4,7 +4,11 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
-### 0.0.1
+### HushGram v0.0.2
+
+* Added a HushGram logo and README banner in the family's style, using the pink from HushGram's settings.
+
+### HushGram v0.0.1
 
 The first set of patches, checked against Instagram 449.0.0.52.84 (build 385511871, arm64-v8a).
 
