@@ -49,4 +49,8 @@ public final class SettingsStatus {
     public static boolean feedReels() {
         return false;
     }
+
+    public static boolean reelDeclutter() {
+        return false;
+    }
 }

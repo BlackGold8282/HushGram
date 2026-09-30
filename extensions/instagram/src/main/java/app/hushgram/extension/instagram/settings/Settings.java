@@ -66,4 +66,24 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_FEED_REELS =
             new BooleanSetting("hushgram_hide_feed_reels", TRUE);
+
+    /** The Follow button beside a reel's author in the Reels viewer. */
+    public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
+            new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);
+
+    /**
+     * The pills on a reel that prompt you to make something (Edits, a template, a creative tool)
+     * or promote something (Meta AI, Ray-Ban Meta glasses, an affiliate link). A live badge, a
+     * state-controlled media label and the other labels there stay.
+     */
+    public static final BooleanSetting HIDE_REEL_CHIPS =
+            new BooleanSetting("hushgram_hide_reel_chips", TRUE);
+
+    /**
+     * What friends did with a reel, shown over it: the bubbles above the author of friends who
+     * liked, commented or follow them, the comment Instagram previews and the row of friends who
+     * saw it.
+     */
+    public static final BooleanSetting HIDE_REEL_SOCIAL_FOOTER =
+            new BooleanSetting("hushgram_hide_reel_social_footer", TRUE);
 }
