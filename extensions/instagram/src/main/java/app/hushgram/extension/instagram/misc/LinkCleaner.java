@@ -70,6 +70,10 @@ public final class LinkCleaner {
     private static final Set<String> SHIM_HOSTS = keys("l.instagram.com", "l.facebook.com", "l.alpha.facebook.com",
             "lm.alpha.facebook.com");
 
+    /** The schemes a text message opens with, and the extra its text travels in. */
+    private static final Set<String> MESSAGE_SCHEMES = keys("sms", "smsto", "mms", "mmsto");
+    private static final String SMS_BODY = "sms_body";
+
     /** How many shims deep a link is followed before it's opened as it is. */
     private static final int MAX_SHIMS = 4;
 
@@ -109,8 +113,9 @@ public final class LinkCleaner {
 
     /**
      * Stands in for {@link Context#startActivity(Intent)}. A share Instagram sends straight to one
-     * app, with no share sheet in between, goes with its Instagram links cleaned, and a page opened
-     * through a link shim opens directly. Every other intent goes as it came.
+     * app, with no share sheet in between, and a text message it opens go with their Instagram
+     * links cleaned, and a page opened through a link shim opens directly. Every other intent goes
+     * as it came.
      */
     public static void startActivity(Context context, Intent intent) {
         context.startActivity(sanitizedStart(intent));
@@ -121,11 +126,37 @@ public final class LinkCleaner {
         context.startActivity(sanitizedStart(intent), options);
     }
 
-    /** [intent], cleaned in place when it's a share or opens a link shim. */
+    /** [intent], cleaned in place when it's a share, a text message or opens a link shim. */
     static Intent sanitizedStart(Intent intent) {
         if (intent == null) return null;
         if (Intent.ACTION_SEND.equals(intent.getAction())) return sanitizedShare(intent);
+        if (isMessage(intent)) return sanitizedMessage(intent);
         return unwrappedShim(intent);
+    }
+
+    /**
+     * Whether [intent] opens a text message: the SMS button in Instagram's share sheet starts
+     * {@code sms:} with the link in {@link #SMS_BODY}.
+     */
+    private static boolean isMessage(Intent intent) {
+        Uri data = intent.getData();
+        String scheme = data == null ? null : data.getScheme();
+        return scheme != null && MESSAGE_SCHEMES.contains(scheme.toLowerCase(Locale.ROOT));
+    }
+
+    /** [intent] with the Instagram links in its message text cleaned. */
+    static Intent sanitizedMessage(Intent intent) {
+        HookStatus.invoked(FamilyNames.SANITIZE_SHARING_LINKS);
+        if (!enabled()) return intent;
+        try {
+            CharSequence text = intent.getCharSequenceExtra(SMS_BODY);
+            if (text == null) return intent;
+            String cleaned = cleanText(text.toString());
+            if (!cleaned.contentEquals(text)) intent.putExtra(SMS_BODY, cleaned);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.SANITIZE_SHARING_LINKS, "text message", t);
+        }
+        return intent;
     }
 
     /**

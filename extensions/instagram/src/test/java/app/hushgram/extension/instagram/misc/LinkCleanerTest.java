@@ -80,6 +80,33 @@ public class LinkCleanerTest {
         assertEquals("kept", started.options.getString("marker"));
     }
 
+    /**
+     * The SMS button in Instagram's share sheet opens {@code sms:} with the link in sms_body. With
+     * the switch off, 449 sent a reel's link with its stkn this way (S22, 2026-09-29).
+     */
+    @Test
+    public void aTextMessageLosesItsTrackingKeys() {
+        Application app = RuntimeEnvironment.getApplication();
+        Intent message = new Intent(Intent.ACTION_VIEW, Uri.parse("sms:")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra("sms_body", "https://www.instagram.com/reel/DdyHxJPOEyo/?stkn=MWdqeHZvbnF2OGY0bw==");
+        LinkCleaner.startActivity(app, message);
+        Intent started = shadowOf(app).getNextStartedActivity();
+        assertEquals("sms:", started.getDataString());
+        assertEquals("https://www.instagram.com/reel/DdyHxJPOEyo/", started.getStringExtra("sms_body"));
+    }
+
+    @Test
+    public void aTextMessageKeepsItsKeysWhileTheSwitchIsOff() {
+        Settings.SANITIZE_SHARING_LINKS.save(false);
+        try {
+            String link = "https://www.instagram.com/reel/DdyHxJPOEyo/?stkn=MWdqeHZvbnF2OGY0bw==";
+            Intent message = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:5551234")).putExtra("sms_body", link);
+            assertEquals(link, LinkCleaner.sanitizedStart(message).getStringExtra("sms_body"));
+        } finally {
+            Settings.SANITIZE_SHARING_LINKS.save(true);
+        }
+    }
+
     /** Only a share changes. Anything else Instagram starts keeps its text, links and all. */
     @Test
     public void anythingElseStartedGoesAsItCame() {
