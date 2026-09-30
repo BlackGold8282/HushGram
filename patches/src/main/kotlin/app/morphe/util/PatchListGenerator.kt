@@ -34,7 +34,7 @@
 
 /*
  * Forked from:
- * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/util/PatchListGenerator.kt
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe/blob/main/patches/src/main/kotlin/app/morphe/util/PatchListGenerator.kt
  */
 package app.morphe.util
 

@@ -20,6 +20,10 @@ import org.junit.Test
  * is the one a reader can open. This fetches each distinct mirror once, so the next takedown is
  * found by the suite rather than by a reader, and it is the only test here that needs the
  * network: a machine with none fails it by name rather than passing over it.
+ *
+ * <p>A mirror has to answer at its own address. GitLab sends a request for a file its branch
+ * doesn't have to the repository's front page, which answers 200, and two notices inherited from
+ * the TikTok source named ReVanced paths that never existed that way (found 2026-09-30).
  */
 class OriginNoticeMirrorsTest {
     @Test
@@ -48,7 +52,8 @@ class OriginNoticeMirrorsTest {
         connection.readTimeout = 20_000
         connection.setRequestProperty("User-Agent", "hushgram-origin-notice-check")
         return try {
-            connection.responseCode.toString()
+            val status = connection.responseCode.toString()
+            if (connection.url.toString() != url) "sent on to ${connection.url}" else status
         } finally {
             connection.disconnect()
         }

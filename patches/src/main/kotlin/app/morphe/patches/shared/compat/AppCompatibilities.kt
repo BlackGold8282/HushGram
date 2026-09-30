@@ -1,6 +1,6 @@
 /*
  * Forked from:
- * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/shared/compat/AppCompatibilities.kt
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe/blob/main/patches/src/main/kotlin/app/morphe/patches/shared/compat/AppCompatibilities.kt
  *
  * Modified for Hushfacebook (Facebook), 2026, and for HushGram (Instagram), 2026.
  *
