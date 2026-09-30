@@ -550,6 +550,7 @@ public class DashJoinTest {
 
         @Implementation
         protected static void nativeRelease(long nativeObject) {
+            ReleasingMuxer.closeUnstopped(nativeObject);
             if (made.contains(nativeObject)) released.incrementAndGet();
             if (failRelease) throw new IllegalStateException("the muxer could not be released");
         }

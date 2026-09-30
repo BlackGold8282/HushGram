@@ -65,7 +65,7 @@ import app.hushgram.extension.shared.settings.preference.LogBufferManager;
  * leave the work folder empty. A good one publishes one finished row.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE, sdk = 30)
+@Config(manifest = Config.NONE, sdk = 30, shadows = ReleasingMuxer.class)
 public class MediaSaveTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
