@@ -108,8 +108,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_download_stories", TRUE);
 
     /**
-     * Download in the menu of a feed post with a video, saving it through the save pipeline below.
-     * Instagram's own row is there only on reels whose owner allows downloads.
+     * Download in the menu of anyone's feed post with a video, saving it through the save pipeline
+     * below. Instagram's own row is there only on your own posts.
      */
     public static final BooleanSetting DOWNLOAD_VIDEOS =
             new BooleanSetting("hushgram_download_videos", TRUE);

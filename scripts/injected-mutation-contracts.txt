@@ -170,12 +170,16 @@ start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding story_interactions/bulk_story_like/
 start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding manage_highlights
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding manage_highlights
+# Two older dialogs' click listeners look the tapped label up in the labels themselves, and ask
+# save() right after the lookup: the one for a suggested-users card, and a merged listener whose
+# story case sits beside the ones holding the other two strings.
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in instance (Landroid/content/DialogInterface;I)V holding recommended_user_see_fewer_suggestions_tapped
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in instance (Landroid/content/DialogInterface;I)V holding ig_school_story_spp_remove_story_tapped carrera_pin_to_profile_confirmation_shown
 #
 # Download any video: the feed menu's builder, one case of a merged lambda holding the feed menu's
-# kept name, hands the download check's answer to offer() and the server flag's to withhold(), each
-# once. The feed menu's handler of a tapped option asks save() first; it's the one instance method
-# taking an option that holds both strings below. The call follows the check for Download and the
-# read of the post, so it isn't first, and the rule is once-call.
-once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->offer(ZLjava/lang/Object;)Z in instance ()Ljava/lang/Object; holding MediaOptionsOverflowHelper basel_template_option_overflow_menu
-once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->withhold(Z)Z in instance ()Ljava/lang/Object; holding MediaOptionsOverflowHelper basel_template_option_overflow_menu
+# kept name, calls offer() once, where the rows for anyone else's post start. The feed menu's
+# handler of a tapped option asks save() first; it's the one instance method taking an option that
+# holds both strings below. The call follows the check for Download and the read of the post, so
+# it isn't first, and the rule is once-call.
+once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V in instance ()Ljava/lang/Object; holding MediaOptionsOverflowHelper basel_template_option_overflow_menu
 once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->save(Ljava/lang/Object;Landroid/app/Activity;)Z in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error

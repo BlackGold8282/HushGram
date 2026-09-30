@@ -129,6 +129,8 @@ internal fun BytecodePatchContext.offerDownloadOnEveryReel() {
     val media = instanceField(helper, MEDIA)
     val activity = instanceField(helper, FRAGMENT_ACTIVITY)
     val writeBridges = mediaBridges(PATCH)
+    val menu = mutable(handler)
+    menu.requireLocals(PATCH, 3)
 
     gates.forEach { (builder, found) ->
         val method = mutable(builder)
@@ -162,8 +164,6 @@ internal fun BytecodePatchContext.offerDownloadOnEveryReel() {
         )
     }
 
-    val menu = mutable(handler)
-    menu.requireLocals(PATCH, 3)
     menu.addInstructionsWithLabels(
         0,
         """

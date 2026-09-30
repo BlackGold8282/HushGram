@@ -11,7 +11,9 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
 import app.morphe.patches.instagram.download.MEDIA
 import app.morphe.patches.instagram.download.mediaBridges
 import app.morphe.patches.instagram.download.reel.DOWNLOAD
@@ -27,11 +29,13 @@ import app.morphe.patches.instagram.misc.extension.requireLocals
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -39,26 +43,38 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
 private const val PATCH = "Download any video"
 
 private const val VIDEO_DOWNLOAD = "$EXTENSION_PACKAGE/download/VideoDownload;"
-internal const val OFFER_VIDEO = "$VIDEO_DOWNLOAD->offer(ZLjava/lang/Object;)Z"
-internal const val WITHHOLD_VIDEO = "$VIDEO_DOWNLOAD->withhold(Z)Z"
+internal const val OFFER_VIDEO = "$VIDEO_DOWNLOAD->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V"
 internal const val SAVE_VIDEO = "$VIDEO_DOWNLOAD->save(Ljava/lang/Object;Landroid/app/Activity;)Z"
 
 /** The name Instagram's build keeps, in a static field, for the class that runs a feed post's menu. */
 internal const val FEED_HELPER_NAME = "MediaOptionsOverflowHelper"
 private const val FRAGMENT_ACTIVITY = "Landroidx/fragment/app/FragmentActivity;"
+private const val ARRAY_LIST = "Ljava/util/ArrayList;"
+private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
+private const val CONTEXT = "Landroid/content/Context;"
+private const val GET_RESOURCES = "Landroid/content/Context;->getResources()Landroid/content/res/Resources;"
+private const val GET_STRING = "Landroid/content/res/Resources;->getString(I)Ljava/lang/String;"
+
+/** The bridges this patch writes: the post a menu is for, and Instagram's Download row. */
+private const val FEED_MENU_MEDIA = "feedMenuMedia"
+private const val ADD_DOWNLOAD_ROW = "addDownloadRow"
 
 /**
- * Download in the menu of a feed post with a video, saving through HushGram's own pipeline.
+ * Download in the menu of anyone's feed post with a video, saving through HushGram's own pipeline.
  *
- * Instagram 449's feed menu has a Download row of its own. Its builder shows the row only when the
- * post's owner lets other people download it, then holds it back again while a server flag says
- * so, and a tap saves a copy with a watermark. This patch shows the row on every post with a video
- * and has a tap save the video from the addresses its Media already holds, the way Hushfacebook's
- * Download any video does.
+ * Instagram 449's feed menu builder splits on whose post it is. Your own post goes past the
+ * download check and a server flag to Instagram's own Download row, and a tap on it saves a copy
+ * with a watermark. Anyone else's post jumps past that row to rows of its own, so it never gets
+ * Download. This patch leaves your own rows as Instagram builds them, and where anyone else's rows
+ * start it asks the extension, which adds the same row, built the way Instagram builds it, to a
+ * post with a video. A tap on Download saves the video from the addresses its Media already holds,
+ * the way Hushfacebook's Download any video does.
  *
  * Everything is found before anything changes, so a build that differs stops the patch naming
  * what it couldn't find, and nothing is half done.
@@ -82,8 +98,23 @@ val downloadVideoPatch = bytecodePatch(
     }
 }
 
-/** Where the feed menu's builder decides on the Download row: after the move-result at [at] - 1, in [register]. */
-internal class VideoGate(val at: Int, val register: Int, val media: Int?, val hook: String)
+/**
+ * What the patch found of the feed menu's builder. Anyone else's rows start at [at], where
+ * [state] holds the builder's state, of [stateType], and [rows] the list of rows. Instagram adds
+ * its own Download row with [adder], passing the row kind [kind] and a label read by resource id
+ * [label] through the state's [context]. The state keeps the post in [media].
+ */
+internal class OthersRow(
+    val at: Int,
+    val state: Int,
+    val rows: Int,
+    val stateType: String,
+    val adder: MethodReference,
+    val kind: FieldReference,
+    val context: FieldReference,
+    val label: Int,
+    val media: FieldReference,
+)
 
 internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
     val helpers = mutableListOf<ClassDef>()
@@ -111,7 +142,7 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         "$PATCH: expected one builder of the feed menu adding Download after the download check, found " +
             if (builders.isEmpty()) "none" else builders.joinToString { "${it.definingClass}->${it.name}" },
     )
-    val gates = builder.videoGates(eligible)
+    val others = builder.othersRow(eligible)
     val handlers = helper.methods.filter {
         !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.parameterTypes.map(Any::toString) == listOf(OPTION)
     }
@@ -130,19 +161,20 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         ?: throw PatchException("$PATCH: expected one $FRAGMENT_ACTIVITY field in $type, found ${activities.size}")
     val menu = mutable(handler)
     menu.requireLocals(PATCH, 3)
+    val bridges = mutableClassDefBy(INSTAGRAM_MEDIA)
+    val postOf = bridges.methods.singleOrNull {
+        it.name == FEED_MENU_MEDIA && AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;")
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static $FEED_MENU_MEDIA(Object)")
+    val rowStub = bridges.methods.singleOrNull {
+        it.name == ADD_DOWNLOAD_ROW && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
+            it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;", ARRAY_LIST)
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static $ADD_DOWNLOAD_ROW(Object, ArrayList)")
     val writeBridges = mediaBridges(PATCH)
 
-    val method = mutable(builder)
-    gates.sortedByDescending { it.at }.forEach { gate ->
-        val call = if (gate.media != null) "invoke-static { v${gate.register}, v${gate.media} }" else "invoke-static { v${gate.register} }"
-        method.addInstructions(
-            gate.at,
-            """
-                $call, ${gate.hook}
-                move-result v${gate.register}
-            """,
-        )
-    }
+    mutable(builder).addInstructionsAtControlFlowLabel(
+        others.at,
+        "invoke-static { v${others.state}, v${others.rows} }, $OFFER_VIDEO",
+    )
 
     menu.addInstructionsWithLabels(
         0,
@@ -161,68 +193,135 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         """,
         ExternalLabel("handle", menu.getInstruction(0)),
     )
+
+    postOf.addInstructions(
+        0,
+        """
+            check-cast p0, ${others.stateType}
+            iget-object p0, p0, ${others.media}
+            return-object p0
+        """,
+    )
+    bridges.methods.remove(rowStub)
+    bridges.methods.add(downloadRow(rowStub, others))
     writeBridges()
 }
 
 /**
- * The filters of [this], the feed menu's builder, that let the Download row in. It calls the
- * download check once, and the answer, with the Media the check was asked about, goes through
- * offer(). The row itself is loaded once, out of line, and reached only by branches that jump to it
- * when a test is false: a flag read from a call goes through withhold(), and a field's flag, which
- * only picks whether the server flag is read, is left alone. Anything else stops the patch.
+ * [stub] with a body that adds Instagram's Download row to its list the way the builder does:
+ * each of the adder's arguments is loaded into the register of its position, so one range call
+ * passes them all, with the label read in a spare register after them. The flag the adder takes
+ * last is false, as the builder passes it for your own posts.
  */
-internal fun Method.videoGates(eligible: Method): List<VideoGate> {
+private fun downloadRow(stub: Method, found: OthersRow): MutableMethod {
+    val parameters = found.adder.parameterTypes.map(Any::toString)
+    val spare = parameters.size
+    val loads = parameters.mapIndexed { index, type ->
+        when (type) {
+            found.kind.type -> "sget-object v$index, ${found.kind}"
+            OPTION -> "sget-object v$index, $DOWNLOAD"
+            found.stateType -> "move-object v$index, p0"
+            CHAR_SEQUENCE ->
+                """
+                    iget-object v$index, p0, ${found.context}
+                    invoke-virtual { v$index }, $GET_RESOURCES
+                    move-result-object v$index
+                    const v$spare, ${found.label}
+                    invoke-virtual { v$index, v$spare }, $GET_STRING
+                    move-result-object v$index
+                """.trimIndent()
+            ARRAY_LIST -> "move-object v$index, p1"
+            else -> "const/4 v$index, 0x0"
+        }
+    }
+    return ImmutableMethod(
+        stub.definingClass, stub.name, stub.parameters, stub.returnType, stub.accessFlags, stub.annotations,
+        stub.hiddenApiRestrictions, ImmutableMethodImplementation(spare + 3, emptyList(), null, null),
+    ).toMutable().apply {
+        addInstructions(
+            0,
+            "check-cast p0, ${found.stateType}\n" + loads.joinToString("\n") +
+                "\ninvoke-static/range { v0 .. v${spare - 1} }, ${found.adder}\nreturn-void",
+        )
+    }
+}
+
+/**
+ * Where anyone else's rows start in [this], the feed menu's builder, and how Instagram adds its
+ * own Download row. The row is loaded once, and the first call after it that takes a Download
+ * option, a label and the row list, declared by the state it also takes, adds it; a jump right
+ * after ends the row. The instruction after that jump starts anyone else's rows, and every jump
+ * there comes before the download check, so only anyone else's posts reach it. The state and the
+ * list there are the ones the first call after it that takes both is handed, and neither changes
+ * on the way.
+ */
+internal fun Method.othersRow(eligible: Method): OthersRow {
     val code = code()
     val where = "$definingClass->$name"
     val row = code.indices.singleOrNull { code[it].opcode == Opcode.SGET_OBJECT && code[it].referenceText() == DOWNLOAD }
         ?: throw PatchException("$PATCH: $where doesn't load Download once")
     val check = code.indices.singleOrNull { code[it].calls(eligible) }
         ?: throw PatchException("$PATCH: $where doesn't call the download check once")
-    val answer = code.getOrNull(check + 1)
-    if (answer?.opcode != Opcode.MOVE_RESULT) throw PatchException("$PATCH: $where doesn't keep the download check's answer")
-    val register = (answer as OneRegisterInstruction).registerA
-    val static = AccessFlags.STATIC.isSet(eligible.accessFlags)
-    val argument = (if (static) 0 else 1) + eligible.parameterTypes.map(Any::toString).indexOf(MEDIA)
-    val media = code[check].argumentRegisters()[argument]
-    if (media == register || media > 15 || register > 15) {
-        throw PatchException("$PATCH: in $where the download check's answer v$register and its Media v$media don't fit the filter")
-    }
+    val add = (row + 1 until code.size).firstOrNull { index ->
+        val call = code[index].methodReference() ?: return@firstOrNull false
+        val types = call.parameterTypes.map(Any::toString)
+        code[index].opcode in STATIC_CALLS && call.returnType == "V" &&
+            OPTION in types && CHAR_SEQUENCE in types && ARRAY_LIST in types && call.definingClass in types
+    } ?: throw PatchException("$PATCH: $where never adds the Download row it loads")
+    val adder = code[add].methodReference()!!
+    val stateType = adder.definingClass
+    val parameters = adder.parameterTypes.map(Any::toString)
+    if (code.getOrNull(add + 1)?.opcode !in GOTOS) throw PatchException("$PATCH: in $where the Download row doesn't end in a jump")
+    val at = add + 2
+
     val address = IntArray(code.size + 1)
     code.forEachIndexed { index, instruction -> address[index + 1] = address[index] + instruction.codeUnits }
     fun target(index: Int) = address.indexOf(address[index] + (code[index] as OffsetInstruction).codeOffset)
-    val jumps = code.indices.filter { code[it] is OffsetInstruction && code[it].opcode.name.let { name -> name.startsWith("if-") || name.startsWith("goto") } }
-    if (jumps.any { target(it) == check + 2 }) throw PatchException("$PATCH: in $where a jump lands after the download check")
-    val skip = code.getOrNull(check + 2)
-    if (skip?.opcode != Opcode.IF_EQZ || (skip as OneRegisterInstruction).registerA != register) {
-        throw PatchException("$PATCH: in $where the download check's answer isn't tested right after it")
+    val into = code.indices.filter { code[it] is OffsetInstruction && code[it].opcode.name.let { name -> name.startsWith("if-") || name.startsWith("goto") } }
+        .filter { target(it) == at }
+    if (into.isEmpty() || into.any { it > check }) {
+        throw PatchException("$PATCH: in $where the rows after Download aren't a branch taken before the download check")
     }
-    val gates = mutableListOf(VideoGate(check + 2, register, media, OFFER_VIDEO))
-    val intoRow = jumps.filter { target(it) == row }
-    if (intoRow.isEmpty() || code[row - 1].opcode.let { it != Opcode.GOTO && it != Opcode.GOTO_16 && it != Opcode.GOTO_32 && it != Opcode.RETURN_OBJECT }) {
-        throw PatchException("$PATCH: in $where Download isn't a row reached only by jumps")
+
+    val block = row..add
+    val kinds = block.mapNotNull { index ->
+        (code[index].takeIf { it.opcode == Opcode.SGET_OBJECT } as? ReferenceInstruction)?.reference as? FieldReference
+    }.filter { it.type in parameters && it.type != OPTION }
+    val kind = kinds.singleOrNull() ?: throw PatchException("$PATCH: in $where expected one row kind handed to the Download row, found ${kinds.size}")
+    val contexts = block.mapNotNull { index ->
+        (code[index].takeIf { it.opcode == Opcode.IGET_OBJECT } as? ReferenceInstruction)?.reference as? FieldReference
+    }.filter { it.definingClass == stateType && it.type == CONTEXT }
+    val context = contexts.singleOrNull() ?: throw PatchException("$PATCH: in $where expected one Context the Download row's label is read with")
+    val read = block.singleOrNull { code[it].referenceText() == GET_STRING }
+        ?: throw PatchException("$PATCH: in $where the Download row's label isn't read once")
+    val id = (code[read] as Instruction35c).registerD
+    val label = (read - 1 downTo row).firstOrNull { code[it].writes(id) }?.let { code[it] as? NarrowLiteralInstruction }?.narrowLiteral
+        ?: throw PatchException("$PATCH: in $where the Download row's label isn't a resource")
+    val known = listOf(kind.type, OPTION, stateType, CHAR_SEQUENCE, ARRAY_LIST)
+    if (known.any { type -> parameters.count { it == type } != 1 } || parameters.any { it !in known && it != "Z" } || parameters.count { it == "Z" } > 1) {
+        throw PatchException("$PATCH: in $where the Download row's adder takes $parameters, which this patch doesn't know")
     }
-    intoRow.forEach { index ->
-        val branch = code[index]
-        if (branch.opcode != Opcode.IF_EQZ || index < check) {
-            throw PatchException("$PATCH: in $where the jump at $index reaches Download in a way this patch doesn't know")
-        }
-        val tested = (branch as OneRegisterInstruction).registerA
-        val set = (index - 1 downTo check + 1).firstOrNull { code[it].writes(tested) }
-            ?: throw PatchException("$PATCH: in $where the jump at $index tests a register set before the download check")
-        when (code[set].opcode) {
-            Opcode.IGET_BOOLEAN -> Unit
-            Opcode.MOVE_RESULT -> {
-                val call = (code[set - 1] as? ReferenceInstruction)?.reference as? MethodReference
-                if (call?.returnType != "Z") throw PatchException("$PATCH: in $where the jump at $index doesn't test a call's answer")
-                if (jumps.any { target(it) == set + 1 }) throw PatchException("$PATCH: in $where a jump lands after the flag at $set")
-                gates += VideoGate(set + 1, tested, null, WITHHOLD_VIDEO)
-            }
-            else -> throw PatchException("$PATCH: in $where the jump at $index tests something this patch doesn't know")
-        }
+
+    val use = (at until code.size).firstOrNull { index ->
+        val types = code[index].methodReference()?.parameterTypes?.map(Any::toString) ?: return@firstOrNull false
+        code[index].opcode in STATIC_CALLS && stateType in types && ARRAY_LIST in types
+    } ?: throw PatchException("$PATCH: in $where no row after Download takes the state and the list")
+    val types = code[use].methodReference()!!.parameterTypes.map(Any::toString)
+    val arguments = code[use].argumentRegisters()
+    val state = arguments[types.indexOf(stateType)]
+    val rows = arguments[types.indexOf(ARRAY_LIST)]
+    if (state > 15 || rows > 15 || (at until use).any { code[it].writes(state) || code[it].writes(rows) }) {
+        throw PatchException("$PATCH: in $where the state v$state and the list v$rows don't reach anyone else's rows as they are")
     }
-    if (gates.none { it.hook == WITHHOLD_VIDEO }) throw PatchException("$PATCH: in $where no flag holds Download back")
-    return gates
+    val media = (at until code.size).firstNotNullOfOrNull { index ->
+        ((code[index].takeIf { it.opcode == Opcode.IGET_OBJECT } as? ReferenceInstruction)?.reference as? FieldReference)
+            ?.takeIf { it.definingClass == stateType && it.type == MEDIA }
+    } ?: throw PatchException("$PATCH: in $where anyone else's rows never read the post")
+    return OthersRow(at, state, rows, stateType, adder, kind, context, label, media)
 }
+
+private val STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 
 private fun Instruction.argumentRegisters(): List<Int> = when (this) {
     is RegisterRangeInstruction -> List(registerCount) { startRegister + it }
@@ -232,8 +331,10 @@ private fun Instruction.argumentRegisters(): List<Int> = when (this) {
 
 private fun Instruction.referenceText(): String? = (this as? ReferenceInstruction)?.reference?.toString()
 
+private fun Instruction.methodReference(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
+
 private fun Instruction.calls(method: Method): Boolean {
-    val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    val reference = methodReference() ?: return false
     return reference.definingClass == method.definingClass && reference.name == method.name &&
         reference.returnType == method.returnType &&
         reference.parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString)

@@ -51,6 +51,8 @@ class DownloadStoryHookTest {
     private val dismiss = "Landroid/content/DialogInterface\$OnDismissListener;"
     private val labels = "[Ljava/lang/CharSequence;"
     private val label = "Ljava/lang/CharSequence;"
+    private val listener = "Lfixture/OldDialogClick;"
+    private val clickListener = "Landroid/content/DialogInterface\$OnClickListener;"
 
     /** The hooks the patch writes are in the extension the bundle ships, public and static. */
     @Test
@@ -117,6 +119,39 @@ class DownloadStoryHookTest {
             assertEquals("$name: the branch", 6, code.target(4))
         }
         assertEquals("a method taking no label changed", Opcode.RETURN_VOID, context.method(helper, "A0J").code().first().opcode)
+    }
+
+    /**
+     * An old dialog's click listener, which looks the tapped label up in the labels itself, asks
+     * save() right after the lookup with the label and the menu, and its answer takes the array's
+     * register, which the listener sets anew next. A yes ends the click.
+     */
+    @Test
+    fun theOldDialogsAskSaveAfterTheLookup() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val code = context.method(listener, "onClick").code()
+        val lookup = code.indexOfFirst { it.opcode == Opcode.AGET_OBJECT }
+        assertEquals(
+            listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID, Opcode.IGET_OBJECT),
+            code.subList(lookup + 1, lookup + 6).map { it.opcode },
+        )
+        val save = code[lookup + 1] as Instruction35c
+        assertEquals(SAVE_STORY, save.referenceText())
+        assertEquals("the label and the menu", listOf(2, 4), listOf(save.registerC, save.registerD))
+        assertEquals("the answer", 0, (code[lookup + 2] as OneRegisterInstruction).registerA)
+        assertEquals("the branch", lookup + 5, code.target(lookup + 3))
+    }
+
+    /** A listener that reads the array again after the lookup leaves no register to use, and nothing changes. */
+    @Test
+    fun aLookupWhoseArrayIsReadAgainFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(arrayReadAgain = true))
+        assertThrows(PatchException::class.java) { context.offerDownloadOnEveryStory() }
+        assertUntouched(context)
+        assertTrue("the listener changed", context.method(listener, "onClick").code().none { it.referenceText() == SAVE_STORY })
     }
 
     /** storyMedia() reads the menu's story, then the story's Media the builders read. */
@@ -216,7 +251,7 @@ class DownloadStoryHookTest {
                 val classes = mutableListOf<ClassDef>(ExtensionDex.classDef(INSTAGRAM_MEDIA))
                 FixtureDex.forEach(bundle) { dex ->
                     for (classDef in dex.classes) {
-                        if (classDef.type in types || classDef.isStoryMenu()) classes += ImmutableClassDef.of(classDef)
+                        if (classDef.type in types || classDef.isStoryMenu() || classDef.looksLabelsUp()) classes += ImmutableClassDef.of(classDef)
                     }
                 }
                 val context = PatchContexts.of(classes)
@@ -248,12 +283,32 @@ class DownloadStoryHookTest {
                     val code = context.method(menu.type, handler.name, handler.parameterTypes.map(Any::toString)).code()
                     assertEquals("${bundle.name}: ${handler.name}'s first call", SAVE_STORY, code[2].referenceText())
                 }
-                val bridges = context.classDefBy(INSTAGRAM_MEDIA).methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) }
+                val lookups = classes.filter { it.looksLabelsUp() }.flatMap { listenerClass ->
+                    val code = context.method(listenerClass.type, "onClick", listOf("Landroid/content/DialogInterface;", "I")).code()
+                    code.indices.filter { index ->
+                        code[index].opcode == Opcode.INVOKE_STATIC && code[index].referenceText()?.startsWith("${menu.type}->") == true &&
+                            code[index].referenceText()!!.endsWith(")$labels")
+                    }.map { call -> listenerClass.type to code[call + 3].referenceText() }
+                }
+                assertEquals("${bundle.name}: the old dialogs' lookups", 2, lookups.size)
+                lookups.forEach { (owner, first) -> assertEquals("${bundle.name}: $owner after the lookup", SAVE_STORY, first) }
+                val bridges = context.classDefBy(INSTAGRAM_MEDIA).methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.name in storyBridges }
                 bridges.forEach { assertEquals("${bundle.name}: ${it.name}", Opcode.CHECK_CAST, it.code().first().opcode) }
                 checked += version
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /** The bridges this patch writes; the feed menu's two belong to Download any video. */
+    private val storyBridges = setOf(
+        "videoVersions", "dashManifest", "mediaId", "owner", "takenAt", "username", "versionUrl", "versionWidth", "versionHeight",
+        "imageVersions", "imageCandidates", "candidateUrl", "candidateWidth", "candidateHeight", "storyMedia",
+    )
+
+    /** A dialog click listener that calls a static method answering labels. */
+    private fun ClassDef.looksLabelsUp() = clickListener in interfaces && methods.any { method ->
+        method.name == "onClick" && method.code().any { it.opcode == Opcode.INVOKE_STATIC && it.referenceText()?.endsWith(")$labels") == true }
     }
 
     private fun ClassDef.isStoryMenu() = fields.any {
@@ -288,7 +343,24 @@ class DownloadStoryHookTest {
         secondMedia: Boolean = false,
         leaveOutCandidates: Boolean = false,
         handlerLocals: Int = 11,
+        arrayReadAgain: Boolean = false,
     ): List<ClassDef> {
+        // An old dialog's click listener: the tapped label is the builder's labels at `which`.
+        val oldDialog = ImmutableClassDef(
+            listener, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", listOf(clickListener), null, null,
+            listOf(ImmutableField(listener, "menu", "Ljava/lang/Object;", AccessFlags.PUBLIC.value, null, null, null)),
+            listOf(
+                method(listener, "onClick", listOf("Landroid/content/DialogInterface;", "I"), "V", 8, static = false, body = """
+                    iget-object v4, p0, $listener->menu:Ljava/lang/Object;
+                    check-cast v4, $helper
+                    invoke-static { v4 }, $helper->A0o($helper)$labels
+                    move-result-object v0
+                    aget-object v2, v0, p2
+                    ${if (arrayReadAgain) "array-length v0, v0" else "iget-object v0, v4, $helper->other:$label"}
+                    return-void
+                """),
+            ),
+        )
         val builder = { owner: String ->
             method(owner, "A0o", listOf(owner), labels, 4, static = true, body = """
                 iget-object v0, p0, $owner->story:$REEL_ITEM
@@ -349,7 +421,7 @@ class DownloadStoryHookTest {
             "CK7" to ("height" to "Ljava/lang/Integer;"))
         val imageGetters = if (leaveOutCandidates) emptyList() else listOf("Bd1" to ("candidates" to "Ljava/util/List;"))
         return listOf(
-            menu, otherMenu,
+            menu, otherMenu, oldDialog,
             classDef(MEDIA, mediaGetters),
             classDef(USER, listOf(getter(USER, "A89", "username", "Ljava/lang/String;"))),
             anInterface(VIDEO_VERSION, versionGetters.map { it.first to it.second.second }),

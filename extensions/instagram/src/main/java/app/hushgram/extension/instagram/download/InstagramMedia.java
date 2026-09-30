@@ -4,6 +4,7 @@
  */
 package app.hushgram.extension.instagram.download;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -94,5 +95,17 @@ public final class InstagramMedia {
     /** The Media a story's menu is open on, read off the menu's helper, or null for a story with none. */
     public static Object storyMedia(Object menu) {
         return null;
+    }
+
+    /** The post a feed menu's builder is building rows for, read off its state. */
+    public static Object feedMenuMedia(Object menu) {
+        return null;
+    }
+
+    /**
+     * Adds Instagram's own Download row to [rows], the feed menu's list, the way its builder adds it
+     * for your own posts. The patch replaces this body.
+     */
+    public static void addDownloadRow(Object menu, ArrayList<?> rows) {
     }
 }

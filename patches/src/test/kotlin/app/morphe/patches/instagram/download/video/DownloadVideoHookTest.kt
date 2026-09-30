@@ -29,9 +29,11 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
@@ -52,11 +54,16 @@ class DownloadVideoHookTest {
     private val activity = "Landroidx/fragment/app/FragmentActivity;"
     private val check = "$util->A08($session$MEDIA)Z"
     private val flag = "Lfixture/MobileConfig;->A1A(Ljava/lang/Object;J)Z"
+    private val state = "Lfixture/State;"
+    private val kind = "Lfixture/Kind;"
+    private val contextType = "Landroid/content/Context;"
+    private val mine = "Lfixture/Owner;->mine(Ljava/lang/Object;)Z"
+    private val adder = "$state->A00($kind$OPTION${state}Ljava/lang/CharSequence;Ljava/util/ArrayList;Z)V"
 
     /** The hooks the patch writes are in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(OFFER_VIDEO, WITHHOLD_VIDEO, SAVE_VIDEO)) {
+        for (hook in listOf(OFFER_VIDEO, SAVE_VIDEO)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -65,31 +72,50 @@ class DownloadVideoHookTest {
     }
 
     /**
-     * The download check's answer goes through offer() with the Media it was asked about, and the
-     * server flag's through withhold(). The field's flag, which only picks whether the server flag
-     * is read, stays as it is.
+     * Anyone else's rows start with offer(), handed the state and the row list, and the jump that
+     * went to those rows goes to it. Your own rows are as Instagram builds them.
      */
     @Test
-    fun theFeedMenuOffersDownloadOnVideos() {
+    fun anyoneElsesRowsStartWithOffer() {
         val context = PatchContexts.of(classes())
 
         context.offerDownloadOnEveryVideo()
 
         val code = context.method(lambda, "invoke").code()
-        val at = code.indexOfFirst { it.referenceText() == check }
-        assertEquals(Opcode.MOVE_RESULT, code[at + 1].opcode)
-        assertEquals(OFFER_VIDEO, code[at + 2].referenceText())
-        val offer = code[at + 2] as Instruction35c
-        assertEquals("offer()'s arguments", listOf(1, 3), listOf(offer.registerC, offer.registerD))
-        assertEquals("offer()'s answer", 1, (code[at + 3] as OneRegisterInstruction).registerA)
-        assertEquals(Opcode.IF_EQZ, code[at + 4].opcode)
+        val offer = code.indexOfFirst { it.referenceText() == OFFER_VIDEO }
+        val call = code[offer] as Instruction35c
+        assertEquals("offer()'s arguments", listOf(0, 3), listOf(call.registerC, call.registerD))
+        assertEquals("anyone else's first row follows", "$state->other:Ljava/lang/Object;", code[offer + 1].referenceText())
+        val owner = code.indexOfFirst { it.referenceText() == mine }
+        assertEquals("the owner check's jump", offer, code.target(owner + 2))
+        assertEquals("one hook in the builder", 1, code.count { it.referenceText()?.startsWith("Lapp/hushgram/") == true })
+    }
 
-        val read = code.indexOfFirst { it.referenceText() == flag }
-        assertEquals(WITHHOLD_VIDEO, code[read + 2].referenceText())
-        assertEquals(Opcode.MOVE_RESULT, code[read + 3].opcode)
-        assertEquals("one filter per gate", 2, code.count { it.referenceText()?.startsWith("Lapp/hushgram/") == true })
-        val field = code.indexOfFirst { it.opcode == Opcode.IGET_BOOLEAN }
-        assertEquals("the field's flag is filtered", Opcode.IF_EQZ, code[field + 1].opcode)
+    /**
+     * The row bridge adds Instagram's Download row the way the builder does: the row kind, the
+     * option, the state, the label read by its resource id and the list, in the adder's order, and
+     * false last. The post bridge reads the state's post.
+     */
+    @Test
+    fun theBridgesAddInstagramsDownloadRow() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryVideo()
+
+        val bridge = context.method(INSTAGRAM_MEDIA, "addDownloadRow")
+        assertEquals("registers", 9, bridge.implementation!!.registerCount)
+        val code = bridge.code()
+        assertEquals(Opcode.CHECK_CAST, code.first().opcode)
+        assertEquals(listOf("$kind->A05:$kind", DOWNLOAD), code.filter { it.opcode == Opcode.SGET_OBJECT }.map { it.referenceText() })
+        assertEquals("$state->context:$contextType", code.single { it.opcode == Opcode.IGET_OBJECT }.referenceText())
+        assertEquals("the label", 0x7f131703, code.filterIsInstance<NarrowLiteralInstruction>().single { it.narrowLiteral != 0 }.narrowLiteral)
+        val add = code.single { it.referenceText() == adder } as RegisterRangeInstruction
+        assertEquals("the range", 0 to 6, add.startRegister to add.registerCount)
+        assertEquals(Opcode.RETURN_VOID, code.last().opcode)
+
+        val media = context.method(INSTAGRAM_MEDIA, "feedMenuMedia").code()
+        assertEquals(listOf(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT), media.take(3).map { it.opcode })
+        assertEquals("$state->media:$MEDIA", media[1].referenceText())
     }
 
     /** A tap on Download asks save() first, with the post and the menu's activity; any other option goes on. */
@@ -115,10 +141,10 @@ class DownloadVideoHookTest {
         for (branch in listOf(2, 9)) assertEquals("the branch at $branch", 11, code.target(branch))
     }
 
-    /** A flag that lets Download in only when it's on is a gate this patch doesn't know, and nothing changes. */
+    /** Rows after Download that the download check can reach aren't anyone else's for sure, and nothing changes. */
     @Test
-    fun anUnknownJumpToDownloadFailsBeforeAnythingChanges() {
-        val context = PatchContexts.of(classes(flagJumps = "if-nez"))
+    fun aJumpAfterTheCheckFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(lateJump = true))
         assertThrows(PatchException::class.java) { context.offerDownloadOnEveryVideo() }
         assertUntouched(context)
     }
@@ -138,9 +164,9 @@ class DownloadVideoHookTest {
     }
 
     /**
-     * In each declared build, the feed menu's class is found by its kept name, its builder filters
-     * the download check and at least one flag, the handler asks save() first, and every video
-     * bridge is written.
+     * In each declared build, the feed menu's class is found by its kept name, its builder calls
+     * offer() once, where a jump from before the download check lands after the Download row, the
+     * handler asks save() first, and the post, row and video bridges are written.
      */
     @Test
     fun eachDeclaredBuildOffersDownloadOnEveryVideo() {
@@ -177,9 +203,12 @@ class DownloadVideoHookTest {
                 assertEquals("${bundle.name}: the builders offering Download", 1, builders.size)
                 val code = context.method(builders.single().definingClass, builders.single().name, builders.single().parameterTypes.map(Any::toString)).code()
                 assertEquals("${bundle.name}: offer() calls", 1, code.count { it.referenceText() == OFFER_VIDEO })
-                assertTrue("${bundle.name}: no flag filtered", code.any { it.referenceText() == WITHHOLD_VIDEO })
                 val offer = code.indexOfFirst { it.referenceText() == OFFER_VIDEO }
-                assertEquals("${bundle.name}: offer() follows the check's answer", Opcode.MOVE_RESULT, code[offer - 1].opcode)
+                assertTrue("${bundle.name}: offer() follows the Download row's jump", code[offer - 1].opcode.name.startsWith("goto"))
+                assertTrue("${bundle.name}: a jump reaches offer()", code.indices.any { it < offer && code[it].opcode == Opcode.IF_EQZ && code.target(it) == offer })
+                val row = context.method(INSTAGRAM_MEDIA, "addDownloadRow").code()
+                assertTrue("${bundle.name}: the row bridge", row.any { it.referenceText() == DOWNLOAD } && row.any { it.opcode == Opcode.INVOKE_STATIC_RANGE })
+                assertEquals("${bundle.name}: the post bridge", Opcode.CHECK_CAST, context.method(INSTAGRAM_MEDIA, "feedMenuMedia").code().first().opcode)
                 val bridges = context.classDefBy(INSTAGRAM_MEDIA).methods.filter { it.name in videoBridges }
                 assertEquals("${bundle.name}: the video bridges", videoBridges.size, bridges.size)
                 bridges.forEach { assertEquals("${bundle.name}: ${it.name}", Opcode.CHECK_CAST, it.code().first().opcode) }
@@ -197,6 +226,7 @@ class DownloadVideoHookTest {
         assertTrue("the builder changed", context.method(lambda, "invoke").code().none { it.referenceText()?.startsWith("Lapp/hushgram/") == true })
         assertEquals("the handler changed", Opcode.CONST_STRING, context.method(helper, "A09").code().first().opcode)
         assertEquals("a bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "videoVersions").code().first().opcode)
+        assertEquals("the row bridge was written", Opcode.RETURN_VOID, context.method(INSTAGRAM_MEDIA, "addDownloadRow").code().first().opcode)
     }
 
     private fun BytecodePatchContext.method(type: String, name: String, parameters: List<String>? = null): Method =
@@ -215,7 +245,7 @@ class DownloadVideoHookTest {
 
     // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
 
-    private fun classes(name: String = FEED_HELPER_NAME, flagJumps: String = "if-eqz", handlerRegisters: Int = 42): List<ClassDef> {
+    private fun classes(name: String = FEED_HELPER_NAME, lateJump: Boolean = false, handlerRegisters: Int = 42): List<ClassDef> {
         val menu = ImmutableClassDef(
             helper, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
             listOf(
@@ -241,30 +271,52 @@ class DownloadVideoHookTest {
                 """),
             ),
         )
-        // The feed menu's builder, one case of a merged lambda: the row is out of line, reached by
-        // jumps when the field's flag or the server flag is off.
-        val builder = classDef(lambda, listOf(method(lambda, "invoke", emptyList(), "Ljava/lang/Object;", 10, static = false, body = """
-            const/4 v0, 0x0
-            iget-object v4, p0, $lambda->state:Lfixture/State;
-            iget-object v3, v4, Lfixture/State;->media:$MEDIA
+        // The feed menu's builder, one case of a merged lambda: your own post goes past the download
+        // check and two flags to the Download row, out of line; anyone else's jumps past it.
+        val builder = classDef(lambda, listOf(method(lambda, "invoke", emptyList(), "Ljava/lang/Object;", 15, static = false, body = """
+            new-instance v3, Ljava/util/ArrayList;
+            invoke-direct { v3 }, Ljava/util/ArrayList;-><init>()V
+            iget-object v0, p0, $lambda->state:$state
+            iget-object v1, v0, $state->media:$MEDIA
+            invoke-static { v1 }, $mine
+            move-result v1
+            if-eqz v1, :others
+            iget-object v12, v0, $state->media:$MEDIA
             const/4 v2, 0x0
-            const/4 v1, 0x0
-            invoke-virtual { v1, v2, v3 }, $check
+            invoke-virtual { v2, v2, v12 }, $check
             move-result v1
-            if-eqz v1, :skip
-            iget-boolean v1, v4, Lfixture/State;->flagged:Z
+            if-eqz v1, ${if (lateJump) ":others" else ":mine"}
+            iget-boolean v1, v0, $state->flagged:Z
+            const/4 v5, 0x0
             if-eqz v1, :row
-            const-wide v5, 0x81034200060c62L
-            invoke-static { v2, v5, v6 }, $flag
+            const-wide v6, 0x81034200060c62L
+            invoke-static { v2, v6, v7 }, $flag
             move-result v1
-            $flagJumps v1, :row
-            :skip
-            invoke-static { v0 }, $helper->A01($helper)$MEDIA
-            move-result-object v0
-            return-object v0
+            if-eqz v1, :row
+            :mine
+            invoke-static { v13 }, $helper->A01($helper)$MEDIA
+            return-object v3
             :row
             sget-object v7, $DOWNLOAD
-            goto :skip
+            iget-object v1, v0, $state->context:$contextType
+            invoke-virtual { v1 }, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+            move-result-object v2
+            const v1, 0x7f131703
+            invoke-virtual { v2, v1 }, Landroid/content/res/Resources;->getString(I)Ljava/lang/String;
+            move-result-object v9
+            sget-object v6, $kind->A05:$kind
+            move-object v8, v0
+            move-object v10, v3
+            move v11, v5
+            invoke-static/range { v6 .. v11 }, $adder
+            goto :mine
+            :others
+            iget-object v1, v0, $state->other:Ljava/lang/Object;
+            iget-object v4, v0, $state->media:$MEDIA
+            sget-object v6, $OPTION->REPORT:$OPTION
+            const v5, 0x7f000001
+            invoke-static { v6, v0, v3, v5 }, $state->A01($OPTION${state}Ljava/util/ArrayList;I)V
+            return-object v3
         """)))
         val eligible = classDef(util, listOf(method(util, "A08", listOf(session, MEDIA), "Z", 4, static = false, body = """
             const-string v0, "android_purge_26_q3_$ELIGIBLE_MARKER"

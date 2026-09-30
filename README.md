@@ -99,8 +99,8 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - Clean up Reels has only been seen on a phone with an account that follows almost no one, so the Follow button is the part checked there. The pills and friends' activity are hidden by the same kind of hook but haven't shown up on that account yet.
 - Don't send reel watch history keeps reels out of the list from the moment it's on. A list Instagram saved before you patched can still go out once.
 - Download any reel saves the reel's video. A photo post that turns up in Reels has no video to save, so Download says it failed there.
-- Download any story adds its row to the menu you get from the three dots on someone else's story. Your own stories keep Instagram's Save.
-- Download any video is off until you pick it in Manager. It covers a feed post that is one video. A carousel, and a photo post, get no Download row yet.
+- Download any story adds its row to the menu you get from the three dots on a story, yours included, and to the older menu some special story cards still use.
+- Download any video is off until you pick it in Manager. It covers a feed post that is one video, yours or anyone's. A carousel, and someone else's photo post, get no Download row yet. On your own photo post, Instagram's own Download works as it always did.
 - Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. Instagram has other reporting paths, and this patch doesn't claim to stop every one.
 - A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
 - Only one Instagram build has been checked so far. Expect a patch to stop on a newer one until it's checked.

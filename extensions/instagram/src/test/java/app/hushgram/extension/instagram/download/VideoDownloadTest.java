@@ -9,7 +9,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
-import android.os.Looper;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -17,13 +16,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.Shadows;
 import org.robolectric.shadows.ShadowToast;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
 
-/** What the feed menu's hooks answer, and what a tap on Download does with them. */
+/** What the feed menu's hooks do with a post, and what a tap on Download does. */
 @RunWith(RobolectricTestRunner.class)
 public class VideoDownloadTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
@@ -34,41 +35,44 @@ public class VideoDownloadTest {
     }
 
     /**
-     * With the switch on, the server flag never holds the row back, and Instagram's own yes stands.
-     * A post with no video gets no row: without the bridges written, nothing has one.
+     * A post with no video gets no row, and the builder's list is left as it was. Without the
+     * bridges written, no post has one.
      */
     @Test
-    public void withTheSwitchOnOnlyAVideoIsOffered() {
-        assertTrue(VideoDownload.offer(true, new Object()));
-        assertFalse("a post without a video got the row", VideoDownload.offer(false, new Object()));
-        assertFalse(VideoDownload.offer(false, null));
-        assertFalse(VideoDownload.withhold(true));
-        assertFalse(VideoDownload.withhold(false));
+    public void aPostWithoutAVideoGetsNoRow() {
+        ArrayList<Object> rows = new ArrayList<>();
+        rows.add("Report");
+
+        VideoDownload.offer(new Object(), rows);
+        VideoDownload.offer(null, rows);
+        VideoDownload.offer(new Object(), null);
+
+        assertEquals(Collections.singletonList("Report"), rows);
     }
 
-    /** Off, the menu is Instagram's own. */
+    /** Off, the menu is Instagram's own, and so is a tap. */
     @Test
     public void offInstagramDecides() {
         Settings.DOWNLOAD_VIDEOS.save(false);
-        assertTrue(VideoDownload.offer(true, new Object()));
-        assertFalse(VideoDownload.offer(false, new Object()));
-        assertTrue(VideoDownload.withhold(true));
-        assertFalse(VideoDownload.withhold(false));
+        ArrayList<Object> rows = new ArrayList<>();
+
+        VideoDownload.offer(new Object(), rows);
+
+        assertTrue(rows.isEmpty());
         assertFalse("a tap was taken from Instagram", VideoDownload.save(new Object(), null));
     }
 
     /**
-     * A tap with the switch on is HushGram's, even when the post gives nothing to save: the toast
-     * says so rather than Instagram's own download starting.
+     * A tap on a post without a video, your own photo for one, goes to Instagram's own download
+     * rather than a failure toast.
      */
     @Test
-    public void aTapWithNothingToSaveSaysSo() {
+    public void aTapOnAPostWithoutAVideoIsInstagrams() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        assertTrue(VideoDownload.save(new Object(), activity));
-        Shadows.shadowOf(Looper.getMainLooper()).idle();
-
-        assertEquals("Download failed", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertFalse(VideoDownload.save(new Object(), activity));
+        assertFalse(VideoDownload.save(null, activity));
+        assertEquals(null, ShadowToast.getTextOfLatestToast());
     }
 
     /** Without the bridges written, a post has no video, and the read doesn't throw. */
