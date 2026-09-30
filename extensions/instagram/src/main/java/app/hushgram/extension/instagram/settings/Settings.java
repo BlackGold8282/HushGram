@@ -107,6 +107,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DOWNLOAD_STORIES =
             new BooleanSetting("hushgram_download_stories", TRUE);
 
+    /**
+     * Download in the menu of a feed post with a video, saving it through the save pipeline below.
+     * Instagram's own row is there only on reels whose owner allows downloads.
+     */
+    public static final BooleanSetting DOWNLOAD_VIDEOS =
+            new BooleanSetting("hushgram_download_videos", TRUE);
+
     // ---- Downloads -------------------------------------------------------------------------
     // What every save reads when it starts (app.hushgram.extension.instagram.download), ported
     // with the save pipeline from Hushfacebook 3a473639 with the same types and defaults, keyed

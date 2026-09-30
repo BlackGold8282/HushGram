@@ -20,6 +20,7 @@ import app.morphe.patches.instagram.download.mediaBridges
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.originalName
 import app.morphe.patches.instagram.misc.extension.requireLocals
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.settings.settingsPatch
@@ -31,7 +32,6 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 
 private const val PATCH = "Download any story"
 
@@ -41,7 +41,6 @@ internal const val SAVE_STORY = "$STORY_DOWNLOAD->save(Ljava/lang/CharSequence;L
 
 /** The name Instagram's build keeps, in a static field, for the class that runs a story's menu. */
 internal const val HELPER_NAME = "ReelOptionsOverflowHelper"
-private const val ORIGINAL_NAME_FIELD = "__redex_internal_original_name"
 
 /** A story, which keeps its name. Instagram calls stories reels, and Reels clips. */
 internal const val REEL_ITEM = "Lcom/instagram/model/reels/ReelItem;"
@@ -168,11 +167,6 @@ internal fun BytecodePatchContext.offerDownloadOnEveryStory() {
     writeVideoBridges()
     writeImageBridges()
 }
-
-/** The name Instagram's build kept for [this] class, or null. */
-private fun ClassDef.originalName(): String? =
-    fields.firstOrNull { it.name == ORIGINAL_NAME_FIELD && AccessFlags.STATIC.isSet(it.accessFlags) }
-        ?.let { (it.initialValue as? StringEncodedValue)?.value }
 
 /** The returns of [this] builder, each answering its labels. */
 internal fun Method.labelReturns(): List<Int> =

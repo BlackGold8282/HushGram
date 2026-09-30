@@ -217,9 +217,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
 
         // Any download patch brings this section, so each one that saves joins this condition.
-        if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.STORY_DOWNLOAD)) {
+        if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.STORY_DOWNLOAD)
+                || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
             PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
             this.downloads = downloads;
+            if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
+                downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS, L10n.t("Download feed videos"),
+                        L10n.t("Adds Download to the menu of a post in your feed with a video. Uses the quality below. "
+                                + "Off or paused, Instagram's own menu returns.")));
+            }
             // Every save reads it, whichever download patch started it, so it's here above the
             // quality it keeps within.
             downloads.addPreference(toggle(context, Settings.DOWNLOAD_COMPATIBLE, L10n.t("Save videos other apps can open"),

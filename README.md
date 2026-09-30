@@ -58,6 +58,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 | `Don't send reel watch history` | Stops telling Instagram which reels you watched and how far into them you got. It's used to rank your Reels, and nobody else sees it. Reels you've already watched may come back. |
 | `Download any reel` | Adds Download to every reel's more menu. Reels save at the Download quality you set, best by default, without Instagram's watermark. |
 | `Download any story` | Adds Download to the menu of anyone's story. A video saves at the Download quality you set, a photo at its largest size. |
+| `Download any video` | Adds Download to the menu of a post in your feed with a video. Videos save at the Download quality you set, without Instagram's watermark. |
 | `Hide ads` | Hides sponsored posts, reels and stories. Instagram is told the ad didn't go in, so no gap is left where it would have been. |
 | `Hide Reels in the feed` | Removes the rows of suggested reels between posts in your home feed, and the other units that open the Reels viewer from there. A reel someone you follow posts stays. |
 | `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too. |
@@ -82,7 +83,7 @@ At the top, a card says whether HushGram is on or paused. Below it:
 - **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links and Disable analytics.
 - **Reels** holds the switches for Hide Reels in the feed, the three parts of Clean up Reels, Don't send reel watch history and Download on reels.
 - **Stories** holds the switches for Stop Story auto-advance and Download on stories.
-- **Downloads** lists each save that's running, with a Cancel button, and holds what every save uses: Save videos other apps can open, Download quality, the save folder and the video file name. Videos go to Movies and photos to Pictures, each in an Instagram folder unless you name another, and a video is named `IG_VID_` with the date and time unless you set a name.
+- **Downloads** holds the switch for Download feed videos, lists each save that's running, with a Cancel button, and holds what every save uses: Save videos other apps can open, Download quality, the save folder and the video file name. Videos go to Movies and photos to Pictures, each in an Instagram folder unless you name another, and a video is named `IG_VID_` with the date and time unless you set a name.
 - **Updates** holds the switch for the build expired screen.
 - **Set when you patched** lists what was fixed at patch time and can't be switched off here, such as the re-signed build fix.
 - **Pause and diagnostics** has the Pause switch, Debug logging, and the diagnostic report. Copy a quick report, or save the full one to Download/Morphe (on Android 9, a Download/Morphe folder inside Instagram's own folder, and the message says where). Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it.
@@ -99,6 +100,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - Don't send reel watch history keeps reels out of the list from the moment it's on. A list Instagram saved before you patched can still go out once.
 - Download any reel saves the reel's video. A photo post that turns up in Reels has no video to save, so Download says it failed there.
 - Download any story adds its row to the menu you get from the three dots on someone else's story. Your own stories keep Instagram's Save.
+- Download any video is off until you pick it in Manager. It covers a feed post that is one video. A carousel, and a photo post, get no Download row yet.
 - Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. Instagram has other reporting paths, and this patch doesn't claim to stop every one.
 - A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
 - Only one Instagram build has been checked so far. Expect a patch to stop on a newer one until it's checked.
@@ -131,7 +133,7 @@ For something that's broken, use the [bug form](https://github.com/SysAdminDoc/H
 
 ## Privacy
 
-HushGram doesn't collect anything and has no server. The one connection it opens itself is a download you ask for. Tap Download on a reel or a story and HushGram fetches that video or photo over HTTPS from Meta's media servers (`cdninstagram.com`, `fbcdn.net` and `fbsbx.com`), and every address is checked before anything is fetched. An address anywhere else is refused. Apart from that, its code names just two addresses:
+HushGram doesn't collect anything and has no server. The one connection it opens itself is a download you ask for. Tap Download on a reel, a story or a feed video and HushGram fetches that video or photo over HTTPS from Meta's media servers (`cdninstagram.com`, `fbcdn.net` and `fbsbx.com`), and every address is checked before anything is fetched. An address anywhere else is refused. Apart from that, its code names just two addresses:
 
 - `github.com`, for the link to this page in settings. It opens in your browser, and only when you tap it.
 - `127.0.0.1`, your phone's own loopback address. Disable analytics hands it to Instagram in place of its logging servers. Nothing sent there leaves the phone, and nothing on the phone answers.
@@ -146,7 +148,7 @@ The diagnostic report stays on your phone until you copy or share it yourself.
 | [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) at `5db2e57`, by way of Hushfacebook | The fix for re-signed builds, pointed here at Instagram's own two signing certificates. |
 | [SysAdminDoc/hushfeed](https://github.com/SysAdminDoc/hushfeed), [tiktok-patches-for-morphe](https://github.com/icysymmetra/tiktok-patches-for-morphe), [Morphe](https://github.com/MorpheApp) and [ReVanced](https://gitlab.com/ReVanced/revanced-patches) | Where Hushfacebook's foundation came from: the patcher, the patch template and the shared library. |
 
-Hide ads, Disable analytics, Remove build expired popup, Hide Reels in the feed, Clean up Reels, Don't send reel watch history, Stop Story auto-advance, the Instagram side of Download any reel and Download any story, and the Instagram side of Sanitize sharing links were written here.
+Hide ads, Disable analytics, Remove build expired popup, Hide Reels in the feed, Clean up Reels, Don't send reel watch history, Stop Story auto-advance, the Instagram side of Download any reel, Download any story and Download any video, and the Instagram side of Sanitize sharing links were written here.
 
 Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its licence. [docs/sources.md](docs/sources.md) covers the other Instagram patch sources and what each one does. The ledger behind it, [sources/instagram-sources.json](sources/instagram-sources.json), pins each source's licence, and code is only ported from a source it lists as adopted.
 

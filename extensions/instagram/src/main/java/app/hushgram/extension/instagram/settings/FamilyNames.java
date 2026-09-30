@@ -27,6 +27,7 @@ public final class FamilyNames {
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String STORY_DOWNLOAD = "Download any story";
+    public static final String VIDEO_DOWNLOAD = "Download any video";
 
     private FamilyNames() {
     }
