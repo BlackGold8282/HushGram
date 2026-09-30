@@ -54,6 +54,10 @@ shared-call Lapp/hushgram/extension/instagram/misc/LinkCleaner;->sanitizeShared(
 single-call Lapp/hushgram/extension/shared/Utils;->setContext(Landroid/content/Context;)V in onCreate
 single-call Lapp/hushgram/extension/instagram/settings/SettingsEntry;->onApplicationCreate(Landroid/content/Context;)V in onCreate
 single-call Lapp/hushgram/extension/instagram/settings/SettingsEntry;->onNewIntent(Landroid/app/Activity;Landroid/content/Intent;)V in onNewIntent
+# The settings patch passes the view Instagram's settings screen makes through the extension before
+# each return of the screen's onCreateView, which puts the HushGram row on Settings and activity.
+# 449's onCreateView returns once, so one call.
+single-call Lapp/hushgram/extension/instagram/settings/SettingsEntry;->withSettingsRow(Landroid/os/Bundle;Landroid/view/View;)Landroid/view/View; in onCreateView
 # Instagram publishes shortcuts of its own, and the settings patch sends every one of these calls to
 # the extension, which puts the HushGram shortcut back in front afterwards. One left in Instagram's
 # code is a publish that can push the shortcut out of a launcher's short list.
