@@ -28,6 +28,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val PATCH = "Turn off double tap to like"
@@ -37,6 +38,9 @@ internal const val LIKE_ACTION = "$DOUBLE_TAP_LIKE->likeAction(Ljava/lang/Object
 
 /** The report the feed's onDoubleTapMedia files when it has no activity: the one string it holds. */
 internal const val FEED_DOUBLE_TAP = "DefaultMediaHolderGestureDetectorDelegateImpl#onDoubleTapMedia called with null activity"
+
+/** The first two parameters of the feed's double-tap like: the post's view, then the post. */
+private val DOUBLE_TAP_LIKE_STARTS = listOf("Landroid/view/View;", "Lcom/instagram/feed/media/Media;")
 
 /** The Reels gesture handler's double tap, and its setter for the action a double tap likes through. */
 internal const val HANDLE_DOUBLE_TAP = "GestureActionHandler_handleDoubleTapMedia"
@@ -76,13 +80,18 @@ internal fun BytecodePatchContext.turnOffDoubleTapLikes() {
     emptyReelLikeAction(found)
 }
 
-/** The two double taps: the feed's, and the Reels handler's read of its like action at [read]. */
-internal class DoubleTaps(val post: Method, val reel: Method, val read: Int, val action: FieldReference)
+/**
+ * The two double taps: the feed's double-tap like, which [post] (the single photo's delegate)
+ * calls like every other kind of post's, and the Reels handler's read of its like action at [read].
+ */
+internal class DoubleTaps(val post: Method, val like: Method, val reel: Method, val read: Int, val action: FieldReference)
 
 internal fun BytecodePatchContext.findDoubleTaps(): DoubleTaps {
     val posts = mutableListOf<Method>()
     val reels = mutableListOf<Method>()
     val setters = mutableListOf<Method>()
+    // Every method called with a post's view and the post, and the methods that call it.
+    val likeCallers = mutableMapOf<String, MutableSet<String>>()
     classDefForEach { classDef ->
         classDef.methods.forEach { method ->
             val code = method.code()
@@ -90,14 +99,30 @@ internal fun BytecodePatchContext.findDoubleTaps(): DoubleTaps {
             val markers = method.markers()
             if (HANDLE_DOUBLE_TAP in markers) reels += method
             if (SET_LIKE_ACTION in markers) setters += method
+            code.mapNotNull { it.likeShapedCall() }.forEach { call ->
+                likeCallers.getOrPut(call.text()) { mutableSetOf() } += method.text()
+            }
         }
     }
     val post = posts.singleOrNull() ?: refuse("expected one feed double tap holding \"$FEED_DOUBLE_TAP\", found ${posts.size}")
-    if (AccessFlags.STATIC.isSet(post.accessFlags) || post.returnType != "V") {
-        refuse("the feed double tap ${post.definingClass}->${post.name} isn't an instance method returning nothing")
+
+    // Each kind of post (a photo, a carousel, a video, a map, ...) has its own gesture delegate,
+    // and each hands a double tap to one shared method that plays the heart and likes. The single
+    // photo's delegate is the one with a string to find it by, so the shared method is the one it
+    // calls with the post's view and the post.
+    val likeCalls = post.code().mapNotNull { it.likeShapedCall() }.distinctBy { it.text() }
+    val likeCall = likeCalls.singleOrNull()
+        ?: refuse("the feed double tap ${post.definingClass}->${post.name} calls ${likeCalls.size} methods with a view and the post, expected one")
+    val like = classDefByOrNull(likeCall.definingClass)?.methods?.singleOrNull { it.text() == likeCall.text() }
+        ?: refuse("the feed's double-tap like ${likeCall.text()} isn't in the app")
+    if (AccessFlags.STATIC.isSet(like.accessFlags) || AccessFlags.ABSTRACT.isSet(like.accessFlags) || like.implementation == null) {
+        refuse("the feed's double-tap like ${like.text()} isn't an instance method with a body")
     }
+    // With one caller, the other kinds of post like somewhere the guard doesn't reach.
+    val callers = likeCallers[like.text()].orEmpty().size
+    if (callers < 2) refuse("the feed's double-tap like ${like.text()} has $callers caller, so other posts like elsewhere")
     // The guard borrows v0 at index 0.
-    if (post.localRegisterCount() < 1) refuse("the feed double tap ${post.definingClass}->${post.name} has no local register")
+    if (like.localRegisterCount() < 1) refuse("the feed's double-tap like ${like.text()} has no local register")
 
     val reel = reels.singleOrNull() ?: refuse("expected one method marked $HANDLE_DOUBLE_TAP, found ${reels.size}")
     val setter = setters.singleOrNull() ?: refuse("expected one method marked $SET_LIKE_ACTION, found ${setters.size}")
@@ -115,12 +140,16 @@ internal fun BytecodePatchContext.findDoubleTaps(): DoubleTaps {
     if (check?.opcode != Opcode.IF_EQZ || (check as OneRegisterInstruction).registerA != register) {
         refuse("${reel.definingClass}->${reel.name} doesn't check its like action for null straight after reading it")
     }
-    return DoubleTaps(post, reel, read, action)
+    return DoubleTaps(post, like, reel, read, action)
 }
 
-/** First thing in the feed's double tap: return while the switch holds it back. */
+/**
+ * First thing in the feed's double-tap like: return while the switch holds it back, before the
+ * heart and the like. The delegates still run the rest of their double tap, such as the photo's
+ * product tags. The Like button likes through other code.
+ */
 private fun BytecodePatchContext.holdBackPostDoubleTap(found: DoubleTaps) {
-    mutable(found.post).apply {
+    mutable(found.like).apply {
         addInstructionsWithLabels(
             0,
             """
@@ -167,3 +196,11 @@ private fun Instruction.stringLoaded(): String? =
     else ((this as ReferenceInstruction).reference as StringReference).string
 
 private fun Instruction.fieldReference(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
+
+/** A call to a method taking a post's view and the post first and returning nothing, or null. */
+private fun Instruction.likeShapedCall(): MethodReference? =
+    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { call ->
+        call.returnType == "V" && call.parameterTypes.take(2).map(CharSequence::toString) == DOUBLE_TAP_LIKE_STARTS
+    }
+
+private fun MethodReference.text(): String = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"

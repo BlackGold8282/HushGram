@@ -22,6 +22,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -35,10 +36,14 @@ import org.junit.Test
 
 class DoubleTapLikeHookTest {
     private val feed = "Lfixture/MediaHolderGestureDelegate;"
+    private val carousel = "Lfixture/CarouselGestureDelegate;"
+    private val liker = "Lfixture/DoubleTapLiker;"
+    private val tags = "Lfixture/ProductTags;"
     private val handler = "Lfixture/GestureActionHandler;"
     private val action = "Lfixture/LikeAction;"
     private val handleMarker = "android_purge_26_q3_$HANDLE_DOUBLE_TAP"
     private val setterMarker = "android_purge_26_q3_$SET_LIKE_ACTION"
+    private val likeShape = "(Landroid/view/View;Lcom/instagram/feed/media/Media;Ljava/lang/Object;I)V"
 
     /** The hooks the patch writes are in the DoubleTapLike the bundle ships, public and static. */
     @Test
@@ -51,14 +56,23 @@ class DoubleTapLikeHookTest {
         }
     }
 
-    /** The feed's double tap asks first, and the Reels handler's like action is asked for as it's read. */
+    /**
+     * The feed's double-tap like asks first, where every kind of post reaches it, and the delegates
+     * stay as they were. The Reels handler's like action is asked for as it's read.
+     */
     @Test
     fun bothDoubleTapsAsk() {
         val context = PatchContexts.of(classes())
 
         context.turnOffDoubleTapLikes()
 
-        assertGuardFirst("the feed double tap", context.mutableClassDefBy(feed).methods.single { it.name == "onDoubleTap" }.code())
+        assertGuardFirst("the feed's double-tap like", context.mutableClassDefBy(liker).methods.single { it.name == "like" }.code())
+        for (delegate in listOf(feed, carousel)) {
+            assertTrue(
+                "$delegate was touched",
+                context.mutableClassDefBy(delegate).methods.single().code().none { it.referenceText() == HOLD_BACK_POST },
+            )
+        }
         val reel = context.mutableClassDefBy(handler).methods.single { it.name == "handleDoubleTap" }.code()
         assertAskedAfterRead("the Reels double tap", reel, "$handler->likeAction:$action")
         assertTrue(
@@ -73,6 +87,12 @@ class DoubleTapLikeHookTest {
         val cases = listOf(
             classes(feeds = 0) to "found 0",
             classes(feeds = 2) to "found 2",
+            classes(likeCalls = 0) to "calls 0 methods with a view and the post",
+            classes(likeCalls = 2) to "calls 2 methods with a view and the post",
+            classes(likeMissing = true) to "isn't in the app",
+            classes(likeStatic = true) to "isn't an instance method",
+            classes(carouselCalls = false) to "has 1 caller",
+            classes(likeLocals = 0) to "has no local register",
             classes(handlers = 0) to "marked $HANDLE_DOUBLE_TAP, found 0",
             classes(setterElsewhere = true) to "isn't in $handler",
             classes(setterWrites = 2) to "writes 2 fields",
@@ -89,24 +109,45 @@ class DoubleTapLikeHookTest {
         }
     }
 
-    /** In each declared build both double taps are found and hooked. */
+    /**
+     * In each declared build the feed's double-tap like and the Reels double tap are found and
+     * hooked. The like is the one every kind of post's delegate calls, not only the photo's the
+     * patch finds it through: on 2026-09-30 a carousel on the S22 still liked with the guard in the
+     * photo's delegate.
+     */
     @Test
     fun eachDeclaredBuildGetsBothHooks() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
-                val holders = (FixtureDex.classesHolding(bundle, FEED_DOUBLE_TAP) + FixtureDex.classesHolding(bundle, handleMarker))
-                    .distinctBy { it.type }
+                val posts = FixtureDex.classesHolding(bundle, FEED_DOUBLE_TAP)
+                val post = posts.flatMap { it.methods }.single { method -> method.code().any { it.string() == FEED_DOUBLE_TAP } }
+                val like = post.code().mapNotNull { it.likeShapedCall() }.map { it.text() }.distinct().single()
+                val callers = mutableSetOf<String>()
+                val likeClasses = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    // A dex that neither calls nor declares the like has no reference to it.
+                    if (dex.methodSection.none { it.text() == like }) return@forEach
+                    for (classDef in dex.classes) {
+                        val calling = classDef.methods.filter { method -> method.code().any { it.methodText() == like } }
+                        callers += calling.map { it.text() }
+                        if (calling.isNotEmpty() || classDef.type == like.substringBefore("->")) likeClasses += ImmutableClassDef.of(classDef)
+                    }
+                }
+                // 449 has eight: the single photo, the carousel and five more kinds of post, and a lambda.
+                assertTrue("${bundle.name}: callers of $like: $callers", callers.size >= 7)
+
+                val holders = (posts + likeClasses + FixtureDex.classesHolding(bundle, handleMarker)).distinctBy { it.type }
                 val context = PatchContexts.of(holders)
-                val postType = holders.single { holder -> holder.methods.any { method -> method.code().any { it.string() == FEED_DOUBLE_TAP } } }.type
                 val reelType = holders.single { holder -> holder.methods.any { method -> method.code().any { it.string() == handleMarker } } }.type
 
                 context.turnOffDoubleTapLikes()
 
-                val posts = context.mutableClassDefBy(postType).methods.filter { method -> method.code().any { it.referenceText() == HOLD_BACK_POST } }
-                assertEquals("${bundle.name}: one feed double tap asks", 1, posts.size)
-                assertGuardFirst("${bundle.name}: the feed double tap", posts.single().code())
+                val guarded = holders.map { it.type }.distinct().flatMap { context.mutableClassDefBy(it).methods }
+                    .filter { method -> method.code().any { it.referenceText() == HOLD_BACK_POST } }
+                assertEquals("${bundle.name}: the methods asking before a like", listOf(like), guarded.map { it.text() })
+                assertGuardFirst("${bundle.name}: the feed's double-tap like", guarded.single().code())
                 val reels = context.mutableClassDefBy(reelType).methods.filter { method -> method.code().any { it.referenceText() == LIKE_ACTION } }
                 assertEquals("${bundle.name}: one Reels double tap asks", 1, reels.size)
                 val reel = reels.single()
@@ -150,26 +191,56 @@ class DoubleTapLikeHookTest {
     // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
 
     /**
-     * The feed's gesture delegate, whose onDoubleTapMedia files its report without an activity, and
-     * the Reels gesture handler: its double tap reads the like action and skips the like without
-     * one, and its setter stores that action.
+     * The single photo's gesture delegate, whose onDoubleTapMedia files its report without an
+     * activity, hands the double tap to the shared like and then shows the photo's product tags; the
+     * carousel's delegate hands it to the same like. The Reels gesture handler's double tap reads
+     * the like action and skips the like without one, and its setter stores that action.
      */
     private fun classes(
         feeds: Int = 1,
+        likeCalls: Int = 1,
+        likeMissing: Boolean = false,
+        likeStatic: Boolean = false,
+        carouselCalls: Boolean = true,
+        likeLocals: Int = 1,
         handlers: Int = 1,
         setterElsewhere: Boolean = false,
         setterWrites: Int = 1,
         reads: Int = 1,
         checkedLater: Boolean = false,
     ): List<ClassDef> {
+        val invoke = if (likeStatic) "invoke-static { v0, v0, p1, v2 }" else "invoke-virtual { v0, v0, v0, p1, v2 }"
+        val likeCall = listOf("like", "likeAgain").take(likeCalls).joinToString("\n") { "$invoke, $liker->$it$likeShape" }
         val feedClass = classDef(
             feed,
             (0 until feeds).map { copy ->
-                method(feed, if (copy == 0) "onDoubleTap" else "onDoubleTapAgain", listOf("Ljava/lang/Object;"), "V", 3, """
+                method(feed, if (copy == 0) "onDoubleTap" else "onDoubleTapAgain", listOf("Ljava/lang/Object;"), "V", 5, """
                     const-string v0, "$FEED_DOUBLE_TAP"
+                    const/4 v0, 0x0
+                    const/4 v2, 0x0
+                    $likeCall
+                    invoke-static { v0, v0 }, $tags->show(Landroid/content/Context;Lcom/instagram/feed/media/Media;)V
                     return-void
                 """)
             },
+        )
+        val carouselClass = classDef(
+            carousel,
+            listOf(
+                method(carousel, "onDoubleTap", listOf("Ljava/lang/Object;"), "V", 5, """
+                    const/4 v0, 0x0
+                    const/4 v2, 0x0
+                    ${if (carouselCalls) "$invoke, $liker->like$likeShape" else ""}
+                    return-void
+                """),
+            ),
+        )
+        val likeFlags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or (if (likeStatic) AccessFlags.STATIC.value else 0)
+        val likeParameters = listOf("Landroid/view/View;", "Lcom/instagram/feed/media/Media;", "Ljava/lang/Object;", "I")
+        val likeRegisters = likeLocals + likeParameters.size + (if (likeStatic) 0 else 1)
+        val likerClass = classDef(
+            liker,
+            listOf("like", "likeAgain").map { name -> method(liker, name, likeParameters, "V", likeRegisters, "return-void", likeFlags) },
         )
         val readAndCheck = if (checkedLater) {
             """
@@ -203,11 +274,24 @@ class DoubleTapLikeHookTest {
         val setterOwner = if (setterElsewhere) "Lfixture/OtherHandler;" else handler
         val setter = method(setterOwner, "setLikeAction", listOf(action), "V", 3, setterBody)
         val handlerClass = classDef(handler, handle + (if (setterElsewhere) emptyList() else listOf(setter)))
-        return listOfNotNull(feedClass, handlerClass, if (setterElsewhere) classDef(setterOwner, listOf(setter)) else null)
+        return listOfNotNull(
+            feedClass,
+            carouselClass,
+            if (likeMissing) null else likerClass,
+            handlerClass,
+            if (setterElsewhere) classDef(setterOwner, listOf(setter)) else null,
+        )
     }
 
-    private fun method(owner: String, name: String, parameters: List<String>, returns: String, registers: Int, body: String): Method {
-        val flags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
+    private fun method(
+        owner: String,
+        name: String,
+        parameters: List<String>,
+        returns: String,
+        registers: Int,
+        body: String,
+        flags: Int = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+    ): Method {
         val mutable = MutableMethod(
             ImmutableMethod(
                 owner, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns, flags, null, null,
@@ -228,4 +312,14 @@ class DoubleTapLikeHookTest {
     }
 
     private fun Instruction.string(): String? = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+
+    private fun Instruction.methodText(): String? = ((this as? ReferenceInstruction)?.reference as? MethodReference)?.text()
+
+    private fun Instruction.likeShapedCall(): MethodReference? =
+        ((this as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { call ->
+            call.returnType == "V" &&
+                call.parameterTypes.take(2).map(CharSequence::toString) == listOf("Landroid/view/View;", "Lcom/instagram/feed/media/Media;")
+        }
+
+    private fun MethodReference.text(): String = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 }

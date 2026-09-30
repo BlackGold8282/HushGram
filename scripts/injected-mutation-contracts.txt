@@ -226,12 +226,14 @@ once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->seeking(Ljava
 # can pick it (its class holds pending_reel_seen_states_, the method doesn't). StorySeenHookTest
 # checks on the 449 fixture that the guard lands there once and nowhere else in the store.
 #
-# Turn off double tap to like asks the extension first thing in the feed's onDoubleTapMedia, the one
-# instance method holding the report it files without an activity, and returns there before the
-# heart and the like. Left out, a double tap on a post likes it; twice or elsewhere, it isn't the
-# guard the patch wrote.
-start-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->holdBackPost()Z in instance (*)V holding DefaultMediaHolderGestureDetectorDelegateImpl#onDoubleTapMedia\scalled\swith\snull\sactivity
-once-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->holdBackPost()Z in instance (*)V holding DefaultMediaHolderGestureDetectorDelegateImpl#onDoubleTapMedia\scalled\swith\snull\sactivity
+# Turn off double tap to like asks the extension first thing in the feed's double-tap like, the one
+# method every kind of post's gesture delegate hands a double tap to, and returns there before the
+# heart and the like. It takes the post's view and the post, and it's the one such method logging
+# like_media (the Like button's path logs it too but takes the post first). Left out, a double tap
+# on a post likes it; twice or elsewhere, such as still in the photo's delegate the patch finds it
+# through, it isn't the guard the patch wrote.
+start-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->holdBackPost()Z in instance (Landroid/view/View;Lcom/instagram/feed/media/Media;*)V holding like_media
+once-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->holdBackPost()Z in instance (Landroid/view/View;Lcom/instagram/feed/media/Media;*)V holding like_media
 # In the Reels viewer's double tap it hands over the like action the handler just read, and the
 # handler likes through the answer. It comes after the skip and forward gestures, so it isn't
 # first. The handler is the one method with the purge marker the patch finds it by.

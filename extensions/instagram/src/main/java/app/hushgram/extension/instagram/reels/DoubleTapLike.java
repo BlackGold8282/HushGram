@@ -16,9 +16,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
 /**
  * What the Turn off double tap to like patch asks before a double tap likes a post or a reel.
  *
- * <p>Instagram 449 has two double-tap likes. A post in the feed goes to the media holder's gesture
- * delegate, whose onDoubleTapMedia plays the big heart and likes the post; the patch asks
- * {@link #holdBackPost} first thing there. The Reels viewer's gesture handler first offers a double
+ * <p>Instagram 449 has two double-tap likes. Each kind of post in the feed (a photo, a carousel, a
+ * video and more) has its own gesture delegate, and each hands a double tap to one shared method
+ * that plays the big heart and likes the post; the patch asks {@link #holdBackPost} first thing
+ * there. The Reels viewer's gesture handler first offers a double
  * tap to its skip and forward gestures, then reads its "on like media" action and likes through it
  * when there is one; the patch puts {@link #likeAction} after that read, and a null answer takes the
  * handler's own path for a viewer with no like action. Double tap to skip and to go forward work as
@@ -39,8 +40,8 @@ public final class DoubleTapLike {
     }
 
     /**
-     * Asked first thing in the feed's onDoubleTapMedia. True makes it return before the heart or the
-     * like. Never throws.
+     * Asked first thing in the feed's double-tap like, which every kind of post calls. True makes it
+     * return before the heart or the like. Never throws.
      */
     public static boolean holdBackPost() {
         return holdingBack("post");
