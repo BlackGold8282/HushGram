@@ -144,3 +144,6 @@ Resume long videos	Retomar vídeos longos
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Vídeos e reels com mais de dois minutos continuam de onde você parou. Arraste a barra de progresso para começar em outro ponto. Vídeos ao vivo e anúncios começam normalmente.
 View stories anonymously	Ver Stories anonimamente
 Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.	O Instagram não fica sabendo quais Stories você assiste, então você fica fora das listas de quem viu. Responder ou reagir ainda mostra você, e Stories que você já viu podem voltar a aparecer como novos.
+Advertising ID removed	ID de publicidade removido
+Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.	O Instagram não consegue ler o ID de publicidade do seu celular nem informar aos serviços de anúncios do Android quais anúncios você viu ou tocou. As permissões para isso foram removidas desta versão.
+the removed advertising ID permissions	as permissões do ID de publicidade removidas

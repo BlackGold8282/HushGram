@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(288);
+        Map<String, String> table = new HashMap<>(294);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -80,6 +80,8 @@ public final class L10nTranslations {
                 "F\u00fcgt dem Men\u00fc jeder Story die Option Herunterladen hinzu, ob Foto oder Video, gespeichert in deiner Download-Qualit\u00e4t. Ausgeschaltet oder pausiert kommt Instagrams eigenes Men\u00fc zur\u00fcck.");
         table.put("Ads and privacy",
                 "Werbung und Datenschutz");
+        table.put("Advertising ID removed",
+                "Werbe-ID entfernt");
         table.put("Back",
                 "Zur\u00fcck");
         table.put("Best",
@@ -172,11 +174,11 @@ public final class L10nTranslations {
                 "Reels im Feed ausblenden");
         table.put("Hide ads",
                 "Werbung ausblenden");
-        table.put("Hide creation and promotion pills",
-                "Hinweise zum Erstellen und Werbung ausblenden");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Hide creation and promotion pills",
+                "Hinweise zum Erstellen und Werbung ausblenden");
         table.put("Hide friends' activity and comment previews",
                 "Aktivit\u00e4t von Freunden und Kommentarvorschau ausblenden");
         table.put("Hide the Follow button",
@@ -199,6 +201,8 @@ public final class L10nTranslations {
                 "HushGram-Einstellungen lie\u00dfen sich nicht \u00f6ffnen");
         table.put("HushGram turns back on when Instagram restarts.",
                 "HushGram ist wieder aktiv, sobald Instagram neu startet.");
+        table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
+                "Instagram kann die Werbe-ID deines Telefons nicht lesen und den Werbediensten von Android nicht mitteilen, welche Anzeigen du gesehen oder angetippt hast. Die Berechtigungen daf\u00fcr fehlen in diesem Build.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram ist dreimal hintereinander innerhalb einer Minute nach dem Start abgest\u00fcrzt oder h\u00e4ngen geblieben, deshalb hat sich HushGram selbst pausiert.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
@@ -293,13 +297,13 @@ public final class L10nTranslations {
                 "Bleibt w\u00e4hrend der Pause aktiv");
         table.put("Stop Story auto-advance",
                 "Automatisches Weiterschalten von Stories stoppen");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Stories",
                 "Stories");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Entfernt stkn, igsh, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst, und \u00f6ffnet Bio-Links ohne Umweg \u00fcber Instagrams Klick-Tracker. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Tap to play",
                 "Zum Abspielen tippen");
         table.put("Tap to turn it back on.",
@@ -348,10 +352,12 @@ public final class L10nTranslations {
                 "Du hast HushGram pausiert.");
         table.put("the re-signed build fix",
                 "der Fix f\u00fcr neu signierte Builds");
+        table.put("the removed advertising ID permissions",
+                "die entfernten Berechtigungen f\u00fcr die Werbe-ID");
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(288);
+        Map<String, String> table = new HashMap<>(294);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -385,6 +391,8 @@ public final class L10nTranslations {
                 "A\u00f1ade Descargar al men\u00fa de la historia de cualquier persona, sea foto o video, con tu calidad de descarga. Desactivado o en pausa, vuelve el men\u00fa propio de Instagram.");
         table.put("Ads and privacy",
                 "Anuncios y privacidad");
+        table.put("Advertising ID removed",
+                "ID de publicidad eliminado");
         table.put("Back",
                 "Atr\u00e1s");
         table.put("Best",
@@ -477,11 +485,11 @@ public final class L10nTranslations {
                 "Ocultar reels en el feed");
         table.put("Hide ads",
                 "Ocultar anuncios");
-        table.put("Hide creation and promotion pills",
-                "Ocultar las etiquetas de creaci\u00f3n y promoci\u00f3n");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Hide creation and promotion pills",
+                "Ocultar las etiquetas de creaci\u00f3n y promoci\u00f3n");
         table.put("Hide friends' activity and comment previews",
                 "Ocultar la actividad de amigos y la vista previa de comentarios");
         table.put("Hide the Follow button",
@@ -504,6 +512,8 @@ public final class L10nTranslations {
                 "No se pudo abrir la configuraci\u00f3n de HushGram");
         table.put("HushGram turns back on when Instagram restarts.",
                 "HushGram vuelve a activarse cuando Instagram se reinicie.");
+        table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
+                "Instagram no puede leer el ID de publicidad de tu tel\u00e9fono ni decir a los servicios de publicidad de Android qu\u00e9 anuncios viste o tocaste. Los permisos para ello ya no est\u00e1n en esta versi\u00f3n.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Tres veces seguidas, Instagram fall\u00f3 o se congel\u00f3 durante el primer minuto tras iniciarse, as\u00ed que HushGram se paus\u00f3 solo.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
@@ -598,13 +608,13 @@ public final class L10nTranslations {
                 "Se mantiene durante la pausa");
         table.put("Stop Story auto-advance",
                 "Detener el avance autom\u00e1tico de historias");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Stories",
                 "Historias");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biograf\u00eda sin pasar por el rastreador de clics de Instagram. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Tap to play",
                 "Toca para reproducir");
         table.put("Tap to turn it back on.",
@@ -653,10 +663,12 @@ public final class L10nTranslations {
                 "Pausaste HushGram.");
         table.put("the re-signed build fix",
                 "el arreglo para la nueva firma");
+        table.put("the removed advertising ID permissions",
+                "los permisos del ID de publicidad eliminados");
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(288);
+        Map<String, String> table = new HashMap<>(294);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -690,6 +702,8 @@ public final class L10nTranslations {
                 "Menambahkan Unduh ke menu cerita siapa pun, foto atau video, disimpan dengan kualitas unduhan Anda. Saat nonaktif atau dijeda, menu asli Instagram kembali.");
         table.put("Ads and privacy",
                 "Iklan dan privasi");
+        table.put("Advertising ID removed",
+                "ID iklan dihapus");
         table.put("Back",
                 "Kembali");
         table.put("Best",
@@ -782,11 +796,11 @@ public final class L10nTranslations {
                 "Sembunyikan Reels di feed");
         table.put("Hide ads",
                 "Sembunyikan iklan");
-        table.put("Hide creation and promotion pills",
-                "Sembunyikan label ajakan membuat dan promosi");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Hide creation and promotion pills",
+                "Sembunyikan label ajakan membuat dan promosi");
         table.put("Hide friends' activity and comment previews",
                 "Sembunyikan aktivitas teman dan pratinjau komentar");
         table.put("Hide the Follow button",
@@ -809,6 +823,8 @@ public final class L10nTranslations {
                 "Pengaturan HushGram tidak dapat dibuka");
         table.put("HushGram turns back on when Instagram restarts.",
                 "HushGram aktif lagi saat Instagram dimulai ulang.");
+        table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
+                "Instagram tidak dapat membaca ID iklan ponselmu atau memberi tahu layanan iklan Android iklan mana yang kamu lihat atau ketuk. Izin untuk itu sudah dihapus dari build ini.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushGram menjeda dirinya sendiri.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
@@ -903,13 +919,13 @@ public final class L10nTranslations {
                 "Tetap aktif saat dijeda");
         table.put("Stop Story auto-advance",
                 "Hentikan cerita maju otomatis");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Stories",
                 "Cerita");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Tap to play",
                 "Ketuk untuk memutar");
         table.put("Tap to turn it back on.",
@@ -958,10 +974,12 @@ public final class L10nTranslations {
                 "Anda menjeda HushGram.");
         table.put("the re-signed build fix",
                 "perbaikan build yang ditandatangani ulang");
+        table.put("the removed advertising ID permissions",
+                "izin ID iklan yang dihapus");
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(288);
+        Map<String, String> table = new HashMap<>(294);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -995,6 +1013,8 @@ public final class L10nTranslations {
                 "Adiciona Baixar ao menu do story de qualquer pessoa, foto ou v\u00eddeo, salvo na sua qualidade de download. Desativado ou pausado, o menu do pr\u00f3prio Instagram volta.");
         table.put("Ads and privacy",
                 "An\u00fancios e privacidade");
+        table.put("Advertising ID removed",
+                "ID de publicidade removido");
         table.put("Back",
                 "Voltar");
         table.put("Best",
@@ -1087,11 +1107,11 @@ public final class L10nTranslations {
                 "Ocultar reels no feed");
         table.put("Hide ads",
                 "Ocultar an\u00fancios");
-        table.put("Hide creation and promotion pills",
-                "Ocultar as etiquetas de cria\u00e7\u00e3o e promo\u00e7\u00e3o");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Hide creation and promotion pills",
+                "Ocultar as etiquetas de cria\u00e7\u00e3o e promo\u00e7\u00e3o");
         table.put("Hide friends' activity and comment previews",
                 "Ocultar a atividade de amigos e a pr\u00e9via de coment\u00e1rios");
         table.put("Hide the Follow button",
@@ -1114,6 +1134,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel abrir as configura\u00e7\u00f5es do HushGram");
         table.put("HushGram turns back on when Instagram restarts.",
                 "O HushGram ser\u00e1 reativado quando o Instagram for reiniciado.");
+        table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
+                "O Instagram n\u00e3o consegue ler o ID de publicidade do seu celular nem informar aos servi\u00e7os de an\u00fancios do Android quais an\u00fancios voc\u00ea viu ou tocou. As permiss\u00f5es para isso foram removidas desta vers\u00e3o.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "O Instagram fechou com erro ou travou no primeiro minuto ap\u00f3s iniciar, tr\u00eas vezes seguidas, ent\u00e3o o HushGram foi pausado automaticamente.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
@@ -1208,13 +1230,13 @@ public final class L10nTranslations {
                 "O que continua ativo na pausa");
         table.put("Stop Story auto-advance",
                 "Parar o avan\u00e7o autom\u00e1tico dos stories");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Stories",
                 "Stories");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Tap to play",
                 "Tocar para reproduzir");
         table.put("Tap to turn it back on.",
@@ -1263,10 +1285,12 @@ public final class L10nTranslations {
                 "Voc\u00ea pausou o HushGram.");
         table.put("the re-signed build fix",
                 "a corre\u00e7\u00e3o para vers\u00e3o reassinada");
+        table.put("the removed advertising ID permissions",
+                "as permiss\u00f5es do ID de publicidade removidas");
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(288);
+        Map<String, String> table = new HashMap<>(294);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1300,6 +1324,8 @@ public final class L10nTranslations {
                 "Herkesin hikayesinin men\u00fcs\u00fcne \u0130ndir ekler, foto\u011fraf ya da video, indirme kalitende kaydedilir. Kapal\u0131yken veya duraklat\u0131ld\u0131\u011f\u0131nda Instagram'\u0131n kendi men\u00fcs\u00fc geri gelir.");
         table.put("Ads and privacy",
                 "Reklamlar ve gizlilik");
+        table.put("Advertising ID removed",
+                "Reklam kimli\u011fi kald\u0131r\u0131ld\u0131");
         table.put("Back",
                 "Geri");
         table.put("Best",
@@ -1392,11 +1418,11 @@ public final class L10nTranslations {
                 "Ak\u0131\u015ftaki reelleri gizle");
         table.put("Hide ads",
                 "Reklamlar\u0131 gizle");
-        table.put("Hide creation and promotion pills",
-                "Olu\u015fturma ve tan\u0131t\u0131m etiketlerini gizle");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Hide creation and promotion pills",
+                "Olu\u015fturma ve tan\u0131t\u0131m etiketlerini gizle");
         table.put("Hide friends' activity and comment previews",
                 "Arkada\u015f etkinli\u011fini ve yorum \u00f6nizlemesini gizle");
         table.put("Hide the Follow button",
@@ -1419,6 +1445,8 @@ public final class L10nTranslations {
                 "HushGram ayarlar\u0131 a\u00e7\u0131lamad\u0131");
         table.put("HushGram turns back on when Instagram restarts.",
                 "HushGram, Instagram yeniden ba\u015flad\u0131\u011f\u0131nda tekrar a\u00e7\u0131l\u0131r.");
+        table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
+                "Instagram telefonunun reklam kimli\u011fini okuyamaz ve Android'in reklam hizmetlerine hangi reklamlar\u0131 g\u00f6rd\u00fc\u011f\u00fcn\u00fc veya dokundu\u011funu bildiremez. Bunlar i\u00e7in gereken izinler bu s\u00fcr\u00fcmden kald\u0131r\u0131ld\u0131.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram a\u00e7\u0131ld\u0131ktan sonraki bir dakika i\u00e7inde \u00fcst \u00fcste \u00fc\u00e7 kez \u00e7\u00f6kt\u00fc veya dondu, bu y\u00fczden HushGram kendini duraklatt\u0131.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
@@ -1513,13 +1541,13 @@ public final class L10nTranslations {
                 "Duraklat\u0131lsa da devrede kal\u0131r");
         table.put("Stop Story auto-advance",
                 "Hikayelerin otomatik ge\u00e7i\u015fini durdur");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Stories",
                 "Hikayeler");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan stkn, igsh, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r, biyografi ba\u011flant\u0131lar\u0131n\u0131 Instagram'\u0131n t\u0131klama izleyicisinden ge\u00e7meden a\u00e7ar. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Tap to play",
                 "Oynatmak i\u00e7in dokun");
         table.put("Tap to turn it back on.",
@@ -1568,5 +1596,7 @@ public final class L10nTranslations {
                 "HushGram'u duraklatt\u0131n.");
         table.put("the re-signed build fix",
                 "yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
+        table.put("the removed advertising ID permissions",
+                "kald\u0131r\u0131lan reklam kimli\u011fi izinleri");
     }
 }

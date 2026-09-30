@@ -9,6 +9,13 @@
 # scripts/verify-all-patches.ps1 reads it and stops a run whose patched manifest changed in a way
 # it doesn't list.
 #
-# Nothing is approved. The settings shortcut is published at run time and every hook is bytecode,
-# so the patched manifest should read exactly like stock. A patch that asks for a permission, drops
-# one, or changes what other apps can reach stops the run until somebody says why.
+# The settings shortcut is published at run time and every hook but one is bytecode, so the patched
+# manifest should read like stock. A patch that asks for a permission, drops one, or changes what
+# other apps can reach stops the run until somebody says why.
+#
+# Remove the advertising ID drops the three permissions behind the advertising ID and Android's ad
+# attribution. Instagram 449 targets Android 16, where Google Play services hands an app without
+# AD_ID a string of zeros, and its one attribution call catches the ad services' refusal.
+permission-removed com.google.android.gms.permission.AD_ID
+permission-removed android.permission.ACCESS_ADSERVICES_AD_ID
+permission-removed android.permission.ACCESS_ADSERVICES_ATTRIBUTION

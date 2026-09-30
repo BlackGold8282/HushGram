@@ -38,6 +38,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean removeAdId() {
+        return false;
+    }
+
     public static boolean reelWatchHistory() {
         return false;
     }

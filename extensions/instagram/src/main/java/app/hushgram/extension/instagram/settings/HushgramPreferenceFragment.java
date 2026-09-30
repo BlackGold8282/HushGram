@@ -263,11 +263,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "doesn't update on its own, so this keeps it usable.")));
         }
 
-        if (build.contains(PatchFamily.RESTORE_TRUST)) {
+        if (build.contains(PatchFamily.RESTORE_TRUST) || build.contains(PatchFamily.REMOVE_AD_ID)) {
             PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
-            patched.addPreference(mark(info(context, L10n.t("Re-signed build fix"),
-                    L10n.t("Instagram's own signature checks see its original certificates, so they keep "
-                            + "passing on this re-signed build.")), SettingsIcons.BUILD));
+            if (build.contains(PatchFamily.RESTORE_TRUST)) {
+                patched.addPreference(mark(info(context, L10n.t("Re-signed build fix"),
+                        L10n.t("Instagram's own signature checks see its original certificates, so they keep "
+                                + "passing on this re-signed build.")), SettingsIcons.BUILD));
+            }
+            if (build.contains(PatchFamily.REMOVE_AD_ID)) {
+                patched.addPreference(mark(info(context, L10n.t("Advertising ID removed"),
+                        L10n.t("Instagram can't read your phone's advertising ID or tell Android's ad services "
+                                + "which ads you saw or tapped. The permissions for them are gone from this build.")),
+                        SettingsIcons.BLOCK));
+            }
             patched.addPreference(info(context, L10n.t("Changing these"),
                     L10n.t("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. "
                             + "Patch again to change them.")));

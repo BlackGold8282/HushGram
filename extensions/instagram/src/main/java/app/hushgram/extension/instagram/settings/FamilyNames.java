@@ -21,6 +21,7 @@ public final class FamilyNames {
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String BUILD_EXPIRED_POPUP = "Remove build expired popup";
     public static final String RESTORE_TRUST = "Restore trust on re-signed builds";
+    public static final String REMOVE_AD_ID = "Remove the advertising ID";
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
     public static final String STORY_AUTO_ADVANCE = "Stop Story auto-advance";
     public static final String STORY_SEEN = "View stories anonymously";
