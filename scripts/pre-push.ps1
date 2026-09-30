@@ -243,9 +243,11 @@ if (@($changed | Where-Object { $_ -in $releaseFactPaths }).Count -gt 0 -and $ti
         & pwsh -NoProfile -File (Join-Path $Root 'scripts/validate-release-facts.ps1') @factsArguments
         if ($LASTEXITCODE -ne 0) { Stop-Push 'the published release does not agree with the index' }
     } elseif ($inPlace) {
+        # The test results here are whatever this checkout last ran, often nothing since a merge
+        # moved its sources, so they're left unread. The build below runs the tests on the tip.
         Write-Step 'a published file changed, checking the release facts'
         & pwsh -NoProfile -File (Join-Path $Root 'scripts/validate-release-facts.ps1') -Root $Root `
-            -SkipDescriptionTestCount -AllowPublishedIndexLag
+            -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipTestResults
         if ($LASTEXITCODE -ne 0) { Stop-Push 'the release facts do not agree' }
     } else {
         # The pushed commit's own check, in a worktree of it. Its build folders can hold another
