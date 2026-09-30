@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(280);
+        Map<String, String> table = new HashMap<>(284);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -239,6 +239,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "Hinweis auf abgelaufene Version entfernen");
+        table.put("Resume long videos",
+                "Lange Videos fortsetzen");
         table.put("Retry",
                 "Erneut versuchen");
         table.put("Sanitize sharing links",
@@ -295,11 +297,11 @@ public final class L10nTranslations {
                 "Entfernt stkn, igsh, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst, und \u00f6ffnet Bio-Links ohne Umweg \u00fcber Instagrams Klick-Tracker. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
         table.put("Tap to play",
                 "Zum Abspielen tippen");
-        table.put("Tap to turn it back on.",
-                "Zum Wiedereinschalten tippen.");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Tap to turn it back on.",
+                "Zum Wiedereinschalten tippen.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Der Folgen-Button neben dem Namen der Person, die das Reel gepostet hat. Auf ihrem Profil gibt es ihn weiterhin.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -330,6 +332,8 @@ public final class L10nTranslations {
                 "Version %1$s f\u00fcr Instagram %2$s");
         table.put("Video file name",
                 "Dateiname f\u00fcr Videos");
+        table.put("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.",
+                "Videos und Reels \u00fcber zwei Minuten laufen an deiner letzten Stelle weiter. Die Suchleiste \u00e4ndert den Start. Live-Videos und Werbung starten wie gewohnt.");
         table.put("Videos are named %1$s. Photos are always named %2$s followed by the date and time.",
                 "Videos hei\u00dfen %1$s. Fotos hei\u00dfen immer %2$s, gefolgt von Datum und Uhrzeit.");
         table.put("Videos go to %1$s and photos to %2$s.",
@@ -343,7 +347,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(280);
+        Map<String, String> table = new HashMap<>(284);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -536,6 +540,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "Quitar el aviso de versi\u00f3n caducada");
+        table.put("Resume long videos",
+                "Reanudar videos largos");
         table.put("Retry",
                 "Reintentar");
         table.put("Sanitize sharing links",
@@ -592,11 +598,11 @@ public final class L10nTranslations {
                 "Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biograf\u00eda sin pasar por el rastreador de clics de Instagram. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
         table.put("Tap to play",
                 "Toca para reproducir");
-        table.put("Tap to turn it back on.",
-                "Toca para volver a activarlo.");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Tap to turn it back on.",
+                "Toca para volver a activarlo.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "El bot\u00f3n Seguir junto al autor de un reel. Su perfil lo sigue teniendo.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -627,6 +633,8 @@ public final class L10nTranslations {
                 "Versi\u00f3n %1$s para Instagram %2$s");
         table.put("Video file name",
                 "Nombre de archivo de los videos");
+        table.put("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.",
+                "Los videos y reels de m\u00e1s de dos minutos siguen donde los dejaste. Usa la barra para cambiar el inicio. Los directos y los anuncios empiezan como siempre.");
         table.put("Videos are named %1$s. Photos are always named %2$s followed by the date and time.",
                 "Los videos se llaman %1$s. Las fotos siempre se llaman %2$s seguido de la fecha y la hora.");
         table.put("Videos go to %1$s and photos to %2$s.",
@@ -640,7 +648,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(280);
+        Map<String, String> table = new HashMap<>(284);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -833,6 +841,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "Hapus popup build kedaluwarsa");
+        table.put("Resume long videos",
+                "Lanjutkan video panjang");
         table.put("Retry",
                 "Coba lagi");
         table.put("Sanitize sharing links",
@@ -889,11 +899,11 @@ public final class L10nTranslations {
                 "Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
         table.put("Tap to play",
                 "Ketuk untuk memutar");
-        table.put("Tap to turn it back on.",
-                "Ketuk untuk mengaktifkan HushGram lagi.");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Tap to turn it back on.",
+                "Ketuk untuk mengaktifkan HushGram lagi.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Tombol Ikuti di samping pembuat reel. Profilnya tetap punya tombol itu.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -924,6 +934,8 @@ public final class L10nTranslations {
                 "Versi %1$s untuk Instagram %2$s");
         table.put("Video file name",
                 "Nama file video");
+        table.put("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.",
+                "Video dan reel lebih dari dua menit dilanjutkan dari posisi terakhir. Geser bilah untuk posisi lain. Video langsung dan iklan mulai seperti biasa.");
         table.put("Videos are named %1$s. Photos are always named %2$s followed by the date and time.",
                 "Video diberi nama %1$s. Foto selalu diberi nama %2$s diikuti tanggal dan waktu.");
         table.put("Videos go to %1$s and photos to %2$s.",
@@ -937,7 +949,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(280);
+        Map<String, String> table = new HashMap<>(284);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1130,6 +1142,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "Remover aviso de vers\u00e3o expirada");
+        table.put("Resume long videos",
+                "Retomar v\u00eddeos longos");
         table.put("Retry",
                 "Tentar novamente");
         table.put("Sanitize sharing links",
@@ -1186,11 +1200,11 @@ public final class L10nTranslations {
                 "Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.");
         table.put("Tap to play",
                 "Tocar para reproduzir");
-        table.put("Tap to turn it back on.",
-                "Toque para reativar.");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Tap to turn it back on.",
+                "Toque para reativar.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "O bot\u00e3o Seguir ao lado de quem postou o reel. O perfil da pessoa continua com ele.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -1221,6 +1235,8 @@ public final class L10nTranslations {
                 "Vers\u00e3o %1$s para o Instagram %2$s");
         table.put("Video file name",
                 "Nome do arquivo de v\u00eddeo");
+        table.put("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.",
+                "V\u00eddeos e reels com mais de dois minutos continuam de onde voc\u00ea parou. Arraste a barra de progresso para come\u00e7ar em outro ponto. V\u00eddeos ao vivo e an\u00fancios come\u00e7am normalmente.");
         table.put("Videos are named %1$s. Photos are always named %2$s followed by the date and time.",
                 "Os v\u00eddeos ser\u00e3o nomeados como %1$s. As fotos sempre recebem o nome %2$s seguido da data e da hora.");
         table.put("Videos go to %1$s and photos to %2$s.",
@@ -1234,7 +1250,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(280);
+        Map<String, String> table = new HashMap<>(284);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1427,6 +1443,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "S\u00fcresi dolan s\u00fcr\u00fcm uyar\u0131s\u0131n\u0131 kald\u0131r");
+        table.put("Resume long videos",
+                "Uzun videolara kald\u0131\u011f\u0131n yerden devam et");
         table.put("Retry",
                 "Yeniden dene");
         table.put("Sanitize sharing links",
@@ -1483,11 +1501,11 @@ public final class L10nTranslations {
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan stkn, igsh, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r, biyografi ba\u011flant\u0131lar\u0131n\u0131 Instagram'\u0131n t\u0131klama izleyicisinden ge\u00e7meden a\u00e7ar. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
         table.put("Tap to play",
                 "Oynatmak i\u00e7in dokun");
-        table.put("Tap to turn it back on.",
-                "Yeniden a\u00e7mak i\u00e7in dokun.");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Tap to turn it back on.",
+                "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Bir reelin sahibinin yan\u0131ndaki Takip Et d\u00fc\u011fmesi. Profilinde h\u00e2l\u00e2 var.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -1518,6 +1536,8 @@ public final class L10nTranslations {
                 "Instagram %2$s i\u00e7in %1$s s\u00fcr\u00fcm\u00fc");
         table.put("Video file name",
                 "Video dosya ad\u0131");
+        table.put("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.",
+                "\u0130ki dakikadan uzun videolar ve reels kald\u0131\u011f\u0131n yerden devam eder. Ba\u015fka bir yerden ba\u015flatmak i\u00e7in \u00e7ubu\u011fu kayd\u0131r. Canl\u0131 videolar ve reklamlar normal ba\u015flar.");
         table.put("Videos are named %1$s. Photos are always named %2$s followed by the date and time.",
                 "Videolar\u0131n ad\u0131 %1$s olur. Foto\u011fraflar\u0131n ad\u0131 her zaman %2$s ile ba\u015flar, ard\u0131ndan tarih ve saat gelir.");
         table.put("Videos go to %1$s and photos to %2$s.",

@@ -197,3 +197,21 @@ once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(Z)Z in instance ()Z holding VideoAutoplayChecker zero_rating_or_data_saver
 start-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 once-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
+#
+# Resume long videos tells the extension first thing in IgVideoPlayerImpl's playback-started
+# callback, its stop, its pause, its bind and its seek, and where a video plays to its end or loops.
+# The start is the one instance method taking two longs that holds "video_cached", "warmed" and
+# "voice_translation_language_code"; the story player's own start callback holds the first two. The
+# stop takes a reason and a flag and holds "clips_pip" and "ig_text"; the pause tells stopped() too,
+# so the stop's rule is shared-call. The bind's strings without a space are its inner prepare's
+# trace name and "reportVideoPlayerShouldStart". The seek takes a position and two flags and holds
+# "clips_viewer" and "resume". No rule can pick the pause, which holds no string, or the end and
+# loop callbacks, whose strings have spaces.
+start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->started(Ljava/lang/Object;)V in instance (JJ)V holding video_cached warmed voice_translation_language_code
+once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->started(Ljava/lang/Object;)V in instance (JJ)V holding video_cached warmed voice_translation_language_code
+start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->stopped(Ljava/lang/Object;)V in instance (Ljava/lang/String;Z)V holding clips_pip ig_text
+shared-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->stopped(Ljava/lang/Object;)V in instance (Ljava/lang/String;Z)V holding clips_pip ig_text
+start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->rebound(Ljava/lang/Object;)V in instance (*)V holding IgVideoPlayerImpl.prepareVideoInternal reportVideoPlayerShouldStart
+once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->rebound(Ljava/lang/Object;)V in instance (*)V holding IgVideoPlayerImpl.prepareVideoInternal reportVideoPlayerShouldStart
+start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->seeking(Ljava/lang/Object;I)V in instance (IZZ)V holding clips_viewer resume
+once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->seeking(Ljava/lang/Object;I)V in instance (IZZ)V holding clips_viewer resume

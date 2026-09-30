@@ -124,6 +124,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting TAP_TO_PLAY =
             new BooleanSetting("hushgram_tap_to_play", TRUE);
 
+    /**
+     * A video or reel over two minutes left partway picks up there the next time a player starts
+     * it ({@link app.hushgram.extension.instagram.media.ResumePlayback}). Starts off: it keeps the
+     * IDs of the videos you left partway, for 30 days, in the app's own storage.
+     */
+    public static final BooleanSetting RESUME_LONG_VIDEOS =
+            new BooleanSetting("hushgram_resume_long_videos", FALSE);
+
     // ---- Downloads -------------------------------------------------------------------------
     // What every save reads when it starts (app.hushgram.extension.instagram.download), ported
     // with the save pipeline from Hushfacebook 3a473639 with the same types and defaults, keyed

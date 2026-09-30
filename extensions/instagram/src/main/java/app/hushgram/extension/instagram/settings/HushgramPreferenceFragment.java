@@ -216,11 +216,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : stories) section.addPreference(row);
         }
 
-        if (build.contains(PatchFamily.TAP_TO_PLAY)) {
+        if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
             PreferenceCategory playback = category(screen, L10n.t("Playback"));
-            playback.addPreference(toggle(context, Settings.TAP_TO_PLAY, L10n.t("Tap to play"),
-                    L10n.t("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do "
-                            + "when you use less mobile data.")));
+            if (build.contains(PatchFamily.TAP_TO_PLAY)) {
+                playback.addPreference(toggle(context, Settings.TAP_TO_PLAY, L10n.t("Tap to play"),
+                        L10n.t("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do "
+                                + "when you use less mobile data.")));
+            }
+            if (build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
+                playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS, L10n.t("Resume long videos"),
+                        L10n.t("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. "
+                                + "Live videos and ads start as usual.")));
+            }
         }
 
         // Any download patch brings this section, so each one that saves joins this condition.

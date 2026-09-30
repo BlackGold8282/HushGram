@@ -411,6 +411,43 @@
       "options": []
     },
     {
+      "name": "Resume long videos",
+      "description": "A video or reel longer than two minutes that you left partway picks up where you left it the next time it plays. Live videos and ads start as usual. Its switch starts off.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "449.0.0.52.84"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "449.0.0.52.84",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385511871
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Sanitize sharing links",
       "description": "Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel, story or profile a link opens stays the same.",
       "category": "Privacy",

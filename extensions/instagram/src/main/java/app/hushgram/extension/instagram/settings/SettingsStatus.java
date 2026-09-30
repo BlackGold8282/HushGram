@@ -69,4 +69,8 @@ public final class SettingsStatus {
     public static boolean tapToPlay() {
         return false;
     }
+
+    public static boolean resumeLongVideos() {
+        return false;
+    }
 }

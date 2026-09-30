@@ -67,6 +67,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 | `Sanitize sharing links` | Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel, story or profile a link opens stays the same. |
 | `Stop Story auto-advance` | Keeps each story on screen until you tap or swipe. Turn the switch off for Instagram's timing. |
 | `Tap to play` | Videos, reels and stories wait for your tap instead of starting by themselves. Feed videos show a play button, the way they do when Instagram saves mobile data. |
+| `Resume long videos` | A video or reel longer than two minutes that you left partway picks up where you left it the next time it plays. Live videos and ads start as usual. Its switch starts off. |
 
 The other patches keep their switches in `HushGram settings`, so Morphe Manager includes it whenever any of them is picked. Any of the rest can be left out when you patch.
 
@@ -103,6 +104,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - Download any story adds its row to the menu you get from the three dots on a story, yours included, and to the older menu some special story cards still use.
 - Download any video is off until you pick it in Manager. It adds the row to anyone else's feed post that is one video. Your own posts keep Instagram's own Download row where Instagram shows it, and on a video that row saves through HushGram too. A carousel, and someone else's photo post, get no Download row yet.
 - Tap to play is off until you pick it in Manager. Instagram doesn't say whether a tap started a video, so any start within a second of a tap goes ahead, and a video you started keeps playing through a seek or a loop until it's paused or swapped for another.
+- Resume long videos is in by default, but its switch under Playback starts off. Once it's on, HushGram keeps the IDs of up to 200 videos you left partway, on your phone only, and drops each after 30 days. Instagram posts nearly every video as a reel, so reels over two minutes resume too. Story clips run under two minutes, so they always start at the beginning.
 - Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. Instagram has other reporting paths, and this patch doesn't claim to stop every one.
 - A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
 - Only one Instagram build has been checked so far. Expect a patch to stop on a newer one until it's checked.
@@ -147,11 +149,11 @@ The diagnostic report stays on your phone until you copy or share it yourself.
 | Source | What came from it |
 |---|---|
 | [SysAdminDoc/Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) at `c15d4f7` | The Gradle build, the shared extension library with its settings screen, pause and diagnostics, the bytecode helpers, the link cleaner, the launcher shortcut and the checks that apply every patch to a real Instagram build. |
-| [SysAdminDoc/Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) at `3a47363` and `814acd2` | The video and photo save pipeline behind the Download patches, and the tap clock and start rule behind Tap to play. |
+| [SysAdminDoc/Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) at `3a47363` and `814acd2` | The video and photo save pipeline behind the Download patches, the tap clock and start rule behind Tap to play, and the saved points and resume rule behind Resume long videos. |
 | [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) at `5db2e57`, by way of Hushfacebook | The fix for re-signed builds, pointed here at Instagram's own two signing certificates. |
 | [SysAdminDoc/hushfeed](https://github.com/SysAdminDoc/hushfeed), [tiktok-patches-for-morphe](https://github.com/icysymmetra/tiktok-patches-for-morphe), [Morphe](https://github.com/MorpheApp) and [ReVanced](https://gitlab.com/ReVanced/revanced-patches) | Where Hushfacebook's foundation came from: the patcher, the patch template and the shared library. |
 
-Hide ads, Disable analytics, Remove build expired popup, Hide Reels in the feed, Clean up Reels, Don't send reel watch history, Stop Story auto-advance, the Instagram side of Download any reel, Download any story and Download any video, the Instagram side of Tap to play, and the Instagram side of Sanitize sharing links were written here.
+Hide ads, Disable analytics, Remove build expired popup, Hide Reels in the feed, Clean up Reels, Don't send reel watch history, Stop Story auto-advance, the Instagram side of Download any reel, Download any story and Download any video, the Instagram side of Tap to play and Resume long videos, and the Instagram side of Sanitize sharing links were written here.
 
 Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its licence. [docs/sources.md](docs/sources.md) covers the other Instagram patch sources and what each one does. The ledger behind it, [sources/instagram-sources.json](sources/instagram-sources.json), pins each source's licence, and code is only ported from a source it lists as adopted.
 
