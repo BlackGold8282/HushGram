@@ -64,7 +64,7 @@ internal const val ELIGIBLE_MARKER = "ClipsDownloadUtil_isMediaEligibleForThirdP
  */
 @Suppress("unused")
 val downloadReelPatch = bytecodePatch(
-    name = PATCH,
+    name = "Download any reel",
     description = "Adds Download to every reel's more menu. Reels save at the Download quality you set, " +
         "best by default, without Instagram's watermark.",
     default = true,

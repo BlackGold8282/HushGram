@@ -22,7 +22,7 @@ import org.junit.Test
 class PatchCategoriesTest {
     /** One name per group, and no more than fits on a phone screen without scrolling. */
     private val taxonomy = setOf(
-        "Ads", "Feed", "Privacy", "Interface", "Updates", "Fixes", "Settings",
+        "Ads", "Feed", "Privacy", "Downloads", "Interface", "Updates", "Fixes", "Settings",
     )
 
     private fun shippedPatches() = run {
