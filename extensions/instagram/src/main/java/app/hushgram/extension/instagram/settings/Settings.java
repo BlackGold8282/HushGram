@@ -67,6 +67,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_block_story_auto_advance", TRUE);
 
     /**
+     * The stories you watch, which Instagram posts to media/seen/ to put you on their viewer lists.
+     * Held back, you stay off them. Replies and reactions still show you.
+     */
+    public static final BooleanSetting VIEW_STORIES_ANONYMOUSLY =
+            new BooleanSetting("hushgram_view_stories_anonymously", TRUE);
+
+    /**
      * The rows of suggested reels between posts in the home feed, and the other feed units that
      * open the Reels viewer. A reel someone you follow posts is a post and stays.
      */

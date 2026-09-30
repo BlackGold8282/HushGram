@@ -206,6 +206,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             stories.add(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
                     L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.")));
         }
+        if (build.contains(PatchFamily.STORY_SEEN)) {
+            stories.add(toggle(context, Settings.VIEW_STORIES_ANONYMOUSLY, L10n.t("View stories anonymously"),
+                    L10n.t("Instagram isn't told which stories you watch, so you stay off their viewer lists. "
+                            + "Replying or reacting still shows you, and stories you've watched can show as new again.")));
+        }
         if (build.contains(PatchFamily.STORY_DOWNLOAD)) {
             stories.add(toggle(context, Settings.DOWNLOAD_STORIES, L10n.t("Download on stories"),
                     L10n.t("Adds Download to the menu of anyone's story, photo or video, saved at your download quality. "

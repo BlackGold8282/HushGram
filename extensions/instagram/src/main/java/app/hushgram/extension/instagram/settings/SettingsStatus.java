@@ -46,6 +46,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storySeen() {
+        return false;
+    }
+
     public static boolean feedReels() {
         return false;
     }

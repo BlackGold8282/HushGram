@@ -219,3 +219,8 @@ start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->rebound(Ljav
 once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->rebound(Ljava/lang/Object;)V in instance (*)V holding IgVideoPlayerImpl.prepareVideoInternal reportVideoPlayerShouldStart
 start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->seeking(Ljava/lang/Object;I)V in instance (IZZ)V holding clips_viewer resume
 once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->seeking(Ljava/lang/Object;I)V in instance (IZZ)V holding clips_viewer resume
+#
+# View stories anonymously asks the extension first thing in PendingReelSeenStateStore's send, the
+# one method that posts the stories you watched to media/seen/. The send holds no string, so no rule
+# can pick it (its class holds pending_reel_seen_states_, the method doesn't). StorySeenHookTest
+# checks on the 449 fixture that the guard lands there once and nowhere else in the store.

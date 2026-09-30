@@ -64,10 +64,11 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 | `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too. |
 | `Remove build expired popup` | Stops Instagram from locking you out with a screen that says this version is too old. A patched build doesn't update on its own, so without this it would stop working after a few weeks. |
 | `Restore trust on re-signed builds` | Lets Instagram's own signature checks pass on a re-signed build, so the parts of the app that check who signed it keep working. A Root Mount install doesn't need this patch. |
+| `Resume long videos` | A video or reel longer than two minutes that you left partway picks up where you left it the next time it plays. Live videos and ads start as usual. Its switch starts off. |
 | `Sanitize sharing links` | Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel, story or profile a link opens stays the same. |
 | `Stop Story auto-advance` | Keeps each story on screen until you tap or swipe. Turn the switch off for Instagram's timing. |
 | `Tap to play` | Videos, reels and stories wait for your tap instead of starting by themselves. Feed videos show a play button, the way they do when Instagram saves mobile data. |
-| `Resume long videos` | A video or reel longer than two minutes that you left partway picks up where you left it the next time it plays. Live videos and ads start as usual. Its switch starts off. |
+| `View stories anonymously` | Keeps you off the viewer list of the stories you watch, because Instagram isn't told which ones you've seen. Replying or reacting still shows you, and stories you've watched can show as new again. |
 
 The other patches keep their switches in `HushGram settings`, so Morphe Manager includes it whenever any of them is picked. Any of the rest can be left out when you patch.
 
@@ -84,7 +85,7 @@ At the top, a card says whether HushGram is on or paused. Below it:
 
 - **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links and Disable analytics.
 - **Reels** holds the switches for Hide Reels in the feed, the three parts of Clean up Reels, Don't send reel watch history and Download on reels.
-- **Stories** holds the switches for Stop Story auto-advance and Download on stories.
+- **Stories** holds the switches for Stop Story auto-advance, View stories anonymously and Download on stories.
 - **Downloads** holds the switch for Download feed videos, lists each save that's running, with a Cancel button, and holds what every save uses: Save videos other apps can open, Download quality, the save folder and the video file name. Videos go to Movies and photos to Pictures, each in an Instagram folder unless you name another, and a video is named `IG_VID_` with the date and time unless you set a name.
 - **Updates** holds the switch for the build expired screen.
 - **Set when you patched** lists what was fixed at patch time and can't be switched off here, such as the re-signed build fix.
@@ -104,6 +105,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - Download any story adds its row to the menu you get from the three dots on a story, yours included, and to the older menu some special story cards still use.
 - Download any video is off until you pick it in Manager. It adds the row to anyone else's feed post that is one video. Your own posts keep Instagram's own Download row where Instagram shows it, and on a video that row saves through HushGram too. A carousel, and someone else's photo post, get no Download row yet.
 - Tap to play is off until you pick it in Manager. Instagram doesn't say whether a tap started a video, so any start within a second of a tap goes ahead, and a video you started keeps playing through a seek or a loop until it's paused or swapped for another. Instagram's own tap in Reels only resumes a reel you paused yourself, so HushGram sends a tap on a reel that's waiting to start, or paused for something like the comments, down that same resume path.
+- View stories anonymously is off until you pick it in Manager. It holds back each story you watch from the moment its switch is on, and a story you watched before that has already been counted. Only the viewing report stops, so a reply or a reaction still shows you.
 - Resume long videos is in by default, but its switch under Playback starts off. Once it's on, HushGram keeps the IDs of up to 200 videos you left partway, on your phone only, and drops each after 30 days. Instagram posts nearly every video as a reel, so reels over two minutes resume too. Story clips run under two minutes, so they always start at the beginning.
 - Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. Instagram has other reporting paths, and this patch doesn't claim to stop every one.
 - A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
@@ -153,7 +155,7 @@ The diagnostic report stays on your phone until you copy or share it yourself.
 | [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) at `5db2e57`, by way of Hushfacebook | The fix for re-signed builds, pointed here at Instagram's own two signing certificates. |
 | [SysAdminDoc/hushfeed](https://github.com/SysAdminDoc/hushfeed), [tiktok-patches-for-morphe](https://github.com/icysymmetra/tiktok-patches-for-morphe), [Morphe](https://github.com/MorpheApp) and [ReVanced](https://gitlab.com/ReVanced/revanced-patches) | Where Hushfacebook's foundation came from: the patcher, the patch template and the shared library. |
 
-Hide ads, Disable analytics, Remove build expired popup, Hide Reels in the feed, Clean up Reels, Don't send reel watch history, Stop Story auto-advance, the Instagram side of Download any reel, Download any story and Download any video, the Instagram side of Tap to play and Resume long videos, and the Instagram side of Sanitize sharing links were written here.
+Hide ads, Disable analytics, Remove build expired popup, Hide Reels in the feed, Clean up Reels, Don't send reel watch history, Stop Story auto-advance, View stories anonymously, the Instagram side of Download any reel, Download any story and Download any video, the Instagram side of Tap to play and Resume long videos, and the Instagram side of Sanitize sharing links were written here.
 
 Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its licence. [docs/sources.md](docs/sources.md) covers the other Instagram patch sources and what each one does. The ledger behind it, [sources/instagram-sources.json](sources/instagram-sources.json), pins each source's licence, and code is only ported from a source it lists as adopted.
 

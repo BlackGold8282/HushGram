@@ -23,6 +23,7 @@ public final class FamilyNames {
     public static final String RESTORE_TRUST = "Restore trust on re-signed builds";
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
     public static final String STORY_AUTO_ADVANCE = "Stop Story auto-advance";
+    public static final String STORY_SEEN = "View stories anonymously";
     public static final String FEED_REELS = "Hide Reels in the feed";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String REEL_DOWNLOAD = "Download any reel";
