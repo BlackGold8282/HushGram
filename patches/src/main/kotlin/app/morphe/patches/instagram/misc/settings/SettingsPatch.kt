@@ -44,17 +44,18 @@ internal fun BytecodePatchContext.declaredInHierarchy(
     } ?: throw PatchException("No class of $type's hierarchy declares $name(${parameters.joinToString("")})V")
 
 /**
- * Makes the HushGram screen reachable from a long-press shortcut on Instagram's launcher icon. The
- * shortcut opens Instagram's main activity with an extra, and the screen opens over it once it
- * resumes. Every name used here is a manifest component or a framework override or call. Nothing is
- * added to the manifest.
+ * Makes the HushGram screen reachable from a long-press shortcut on Instagram's launcher icon and
+ * from a row at the top of Instagram's Settings and activity screen. The shortcut opens Instagram's
+ * main activity with an extra, and the screen opens over it once it resumes. The row is found by
+ * the strings its screen's factory puts in the arguments. Every other name used here is a manifest
+ * component or a framework or androidx override or call. Nothing is added to the manifest.
  */
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "HushGram settings",
     description = "Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick " +
-        "HushGram settings to turn features on or off, pause HushGram and export diagnostics. The " +
-        "licenses are there too.",
+        "HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, " +
+        "to turn features on or off, pause HushGram and export diagnostics. The licenses are there too.",
     default = true,
 ) {
     category("Settings")
@@ -89,5 +90,9 @@ val settingsPatch = bytecodePatch(
         // Each of those calls now goes through the extension, which puts it back in front
         // afterwards. Framework names only, which the obfuscator keeps.
         rerouteShortcutCalls()
+
+        // A launcher that shows no shortcuts on a long press still gets there from Instagram's
+        // own settings.
+        addSettingsRow()
     }
 }

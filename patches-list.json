@@ -80,7 +80,7 @@
     },
     {
       "name": "HushGram settings",
-      "description": "Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings to turn features on or off, pause HushGram and export diagnostics. The licenses are there too.",
+      "description": "Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too.",
       "category": "Settings",
       "use": true,
       "dependencies": [

@@ -26,6 +26,7 @@ import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.view.View;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -45,7 +46,8 @@ import app.hushgram.extension.shared.Utils;
  * main activity's new intents as they arrive, and the next Instagram activity to resume shows the
  * screen as a full screen dialog. Nothing is added to Instagram's manifest, so no resource has to
  * be rebuilt to get here. The shortcut is kept first among Instagram's own, because a launcher
- * shows only the first few.
+ * shows only the first few. A launcher that shows no shortcuts leaves the row at the top of
+ * Instagram's own Settings and activity screen, which {@link SettingsScreenRow} draws.
  *
  * <p>The shortcut names the main activity itself rather than a launcher alias: Instagram's icon is
  * one of several aliases it switches between at runtime (its alternate app icons), and whichever
@@ -406,20 +408,40 @@ public final class SettingsEntry {
         }
     }
 
+    /**
+     * Injected before each return of the {@code onCreateView} of Instagram's settings screen, with
+     * the screen's arguments and the view it made. On the top screen, Settings and activity, it
+     * answers that view with the HushGram settings row above it; on every other screen, and when
+     * anything goes wrong, the view as it came.
+     */
+    public static View withSettingsRow(Bundle arguments, View screen) {
+        try {
+            if (screen == null || !SettingsScreenRow.isMainScreen(arguments)) return screen;
+            return SettingsScreenRow.above(screen);
+        } catch (Throwable t) {
+            Logger.printException(() -> "Settings entry: could not add the row to Instagram's settings", t);
+            return screen;
+        }
+    }
+
     /** A magenta disc with an "H", drawn so the shortcut needs no resource in Instagram's APK. */
     private static Bitmap shortcutIcon() {
-        final int size = 432; // Adaptive icon canvas: 108dp at xxxhdpi.
+        return mark(432, Color.BLACK, 0.30f); // Adaptive icon canvas: 108dp at xxxhdpi.
+    }
+
+    /** The HushGram mark, [size] pixels square on [background], the disc [radius] of the size across. */
+    static Bitmap mark(int size, int background, float radius) {
         Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        canvas.drawColor(Color.BLACK);
+        canvas.drawColor(background);
         Paint disc = new Paint(Paint.ANTI_ALIAS_FLAG);
         disc.setColor(0xFFE1306C);
-        canvas.drawCircle(size / 2f, size / 2f, size * 0.30f, disc);
+        canvas.drawCircle(size / 2f, size / 2f, size * radius, disc);
         Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
         text.setColor(Color.WHITE);
         text.setTextAlign(Paint.Align.CENTER);
         text.setTypeface(Typeface.DEFAULT_BOLD);
-        text.setTextSize(size * 0.24f);
+        text.setTextSize(size * radius * 0.8f);
         Paint.FontMetrics metrics = text.getFontMetrics();
         canvas.drawText("H", size / 2f, size / 2f - (metrics.ascent + metrics.descent) / 2f, text);
         return bitmap;
