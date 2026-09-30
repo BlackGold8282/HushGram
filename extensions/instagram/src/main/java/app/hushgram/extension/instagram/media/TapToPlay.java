@@ -7,6 +7,7 @@
 package app.hushgram.extension.instagram.media;
 
 import android.os.SystemClock;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 
@@ -46,20 +47,31 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *       restarts, such as playInternal's play of that same player, or the play after a seek's
  *       pause ({@link #MOMENTARY}).</li>
  *   <li>A tap ended no more than {@link #TAP_WINDOW_MS} ago ({@link TapClock}).</li>
+ *   <li>A tap ended no more than {@link #LOAD_WINDOW_MS} ago and nothing has started on it yet:
+ *       a story or a video the tap opened can take that long to load.</li>
  * </ul>
  *
  * <p>Every other start is held, and the player stays where it was, showing its first frame or its
  * cover. Instagram's own autoplay check answers no while the switch is on ({@link #autoplayAllowed}),
- * so the feed draws the play button it draws when data saver is on. A tap on a reel resumes it only
- * when Instagram knows you paused it yourself, so a tap on a held reel would go down the pause path
- * and do nothing: {@link #resumeOnTap} sends a tap on a reel that's waiting down the resume path
- * instead. Off, paused, before the settings
- * are ready, or when anything here throws, every start goes ahead and the check answers what
- * Instagram decided, as it would unpatched.
+ * so the feed draws the play button it draws when data saver is on. That button stays drawn over
+ * the video it started until the post is drawn again, so {@link #playButtonTapped} hides the one a
+ * tap started a video from, until that start ends ({@link PlayButtons}). A tap on a reel resumes it
+ * only when Instagram knows you paused it yourself, so a tap on a held reel would go down the pause
+ * path and do nothing: {@link #resumeOnTap} sends a tap on a reel that's waiting down the resume
+ * path instead. Off, paused, before the settings are ready, or when anything here throws, every
+ * start goes ahead and the check answers what Instagram decided, as it would unpatched.
  */
 public final class TapToPlay {
     /** How long after a tap ends a start still counts as that tap's. */
     static final long TAP_WINDOW_MS = 1000;
+
+    /**
+     * How long after a tap ends its first start still counts as the tap's. A story opened with a
+     * tap started 1.7 seconds after it on the S22 while it loaded. Shorter than a photo story's five
+     * seconds, so an advance Instagram makes on its own past a photo the tap opened still waits, and
+     * a drag or a second finger ends the tap's claim before then ({@link TapClock}).
+     */
+    static final long LOAD_WINDOW_MS = 4000;
 
     /**
      * How long a start keeps its player armed through a new video. IgGrootPlayer can be prepared
@@ -98,12 +110,16 @@ public final class TapToPlay {
     private static final String SOURCE = "TapToPlay";
 
     private static final ArmedPlayers ARMED = new ArmedPlayers();
+    private static final Object TAP_LOCK = new Object();
+    /** The end of the last tap a start went ahead on, so only its first start gets the load window. */
+    private static long usedTap = TapClock.NO_TAP;
     private static final Object LOG_LOCK = new Object();
     private static int decisions;
     private static int allowedSinceSummary;
     private static int heldSinceSummary;
     private static int endedStarts;
     private static boolean checkLogged;
+    private static boolean viewlessClickLogged;
 
     /** Makes the next decision throw, once. For tests. */
     @Nullable
@@ -133,6 +149,7 @@ public final class TapToPlay {
             HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
             HookStatus.bound(FamilyNames.TAP_TO_PLAY, "player pause");
             if ((reason == null || !MOMENTARY.contains(reason)) && ARMED.disarm(player)) {
+                PlayButtons.ended(player);
                 logEnded(() -> "a pause for " + (reason == null ? "no reason" : reason));
             }
         } catch (Throwable failure) {
@@ -146,6 +163,7 @@ public final class TapToPlay {
             HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
             HookStatus.bound(FamilyNames.TAP_TO_PLAY, "player prepare");
             if (ARMED.disarmUnlessArmedSince(player, SystemClock.uptimeMillis() - BIND_GRACE_MS)) {
+                PlayButtons.ended(player);
                 logEnded(() -> "a new video");
             }
         } catch (Throwable failure) {
@@ -174,6 +192,35 @@ public final class TapToPlay {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.TAP_TO_PLAY, "autoplay check", failure);
             return answer;
+        }
+    }
+
+    /**
+     * The hook in the click of the feed's Litho play button, right after it hands its video to
+     * Instagram, with the click event. While the switch is on, the button's view is hidden until
+     * the start the tap asked for ends ({@link PlayButtons}); a click that carries no view leaves
+     * the button as it is.
+     */
+    public static void playButtonTapped(@Nullable Object click) {
+        try {
+            HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
+            if (!on()) return;
+            HookStatus.bound(FamilyNames.TAP_TO_PLAY, "play button");
+            View button = PlayButtons.viewOf(click);
+            if (button != null) {
+                long now = SystemClock.uptimeMillis();
+                long sinceTap = TapClock.msSinceTap(now);
+                PlayButtons.hide(button, now, sinceTap < 0 ? now : now - sinceTap);
+                return;
+            }
+            synchronized (LOG_LOCK) {
+                if (viewlessClickLogged) return;
+                viewlessClickLogged = true;
+            }
+            Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE,
+                    () -> "Tap to play: the play button's click carries no view, so the button stays");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.TAP_TO_PLAY, "play button", failure);
         }
     }
 
@@ -261,10 +308,28 @@ public final class TapToPlay {
     static boolean decide(@Nullable Object player, @Nullable String reason, long now, String path) {
         boolean armed = ARMED.armed(player);
         long sinceTap = TapClock.msSinceTap(now);
-        boolean allowed = armed || (sinceTap >= 0 && sinceTap <= TAP_WINDOW_MS);
-        if (allowed && !armed) ARMED.arm(player, now);
+        boolean allowed = armed || tapCovers(sinceTap, now);
+        if (allowed && !armed) {
+            ARMED.arm(player, now);
+            PlayButtons.started(player, now);
+        }
         logDecision(allowed, reason, sinceTap, armed, path);
         return allowed;
+    }
+
+    /**
+     * Whether the tap that ended [sinceTap] ms before [now] covers a start: any start within
+     * {@link #TAP_WINDOW_MS}, and its first start within {@link #LOAD_WINDOW_MS}. A start it
+     * covers uses the tap.
+     */
+    private static boolean tapCovers(long sinceTap, long now) {
+        if (sinceTap < 0) return false;
+        long tap = now - sinceTap;
+        synchronized (TAP_LOCK) {
+            boolean covered = sinceTap <= TAP_WINDOW_MS || (sinceTap <= LOAD_WINDOW_MS && usedTap != tap);
+            if (covered) usedTap = tap;
+            return covered;
+        }
     }
 
     private static void logDecision(boolean allowed, @Nullable String reason, long sinceTap, boolean armed, String path) {
@@ -305,9 +370,16 @@ public final class TapToPlay {
         }
     }
 
-    /** Forgets every armed player and the log's counts, and puts the patched reel state reader back. For tests. */
+    /**
+     * Forgets every armed player, the hidden play button and the log's counts, and puts the patched
+     * reel state reader back. For tests.
+     */
     static void forget() {
         ARMED.clear();
+        PlayButtons.forget();
+        synchronized (TAP_LOCK) {
+            usedTap = TapClock.NO_TAP;
+        }
         reelStates = ReelStateReader::reelState;
         synchronized (LOG_LOCK) {
             decisions = 0;
@@ -315,6 +387,7 @@ public final class TapToPlay {
             heldSinceSummary = 0;
             endedStarts = 0;
             checkLogged = false;
+            viewlessClickLogged = false;
         }
         failNext = null;
     }

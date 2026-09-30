@@ -39,7 +39,7 @@ internal const val REEL_STATE_READER = "$EXTENSION_PACKAGE/media/ReelStateReader
 /** The reader's stubs the patch fills in, each (name, parameter count). */
 internal val REEL_STUBS = listOf("controllerOf" to 1, "holderOf" to 1, "playersOf" to 1, "playerFor" to 2, "stateOf" to 1)
 private const val OBJECT = "Ljava/lang/Object;"
-private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
+internal const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 
 /** The purge markers, less their release, of the Reels tap and of the controller's pause. */
 internal const val TOGGLE_PAUSE = "PauseAndMuteNavigator_togglePause"

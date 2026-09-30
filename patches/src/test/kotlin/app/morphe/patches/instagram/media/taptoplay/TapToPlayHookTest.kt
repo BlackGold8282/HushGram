@@ -36,6 +36,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class TapToPlayHookTest {
     private val player = "Lfixture/VideoPlayer;"
@@ -51,6 +52,12 @@ class TapToPlayHookTest {
     private val reelPlayer = "Lfixture/ClipsVideoPlayer;"
     private val state = "Lfixture/PlayerState;"
     private val function0 = "Lkotlin/jvm/functions/Function0;"
+    private val binder = "Lfixture/VideoPlayButtonBinder;"
+    private val buttonState = "Lfixture/PlayButtonState;"
+    private val button = "Lfixture/LithoPlayButton;"
+    private val lambdas = "Lfixture/Lambdas;"
+    private val session = "Lcom/instagram/common/session/UserSession;"
+    private val dataSaver = "Lfixture/DataSaverDialog;->A00(Landroid/content/Context;Lfixture/Module;$session$function0)V"
 
     /** What the controller's pause logs, which the fixture check finds it by. */
     private val pauseCurrentPlayerLog = "ClipsVideoPlayerController.pauseCurrentPlayer pauseReason="
@@ -58,7 +65,7 @@ class TapToPlayHookTest {
     /** Every hook the patch writes is in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP)) {
+        for (hook in listOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED)) {
             val type = hook.substringBefore("->")
             val declared = ExtensionDex.classDef(type).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
@@ -117,12 +124,50 @@ class TapToPlayHookTest {
         assertEquals("the activity and the event", listOf(1, 2), (touch[0] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
 
         assertReelTapHooked(context.method(navigator, "A01").code(), decision = 1, navigatorRegister = 5)
+        assertPlayButtonHooked(context.method(lambdas, "invoke").code(), eventRegister = 6)
         // Each stub, before its first return, reaches one step toward the state of the reel on screen.
         assertEquals(listOf(navigator, "$navigator->A03:$function0", "$function0->invoke()$objectType"), filled(context, "controllerOf"))
         assertEquals(listOf(controller, "$controller->A0f()$holder"), filled(context, "holderOf"))
         assertEquals(listOf(controller, "$controller->A0R:$lookup"), filled(context, "playersOf"))
         assertEquals(listOf(lookup, holder, "$lookup->A01($holder)$reelPlayer"), filled(context, "playerFor"))
         assertEquals(listOf(reelPlayer, "$reelPlayer->Cyy()$state"), filled(context, "stateOf"))
+    }
+
+    /**
+     * The Litho play button's click tells the extension right after it hands its start to
+     * Instagram, with the click event, and a branch from the click's other cases to the instruction
+     * after that call still skips the hook.
+     */
+    private fun assertPlayButtonHooked(code: List<Instruction>, eventRegister: Int, what: String = "the play button's click") {
+        val call = code.indexOfFirst { it.opcode == Opcode.INVOKE_STATIC && it.referenceText()?.contains("(Landroid/content/Context;") == true }
+        assertTrue("$what: the start's call", call >= 0)
+        val hook = code[call + 1]
+        assertEquals("$what: the hook right after the call", PLAY_BUTTON_TAPPED, hook.referenceText())
+        assertEquals("$what: the click event", listOf(eventRegister, 1), (hook as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        assertEquals("$what: one hook", 1, code.count { it.referenceText() == PLAY_BUTTON_TAPPED })
+        code.indices.filter { code[it] is OffsetInstruction && code[it].opcode != Opcode.PACKED_SWITCH && code[it].opcode != Opcode.SPARSE_SWITCH }
+            .forEach { assertTrue("$what: the branch at $it lands on the hook", code.target(it) != call + 1) }
+    }
+
+    /**
+     * A play button the patch can't pick out, or a click that writes over its event before the
+     * call, fails the patch before anything changes.
+     */
+    @Test
+    fun aPlayButtonThePatchCantHookFailsBeforeAnythingChanges() {
+        for ((case, classes) in listOf(
+            "no button" to classes(buttons = 0),
+            "two buttons" to classes(buttons = 2),
+            "two starts" to classes(twoStarts = true),
+            "event written over" to classes(clobberedEvent = true),
+            "no binder" to classes(binder = false),
+            "a state that isn't an enum" to classes(enumState = false),
+        )) {
+            val context = PatchContexts.of(classes)
+            val failure = assertThrows(case, PatchException::class.java) { context.holdStartsWithoutATap() }
+            assertTrue("$case: ${failure.message}", failure.message!!.startsWith(PATCH))
+            assertUntouched(context)
+        }
     }
 
     /** What the filled stub [name] names before its first return. Its own body stays behind it, unreached. */
@@ -214,7 +259,8 @@ class TapToPlayHookTest {
                     FixtureDex.classesHolding(bundle, PLAY_INTERNAL) + FixtureDex.classesHolding(bundle, GROOT_PREPARE) +
                         FixtureDex.classesHolding(bundle, AUTOPLAY_CHECKER.last()) +
                         listOfNotNull(FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY))[FRAGMENT_ACTIVITY]) +
-                        reel + near + returned + ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
+                        reel + near + returned + playButtonClasses(bundle) +
+                        ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
                     ).distinctBy { it.type }
                 val context = PatchContexts.of(classes)
                 val hooks = context.findPlayerHooks()
@@ -241,6 +287,8 @@ class TapToPlayHookTest {
                 assertReelTapHooked(after(reelTap.tap), reelTap.decision, reelTap.tap.implementation!!.registerCount - 4, "${bundle.name}: the Reels tap")
                 assertEquals("${bundle.name}: the state stub", reelTap.state.toString(), filled(context, "stateOf").last())
                 assertEquals("${bundle.name}: the controller stub", "$function0->invoke()$objectType", filled(context, "controllerOf").last())
+                val click = hooks.playButton.method
+                assertPlayButtonHooked(after(click), click.implementation!!.registerCount - 1, "${bundle.name}: the play button's click")
                 checked += version
             }
         }
@@ -259,8 +307,8 @@ class TapToPlayHookTest {
     }
 
     private fun assertUntouched(context: BytecodePatchContext) {
-        val hooks = setOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP)
-        for ((type, name) in listOf(player to "A0J", groot to "A0X", groot to "A0V", groot to "A0S", checker to "A01", navigator to "A01")) {
+        val hooks = setOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED)
+        for ((type, name) in listOf(player to "A0J", groot to "A0X", groot to "A0V", groot to "A0S", checker to "A01", navigator to "A01", lambdas to "invoke")) {
             assertTrue("$type->$name changed", context.method(type, name).code().none { it.referenceText() in hooks })
         }
         for ((name, _) in REEL_STUBS) {
@@ -298,11 +346,44 @@ class TapToPlayHookTest {
 
     // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
 
+    /**
+     * The play button's binders, its state, the Litho button and its click in [bundle]: the classes
+     * holding the binders' string, the enum they all take, then every class declaring a field of
+     * that state and a Function0, then every class reading one of those classes' Function0 fields.
+     */
+    private fun playButtonClasses(bundle: File): List<ClassDef> {
+        val binders = FixtureDex.classesHolding(bundle, PLAY_BUTTON_BINDER)
+        val shared = binders.flatMap { it.methods }.filter { PLAY_BUTTON_BINDER in it.strings() }
+            .map { it.parameterTypes.map(Any::toString).toSet() }.reduce { all, next -> all intersect next }
+        val stateClass = FixtureDex.classes(bundle, shared).values.single { it.superclass == "Ljava/lang/Enum;" }
+        val state = stateClass.type
+        val buttons = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            dex.classes.filterTo(buttons) { classDef ->
+                classDef.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }.map { it.type }.let { state in it && function0 in it }
+            }
+        }
+        val starts = buttons.flatMap { classDef -> classDef.fields.filter { it.type == function0 }.map { "${classDef.type}->${it.name}:$function0" } }.toSet()
+        val clicks = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            if (dex.fieldSection.none { it.toString() in starts }) return@forEach
+            dex.classes.filterTo(clicks) { classDef ->
+                classDef.methods.any { method -> method.code().any { it.opcode == Opcode.IGET_OBJECT && it.referenceText() in starts } }
+            }
+        }
+        return binders + stateClass + buttons + clicks
+    }
+
     private fun classes(
         grootFromElsewhere: Boolean = false,
         secondPause: Boolean = false,
         activity: Boolean = true,
         reel: Reel = Reel(),
+        buttons: Int = 1,
+        twoStarts: Boolean = false,
+        clobberedEvent: Boolean = false,
+        binder: Boolean = true,
+        enumState: Boolean = true,
     ): List<ClassDef> {
         val videoPlayer = classDef(
             player,
@@ -376,7 +457,67 @@ class TapToPlayHookTest {
             ),
         )
         return listOfNotNull(videoPlayer, grootPlayer, autoplayChecker, if (activity) fragmentActivity else null) +
-            reelClasses(reel) + ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
+            reelClasses(reel) + playButtonClasses(buttons, twoStarts, clobberedEvent, binder, enumState) +
+            ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
+    }
+
+    /**
+     * The view-based button's two binders, holding its string and both taking the button state, an
+     * enum; the Litho button, holding that state and its start; and a lambda class whose invoke is the
+     * button's click on one arm, handing the start to the data saver check, and another click on
+     * the other, which branches to the instruction after that call. The event is p1, v6.
+     */
+    private fun playButtonClasses(buttons: Int, twoStarts: Boolean, clobberedEvent: Boolean, binder: Boolean, enumState: Boolean): List<ClassDef> {
+        val binderClass = classDef(
+            this.binder,
+            listOf(
+                method(this.binder, "A00", listOf("Landroid/content/Context;", "Lfixture/Module;", session, "Lfixture/Listener;", buttonState, "Lfixture/ButtonHolder;", "Z"), "V", 9, static = true, body = """
+                    const-string v0, "$PLAY_BUTTON_BINDER"
+                    return-void
+                """),
+                method(this.binder, "A01", listOf("Lfixture/Module;", session, "Lfixture/Listener;", buttonState, "Lfixture/ButtonHolder;", "Z"), "V", 8, static = true, body = """
+                    const-string v0, "$PLAY_BUTTON_BINDER"
+                    return-void
+                """),
+            ),
+        )
+        val stateClass = ImmutableClassDef(
+            buttonState, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or (if (enumState) AccessFlags.ENUM.value else 0),
+            if (enumState) "Ljava/lang/Enum;" else "Ljava/lang/Object;", null, null, null, emptyList(), emptyList(),
+        )
+        val holderClass = classDef("Lfixture/ButtonHolder;", emptyList())
+        val field = { owner: String, name: String, type: String -> ImmutableField(owner, name, type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, null) }
+        val buttonClasses = (0 until buttons).map { i ->
+            val type = if (i == 0) button else "Lfixture/OtherPlayButton$i;"
+            classDef(
+                type,
+                emptyList(),
+                listOfNotNull(
+                    field(type, "A00", "Lfixture/Module;"), field(type, "A01", session), field(type, "A02", function0),
+                    field(type, "A04", buttonState), if (twoStarts) field(type, "A05", function0) else null,
+                ),
+            )
+        }
+        val click = method(lambdas, "invoke", listOf(objectType), objectType, 7, static = false, body = """
+            iget v0, p0, $lambdas->kind:I
+            if-eqz v0, :other
+            ${if (clobberedEvent) "const/4 p1, 0x0" else ""}
+            iget-object v0, p0, $lambdas->A01:$objectType
+            check-cast v0, $button
+            iget-object v1, v0, $button->A01:$session
+            iget-object v2, v0, $button->A00:Lfixture/Module;
+            iget-object v3, v0, $button->A02:$function0
+            const/4 v0, 0x0
+            invoke-static { v0, v2, v1, v3 }, $dataSaver
+            :done
+            const/4 v0, 0x0
+            return-object v0
+            :other
+            move-object v5, p1
+            goto :done
+        """)
+        val lambdaClass = classDef(lambdas, listOf(click), listOf(field(lambdas, "kind", "I"), field(lambdas, "A01", objectType)))
+        return listOfNotNull(if (binder) binderClass else null) + stateClass + holderClass + buttonClasses + lambdaClass
     }
 
     /** How a test's Reels tap stand-ins differ from 449's. */

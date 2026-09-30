@@ -17,6 +17,7 @@ import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.extension.requireLocals
+import app.morphe.patches.instagram.misc.extension.requireParameterIntact
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -41,6 +42,7 @@ internal const val ALLOW_DIRECT_START = "$TAP_TO_PLAY->allowDirectStart(Ljava/la
 internal const val PAUSED = "$TAP_TO_PLAY->paused(Ljava/lang/Object;Ljava/lang/String;)V"
 internal const val REBOUND = "$TAP_TO_PLAY->rebound(Ljava/lang/Object;)V"
 internal const val AUTOPLAY_ALLOWED = "$TAP_TO_PLAY->autoplayAllowed(Z)Z"
+internal const val PLAY_BUTTON_TAPPED = "$TAP_TO_PLAY->playButtonTapped(Ljava/lang/Object;)V"
 internal const val TOUCH = "$EXTENSION_PACKAGE/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V"
 
 /** The strings Instagram's build keeps in its players' own log lines, which pick each method out. */
@@ -48,11 +50,16 @@ internal const val PLAY_INTERNAL = "IgVideoPlayerImpl.playInternal playAfterSeek
 internal const val GROOT_PREPARE = "IgGrootPlayer.prepare"
 internal val GROOT_PLAY = listOf("retry", "play_after_recovery")
 internal val AUTOPLAY_CHECKER = listOf("VideoAutoplayChecker", "zero_rating_or_data_saver")
+internal const val PLAY_BUTTON_BINDER = "VideoPlayButtonBinder.bindView"
 
 /** The activity every Instagram screen extends, which Redex leaves under its own name. */
 internal const val FRAGMENT_ACTIVITY = "Lcom/instagram/base/activity/IgFragmentActivity;"
 private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
 private const val STRING = "Ljava/lang/String;"
+private const val OBJECT = "Ljava/lang/Object;"
+private const val ENUM = "Ljava/lang/Enum;"
+private const val CONTEXT = "Landroid/content/Context;"
+private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
 
 /**
  * Videos, reels and stories wait for a tap.
@@ -64,9 +71,10 @@ private const val STRING = "Ljava/lang/String;"
  * is gated before it marks the video as playing, so a later tap finds it stopped and starts it.
  * IgGrootPlayer's pause and prepare tell the extension when what a tap started has ended, every
  * touch on an Instagram screen goes past the tap clock, and Instagram's own autoplay check answers
- * no, so the feed draws its play button. A tap on a reel resumes it only when Instagram knows you
- * paused it, so the Reels tap's decision goes past the extension too, which sends a tap on a reel
- * that isn't playing down the resume path ([hookReelTap]).
+ * no, so the feed draws its play button. That button is a Litho one that stays drawn until the post
+ * is, so its click tells the extension, which hides it while the video it started plays. A tap on a
+ * reel resumes it only when Instagram knows you paused it, so the Reels tap's decision goes past the
+ * extension too, which sends a tap on a reel that isn't playing down the resume path ([hookReelTap]).
  *
  * Everything is found before anything changes, so a build that differs stops the patch naming
  * what it couldn't find, and nothing is half done.
@@ -99,7 +107,11 @@ internal class PlayerHooks(
     val prepare: Method,
     val checker: Method,
     val touch: Method,
+    val playButton: PlayButtonClick,
 )
+
+/** The feed's Litho play button's click, and the index of its call that hands the video to Instagram. */
+internal class PlayButtonClick(val method: Method, val call: Int)
 
 internal fun BytecodePatchContext.holdStartsWithoutATap() {
     val hooks = findPlayerHooks()
@@ -152,6 +164,12 @@ internal fun BytecodePatchContext.holdStartsWithoutATap() {
             }
     }
     mutable(hooks.touch).addInstructions(0, "invoke-static/range { p0 .. p1 }, $TOUCH")
+    // After the call, so a branch to the instruction after it, from the click's other cases, skips
+    // the hook.
+    mutable(hooks.playButton.method).addInstructions(
+        hooks.playButton.call + 1,
+        "invoke-static/range { p1 .. p1 }, $PLAY_BUTTON_TAPPED",
+    )
     hookReelTap(reelTap)
 }
 
@@ -227,7 +245,62 @@ internal fun BytecodePatchContext.findPlayerHooks(): PlayerHooks {
             it.implementation != null
     } ?: throw PatchException("$PATCH: $FRAGMENT_ACTIVITY has no dispatchTouchEvent of its own")
 
-    return PlayerHooks(playInternal, grootField, play, pause, prepare, checker, touch)
+    return PlayerHooks(playInternal, grootField, play, pause, prepare, checker, touch, findPlayButtonClick())
+}
+
+/**
+ * The feed's Litho play button's click. The view-based button's binders hold [PLAY_BUTTON_BINDER],
+ * and the one enum every binder takes is the button's state. The Litho button is the one class
+ * holding that state and a Function0, the video's start, and its click is the one method reading that
+ * Function0, an invoke(Object) taking the click event, which hands it to a static (Context, *,
+ * UserSession, Function0) that asks about mobile data before it starts the video. The event must
+ * still be in its own register at that call, where the hook reads it.
+ */
+internal fun BytecodePatchContext.findPlayButtonClick(): PlayButtonClick {
+    val binders = mutableListOf<Method>()
+    classDefForEach { classDef -> classDef.methods.filterTo(binders) { PLAY_BUTTON_BINDER in it.strings() } }
+    if (binders.isEmpty()) throw PatchException("$PATCH: no method holds \"$PLAY_BUTTON_BINDER\"")
+    val shared = binders.map { binder -> binder.parameterTypes.map(Any::toString).toSet() }.reduce { all, next -> all intersect next }
+    val states = shared.filter { classDefByOrNull(it)?.superclass == ENUM }
+    val state = states.singleOrNull()
+        ?: throw PatchException("$PATCH: the ${binders.size} play button binders share ${states.size} enum parameters, expected one, the button's state")
+
+    val buttons = mutableListOf<ClassDef>()
+    classDefForEach { classDef ->
+        val types = classDef.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }.map { it.type }
+        if (state in types && FUNCTION0 in types) buttons += classDef
+    }
+    val button = buttons.singleOrNull()
+        ?: throw PatchException("$PATCH: expected one class holding a play button state $state and a Function0, found ${buttons.size}")
+    val start = button.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == FUNCTION0 }.singleOrNull()
+        ?: throw PatchException("$PATCH: ${button.type}, the Litho play button, holds more than one Function0")
+
+    val clicks = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        classDef.methods.filterTo(clicks) { method ->
+            method.code().any { instruction ->
+                instruction.opcode == Opcode.IGET_OBJECT && instruction.fieldReference()?.let {
+                    it.definingClass == button.type && it.name == start.name && it.type == FUNCTION0
+                } == true
+            }
+        }
+    }
+    val click = clicks.singleOrNull()
+        ?: throw PatchException("$PATCH: expected one method reading ${button.type}->${start.name}, the play button's start, found ${clicks.size}")
+    if (AccessFlags.STATIC.isSet(click.accessFlags) || click.returnType != OBJECT ||
+        click.parameterTypes.map(Any::toString) != listOf(OBJECT)
+    ) {
+        throw PatchException("$PATCH: ${click.definingClass}->${click.name}, the play button's click, isn't an instance Object invoke(Object)")
+    }
+    val code = click.code()
+    val read = code.indexOfFirst { it.opcode == Opcode.IGET_OBJECT && it.fieldReference()?.definingClass == button.type && it.fieldReference()?.name == start.name }
+    val call = (read + 1 until code.size).firstOrNull { index ->
+        val reference = code[index].methodReference()
+        code[index].opcode == Opcode.INVOKE_STATIC && reference != null && reference.returnType == "V" &&
+            reference.parameterTypes.map(Any::toString).let { it.size == 4 && it[0] == CONTEXT && it[2] == USER_SESSION && it[3] == FUNCTION0 }
+    } ?: throw PatchException("$PATCH: ${click.definingClass}->${click.name}, the play button's click, never hands its start to a static (Context, *, UserSession, Function0)")
+    click.requireParameterIntact(PATCH, 0, listOf(call))
+    return PlayButtonClick(click, call)
 }
 
 /**

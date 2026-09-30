@@ -97,9 +97,33 @@ public class TapToPlayTest {
         tapAt(now - TapToPlay.TAP_WINDOW_MS);
         assertTrue("a tap exactly a second ago", TapToPlay.decide(new Object(), "autoplay", now, ""));
         tapAt(now - TapToPlay.TAP_WINDOW_MS - 1);
-        assertFalse("a tap just over a second ago", TapToPlay.decide(new Object(), "autoplay", now, ""));
+        assertTrue("that tap's own first start", TapToPlay.decide(new Object(), "autoplay", now - TapToPlay.TAP_WINDOW_MS + 9, ""));
+        assertFalse("another start just over a second after it", TapToPlay.decide(new Object(), "autoplay", now, ""));
         tapAt(now + 5);
         assertFalse("a tap the clock hasn't reached yet", TapToPlay.decide(new Object(), "autoplay", now, ""));
+    }
+
+    /**
+     * A story a tap opened can take seconds to load, so the tap's first start goes ahead up to
+     * {@link TapToPlay#LOAD_WINDOW_MS} after it. The next start past the second doesn't, nor does a
+     * first start later than that, nor one after a drag.
+     */
+    @Test
+    public void aTapsFirstStartMayComeAsLateAsALoad() {
+        long now = 400_000;
+        tapAt(now - 1_700);
+        assertTrue("the story, 1.7 seconds after the tap", TapToPlay.decide(new Object(), "autoplay", now, ""));
+        assertFalse("the next story, advanced to on its own", TapToPlay.decide(new Object(), "autoplay", now + 5_000, ""));
+        assertFalse("another start on the same tap", TapToPlay.decide(new Object(), "autoplay", now + 1, ""));
+
+        tapAt(now - TapToPlay.LOAD_WINDOW_MS - 1);
+        assertFalse("a first start later than a load", TapToPlay.decide(new Object(), "autoplay", now, ""));
+
+        tapAt(now - 1_700);
+        TapClock.record(MotionEvent.ACTION_DOWN, 50, 500, now - 1_000, 8);
+        TapClock.record(MotionEvent.ACTION_MOVE, 50, 300, now - 900, 8);
+        TapClock.record(MotionEvent.ACTION_UP, 50, 100, now - 800, 8);
+        assertFalse("a drag since the tap", TapToPlay.decide(new Object(), "autoplay", now, ""));
     }
 
     /** A story you tap starts with "autoplay", and playInternal only ever hears "autoplay" or "resume". */

@@ -208,6 +208,10 @@ once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(Z)
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeOnTap(ZLjava/lang/Object;)Z in instance (Landroid/view/View;*)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause clips_pause
 start-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 once-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
+# The feed's Litho play button tells playButtonTapped() right after its click hands the video to
+# Instagram. The click is one arm of a lambda class's invoke, which holds no string of its own, so
+# the rule holds the call to one site in the whole APK, in an invoke.
+single-call Lapp/hushgram/extension/instagram/media/TapToPlay;->playButtonTapped(Ljava/lang/Object;)V in invoke
 #
 # Resume long videos tells the extension first thing in IgVideoPlayerImpl's playback-started
 # callback, its stop, its pause, its bind and its seek, and where a video plays to its end or loops.
