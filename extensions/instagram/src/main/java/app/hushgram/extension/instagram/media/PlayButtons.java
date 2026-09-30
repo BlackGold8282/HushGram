@@ -77,7 +77,7 @@ final class PlayButtons {
      */
     static void hide(View button, long now, long tapAt) {
         Hidden previous;
-        Hidden next = new Hidden(button, now);
+        Hidden next = new Hidden(button, now, tapAt);
         boolean claimed;
         synchronized (LOCK) {
             Start start = latest;
@@ -91,13 +91,17 @@ final class PlayButtons {
         log(claimed ? "the play button is hidden while its video plays" : "the play button is hidden until its video starts");
     }
 
-    /** A start a tap let through at [now] on [player]: the hidden button's, if its tap was that recent. */
+    /**
+     * A start a tap let through at [now] on [player]: the hidden button's, if it came after the
+     * button's tap and soon enough after its click. A start decided on another thread just before
+     * the tap can reach here after the click.
+     */
     static void started(@Nullable Object player, long now) {
         if (player == null) return;
         synchronized (LOCK) {
             latest = new Start(new WeakReference<>(player), now);
             Hidden current = hidden;
-            if (current != null && current.player == null && now - current.at <= CLAIM_WINDOW_MS) {
+            if (current != null && current.player == null && now >= current.tapAt && now - current.at <= CLAIM_WINDOW_MS) {
                 current.player = latest.player;
             }
         }
@@ -163,14 +167,16 @@ final class PlayButtons {
     private static final class Hidden implements View.OnAttachStateChangeListener {
         final WeakReference<View> view;
         final long at;
+        final long tapAt;
         /** The player the tap's start went to; null until it comes. Written under [LOCK]. */
         @Nullable
         WeakReference<Object> player;
         private int visibility = View.VISIBLE;
 
-        Hidden(View view, long at) {
+        Hidden(View view, long at, long tapAt) {
             this.view = new WeakReference<>(view);
             this.at = at;
+            this.tapAt = tapAt;
         }
 
         void hide() {

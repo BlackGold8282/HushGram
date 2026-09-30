@@ -95,7 +95,8 @@ public class TapToPlayTest {
     public void aStartWithinASecondOfATapGoesAhead() {
         long now = 100_000;
         tapAt(now - TapToPlay.TAP_WINDOW_MS);
-        assertTrue("a tap exactly a second ago", TapToPlay.decide(new Object(), "autoplay", now, ""));
+        assertTrue("that tap's own first start", TapToPlay.decide(new Object(), "autoplay", now - 900, ""));
+        assertTrue("another start on it, exactly a second after it", TapToPlay.decide(new Object(), "autoplay", now, ""));
         tapAt(now - TapToPlay.TAP_WINDOW_MS - 1);
         assertTrue("that tap's own first start", TapToPlay.decide(new Object(), "autoplay", now - TapToPlay.TAP_WINDOW_MS + 9, ""));
         assertFalse("another start just over a second after it", TapToPlay.decide(new Object(), "autoplay", now, ""));
@@ -116,6 +117,8 @@ public class TapToPlayTest {
         assertFalse("the next story, advanced to on its own", TapToPlay.decide(new Object(), "autoplay", now + 5_000, ""));
         assertFalse("another start on the same tap", TapToPlay.decide(new Object(), "autoplay", now + 1, ""));
 
+        tapAt(now - TapToPlay.LOAD_WINDOW_MS);
+        assertTrue("a first start exactly a load after the tap", TapToPlay.decide(new Object(), "autoplay", now, ""));
         tapAt(now - TapToPlay.LOAD_WINDOW_MS - 1);
         assertFalse("a first start later than a load", TapToPlay.decide(new Object(), "autoplay", now, ""));
 
@@ -124,6 +127,27 @@ public class TapToPlayTest {
         TapClock.record(MotionEvent.ACTION_MOVE, 50, 300, now - 900, 8);
         TapClock.record(MotionEvent.ACTION_UP, 50, 100, now - 800, 8);
         assertFalse("a drag since the tap", TapToPlay.decide(new Object(), "autoplay", now, ""));
+    }
+
+    /**
+     * A tap that plays a video again on its still armed player uses the tap, so a second video
+     * can't start on it a couple of seconds later. An armed restart more than a second after a tap
+     * leaves that tap's first start to the video it opened.
+     */
+    @Test
+    public void anArmedPlayersStartRightAfterATapUsesIt() {
+        long now = 500_000;
+        Object player = new Object();
+        tapAt(now - 10_000);
+        assertTrue(TapToPlay.decide(player, "autoplay", now - 9_900, ""));
+
+        tapAt(now - 100);
+        assertTrue("the video played again", TapToPlay.decide(player, "resume", now, ""));
+        assertFalse("another video 1.5 seconds after the tap", TapToPlay.decide(new Object(), "autoplay", now + 1_400, ""));
+
+        tapAt(now + 10_000);
+        assertTrue("an armed restart 1.5 seconds after a tap", TapToPlay.decide(player, "resume", now + 11_500, ""));
+        assertTrue("the story that tap opened", TapToPlay.decide(new Object(), "autoplay", now + 11_600, ""));
     }
 
     /** A story you tap starts with "autoplay", and playInternal only ever hears "autoplay" or "resume". */

@@ -308,11 +308,10 @@ public final class TapToPlay {
     static boolean decide(@Nullable Object player, @Nullable String reason, long now, String path) {
         boolean armed = ARMED.armed(player);
         long sinceTap = TapClock.msSinceTap(now);
-        boolean allowed = armed || tapCovers(sinceTap, now);
-        if (allowed && !armed) {
-            ARMED.arm(player, now);
-            PlayButtons.started(player, now);
-        }
+        boolean covered = tapCovers(sinceTap, now, armed);
+        boolean allowed = armed || covered;
+        if (allowed && !armed) ARMED.arm(player, now);
+        if (covered) PlayButtons.started(player, now);
         logDecision(allowed, reason, sinceTap, armed, path);
         return allowed;
     }
@@ -320,13 +319,15 @@ public final class TapToPlay {
     /**
      * Whether the tap that ended [sinceTap] ms before [now] covers a start: any start within
      * {@link #TAP_WINDOW_MS}, and its first start within {@link #LOAD_WINDOW_MS}. A start it
-     * covers uses the tap.
+     * covers uses the tap. An [armed] player's start goes ahead anyway, so the tap covers it only
+     * within the second: a tap that played the video again is used, and one it merely came after
+     * still has its first start for the video it opened.
      */
-    private static boolean tapCovers(long sinceTap, long now) {
+    private static boolean tapCovers(long sinceTap, long now, boolean armed) {
         if (sinceTap < 0) return false;
         long tap = now - sinceTap;
         synchronized (TAP_LOCK) {
-            boolean covered = sinceTap <= TAP_WINDOW_MS || (sinceTap <= LOAD_WINDOW_MS && usedTap != tap);
+            boolean covered = sinceTap <= TAP_WINDOW_MS || (!armed && sinceTap <= LOAD_WINDOW_MS && usedTap != tap);
             if (covered) usedTap = tap;
             return covered;
         }

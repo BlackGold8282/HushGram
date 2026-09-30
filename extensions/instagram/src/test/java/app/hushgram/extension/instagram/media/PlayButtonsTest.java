@@ -150,6 +150,38 @@ public class PlayButtonsTest {
         assertTrue(report, report.contains("the play button is back, its video stopped"));
     }
 
+    /**
+     * A start decided on the player's thread just before the tap, that reaches the button after its
+     * click, isn't the button's.
+     */
+    @Test
+    public void aStartDecidedBeforeTheTapThatArrivesAfterTheClickIsntTheButtons() {
+        long now = SystemClock.uptimeMillis();
+        PlayButtons.hide(button, now, now - 80);
+        PlayButtons.started(new Object(), now - 120);
+        idle(PlayButtons.UNCLAIMED_MS + 1);
+
+        assertEquals(View.VISIBLE, button.getVisibility());
+        assertNull(PlayButtons.hiddenButton());
+    }
+
+    /** A tap on the button of a video whose player is still armed starts it again: that start is the button's. */
+    @Test
+    public void anArmedPlayersStartOnTheTapIsTheButtons() {
+        Object player = new Object();
+        TapToPlayForTests.tapEnded(0);
+        assertTrue(TapToPlay.allowStart(player, "autoplay"));
+        SystemClock.sleep(50);
+
+        tap(button);
+        assertTrue(TapToPlay.allowStart(player, "resume"));
+        idle(PlayButtons.UNCLAIMED_MS + 100);
+        assertEquals(View.INVISIBLE, button.getVisibility());
+
+        TapToPlay.paused(player, "scroll");
+        assertEquals(View.VISIBLE, button.getVisibility());
+    }
+
     /** A start an earlier tap let through isn't the button's, so the button comes back when its wait runs out. */
     @Test
     public void aStartBeforeTheTapIsntTheButtons() {
