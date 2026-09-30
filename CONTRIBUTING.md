@@ -26,9 +26,22 @@ Before a change goes in:
 
 - `./gradlew :patches:test :extensions:instagram:testDebugUnitTest` with `HUSHGRAM_FIXTURE_DIR` set, so the tests that read real Instagram builds run instead of skipping.
 - `./gradlew :extensions:instagram:lint :extensions:shared:library:lint`. Instagram runs on Android 9, so a call Android added later needs a version check, and lint catches the ones that don't have it.
-- `scripts/verify-all-patches.ps1` on every build the catalog declares. It applies every patch in one run without forcing anything, checks the CLI's own report, and compares the patched manifest to Meta's against `scripts/manifest-delta-allowlist.txt`, which approves nothing today.
+- `scripts/verify-all-patches.ps1` on every build the catalog declares. It applies every patch in one run without forcing anything, checks the CLI's own report, and compares the patched manifest to Meta's against `scripts/manifest-delta-allowlist.txt`. The allowlist approves the three advertising permissions `Remove the advertising ID` takes out, and nothing else.
 
-`scripts/install-hooks.ps1` installs a pre-push hook that runs those tests and lints when a push changes `extensions/` or `patches/`. Set `HUSHGRAM_SKIP_PRE_PUSH=1` to push without it.
+`scripts/install-hooks.ps1` installs a pre-push hook that runs those tests and lints when a push changes `extensions/` or `patches/`. A push that changes one of the scripts with a suite runs that suite, and one that changes the README, the CHANGELOG or another file a release states facts from runs `scripts/validate-release-facts.ps1` too. Set `HUSHGRAM_SKIP_PRE_PUSH=1` to push without it.
+
+## Releasing
+
+A release waits for the maintainer. The pre-push hook stops a push that carries a tag or `patches-bundle.json` unless `HUSHGRAM_ALLOW_RELEASE=1` is set for that one push. It takes two commits:
+
+1. The source commit. The CHANGELOG moves the version's notes out of `## Unreleased` into a dated `## <version> (YYYY-MM-DD)` heading, and its `* **Instagram:**` bullets are what Morphe Manager shows. The README keeps saying there's no release yet, since nothing points at one. Push it.
+2. From a clean checkout of that commit, run `./gradlew :patches:generatePatchesList :patches:buildAndroid`. The bundle and its SBOM land in `patches/build/release`.
+3. Run `scripts/build-release-receipt.ps1 -WorkDir <a scratch folder>` with `HUSHGRAM_FIXTURE_DIR` and `HUSHGRAM_DESKTOP_JAR` set. It asks OSV about every library the SBOM lists, then patches each Instagram build the catalog declares and reads the verdicts back out of the CLI's report. If a patch fails or a high or critical advisory turns up, it writes nothing. Otherwise you get `release-receipt-<version>.json` in the repository root, where git ignores it, and `SHA256SUMS.txt` beside the bundle. An advisory that can't reach anything the bundle does can go in `scripts/advisory-exceptions.txt` with a reason, for 90 days at most.
+4. Run `scripts/validate-release-facts.ps1`. It holds the README, the CHANGELOG, the bug form and the source ledger to the generated patch list, and holds the receipt to the same catalog, toolchain and Instagram builds.
+5. Publish the GitHub release `v<version>` on the source commit with four files: `patches-<version>.mpp`, `patches-<version>.cdx.json`, the receipt and `SHA256SUMS.txt`.
+6. The index commit. `patches-bundle.json` points at the published bundle, and its description names the version, the patch count and the Instagram build. The README drops the no-release line for "The latest release is [v<version>](<release page>), with N patches." and keeps the Morphe add-source link. Push it from a clean checkout with the receipt still in the root and `HUSHGRAM_ALLOW_RELEASE=1` set. The hook downloads what the release published, holds every file to `SHA256SUMS.txt` and the receipt, and asks OSV again. It also wants a source census from the last 14 days, so run `scripts/audit-instagram-sources.ps1` first if the ledger's is older.
+
+`scripts/test-release-tooling.ps1` covers all of this without a network or a phone. It runs in the hook whenever one of these scripts, or a file they read, changes.
 
 ## Settings for your machine
 

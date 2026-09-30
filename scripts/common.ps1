@@ -8,10 +8,10 @@
         . (Join-Path $PSScriptRoot 'common.ps1')
 
     Each of these existed in two to four copies that had already drifted apart. The path guard
-    was identical in three scripts; the cleanup helper recursed unconditionally in one and only
-    on request in another; the version read appeared four times, twice without -LiteralPath; and
-    the desktop CLI was looked up by two functions with different search orders, one returning
-    $null and one throwing. Copies of a guard drift in the direction of whichever caller was
+    was identical in three scripts, but the cleanup helper recursed unconditionally in one and
+    only on request in another. The version read appeared four times, twice without
+    -LiteralPath. And the desktop CLI was looked up by two functions with different search
+    orders, one returning $null and one throwing. Copies of a guard drift in the direction of whichever caller was
     edited last, which is the direction nobody checked.
 #>
 
