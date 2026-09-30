@@ -115,6 +115,15 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DOWNLOAD_VIDEOS =
             new BooleanSetting("hushgram_download_videos", TRUE);
 
+    /**
+     * Videos, reels and stories start only after a tap: a player's start goes ahead when a tap has
+     * just ended, and Instagram's own autoplay check answers no
+     * ({@link app.hushgram.extension.instagram.media.TapToPlay}). Nothing Instagram stores is
+     * written, so off or paused, Instagram plays as it did.
+     */
+    public static final BooleanSetting TAP_TO_PLAY =
+            new BooleanSetting("hushgram_tap_to_play", TRUE);
+
     // ---- Downloads -------------------------------------------------------------------------
     // What every save reads when it starts (app.hushgram.extension.instagram.download), ported
     // with the save pipeline from Hushfacebook 3a473639 with the same types and defaults, keyed

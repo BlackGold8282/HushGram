@@ -28,6 +28,7 @@ public final class FamilyNames {
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String STORY_DOWNLOAD = "Download any story";
     public static final String VIDEO_DOWNLOAD = "Download any video";
+    public static final String TAP_TO_PLAY = "Tap to play";
 
     private FamilyNames() {
     }

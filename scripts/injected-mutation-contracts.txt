@@ -183,3 +183,17 @@ shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljav
 # it isn't first, and the rule is once-call.
 once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V in instance ()Ljava/lang/Object; holding MediaOptionsOverflowHelper basel_template_option_overflow_menu
 once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->save(Ljava/lang/Object;Landroid/app/Activity;)Z in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
+#
+# Tap to play: IgGrootPlayer's play asks allowDirectStart() first, its prepare tells rebound()
+# first, and the autoplay check hands its answer to autoplayAllowed() where it returns, once on
+# 449. The touch dispatch feeds the tap clock first. No rule can pick IgVideoPlayerImpl's
+# playInternal, which asks allowStart(): its strings other than "autoplay" have spaces, and the
+# story player's own static playInternal holds "autoplay" with the same shape. IgGrootPlayer's
+# pause holds no string at all.
+start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowDirectStart(Ljava/lang/Object;Ljava/lang/String;)Z in instance (Ljava/lang/String;Z)V holding retry play_after_recovery
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowDirectStart(Ljava/lang/Object;Ljava/lang/String;)Z in instance (Ljava/lang/String;Z)V holding retry play_after_recovery
+start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(Z)Z in instance ()Z holding VideoAutoplayChecker zero_rating_or_data_saver
+start-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
+once-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent

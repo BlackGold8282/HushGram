@@ -216,6 +216,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : stories) section.addPreference(row);
         }
 
+        if (build.contains(PatchFamily.TAP_TO_PLAY)) {
+            PreferenceCategory playback = category(screen, L10n.t("Playback"));
+            playback.addPreference(toggle(context, Settings.TAP_TO_PLAY, L10n.t("Tap to play"),
+                    L10n.t("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do "
+                            + "when you use less mobile data.")));
+        }
+
         // Any download patch brings this section, so each one that saves joins this condition.
         if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.STORY_DOWNLOAD)
                 || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {

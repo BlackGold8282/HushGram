@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(274);
+        Map<String, String> table = new HashMap<>(280);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -229,6 +229,8 @@ public final class L10nTranslations {
                 "Pause und Diagnose");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Hinweise wie Edits, Vorlage verwenden, Meta AI und Ray-Ban Meta Brillen. Ein Live-Abzeichen und ein Hinweis auf staatlich kontrollierte Medien bleiben.");
+        table.put("Playback",
+                "Wiedergabe");
         table.put("Re-signed build fix",
                 "Fix f\u00fcr neu signierte Builds");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -291,15 +293,17 @@ public final class L10nTranslations {
                 "Stories");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Entfernt stkn, igsh, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst, und \u00f6ffnet Bio-Links ohne Umweg \u00fcber Instagrams Klick-Tracker. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
+        table.put("Tap to play",
+                "Zum Abspielen tippen");
         table.put("Tap to turn it back on.",
                 "Zum Wiedereinschalten tippen.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Der Folgen-Button neben dem Namen der Person, die das Reel gepostet hat. Auf ihrem Profil gibt es ihn weiterhin.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Die Blasen von Freunden, die etwas mit Gef\u00e4llt mir markiert oder kommentiert haben, der Kommentar unter einem Reel und die Reihe der Freunde, die es gesehen haben. Die Kommentare sind weiterhin nur einen Tipp entfernt.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Der Diagnosebericht lie\u00df sich noch nicht speichern. Versuche es gleich noch einmal.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -330,6 +334,8 @@ public final class L10nTranslations {
                 "Videos hei\u00dfen %1$s. Fotos hei\u00dfen immer %2$s, gefolgt von Datum und Uhrzeit.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Videos landen in %1$s und Fotos in %2$s.");
+        table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
+                "Videos, Reels und Stories warten, bis du tippst. Videos im Feed zeigen eine Wiedergabetaste, wie wenn du weniger mobile Daten nutzt.");
         table.put("You paused HushGram.",
                 "Du hast HushGram pausiert.");
         table.put("the re-signed build fix",
@@ -337,7 +343,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(274);
+        Map<String, String> table = new HashMap<>(280);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -520,6 +526,8 @@ public final class L10nTranslations {
                 "Pausa y diagn\u00f3stico");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Etiquetas como Edits, Usar plantilla, Meta AI y las gafas Ray-Ban Meta. Una insignia de directo y la etiqueta de medio controlado por el Estado se quedan.");
+        table.put("Playback",
+                "Reproducci\u00f3n");
         table.put("Re-signed build fix",
                 "Arreglo para la nueva firma");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -582,15 +590,17 @@ public final class L10nTranslations {
                 "Historias");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biograf\u00eda sin pasar por el rastreador de clics de Instagram. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
+        table.put("Tap to play",
+                "Toca para reproducir");
         table.put("Tap to turn it back on.",
                 "Toca para volver a activarlo.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "El bot\u00f3n Seguir junto al autor de un reel. Su perfil lo sigue teniendo.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Las burbujas de amigos que dieron me gusta o comentaron, el comentario que aparece bajo un reel y la fila de amigos que lo vieron. Los comentarios siguen a un toque.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Todav\u00eda no se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo en un momento.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -621,6 +631,8 @@ public final class L10nTranslations {
                 "Los videos se llaman %1$s. Las fotos siempre se llaman %2$s seguido de la fecha y la hora.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Los videos van a %1$s y las fotos a %2$s.");
+        table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
+                "Los videos, reels e historias esperan a que toques. Los videos del feed muestran un bot\u00f3n de reproducir, como cuando usas menos datos m\u00f3viles.");
         table.put("You paused HushGram.",
                 "Pausaste HushGram.");
         table.put("the re-signed build fix",
@@ -628,7 +640,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(274);
+        Map<String, String> table = new HashMap<>(280);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -811,6 +823,8 @@ public final class L10nTranslations {
                 "Jeda dan diagnostik");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Label seperti Edits, Gunakan template, Meta AI, dan kacamata Ray-Ban Meta. Lencana siaran langsung dan label media yang dikendalikan negara tetap ada.");
+        table.put("Playback",
+                "Pemutaran");
         table.put("Re-signed build fix",
                 "Perbaikan build yang ditandatangani ulang");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -873,15 +887,17 @@ public final class L10nTranslations {
                 "Cerita");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
+        table.put("Tap to play",
+                "Ketuk untuk memutar");
         table.put("Tap to turn it back on.",
                 "Ketuk untuk mengaktifkan HushGram lagi.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Tombol Ikuti di samping pembuat reel. Profilnya tetap punya tombol itu.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Gelembung teman yang menyukai atau berkomentar, komentar yang tampil di bawah reel, dan deretan teman yang melihatnya. Komentar tetap bisa dibuka dengan sekali ketuk.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -912,6 +928,8 @@ public final class L10nTranslations {
                 "Video diberi nama %1$s. Foto selalu diberi nama %2$s diikuti tanggal dan waktu.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Video disimpan ke %1$s dan foto ke %2$s.");
+        table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
+                "Video, reels, dan cerita menunggu ketukan Anda. Video di feed menampilkan tombol putar, seperti saat Anda menghemat data seluler.");
         table.put("You paused HushGram.",
                 "Anda menjeda HushGram.");
         table.put("the re-signed build fix",
@@ -919,7 +937,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(274);
+        Map<String, String> table = new HashMap<>(280);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1102,6 +1120,8 @@ public final class L10nTranslations {
                 "Pausa e diagn\u00f3stico");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Etiquetas como Edits, Usar modelo, Meta AI e \u00f3culos Ray-Ban Meta. O selo de ao vivo e o aviso de m\u00eddia controlada pelo Estado continuam.");
+        table.put("Playback",
+                "Reprodu\u00e7\u00e3o");
         table.put("Re-signed build fix",
                 "Corre\u00e7\u00e3o para vers\u00e3o com nova assinatura");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1164,15 +1184,17 @@ public final class L10nTranslations {
                 "Stories");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.");
+        table.put("Tap to play",
+                "Tocar para reproduzir");
         table.put("Tap to turn it back on.",
                 "Toque para reativar.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "O bot\u00e3o Seguir ao lado de quem postou o reel. O perfil da pessoa continua com ele.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Os bal\u00f5es de amigos que curtiram ou comentaram, o coment\u00e1rio mostrado embaixo do reel e a fileira de amigos que o viram. Os coment\u00e1rios continuam a um toque.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "O relat\u00f3rio de diagn\u00f3stico ainda n\u00e3o p\u00f4de ser salvo. Tente de novo em instantes.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -1203,6 +1225,8 @@ public final class L10nTranslations {
                 "Os v\u00eddeos ser\u00e3o nomeados como %1$s. As fotos sempre recebem o nome %2$s seguido da data e da hora.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Os v\u00eddeos v\u00e3o para %1$s e as fotos para %2$s.");
+        table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
+                "V\u00eddeos, reels e stories esperam o seu toque. Os v\u00eddeos do feed mostram um bot\u00e3o de reproduzir, como quando voc\u00ea usa menos dados m\u00f3veis.");
         table.put("You paused HushGram.",
                 "Voc\u00ea pausou o HushGram.");
         table.put("the re-signed build fix",
@@ -1210,7 +1234,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(274);
+        Map<String, String> table = new HashMap<>(280);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1393,6 +1417,8 @@ public final class L10nTranslations {
                 "Duraklatma ve tan\u0131lama");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Edits, \u015eablonu kullan, Meta AI ve Ray-Ban Meta g\u00f6zl\u00fckleri gibi etiketler. Canl\u0131 yay\u0131n rozeti ve devlet kontrol\u00fcndeki medya etiketi kal\u0131r.");
+        table.put("Playback",
+                "Oynatma");
         table.put("Re-signed build fix",
                 "Yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1455,15 +1481,17 @@ public final class L10nTranslations {
                 "Hikayeler");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan stkn, igsh, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r, biyografi ba\u011flant\u0131lar\u0131n\u0131 Instagram'\u0131n t\u0131klama izleyicisinden ge\u00e7meden a\u00e7ar. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
+        table.put("Tap to play",
+                "Oynatmak i\u00e7in dokun");
         table.put("Tap to turn it back on.",
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Bir reelin sahibinin yan\u0131ndaki Takip Et d\u00fc\u011fmesi. Profilinde h\u00e2l\u00e2 var.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Be\u011fenen ya da yorum yapan arkada\u015flar\u0131n baloncuklar\u0131, reelin alt\u0131nda g\u00f6sterilen yorum ve onu g\u00f6ren arkada\u015flar\u0131n s\u0131ras\u0131. Yorumlar h\u00e2l\u00e2 bir dokunu\u015f uzakta.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Tan\u0131lama raporu hen\u00fcz kaydedilemedi. Birazdan tekrar dene.");
         table.put("The diagnostic report couldn't be saved. Try again.",
@@ -1494,6 +1522,8 @@ public final class L10nTranslations {
                 "Videolar\u0131n ad\u0131 %1$s olur. Foto\u011fraflar\u0131n ad\u0131 her zaman %2$s ile ba\u015flar, ard\u0131ndan tarih ve saat gelir.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Videolar %1$s klas\u00f6r\u00fcne, foto\u011fraflar %2$s klas\u00f6r\u00fcne kaydedilir.");
+        table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
+                "Videolar, reels ve hikayeler dokunman\u0131 bekler. Ak\u0131\u015ftaki videolar, daha az mobil veri kulland\u0131\u011f\u0131ndaki gibi bir oynat d\u00fc\u011fmesi g\u00f6sterir.");
         table.put("You paused HushGram.",
                 "HushGram'u duraklatt\u0131n.");
         table.put("the re-signed build fix",
