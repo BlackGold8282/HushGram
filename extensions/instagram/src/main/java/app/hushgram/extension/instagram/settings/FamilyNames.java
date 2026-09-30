@@ -25,6 +25,7 @@ public final class FamilyNames {
     public static final String STORY_AUTO_ADVANCE = "Stop Story auto-advance";
     public static final String FEED_REELS = "Hide Reels in the feed";
     public static final String REEL_DECLUTTER = "Clean up Reels";
+    public static final String REEL_DOWNLOAD = "Download any reel";
 
     private FamilyNames() {
     }

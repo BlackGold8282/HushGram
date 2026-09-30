@@ -53,4 +53,8 @@ public final class SettingsStatus {
     public static boolean reelDeclutter() {
         return false;
     }
+
+    public static boolean reelDownload() {
+        return false;
+    }
 }

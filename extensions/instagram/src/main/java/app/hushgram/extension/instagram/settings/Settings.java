@@ -93,6 +93,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_REEL_SOCIAL_FOOTER =
             new BooleanSetting("hushgram_hide_reel_social_footer", TRUE);
 
+    /**
+     * Download in every reel's more menu, saving the reel through the save pipeline below instead
+     * of Instagram's own save, which only some reels offer and which stamps a watermark on.
+     */
+    public static final BooleanSetting DOWNLOAD_REELS =
+            new BooleanSetting("hushgram_download_reels", TRUE);
+
     // ---- Downloads -------------------------------------------------------------------------
     // What every save reads when it starts (app.hushgram.extension.instagram.download), ported
     // with the save pipeline from Hushfacebook 3a473639 with the same types and defaults, keyed
