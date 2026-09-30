@@ -124,20 +124,42 @@ function Get-ReleaseFactsArguments {
 
         The hook and scripts/test-release-tooling.ps1 both take their sets from here, so the suite
         runs the hook's own checks rather than a copy of them.
+
+        -Script names the check the set is for when it isn't this checkout's own: the hook checks
+        a pushed commit with that commit's copy, which can be older. Before 1787137 the check knew
+        -SkipLocalBuild as -SkipTestResults, which left the test results unread but still read the
+        bundle, so a check that only knows the old name gets that one. The hook's worktree is a
+        fresh checkout with no bundle in it, so nothing is read there that -SkipLocalBuild would
+        have left alone. A switch the check knows by neither name is refused here, before pwsh
+        would refuse it with less to say.
     #>
     param(
         [Parameter(Mandatory = $true)][ValidateSet('Index', 'Ordinary')][string]$Push,
-        [Parameter(Mandatory = $true)][string]$Root
+        [Parameter(Mandatory = $true)][string]$Root,
+        [string]$Script
     )
     if ($Push -eq 'Ordinary') {
-        return [ordered]@{ Root = $Root; SkipDescriptionTestCount = $true; AllowPublishedIndexLag = $true; SkipLocalBuild = $true }
+        $arguments = [ordered]@{ Root = $Root; SkipDescriptionTestCount = $true; AllowPublishedIndexLag = $true; SkipLocalBuild = $true }
+    } else {
+        $arguments = [ordered]@{ Root = $Root; VerifyPublishedAsset = $true }
+        $indexVersion = [string](Get-Content -LiteralPath (Join-Path $Root 'patches-bundle.json') -Raw | ConvertFrom-Json).version
+        $builtHere = Get-ReleaseBundlePath -Root $Root -Version $indexVersion
+        if (Test-Path -LiteralPath $builtHere -PathType Leaf) { $arguments['ArtifactPath'] = $builtHere }
+        else { $arguments['ArtifactIsHosted'] = $true }
     }
-    $arguments = [ordered]@{ Root = $Root; VerifyPublishedAsset = $true }
-    $indexVersion = [string](Get-Content -LiteralPath (Join-Path $Root 'patches-bundle.json') -Raw | ConvertFrom-Json).version
-    $builtHere = Get-ReleaseBundlePath -Root $Root -Version $indexVersion
-    if (Test-Path -LiteralPath $builtHere -PathType Leaf) { $arguments['ArtifactPath'] = $builtHere }
-    else { $arguments['ArtifactIsHosted'] = $true }
-    return $arguments
+    if (-not $Script) { return $arguments }
+
+    # Read as UTF-8 first: Windows PowerShell's ParseFile reads a file with no byte order mark as ANSI.
+    $paramBlock = [System.Management.Automation.Language.Parser]::ParseInput(
+        [System.IO.File]::ReadAllText($Script), [ref]$null, [ref]$null).ParamBlock
+    $known = @(if ($paramBlock) { $paramBlock.Parameters | ForEach-Object { $_.Name.VariablePath.UserPath } })
+    $adapted = [ordered]@{}
+    foreach ($key in $arguments.Keys) {
+        $name = if ($key -eq 'SkipLocalBuild' -and $key -notin $known -and 'SkipTestResults' -in $known) { 'SkipTestResults' } else { $key }
+        if ($name -notin $known) { throw "$Script takes no -$key, so it can't run the hook's $Push set." }
+        $adapted[$name] = $arguments[$key]
+    }
+    return $adapted
 }
 
 function ConvertTo-ScriptArguments {

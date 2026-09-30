@@ -1391,38 +1391,47 @@ $factsFiles = @('patches-list.json', 'gradle.properties', 'README.md', 'CHANGELO
 $preReleaseVersion = Get-BundleVersion -Root $Root
 $preReleaseSentence = "There's no release yet. Version $preReleaseVersion is the current build, and until " +
     'a release is published you build the bundle yourself (see [Building from source](#building-from-source)).'
-function Copy-PreReleaseFile([string]$Relative, [string]$To) {
-    $destination = Join-Path $To $Relative
-    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
-    Copy-Item -LiteralPath (Join-Path $Root $Relative) -Destination $destination
+function ConvertTo-PreReleaseText([string]$Relative, [string]$Text) {
     if ($Relative -eq 'CHANGELOG.md') {
-        $text = Get-Content -LiteralPath $destination -Raw
         $version = [regex]::Escape($preReleaseVersion)
-        if ($text -match "(?ms)^##\s+Unreleased\b(?:(?!^##\s).)*?^###\s+HushGram\s+v$version\s*$") { return }
-        # The version's dated section, bullets unscoped again, as the section Unreleased held.
-        $dated = [regex]::Match($text, "(?ms)^##\s+$version\s+\(\d{4}-\d{2}-\d{2}\)[^\r\n]*(?<body>.*?)(?=^##\s|\z)")
+        if ($Text -match "(?ms)^##\s+Unreleased\b(?:(?!^##\s).)*?^###\s+HushGram\s+v$version\s*$") { return $Text }
+        # The version's dated section, bullets unscoped again, as the section Unreleased held. Any
+        # heading Test-ChangelogManagerEntry takes: "## 0.1.0 (date)", a v, a link, a word before.
+        $dated = [regex]::Match($Text, ("(?ms)^##\s+(?:\S+\s+)?(?:\[v?$version\]\([^)]*\)|v?$version)\s+" +
+                '\(\d{4}-\d{2}-\d{2}\)[^\r\n]*(?<body>.*?)(?=^##\s|\z)'))
         Assert-True $dated.Success ("This checkout's CHANGELOG describes $preReleaseVersion neither under Unreleased nor " +
             'under a dated heading, so the release cases have nothing to start from.')
         $section = "### HushGram v$preReleaseVersion" + ($dated.Groups['body'].Value -replace '(?m)^\* \*\*Instagram:\*\* ', '* ')
-        $text = $text.Remove($dated.Index, $dated.Length)
-        $unreleased = [regex]::Match($text, '(?m)^##\s+Unreleased[^\r\n]*\r?\n')
-        $text = if ($unreleased.Success) {
-            $text.Insert($unreleased.Index + $unreleased.Length, "`n$section")
-        } else {
-            $text.Insert($dated.Index, "## Unreleased`n`n$section")
-        }
-        Set-Content -LiteralPath $destination -Encoding UTF8 -NoNewline -Value $text
+        $Text = $Text.Remove($dated.Index, $dated.Length)
+        $unreleased = [regex]::Match($Text, '(?m)^##\s+Unreleased[^\r\n]*\r?\n')
+        if ($unreleased.Success) { return $Text.Insert($unreleased.Index + $unreleased.Length, "`n$section") }
+        return $Text.Insert($dated.Index, "## Unreleased`n`n$section")
+    }
+    if ($Relative -ne 'README.md' -or $Text -match "(?i)\bThere's no release yet\b") { return $Text }
+    $released = '(?im)^[^\r\n]*\blatest (?:published )?release is (?:still )?\[?v\d[^\r\n]*(?=\r?$)'
+    Assert-True ($Text -match $released) ("This checkout's README says neither that there's no release yet nor " +
+        'which release is the latest, so the release cases have nothing to start from.')
+    return [regex]::Replace($Text, $released, $preReleaseSentence.Replace('$', '$$'))
+}
+function Copy-PreReleaseFile([string]$Relative, [string]$To) {
+    $destination = Join-Path $To $Relative
+    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+    if ($Relative -notin @('CHANGELOG.md', 'README.md')) {
+        Copy-Item -LiteralPath (Join-Path $Root $Relative) -Destination $destination
         return
     }
-    if ($Relative -ne 'README.md') { return }
-    $text = Get-Content -LiteralPath $destination -Raw
-    if ($text -match "(?i)\bThere's no release yet\b") { return }
-    $released = '(?im)^[^\r\n]*\blatest (?:published )?release is (?:still )?\[?v\d[^\r\n]*$'
-    Assert-True ($text -match $released) ("This checkout's README says neither that there's no release yet nor " +
-        'which release is the latest, so the release cases have nothing to start from.')
-    Set-Content -LiteralPath $destination -Encoding UTF8 -NoNewline -Value ([regex]::Replace($text, $released,
-            $preReleaseSentence.Replace('$', '$$')))
+    Set-Content -LiteralPath $destination -Encoding UTF8 -NoNewline -Value (
+        ConvertTo-PreReleaseText $Relative (Get-Content -LiteralPath (Join-Path $Root $Relative) -Raw))
 }
+# The shapes a release could leave behind: every heading form Manager reads, and CRLF endings.
+foreach ($heading in @("## $preReleaseVersion (2026-10-01)", "## v$preReleaseVersion (2026-10-01)",
+        "## [$preReleaseVersion](https://github.com/SysAdminDoc/HushGram/releases) (2026-10-01)", "## HushGram $preReleaseVersion (2026-10-01)")) {
+    $turned = ConvertTo-PreReleaseText 'CHANGELOG.md' "# Changelog`r`n`r`n$heading`r`n`r`n* **Instagram:** A fix.`r`n`r`n## 0.0.0 (2026-01-01)`r`n"
+    Assert-True ($turned -match "(?ms)^## Unreleased\s+### HushGram v$([regex]::Escape($preReleaseVersion))\s+\* A fix\.\s+## 0\.0\.0 ") `
+        "A CHANGELOG released under ""$heading"" wasn't turned back to its Unreleased shape: $turned"
+}
+$turned = ConvertTo-PreReleaseText 'README.md' "# HushGram`r`n`r`nThe latest release is [v$preReleaseVersion](https://x).`r`n`r`nMore.`r`n"
+Assert-True ($turned -eq "# HushGram`r`n`r`n$preReleaseSentence`r`n`r`nMore.`r`n") "A README with CRLF endings wasn't turned back: $turned"
 try {
     foreach ($relative in $factsFiles) { Copy-PreReleaseFile $relative $factsRoot }
 
@@ -1622,6 +1631,28 @@ try {
         Remove-Item -LiteralPath (Join-Path $factsRoot 'patches') -Recurse -Force -ErrorAction SilentlyContinue
     }
 
+    # The hook's worktree branch runs the pushed commit's own check, and a commit from before
+    # 1787137 carries one that knows -SkipLocalBuild only as -SkipTestResults. The set spelled for
+    # that check has to get through pwsh -File the way the hook passes it.
+    $olderCheck = Join-Path $factsRoot 'older-check.ps1'
+    try {
+        Set-Content -LiteralPath $olderCheck -Encoding UTF8 -Value @'
+param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$SkipTestResults, [switch]$AllowPublishedIndexLag)
+"bound $(@($PSBoundParameters.Keys | Sort-Object) -join ',')"
+'@
+        $olderSet = Get-ReleaseFactsArguments -Push Ordinary -Root $factsRoot -Script $olderCheck
+        $said = "$(& pwsh -NoProfile -File $olderCheck @(ConvertTo-ScriptArguments $olderSet))"
+        Assert-True ($LASTEXITCODE -eq 0 -and $said -eq 'bound AllowPublishedIndexLag,Root,SkipDescriptionTestCount,SkipTestResults') `
+            "The ordinary set spelled for a check from before -SkipLocalBuild didn't bind: $said"
+        Assert-True ((Get-ReleaseFactsArguments -Push Ordinary -Root $factsRoot -Script $factsScript).Contains('SkipLocalBuild')) `
+            "The ordinary set spelled for this checkout's own check lost -SkipLocalBuild."
+        Set-Content -LiteralPath $olderCheck -Encoding UTF8 -Value 'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag)'
+        Assert-Throws { Get-ReleaseFactsArguments -Push Ordinary -Root $factsRoot -Script $olderCheck } '*takes no -SkipLocalBuild*' `
+            'A check that knows -SkipLocalBuild by neither name was handed the set anyway.'
+    } finally {
+        Remove-Item -LiteralPath $olderCheck -Force -ErrorAction SilentlyContinue
+    }
+
     # Runtime test results that are here get read even when no description quotes them: a skipped
     # test fails the lenient check, and the pre-push hook's ordinary set leaves them unread.
     try {
@@ -1772,6 +1803,8 @@ try {
             'A check holding the description to its counts left the results unread.'
         Assert-Throws { Invoke-Facts @{ SkipLocalBuild = $true; VerifyPublishedAsset = $true } } '*SkipLocalBuild leaves the bundle*' `
             'A published asset check was told to leave the bundle built here unread.'
+        Assert-Throws { Invoke-Facts @{ SkipLocalBuild = $true; ArtifactPath = (Join-Path $factsRoot 'patches-9.9.9.mpp') } } `
+            '*SkipLocalBuild leaves the bundle*' 'A check handed a bundle to compare was told to leave the bundle built here unread.'
     } finally {
         foreach ($folder in @('patches', 'extensions')) {
             Remove-Item -LiteralPath (Join-Path $factsRoot $folder) -Recurse -Force -ErrorAction SilentlyContinue
@@ -2624,18 +2657,44 @@ $prePushText = [System.IO.File]::ReadAllText($prePush)
 # take their switches from Get-ReleaseFactsArguments, the sets the cases above run. A branch that
 # spelled its own switches out again would be checked by nothing here, and dropping one of them
 # from the in-place branch used to pass unnoticed as long as the worktree branch still had it.
-$factsRuns = @($prePushAst.FindAll({ param($node)
-        $node -is [System.Management.Automation.Language.CommandAst] -and
-        $node.GetCommandName() -eq 'pwsh' -and $node.Extent.Text -match 'factsCheck|validate-release-facts' }, $true))
-Assert-True ($factsRuns.Count -eq 3) "pre-push.ps1 runs the release check $($factsRuns.Count) times, not the three this suite knows."
-foreach ($run in $factsRuns) {
-    Assert-True ($run.Extent.Text -match 'ConvertTo-ScriptArguments' -and $run.Extent.Text -notmatch '-Skip|-Allow|-Verify|-Artifact') `
-        "A release check in pre-push.ps1 doesn't take the hook's set from Get-ReleaseFactsArguments: $($run.Extent.Text)"
+# Each takes its set inline as its only argument after the script. A set held in a variable first
+# could be changed on its way to the check, and a second splat could add a switch no case here
+# ran. The worktree branch runs the pushed commit's copy of the check, which can be older than
+# the hook, so its set has to be spelled for that copy (-Script).
+function Get-PrePushFactsKinds([System.Management.Automation.Language.Ast]$Ast) {
+    $runs = @($Ast.FindAll({ param($node)
+            $node -is [System.Management.Automation.Language.CommandAst] -and
+            $node.GetCommandName() -eq 'pwsh' -and $node.Extent.Text -match 'factsCheck|validate-release-facts' }, $true))
+    Assert-True ($runs.Count -eq 3) "pre-push.ps1 runs the release check $($runs.Count) times, not the three this suite knows."
+    $inline = '^@\(ConvertTo-ScriptArguments \(Get-ReleaseFactsArguments -Push (?<push>Index|Ordinary) -Root \$\w+(?: -Script (?<script>\$\w+))?\)\)$'
+    foreach ($run in $runs) {
+        $elements = $run.CommandElements
+        $set = [regex]::Match($elements[$elements.Count - 1].Extent.Text, $inline)
+        Assert-True ($elements.Count -eq 5 -and $elements[1].Extent.Text -eq '-NoProfile' -and
+            $elements[2].Extent.Text -eq '-File' -and $set.Success) `
+            "A release check in pre-push.ps1 doesn't take the hook's set from Get-ReleaseFactsArguments as its only argument: $($run.Extent.Text)"
+        if ($elements[3] -is [System.Management.Automation.Language.VariableExpressionAst]) {
+            Assert-True ($set.Groups['script'].Value -eq $elements[3].Extent.Text) `
+                "pre-push.ps1 runs $($elements[3].Extent.Text) with a set not spelled for it (-Script): $($run.Extent.Text)"
+        }
+        $set.Groups['push'].Value
+    }
 }
-$pushKinds = @([regex]::Matches(($prePushText -split "`n" | Where-Object { $_ -notmatch '^\s*#' }) -join "`n",
-        'Get-ReleaseFactsArguments -Push (\w+)') | ForEach-Object { $_.Groups[1].Value })
+$pushKinds = @(Get-PrePushFactsKinds $prePushAst)
 Assert-True (($pushKinds -join ',') -eq 'Index,Ordinary,Ordinary') `
     "pre-push.ps1 should take the Index set for the index push and the Ordinary set for both other branches, but takes $($pushKinds -join ', ')."
+# The shapes that check refuses, each planted in a copy of the hook.
+$prePushSource = $prePushAst.Extent.Text
+foreach ($plant in @(
+        @{ From = '@(ConvertTo-ScriptArguments (Get-ReleaseFactsArguments -Push Index -Root $Root))'
+            To = '@(ConvertTo-ScriptArguments $indexSet)'; Why = 'a set held in a variable' },
+        @{ From = '@(ConvertTo-ScriptArguments (Get-ReleaseFactsArguments -Push Ordinary -Root $Root))'
+            To = '@(ConvertTo-ScriptArguments (Get-ReleaseFactsArguments -Push Ordinary -Root $Root)) -SkipUrlCheck'; Why = 'an extra switch' },
+        @{ From = ' -Script $factsCheck))'; To = '))'; Why = "a worktree set not spelled for the pushed commit's check" })) {
+    Assert-True ($prePushSource.Contains($plant.From)) "pre-push.ps1 no longer holds the text the $($plant.Why) case plants into."
+    $planted = [System.Management.Automation.Language.Parser]::ParseInput($prePushSource.Replace($plant.From, $plant.To), [ref]$null, [ref]$null)
+    Assert-Throws { Get-PrePushFactsKinds $planted | Out-Null } '*pre-push.ps1*' "The hook's release check was taken with $($plant.Why)."
+}
 # Every file the release check reads makes the hook run it, and every release script makes it run
 # this suite. A list that forgot one let a change to it go out unchecked.
 foreach ($published in @('patches-bundle.json', 'patches-list.json', 'gradle.properties', 'README.md', 'CHANGELOG.md',
