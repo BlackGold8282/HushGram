@@ -48,10 +48,13 @@ public final class LinkCleaner {
      * igsh, igshid and igsi are the keys Instagram 449 itself lists as its share-tracking keys
      * (the "igsh,igshid,igsi" default it strips from links it opens). igsh is a per-share id that
      * ties a link back to the account that shared it. The utm_ keys only label where a click came
-     * from (ig_web_copy_link, ig_story_item_share, qr), and fbclid is Meta's click id. None of them
-     * picks what a link opens: the path does (/p/, /reel/, /stories/, a username).
+     * from (ig_web_copy_link, ig_story_item_share, qr), and fbclid is Meta's click id. stkn is
+     * the newer per-share id: on 449, Copy link and Share both gave /p/<code>/?stkn=<base64 id>,
+     * a different id each time, and no igsh. The server adds it, so the app's own code never
+     * names it. None of them picks what a link opens: the path does (/p/, /reel/, /stories/, a
+     * username).
      */
-    private static final Set<String> TRACKING = keys("igsh", "igshid", "igsi", "fbclid",
+    private static final Set<String> TRACKING = keys("igsh", "igshid", "igsi", "stkn", "fbclid",
             "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id");
 
     /** Instagram's hosts, each with its subdomains. */

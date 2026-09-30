@@ -19,7 +19,7 @@ This project has no connection to Meta or to the Morphe project. Neither endorse
 ## Why use it
 
 - **No sponsored posts.** Ads in the feed, Reels and Stories don't go in, and Instagram doesn't leave a gap where they would have been.
-- **Cleaner links.** When you copy a link or share one, `igsh`, `igshid`, `utm_source` and the other tracking keys come off. The link still opens the same post.
+- **Cleaner links.** When you copy a link or share one, `stkn` (the per-share id Instagram adds now), `igsh`, `utm_source` and the other tracking keys come off. The link still opens the same post.
 - **Less sent home.** Instagram's usage events go to an address on your own phone that refuses them.
 - **A build that keeps working.** A patched Instagram doesn't update itself, and Instagram locks out an old build after a few weeks. HushGram stops that lockout screen.
 
@@ -56,7 +56,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 | `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings to turn features on or off, pause HushGram and export diagnostics. The licenses are there too. |
 | `Remove build expired popup` | Stops Instagram from locking you out with a screen that says this version is too old. A patched build doesn't update on its own, so without this it would stop working after a few weeks. |
 | `Restore trust on re-signed builds` | Lets Instagram's own signature checks pass on a re-signed build, so the parts of the app that check who signed it keep working. A Root Mount install doesn't need this patch. |
-| `Sanitize sharing links` | Takes igsh, igshid, utm_source and Instagram's other tracking keys off the links you copy or share. The post, reel, story or profile a link opens stays the same. |
+| `Sanitize sharing links` | Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy or share. The post, reel, story or profile a link opens stays the same. |
 
 The other patches keep their switches in `HushGram settings`, so Morphe Manager includes it whenever any of them is picked. Any of the rest can be left out when you patch.
 

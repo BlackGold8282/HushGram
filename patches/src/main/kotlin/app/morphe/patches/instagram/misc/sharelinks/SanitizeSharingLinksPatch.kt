@@ -80,7 +80,7 @@ internal val SHARE_SHEET_EXITS = listOf(
 @Suppress("unused")
 val sanitizeSharingLinksPatch = bytecodePatch(
     name = "Sanitize sharing links",
-    description = "Takes igsh, igshid, utm_source and Instagram's other tracking keys off the links you copy " +
+    description = "Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy " +
         "or share. The post, reel, story or profile a link opens stays the same.",
     default = true,
 ) {
