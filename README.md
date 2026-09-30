@@ -81,7 +81,7 @@ At the top, a card says whether HushGram is on or paused. Below it:
 - **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links and Disable analytics.
 - **Reels** holds the switches for Hide Reels in the feed, the three parts of Clean up Reels, Don't send reel watch history and Download on reels.
 - **Stories** holds the switch for Stop Story auto-advance.
-- **Downloads** lists each save that's running, with a Cancel button, and holds what every save uses: Save videos other apps can open, Download quality, the save folder and the video file name. Videos go to Movies and photos to Pictures, each in a HushGram folder unless you name another.
+- **Downloads** lists each save that's running, with a Cancel button, and holds what every save uses: Save videos other apps can open, Download quality, the save folder and the video file name. Videos go to Movies and photos to Pictures, each in an Instagram folder unless you name another, and a video is named `IG_VID_` with the date and time unless you set a name.
 - **Updates** holds the switch for the build expired screen.
 - **Set when you patched** lists what was fixed at patch time and can't be switched off here, such as the re-signed build fix.
 - **Pause and diagnostics** has the Pause switch, Debug logging, and the diagnostic report. Copy a quick report, or save the full one to Download/Morphe (on Android 9, a Download/Morphe folder inside Instagram's own folder, and the message says where). Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it.
