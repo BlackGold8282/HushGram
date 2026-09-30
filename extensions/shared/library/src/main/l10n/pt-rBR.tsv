@@ -58,7 +58,7 @@ Settings couldn't refresh completely. Reopen settings and try again.	Não foi po
 Source code and issues	Código-fonte e relatos de problemas
 Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.	Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum anúncio entrou, então não sobra nenhum espaço vazio.
 Stays in while paused	O que continua ativo na pausa
-Takes igsh, igshid, utm_source and other tracking keys off the links you copy or share. The post, reel or profile a link opens stays the same.	Tira igsh, igshid, utm_source e outras chaves de rastreamento dos links que você copia ou compartilha. O post, o reel ou o perfil que um link abre continua o mesmo.
+Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.	Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que você copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.
 Tap to turn it back on.	Toque para reativar.
 The diagnostic report couldn't be saved yet. Try again in a moment.	O relatório de diagnóstico ainda não pôde ser salvo. Tente de novo em instantes.
 The diagnostic report couldn't be saved. Try again.	Não foi possível salvar o relatório de diagnóstico. Tente de novo.

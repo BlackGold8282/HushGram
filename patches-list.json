@@ -190,7 +190,7 @@
     },
     {
       "name": "Sanitize sharing links",
-      "description": "Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy or share. The post, reel, story or profile a link opens stays the same.",
+      "description": "Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel, story or profile a link opens stays the same.",
       "category": "Privacy",
       "use": true,
       "dependencies": [

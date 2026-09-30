@@ -11,6 +11,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.net.Uri;
 import android.os.Bundle;
 
 import java.net.URLDecoder;
@@ -41,7 +42,8 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>Three ways in: the two share-link parsers hand their link here as Instagram reads it from
  * the server, and every clipboard copy, share sheet and share Instagram sends straight to one app
  * goes through the stand-ins below, which clean the Instagram links in the text on its way out.
- * Nothing here goes online.
+ * The same activity-start stand-ins send a link opened from a bio straight to its page, not
+ * through Instagram's click tracker. Nothing here goes online.
  */
 public final class LinkCleaner {
 
@@ -59,6 +61,17 @@ public final class LinkCleaner {
      */
     private static final Set<String> TRACKING = keys("igsh", "igshid", "igsi", "stkn", "fbclid",
             "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id");
+
+    /**
+     * The link shims Instagram 449 itself reads a destination out of, by exact host: a link in a
+     * bio opens as {@code https://l.instagram.com/?u=<the page>&e=<a click token>},
+     * which records the tap and forwards to the page.
+     */
+    private static final Set<String> SHIM_HOSTS = keys("l.instagram.com", "l.facebook.com", "l.alpha.facebook.com",
+            "lm.alpha.facebook.com");
+
+    /** How many shims deep a link is followed before it's opened as it is. */
+    private static final int MAX_SHIMS = 4;
 
     /** Instagram's hosts, each with its subdomains. */
     private static final String[] INSTAGRAM_HOSTS = {"instagram.com", "instagr.am", "ig.me"};
@@ -96,22 +109,66 @@ public final class LinkCleaner {
 
     /**
      * Stands in for {@link Context#startActivity(Intent)}. A share Instagram sends straight to one
-     * app, with no share sheet in between, goes with its Instagram links cleaned; every other
-     * intent goes as it came.
+     * app, with no share sheet in between, goes with its Instagram links cleaned, and a page opened
+     * through a link shim opens directly. Every other intent goes as it came.
      */
     public static void startActivity(Context context, Intent intent) {
-        context.startActivity(sanitizedDirectShare(intent));
+        context.startActivity(sanitizedStart(intent));
     }
 
     /** Stands in for {@link Context#startActivity(Intent, Bundle)}, the same way. */
     public static void startActivity(Context context, Intent intent, Bundle options) {
-        context.startActivity(sanitizedDirectShare(intent), options);
+        context.startActivity(sanitizedStart(intent), options);
     }
 
-    /** [intent] cleaned the way a share sheet's target is when it's an ACTION_SEND, or as it came. */
-    static Intent sanitizedDirectShare(Intent intent) {
-        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return intent;
-        return sanitizedShare(intent);
+    /** [intent], cleaned in place when it's a share or opens a link shim. */
+    static Intent sanitizedStart(Intent intent) {
+        if (intent == null) return null;
+        if (Intent.ACTION_SEND.equals(intent.getAction())) return sanitizedShare(intent);
+        return unwrappedShim(intent);
+    }
+
+    /**
+     * [intent] with the shim address it opens swapped for the page the shim forwards to, keeping
+     * its type, component and extras, or as it came when it opens no shim, the switch is off, or
+     * anything goes wrong.
+     */
+    static Intent unwrappedShim(Intent intent) {
+        try {
+            Uri data = intent.getData();
+            if (data == null || shimDestination(data) == null) return intent;
+            HookStatus.invoked(FamilyNames.SANITIZE_SHARING_LINKS);
+            if (!enabled()) return intent;
+            Uri target = data;
+            for (int depth = 0; depth < MAX_SHIMS; depth++) {
+                Uri inner = shimDestination(target);
+                if (inner == null) break;
+                target = inner;
+            }
+            intent.setDataAndType(target, intent.getType());
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.SANITIZE_SHARING_LINKS, "link shim", t);
+        }
+        return intent;
+    }
+
+    /**
+     * The page {@code uri} forwards to when it's one of {@link #SHIM_HOSTS}, read from its "u" the
+     * way Instagram reads it, or null when it's no shim or forwards to anything but a web page.
+     */
+    private static Uri shimDestination(Uri uri) {
+        if (uri.isOpaque() || !isWebScheme(uri.getScheme())) return null;
+        String host = uri.getHost();
+        if (host == null || !SHIM_HOSTS.contains(host.toLowerCase(Locale.ROOT))) return null;
+        String wrapped = uri.getQueryParameter("u");
+        if (wrapped == null) return null;
+        Uri target = Uri.parse(wrapped);
+        String targetHost = target.getHost();
+        return isWebScheme(target.getScheme()) && targetHost != null && !targetHost.isEmpty() ? target : null;
+    }
+
+    private static boolean isWebScheme(String scheme) {
+        return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
     }
 
     /**

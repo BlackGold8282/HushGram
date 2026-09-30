@@ -95,7 +95,8 @@ internal val DIRECT_SHARE_EXITS = listOf(
 val sanitizeSharingLinksPatch = bytecodePatch(
     name = "Sanitize sharing links",
     description = "Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy " +
-        "or share. The post, reel, story or profile a link opens stays the same.",
+        "or share, and opens a bio link without going through Instagram's click tracker. The post, reel, " +
+        "story or profile a link opens stays the same.",
     default = true,
 ) {
     category("Privacy")

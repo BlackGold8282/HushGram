@@ -119,7 +119,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
             privacy.add(toggle(context, Settings.SANITIZE_SHARING_LINKS, L10n.t("Sanitize sharing links"),
-                    L10n.t("Takes igsh, igshid, utm_source and other tracking keys off the links you copy or share. "
+                    L10n.t("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, "
+                            + "and opens a bio link without going through Instagram's click tracker. "
                             + "The post, reel or profile a link opens stays the same.")));
         }
         if (build.contains(PatchFamily.DISABLE_ANALYTICS)) {

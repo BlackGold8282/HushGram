@@ -169,8 +169,8 @@ public final class L10nTranslations {
                 "Gesponserte Beitr\u00e4ge, Reels und Stories. Instagram erf\u00e4hrt, dass keine Werbung eingef\u00fcgt wurde, also bleibt keine L\u00fccke.");
         table.put("Stays in while paused",
                 "Bleibt w\u00e4hrend der Pause aktiv");
-        table.put("Takes igsh, igshid, utm_source and other tracking keys off the links you copy or share. The post, reel or profile a link opens stays the same.",
-                "Entfernt igsh, igshid, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
+        table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
+                "Entfernt stkn, igsh, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst, und \u00f6ffnet Bio-Links ohne Umweg \u00fcber Instagrams Klick-Tracker. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
         table.put("Tap to turn it back on.",
                 "Zum Wiedereinschalten tippen.");
     }
@@ -328,8 +328,8 @@ public final class L10nTranslations {
                 "Publicaciones, reels e historias patrocinados. A Instagram se le dice que no se insert\u00f3 ning\u00fan anuncio, as\u00ed que no queda ning\u00fan hueco.");
         table.put("Stays in while paused",
                 "Se mantiene durante la pausa");
-        table.put("Takes igsh, igshid, utm_source and other tracking keys off the links you copy or share. The post, reel or profile a link opens stays the same.",
-                "Quita igsh, igshid, utm_source y otras claves de rastreo de los enlaces que copias o compartes. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
+        table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
+                "Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biograf\u00eda sin pasar por el rastreador de clics de Instagram. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
         table.put("Tap to turn it back on.",
                 "Toca para volver a activarlo.");
     }
@@ -487,8 +487,8 @@ public final class L10nTranslations {
                 "Postingan, reel, dan story bersponsor. Instagram diberi tahu bahwa tidak ada iklan yang dimasukkan, jadi tidak ada celah yang tersisa.");
         table.put("Stays in while paused",
                 "Tetap aktif saat dijeda");
-        table.put("Takes igsh, igshid, utm_source and other tracking keys off the links you copy or share. The post, reel or profile a link opens stays the same.",
-                "Menghapus igsh, igshid, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
+        table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
+                "Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
         table.put("Tap to turn it back on.",
                 "Ketuk untuk mengaktifkan HushGram lagi.");
     }
@@ -646,8 +646,8 @@ public final class L10nTranslations {
                 "Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum an\u00fancio entrou, ent\u00e3o n\u00e3o sobra nenhum espa\u00e7o vazio.");
         table.put("Stays in while paused",
                 "O que continua ativo na pausa");
-        table.put("Takes igsh, igshid, utm_source and other tracking keys off the links you copy or share. The post, reel or profile a link opens stays the same.",
-                "Tira igsh, igshid, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha. O post, o reel ou o perfil que um link abre continua o mesmo.");
+        table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
+                "Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.");
         table.put("Tap to turn it back on.",
                 "Toque para reativar.");
     }
@@ -805,8 +805,8 @@ public final class L10nTranslations {
                 "Sponsorlu g\u00f6nderiler, reels ve hik\u00e2yeler. Instagram'a hi\u00e7 reklam eklenmedi\u011fi s\u00f6ylenir, b\u00f6ylece bo\u015fluk kalmaz.");
         table.put("Stays in while paused",
                 "Duraklat\u0131lsa da devrede kal\u0131r");
-        table.put("Takes igsh, igshid, utm_source and other tracking keys off the links you copy or share. The post, reel or profile a link opens stays the same.",
-                "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan igsh, igshid, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
+        table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
+                "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan stkn, igsh, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r, biyografi ba\u011flant\u0131lar\u0131n\u0131 Instagram'\u0131n t\u0131klama izleyicisinden ge\u00e7meden a\u00e7ar. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
         table.put("Tap to turn it back on.",
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
     }
