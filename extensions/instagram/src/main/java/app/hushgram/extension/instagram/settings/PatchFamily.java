@@ -45,7 +45,8 @@ public enum PatchFamily {
     REEL_WATCH_HISTORY(FamilyNames.REEL_WATCH_HISTORY, "reelWatchHistory", null,
             Settings.DONT_SEND_REEL_WATCH_HISTORY),
     STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
-            Settings.BLOCK_STORY_AUTO_ADVANCE);
+            Settings.BLOCK_STORY_AUTO_ADVANCE),
+    FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null, Settings.HIDE_FEED_REELS);
 
     /** The name Morphe Manager lists the patch under. */
     public final String patchName;

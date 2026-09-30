@@ -45,4 +45,8 @@ public final class SettingsStatus {
     public static boolean storyAutoAdvance() {
         return false;
     }
+
+    public static boolean feedReels() {
+        return false;
+    }
 }

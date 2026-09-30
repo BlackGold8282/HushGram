@@ -134,6 +134,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
 
         List<Preference> reels = new ArrayList<>();
+        if (build.contains(PatchFamily.FEED_REELS)) {
+            reels.add(toggle(context, Settings.HIDE_FEED_REELS, L10n.t("Hide Reels in the feed"),
+                    L10n.t("The rows of suggested reels between posts in your home feed. A reel someone you "
+                            + "follow posts stays.")));
+        }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
             reels.add(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY, L10n.t("Don't send reel watch history"),
                     L10n.t("Instagram isn't told which reels you watched or how far into them you got. It ranks "
