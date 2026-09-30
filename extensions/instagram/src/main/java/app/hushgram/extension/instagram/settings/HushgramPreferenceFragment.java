@@ -160,6 +160,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "and opens a bio link without going through Instagram's click tracker. "
                             + "The post, reel or profile a link opens stays the same.")));
         }
+        if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
+            privacy.add(toggle(context, Settings.OPEN_LINKS_EXTERNALLY, L10n.t("Open links in external browser"),
+                    L10n.t("Web links open in your default browser, without Instagram's click tracker. "
+                            + "Instagram and other Meta pages, and ads, still open in the app.")));
+        }
         if (build.contains(PatchFamily.DISABLE_ANALYTICS)) {
             privacy.add(toggle(context, Settings.DISABLE_ANALYTICS, L10n.t("Disable analytics"),
                     L10n.t("Instagram's usage events go to an address on this phone that refuses them, instead of "

@@ -246,3 +246,12 @@ shared-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tab(Ljava/lang/Ob
 # The tab list builder's return and the home tab's return of Reels hold no string a rule could pick
 # them by, and the home tab calls ReelsTab.tab as well, so the switch's rule is shared-call.
 # HideReelsTabHookTest checks on the 449 fixture that each of the three lands once, where it should.
+#
+# Open links in external browser asks the extension right after the in-app browser's own super
+# call, in onCreate and in onNewIntent. Both call the one redirect, so each rule is shared-call:
+# once in its method and in no other method holding its strings. On 449 only the browser's
+# onCreate holds the labels of its start and end, and only its onNewIntent the label of the
+# fragment commit it makes for a new link. OpenLinksExternallyTest checks on the 449 fixture that
+# each lands after the super call.
+shared-call Lapp/hushgram/extension/instagram/misc/ExternalBrowser;->redirect(Landroid/app/Activity;Landroid/content/Intent;)Z in instance (Landroid/os/Bundle;)V holding BLA.onCreate_start BLA.onCreate_end
+shared-call Lapp/hushgram/extension/instagram/misc/ExternalBrowser;->redirect(Landroid/app/Activity;Landroid/content/Intent;)Z in instance (Landroid/content/Intent;)V holding BLABD.onActivityNewIntent.fragmentCommit_start

@@ -26,6 +26,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean externalBrowser() {
+        return false;
+    }
+
     public static boolean disableAnalytics() {
         return false;
     }

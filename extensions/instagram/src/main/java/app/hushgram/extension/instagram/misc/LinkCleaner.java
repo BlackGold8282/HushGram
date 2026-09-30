@@ -62,6 +62,9 @@ public final class LinkCleaner {
     private static final Set<String> TRACKING = keys("igsh", "igshid", "igsi", "stkn", "fbclid",
             "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id");
 
+    /** Meta's click id alone, which a link to another site loses on its way out of the in-app browser. */
+    private static final Set<String> CLICK_ID = keys("fbclid");
+
     /**
      * The link shims Instagram 449 itself reads a destination out of, by exact host: a link in a
      * bio opens as {@code https://l.instagram.com/?u=<the page>&e=<a click token>},
@@ -170,17 +173,25 @@ public final class LinkCleaner {
             if (data == null || shimDestination(data) == null) return intent;
             HookStatus.invoked(FamilyNames.SANITIZE_SHARING_LINKS);
             if (!enabled()) return intent;
-            Uri target = data;
-            for (int depth = 0; depth < MAX_SHIMS; depth++) {
-                Uri inner = shimDestination(target);
-                if (inner == null) break;
-                target = inner;
-            }
-            intent.setDataAndType(target, intent.getType());
+            intent.setDataAndType(unwrapShims(data), intent.getType());
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.SANITIZE_SHARING_LINKS, "link shim", t);
         }
         return intent;
+    }
+
+    /**
+     * The page {@code uri} forwards to through every link shim it's wrapped in, or {@code uri}
+     * itself when it's no shim. Whatever the switch says: {@link ExternalBrowser} asks too.
+     */
+    static Uri unwrapShims(Uri uri) {
+        Uri target = uri;
+        for (int depth = 0; depth < MAX_SHIMS; depth++) {
+            Uri inner = shimDestination(target);
+            if (inner == null) break;
+            target = inner;
+        }
+        return target;
     }
 
     /**
@@ -298,7 +309,26 @@ public final class LinkCleaner {
         }
     }
 
+    /**
+     * {@code url} without Meta's click id, fbclid, on any host, or {@code url} itself when it has
+     * none or can't be read. The one key {@link ExternalBrowser} takes off a link to another site.
+     * Never throws.
+     */
+    static String withoutClickId(String url) {
+        if (url == null) return null;
+        try {
+            return withoutKeys(url, CLICK_ID, false);
+        } catch (Throwable t) {
+            return url;
+        }
+    }
+
     private static String cleaned(String url) {
+        return withoutKeys(url, TRACKING, true);
+    }
+
+    /** {@code url} without the pairs whose key is in {@code drop}, on an Instagram host alone when {@code instagramOnly}. */
+    private static String withoutKeys(String url, Set<String> drop, boolean instagramOnly) {
         int colon = url.indexOf(':');
         if (colon <= 0) return url;
         String scheme = url.substring(0, colon).toLowerCase(Locale.ROOT);
@@ -309,12 +339,12 @@ public final class LinkCleaner {
         int end = fragment < 0 ? url.length() : fragment;
         int query = url.indexOf('?');
         if (query < 0 || query > end) return url;
-        if (!isInstagramHost(host(url, colon + 1, query))) return url;
+        if (instagramOnly && !isInstagramHost(host(url, colon + 1, query))) return url;
 
         List<String> kept = new ArrayList<>();
         boolean removed = false;
         for (String pair : url.substring(query + 1, end).split("&", -1)) {
-            if (TRACKING.contains(keyOf(pair))) {
+            if (drop.contains(keyOf(pair))) {
                 removed = true;
             } else {
                 kept.add(pair);

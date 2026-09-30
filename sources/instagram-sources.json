@@ -173,7 +173,9 @@
       ],
       "watchPaths": [
         "patches/src/main/kotlin/app/andrewliang/patches/facebook/resignedtrust",
-        "extensions/extension/src/main/java/app/andrewliang/extension/FacebookSignature.java"
+        "extensions/extension/src/main/java/app/andrewliang/extension/FacebookSignature.java",
+        "patches/src/main/kotlin/app/andrewliang/patches/facebook/externalbrowser",
+        "extensions/extension/src/main/java/app/andrewliang/extension/ExternalBrowser.java"
       ],
       "license": {
         "spdx": "GPL-3.0",
@@ -190,7 +192,7 @@
           ]
         }
       },
-      "reason": "Where the re-signed build fix started. HushGram's Restore trust and its signature helper came through Hushfacebook from Andrew Liang's commit 5db2e57e, and apply unforced to Instagram 449.0.0.52.84. The bundle patches Facebook and LINE, so only the trust fix and its signature helper are watched.",
+      "reason": "Where the re-signed build fix and the external browser patch started. HushGram's Restore trust and its signature helper came through Hushfacebook from Andrew Liang's commit 5db2e57e, and apply unforced to Instagram 449.0.0.52.84. Open links in external browser came the same way, from the same commit. The bundle patches Facebook and LINE, so only those two fixes and their helpers are watched.",
       "archived": false,
       "forks": [
         "shunyungwang/morphe-patches-LINE",

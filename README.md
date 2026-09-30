@@ -63,6 +63,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 | `Hide Reels in the feed` | Removes the rows of suggested reels between posts in your home feed, and the other units that open the Reels viewer from there. A reel someone you follow posts stays. |
 | `Hide the Reels tab` | Takes the Reels tab off the tab bar, and a start or a notification meant for it opens Home. Reels in your feed and reels people send you still open, and a change to the switch shows once Instagram restarts. |
 | `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too. |
+| `Open links in external browser` | Opens a web link you tap in your default browser instead of Instagram's in-app browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app. |
 | `Remove build expired popup` | Stops Instagram from locking you out with a screen that says this version is too old. A patched build doesn't update on its own, so without this it would stop working after a few weeks. |
 | `Remove the advertising ID` | Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are taken out of the build, so Google Play services hands Instagram a string of zeros in place of the ID. |
 | `Restore trust on re-signed builds` | Lets Instagram's own signature checks pass on a re-signed build, so the parts of the app that check who signed it keep working. A Root Mount install doesn't need this patch. |
@@ -86,7 +87,7 @@ Long-press Instagram's icon on your home screen and tap **HushGram settings**. O
 
 At the top, a card says whether HushGram is on or paused. Below it:
 
-- **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links and Disable analytics.
+- **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links, Open links in external browser and Disable analytics.
 - **Reels** holds the switches for Hide Reels in the feed, the three parts of Clean up Reels, Don't send reel watch history, Download on reels, Turn off double tap to like and Hide the Reels tab.
 - **Stories** holds the switches for Stop Story auto-advance, View stories anonymously and Download on stories.
 - **Downloads** holds the switch for Download feed videos, lists each save that's running, with a Cancel button, and holds what every save uses: Save videos other apps can open, Download quality, the save folder and the video file name. Videos go to Movies and photos to Pictures, each in an Instagram folder unless you name another, and a video is named `IG_VID_` with the date and time unless you set a name.
@@ -113,6 +114,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - Turn off double tap to like is off until you pick it in Manager. It covers a post in your feed and the Reels viewer. A double tap on a comment, a message or a note still likes it, and double tap to skip in Reels works as before.
 - Hide the Reels tab is off until you pick it in Manager. Instagram builds its tab bar as it starts, so the switch takes effect after a restart. If your account opens on Reels, it opens on Home instead. Reels in your feed, reels people send you and the reels on a profile still play.
 - Remove the advertising ID takes away the ID other apps and ad networks share, and Android's ad attribution. Instagram still knows your account, so it still picks and counts the ads it shows you by that. With it picked, Manager rebuilds Instagram's resources as well as its code, so patching takes a little longer.
+- Open links in external browser covers every link that opens Instagram's in-app browser. Pages on Instagram, Facebook, Messenger, Threads and Meta stay in the app because sign-in and checkout there need it, ads stay too, and when no browser on the phone takes a link, it opens in the app as before. It hasn't been checked on a phone yet.
 - Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. Instagram has other reporting paths, and this patch doesn't claim to stop every one.
 - A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
 - Only one Instagram build has been checked so far. Expect a patch to stop on a newer one until it's checked.
@@ -158,7 +160,7 @@ The diagnostic report stays on your phone until you copy or share it yourself.
 |---|---|
 | [SysAdminDoc/Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) at `c15d4f7` | The Gradle build, the shared extension library with its settings screen, pause and diagnostics, the bytecode helpers, the link cleaner, the launcher shortcut and the checks that apply every patch to a real Instagram build. |
 | [SysAdminDoc/Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) at `3a47363` and `814acd2` | The video and photo save pipeline behind the Download patches, the tap clock and start rule behind Tap to play, and the saved points and resume rule behind Resume long videos. |
-| [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) at `5db2e57`, by way of Hushfacebook | The fix for re-signed builds, pointed here at Instagram's own two signing certificates. |
+| [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) at `5db2e57`, by way of Hushfacebook | The fix for re-signed builds, pointed here at Instagram's own two signing certificates, and Open links in external browser, pointed at Instagram's in-app browser. |
 | [SysAdminDoc/hushfeed](https://github.com/SysAdminDoc/hushfeed), [tiktok-patches-for-morphe](https://github.com/icysymmetra/tiktok-patches-for-morphe), [Morphe](https://github.com/MorpheApp) and [ReVanced](https://gitlab.com/ReVanced/revanced-patches) | Where Hushfacebook's foundation came from: the patcher, the patch template and the shared library. |
 
 Hide ads, Disable analytics, Remove build expired popup, Remove the advertising ID, Hide Reels in the feed, Clean up Reels, Don't send reel watch history, Turn off double tap to like, Hide the Reels tab, Stop Story auto-advance, View stories anonymously, the Instagram side of Download any reel, Download any story and Download any video, the Instagram side of Tap to play and Resume long videos, and the Instagram side of Sanitize sharing links were written here.

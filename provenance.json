@@ -41,6 +41,20 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/externalbrowser/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/ExternalBrowser.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/andrewliang25/morphe-patches",
+      "commit": "5db2e57e133aede5297c48b419168cf30fd89953",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0",
+      "changes": "Taken from Hushfacebook 814acd23d7b70d5d23abce6cb6c97767e16a051e, which rewrote Andrew Liang's Facebook patch. Pointed at Instagram's one in-app browser, BrowserLiteInMainProcessIGActivity, with both of its hooks checked before either is written, and a trace section counted only when it opens before the super call. The hosts kept in the app became Instagram's, Facebook's, Messenger's, Meta's and Threads' domains, and an ad stays in the app by the IABAdsContext Instagram's ad launcher gives it. Facebook's link shim forms and short-link rules went: the shim is unwrapped by LinkCleaner, which reads Instagram's own shim hosts, and fbclid comes off through it too."
+    },
+    {
+      "paths": [
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/**",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/download/**",
         "extensions/instagram/src/test/resources/app/hushgram/extension/instagram/download/**"

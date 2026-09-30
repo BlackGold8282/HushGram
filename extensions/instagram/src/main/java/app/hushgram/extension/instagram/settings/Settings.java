@@ -37,6 +37,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_sanitize_sharing_links", TRUE);
 
     /**
+     * A web link tapped in Instagram opens in the phone's default browser, without Instagram's
+     * click tracker. Instagram and other Meta pages, and ads, stay in the in-app browser.
+     */
+    public static final BooleanSetting OPEN_LINKS_EXTERNALLY =
+            new BooleanSetting("hushgram_open_links_externally", TRUE);
+
+    /**
      * Instagram's event uploads, to its own logging endpoint and to Facebook's graph endpoint, go
      * to an address on the phone that refuses them. The uploader reads the address when it starts,
      * so a change shows after a restart.

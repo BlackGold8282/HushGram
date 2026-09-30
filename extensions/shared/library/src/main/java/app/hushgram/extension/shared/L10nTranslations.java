@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(302);
+        Map<String, String> table = new HashMap<>(306);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -233,6 +233,8 @@ public final class L10nTranslations {
                 "Nicht gespeichert: Die Datei ist \u00fcber 512 MB gro\u00df");
         table.put("OK",
                 "OK");
+        table.put("Open links in external browser",
+                "Links im externen Browser \u00f6ffnen");
         table.put("Pause HushGram",
                 "HushGram pausieren");
         table.put("Pause and diagnostics",
@@ -295,11 +297,11 @@ public final class L10nTranslations {
                 "Kleinste");
         table.put("Source code and issues",
                 "Quellcode und Issues");
-        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
-                "Gesponserte Beitr\u00e4ge, Reels und Stories. Instagram erf\u00e4hrt, dass keine Werbung eingef\u00fcgt wurde, also bleibt keine L\u00fccke.");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
+                "Gesponserte Beitr\u00e4ge, Reels und Stories. Instagram erf\u00e4hrt, dass keine Werbung eingef\u00fcgt wurde, also bleibt keine L\u00fccke.");
         table.put("Stays in while paused",
                 "Bleibt w\u00e4hrend der Pause aktiv");
         table.put("Stop Story auto-advance",
@@ -356,6 +358,8 @@ public final class L10nTranslations {
                 "Videos, Reels und Stories warten, bis du tippst. Videos im Feed zeigen eine Wiedergabetaste, wie wenn du weniger mobile Daten nutzt.");
         table.put("View stories anonymously",
                 "Stories anonym ansehen");
+        table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
+                "Weblinks \u00f6ffnen sich in deinem Standardbrowser, ohne Instagrams Klick-Tracker. Seiten von Instagram und anderen Meta-Diensten sowie Werbung \u00f6ffnen sich weiterhin in der App.");
         table.put("You paused HushGram.",
                 "Du hast HushGram pausiert.");
         table.put("the re-signed build fix",
@@ -365,7 +369,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(302);
+        Map<String, String> table = new HashMap<>(306);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -552,6 +556,8 @@ public final class L10nTranslations {
                 "No se guard\u00f3: el archivo supera los 512 MB");
         table.put("OK",
                 "Aceptar");
+        table.put("Open links in external browser",
+                "Abrir enlaces en el navegador externo");
         table.put("Pause HushGram",
                 "Pausar HushGram");
         table.put("Pause and diagnostics",
@@ -614,11 +620,11 @@ public final class L10nTranslations {
                 "La m\u00e1s peque\u00f1a");
         table.put("Source code and issues",
                 "C\u00f3digo fuente e incidencias");
-        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
-                "Publicaciones, reels e historias patrocinados. A Instagram se le dice que no se insert\u00f3 ning\u00fan anuncio, as\u00ed que no queda ning\u00fan hueco.");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
+                "Publicaciones, reels e historias patrocinados. A Instagram se le dice que no se insert\u00f3 ning\u00fan anuncio, as\u00ed que no queda ning\u00fan hueco.");
         table.put("Stays in while paused",
                 "Se mantiene durante la pausa");
         table.put("Stop Story auto-advance",
@@ -675,6 +681,8 @@ public final class L10nTranslations {
                 "Los videos, reels e historias esperan a que toques. Los videos del feed muestran un bot\u00f3n de reproducir, como cuando usas menos datos m\u00f3viles.");
         table.put("View stories anonymously",
                 "Ver historias de forma an\u00f3nima");
+        table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
+                "Los enlaces web se abren en tu navegador predeterminado, sin el rastreador de clics de Instagram. Las p\u00e1ginas de Instagram y de otros servicios de Meta, y los anuncios, se siguen abriendo en la app.");
         table.put("You paused HushGram.",
                 "Pausaste HushGram.");
         table.put("the re-signed build fix",
@@ -684,7 +692,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(302);
+        Map<String, String> table = new HashMap<>(306);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -871,6 +879,8 @@ public final class L10nTranslations {
                 "Tidak disimpan: file lebih dari 512 MB");
         table.put("OK",
                 "Oke");
+        table.put("Open links in external browser",
+                "Buka tautan di browser eksternal");
         table.put("Pause HushGram",
                 "Jeda HushGram");
         table.put("Pause and diagnostics",
@@ -933,11 +943,11 @@ public final class L10nTranslations {
                 "Terkecil");
         table.put("Source code and issues",
                 "Kode sumber dan laporan masalah");
-        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
-                "Postingan, reel, dan story bersponsor. Instagram diberi tahu bahwa tidak ada iklan yang dimasukkan, jadi tidak ada celah yang tersisa.");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
+                "Postingan, reel, dan story bersponsor. Instagram diberi tahu bahwa tidak ada iklan yang dimasukkan, jadi tidak ada celah yang tersisa.");
         table.put("Stays in while paused",
                 "Tetap aktif saat dijeda");
         table.put("Stop Story auto-advance",
@@ -994,6 +1004,8 @@ public final class L10nTranslations {
                 "Video, reels, dan cerita menunggu ketukan Anda. Video di feed menampilkan tombol putar, seperti saat Anda menghemat data seluler.");
         table.put("View stories anonymously",
                 "Lihat cerita secara anonim");
+        table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
+                "Tautan web terbuka di browser default kamu, tanpa pelacak klik Instagram. Halaman Instagram dan layanan Meta lainnya, serta iklan, tetap terbuka di aplikasi.");
         table.put("You paused HushGram.",
                 "Anda menjeda HushGram.");
         table.put("the re-signed build fix",
@@ -1003,7 +1015,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(302);
+        Map<String, String> table = new HashMap<>(306);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1190,6 +1202,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi salvo: o arquivo tem mais de 512 MB");
         table.put("OK",
                 "OK");
+        table.put("Open links in external browser",
+                "Abrir links no navegador externo");
         table.put("Pause HushGram",
                 "Pausar o HushGram");
         table.put("Pause and diagnostics",
@@ -1252,11 +1266,11 @@ public final class L10nTranslations {
                 "A menor");
         table.put("Source code and issues",
                 "C\u00f3digo-fonte e relatos de problemas");
-        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
-                "Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum an\u00fancio entrou, ent\u00e3o n\u00e3o sobra nenhum espa\u00e7o vazio.");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
+                "Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum an\u00fancio entrou, ent\u00e3o n\u00e3o sobra nenhum espa\u00e7o vazio.");
         table.put("Stays in while paused",
                 "O que continua ativo na pausa");
         table.put("Stop Story auto-advance",
@@ -1313,6 +1327,8 @@ public final class L10nTranslations {
                 "V\u00eddeos, reels e stories esperam o seu toque. Os v\u00eddeos do feed mostram um bot\u00e3o de reproduzir, como quando voc\u00ea usa menos dados m\u00f3veis.");
         table.put("View stories anonymously",
                 "Ver Stories anonimamente");
+        table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
+                "Links da web abrem no seu navegador padr\u00e3o, sem o rastreador de cliques do Instagram. P\u00e1ginas do Instagram e de outros servi\u00e7os da Meta, e an\u00fancios, continuam abrindo no app.");
         table.put("You paused HushGram.",
                 "Voc\u00ea pausou o HushGram.");
         table.put("the re-signed build fix",
@@ -1322,7 +1338,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(302);
+        Map<String, String> table = new HashMap<>(306);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1509,6 +1525,8 @@ public final class L10nTranslations {
                 "Kaydedilmedi: Dosya 512 MB'tan b\u00fcy\u00fck");
         table.put("OK",
                 "Tamam");
+        table.put("Open links in external browser",
+                "Ba\u011flant\u0131lar\u0131 harici taray\u0131c\u0131da a\u00e7");
         table.put("Pause HushGram",
                 "HushGram'u duraklat");
         table.put("Pause and diagnostics",
@@ -1571,11 +1589,11 @@ public final class L10nTranslations {
                 "En k\u00fc\u00e7\u00fck");
         table.put("Source code and issues",
                 "Kaynak kodu ve sorunlar");
-        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
-                "Sponsorlu g\u00f6nderiler, reels ve hik\u00e2yeler. Instagram'a hi\u00e7 reklam eklenmedi\u011fi s\u00f6ylenir, b\u00f6ylece bo\u015fluk kalmaz.");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
+                "Sponsorlu g\u00f6nderiler, reels ve hik\u00e2yeler. Instagram'a hi\u00e7 reklam eklenmedi\u011fi s\u00f6ylenir, b\u00f6ylece bo\u015fluk kalmaz.");
         table.put("Stays in while paused",
                 "Duraklat\u0131lsa da devrede kal\u0131r");
         table.put("Stop Story auto-advance",
@@ -1632,6 +1650,8 @@ public final class L10nTranslations {
                 "Videolar, reels ve hikayeler dokunman\u0131 bekler. Ak\u0131\u015ftaki videolar, daha az mobil veri kulland\u0131\u011f\u0131ndaki gibi bir oynat d\u00fc\u011fmesi g\u00f6sterir.");
         table.put("View stories anonymously",
                 "Hikayeleri anonim olarak izle");
+        table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
+                "Web ba\u011flant\u0131lar\u0131, Instagram'\u0131n t\u0131klama izleyicisi olmadan varsay\u0131lan taray\u0131c\u0131nda a\u00e7\u0131l\u0131r. Instagram ve di\u011fer Meta sayfalar\u0131 ile reklamlar uygulamada a\u00e7\u0131lmaya devam eder.");
         table.put("You paused HushGram.",
                 "HushGram'u duraklatt\u0131n.");
         table.put("the re-signed build fix",
