@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(298);
+        Map<String, String> table = new HashMap<>(302);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -185,6 +185,8 @@ public final class L10nTranslations {
                 "Aktivit\u00e4t von Freunden und Kommentarvorschau ausblenden");
         table.put("Hide the Follow button",
                 "Folgen-Button ausblenden");
+        table.put("Hide the Reels tab",
+                "Den Reels-Tab ausblenden");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Fortschritt beim Speichern eines Fotos oder Videos, mit einem Button zum Abbrechen");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -295,15 +297,17 @@ public final class L10nTranslations {
                 "Quellcode und Issues");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Gesponserte Beitr\u00e4ge, Reels und Stories. Instagram erf\u00e4hrt, dass keine Werbung eingef\u00fcgt wurde, also bleibt keine L\u00fccke.");
-        table.put("Stays in while paused",
-                "Bleibt w\u00e4hrend der Pause aktiv");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Stays in while paused",
+                "Bleibt w\u00e4hrend der Pause aktiv");
         table.put("Stop Story auto-advance",
                 "Automatisches Weiterschalten von Stories stoppen");
         table.put("Stories",
                 "Stories");
+        table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
+                "Entfernt Reels aus der Tab-Leiste. Reels in deinem Feed und Reels, die dir jemand schickt, \u00f6ffnen sich weiterhin. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Entfernt stkn, igsh, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst, und \u00f6ffnet Bio-Links ohne Umweg \u00fcber Instagrams Klick-Tracker. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
         table.put("Tap to play",
@@ -361,7 +365,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(298);
+        Map<String, String> table = new HashMap<>(302);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -500,6 +504,8 @@ public final class L10nTranslations {
                 "Ocultar la actividad de amigos y la vista previa de comentarios");
         table.put("Hide the Follow button",
                 "Ocultar el bot\u00f3n Seguir");
+        table.put("Hide the Reels tab",
+                "Ocultar la pesta\u00f1a de Reels");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "El progreso de la foto o el video que est\u00e1s guardando, con un bot\u00f3n para cancelar");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -610,15 +616,17 @@ public final class L10nTranslations {
                 "C\u00f3digo fuente e incidencias");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Publicaciones, reels e historias patrocinados. A Instagram se le dice que no se insert\u00f3 ning\u00fan anuncio, as\u00ed que no queda ning\u00fan hueco.");
-        table.put("Stays in while paused",
-                "Se mantiene durante la pausa");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Stays in while paused",
+                "Se mantiene durante la pausa");
         table.put("Stop Story auto-advance",
                 "Detener el avance autom\u00e1tico de historias");
         table.put("Stories",
                 "Historias");
+        table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
+                "Quita Reels de la barra de pesta\u00f1as. Los reels de tu feed y los que te env\u00edan se siguen abriendo. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biograf\u00eda sin pasar por el rastreador de clics de Instagram. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
         table.put("Tap to play",
@@ -676,7 +684,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(298);
+        Map<String, String> table = new HashMap<>(302);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -815,6 +823,8 @@ public final class L10nTranslations {
                 "Sembunyikan aktivitas teman dan pratinjau komentar");
         table.put("Hide the Follow button",
                 "Sembunyikan tombol Ikuti");
+        table.put("Hide the Reels tab",
+                "Sembunyikan tab Reels");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -925,15 +935,17 @@ public final class L10nTranslations {
                 "Kode sumber dan laporan masalah");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Postingan, reel, dan story bersponsor. Instagram diberi tahu bahwa tidak ada iklan yang dimasukkan, jadi tidak ada celah yang tersisa.");
-        table.put("Stays in while paused",
-                "Tetap aktif saat dijeda");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Stays in while paused",
+                "Tetap aktif saat dijeda");
         table.put("Stop Story auto-advance",
                 "Hentikan cerita maju otomatis");
         table.put("Stories",
                 "Cerita");
+        table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
+                "Menghapus Reels dari bilah tab. Reels di feed kamu dan reels yang dikirim orang lain tetap bisa dibuka. Mulai ulang Instagram setelah mengubahnya.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
         table.put("Tap to play",
@@ -991,7 +1003,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(298);
+        Map<String, String> table = new HashMap<>(302);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1130,6 +1142,8 @@ public final class L10nTranslations {
                 "Ocultar a atividade de amigos e a pr\u00e9via de coment\u00e1rios");
         table.put("Hide the Follow button",
                 "Ocultar o bot\u00e3o Seguir");
+        table.put("Hide the Reels tab",
+                "Ocultar a aba Reels");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Indica o progresso do salvamento de uma foto ou v\u00eddeo, com um bot\u00e3o para cancel\u00e1-lo");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -1240,15 +1254,17 @@ public final class L10nTranslations {
                 "C\u00f3digo-fonte e relatos de problemas");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum an\u00fancio entrou, ent\u00e3o n\u00e3o sobra nenhum espa\u00e7o vazio.");
-        table.put("Stays in while paused",
-                "O que continua ativo na pausa");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Stays in while paused",
+                "O que continua ativo na pausa");
         table.put("Stop Story auto-advance",
                 "Parar o avan\u00e7o autom\u00e1tico dos stories");
         table.put("Stories",
                 "Stories");
+        table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
+                "Tira o Reels da barra de abas. Os reels do seu feed e os que mandam para voc\u00ea continuam abrindo. Reinicie o Instagram depois de mudar.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.");
         table.put("Tap to play",
@@ -1306,7 +1322,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(298);
+        Map<String, String> table = new HashMap<>(302);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1445,6 +1461,8 @@ public final class L10nTranslations {
                 "Arkada\u015f etkinli\u011fini ve yorum \u00f6nizlemesini gizle");
         table.put("Hide the Follow button",
                 "Takip Et d\u00fc\u011fmesini gizle");
+        table.put("Hide the Reels tab",
+                "Reels sekmesini gizle");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Kaydetti\u011fin foto\u011fraf veya videonun ilerleme durumu ve iptal etmek i\u00e7in bir d\u00fc\u011fme");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -1555,15 +1573,17 @@ public final class L10nTranslations {
                 "Kaynak kodu ve sorunlar");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Sponsorlu g\u00f6nderiler, reels ve hik\u00e2yeler. Instagram'a hi\u00e7 reklam eklenmedi\u011fi s\u00f6ylenir, b\u00f6ylece bo\u015fluk kalmaz.");
-        table.put("Stays in while paused",
-                "Duraklat\u0131lsa da devrede kal\u0131r");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Stays in while paused",
+                "Duraklat\u0131lsa da devrede kal\u0131r");
         table.put("Stop Story auto-advance",
                 "Hikayelerin otomatik ge\u00e7i\u015fini durdur");
         table.put("Stories",
                 "Hikayeler");
+        table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
+                "Reels'i sekme \u00e7ubu\u011fundan kald\u0131r\u0131r. Ak\u0131\u015f\u0131ndaki reels'ler ve sana g\u00f6nderilen reels'ler a\u00e7\u0131lmaya devam eder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan stkn, igsh, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r, biyografi ba\u011flant\u0131lar\u0131n\u0131 Instagram'\u0131n t\u0131klama izleyicisinden ge\u00e7meden a\u00e7ar. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
         table.put("Tap to play",

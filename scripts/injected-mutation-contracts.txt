@@ -236,3 +236,13 @@ once-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->holdBackPost()
 # handler likes through the answer. It comes after the skip and forward gestures, so it isn't
 # first. The handler is the one method with the purge marker the patch finds it by.
 once-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->likeAction(Ljava/lang/Object;)Ljava/lang/Object; in instance (*)V holding android_purge_26_q3_GestureActionHandler_handleDoubleTapMedia
+#
+# Hide the Reels tab asks the extension first thing in the tab host's switch to a tab, the one
+# static method holding the report it files when it finds no pager, and the switch goes on with the
+# answer. Left out, a start or a notification can still open the Reels tab; twice or elsewhere, it
+# isn't the ask the patch wrote.
+start-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object; in static (*)V holding feed_viewpager_view_not_found
+shared-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object; in static (*)V holding feed_viewpager_view_not_found
+# The tab list builder's return and the home tab's return of Reels hold no string a rule could pick
+# them by, and the home tab calls ReelsTab.tab as well, so the switch's rule is shared-call.
+# HideReelsTabHookTest checks on the 449 fixture that each of the three lands once, where it should.

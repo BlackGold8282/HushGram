@@ -201,6 +201,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("A double tap on a post or reel no longer likes it or shows a heart. A single tap and "
                             + "the Like button work as before.")));
         }
+        if (build.contains(PatchFamily.REELS_TAB)) {
+            reels.add(toggle(context, Settings.HIDE_REELS_TAB, L10n.t("Hide the Reels tab"),
+                    L10n.t("Takes Reels off the tab bar. Reels in your feed and reels people send you still "
+                            + "open. Restart Instagram after changing it.")));
+        }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"));
             for (Preference row : reels) section.addPreference(row);

@@ -115,6 +115,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_turn_off_double_tap_like", TRUE);
 
     /**
+     * Reels is off the tab bar, and a start or a switch meant for it lands on Home. Instagram builds
+     * its tab list as it starts, so a change takes a restart. The patch is off in the default
+     * selection, so a build that has it asked for it, and the switch starts on.
+     */
+    public static final BooleanSetting HIDE_REELS_TAB =
+            new BooleanSetting("hushgram_hide_reels_tab", TRUE, true);
+
+    /**
      * Download in the menu of anyone's story, photo or video, saving it through the save pipeline
      * below. Instagram's own menu offers a save only on your own stories.
      */
