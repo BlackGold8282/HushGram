@@ -1,5 +1,5 @@
 {
-  "note": "Where every shipped source file under patches/ and extensions/ came from. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. A Meta-app repository named here also has to be allowed by sources/instagram-sources.json.",
+  "note": "Where every shipped source file under patches/ and extensions/ came from, and the release scripts ported with them, which their rule names one by one. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. A Meta-app repository named here also has to be allowed by sources/instagram-sources.json.",
   "rules": [
     {
       "paths": [
@@ -86,6 +86,23 @@
       "commit": "814acd23d7b70d5d23abce6cb6c97767e16a051e",
       "license": "GPL-3.0-only",
       "changes": "Hushfacebook's TapClock and the decision core of TapToPlay, packages moved from app.morphe.extension.facebook to app.hushgram.extension.instagram. Instagram's starts carry a reason string instead of Facebook's EventTriggerType, and it can't tell a tap from an automatic start, so the control triggers and the visibility triggers went: a start goes ahead on an armed player or within a second of a tap. The legacy player, the Reels play button and overlay hooks went with them. The Autoplay setting reader became a boolean filter on Instagram's VideoAutoplayChecker, and the pause hook takes Instagram's pause reason so a seek, a pinch or a reel's replay keeps the player armed. ResumePoints came over as it was. ResumePlayback kept the thresholds and the player bookkeeping, and reads Instagram's IgVideoPlayerImpl and IgVideoSource through stubs the patch fills, where it read Facebook's VideoPlayerParams by field name. Long reels resume, since Instagram posts nearly every video as a reel. The trigger enum, the release hook and the loop, GIF and audio-only checks went, and Instagram's first video start ages the saved points instead of Facebook's app start. The tests were ported with them. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "scripts/advisory-exceptions.txt",
+        "scripts/build-release-receipt.ps1",
+        "scripts/release-advisories.ps1",
+        "scripts/release-receipt.ps1",
+        "scripts/validate-release-facts.ps1"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "814acd23d7b70d5d23abce6cb6c97767e16a051e",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's release tooling: the provenance receipt and its SBOM, the receipt builder, the OSV advisory gate with its exceptions file, and the release facts check. The receipt builder reads the declared Instagram builds out of HUSHGRAM_FIXTURE_DIR, finds the desktop CLI the way the other scripts here do, and writes SHA256SUMS.txt beside the bundle. The release facts check reads Instagram's package, build and bug form and HushGram's source ledger, and it has a mode for the time before the first release, when there's no patches-bundle.json yet. Morphe Manager's changelog scope is Instagram, and the SBOM's first-party mark is HushGram's. The Assert-UrlReachable helper came over into common.ps1 from the same commit. Changed files carry a 'Modified for HushGram' line."
     },
     {
       "paths": [

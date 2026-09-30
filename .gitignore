@@ -48,6 +48,10 @@ __pycache__/
 # Instagram APK fixtures stay local: they are Meta's binaries and never go in the repo
 fixtures/
 
+# The release receipt scripts/build-release-receipt.ps1 writes. A release publishes it beside the
+# bundle; it isn't committed.
+release-receipt-*.json
+
 # Local clones of the patch sources this bundle was assembled from (read, never committed).
 # The ledger of those sources is the one file in there that is tracked.
 /sources/*
