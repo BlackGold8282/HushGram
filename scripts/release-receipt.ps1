@@ -9,6 +9,8 @@
     Modified for HushGram (Instagram), 2026: the aapt2 lookup, the manifest reader and the
     manifest delta with its allowlist live in apk-facts.ps1 here, which this file dot-sources, the
     SBOM's first-party mark is HushGram's, and Morphe Manager's changelog scope is Instagram.
+    Invoke-RepoGit's read of git's output follows Hushfacebook commit
+    3716793a4c7f0cda3595b021cff12316aafea41f (Use-Utf8ConsoleOutput, in common.ps1).
 
     Dot-sourced by build-release-receipt.ps1 and validate-release-facts.ps1. A checksum on its
     own says a file has not changed since somebody hashed it. It cannot say which APK the patches
@@ -539,7 +541,8 @@ function Invoke-RepoGit {
         git writes what it shows as UTF-8, and PowerShell reads a native command's output in the
         console's code page, which is 437 in a hook started from Git Bash. A file read out of a
         commit came back with its byte order mark as three characters, and any other character
-        past ASCII changed the same way, so the output is read as UTF-8 for the call.
+        past ASCII changed the same way, so Use-Utf8ConsoleOutput (common.ps1) has PowerShell read
+        UTF-8 for the call, even in a process with no console.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Root,
@@ -554,13 +557,10 @@ function Invoke-RepoGit {
     # Windows PowerShell 5.1 turns a native command's stderr into a terminating error under
     # Stop even when it is redirected. Relax for the call and restore afterwards.
     $preference = $ErrorActionPreference
-    $encoding = [Console]::OutputEncoding
     try {
         $ErrorActionPreference = 'Continue'
-        [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
-        return & git -C $Root @Arguments 2>$null
+        return Use-Utf8ConsoleOutput { & git -C $Root @Arguments 2>$null }
     } finally {
-        [Console]::OutputEncoding = $encoding
         $ErrorActionPreference = $preference
         foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
     }

@@ -69,7 +69,11 @@ $zero = '0' * 40
 function Write-Step([string]$Message) { Write-Host "[pre-push] $Message" }
 function Stop-Push([string]$Message) { Write-Host "[pre-push] refused: $Message"; exit 1 }
 function Invoke-Git {
-    $output = & git -C $Root @args
+    # git's output is read as UTF-8 (Use-Utf8ConsoleOutput), so a non-ASCII path or message comes
+    # back whole when the push starts in Git Bash. $args is copied first, since inside the block
+    # $args is the block's own.
+    $gitArguments = $args
+    $output = Use-Utf8ConsoleOutput { & git -C $Root @gitArguments }
     if ($LASTEXITCODE -ne 0) { throw "git $($args -join ' ') failed with exit $LASTEXITCODE" }
     return $output
 }
