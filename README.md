@@ -86,6 +86,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - Settings open from the launcher shortcut only for now. A launcher that doesn't show app shortcuts on a long press can't reach them yet, and an entry inside Instagram's own settings is planned.
 - Sanitize sharing links covers Copy link, the Android share sheet and the post and story links Instagram's server hands out. A profile's share link, and sharing straight into another app from Instagram's own row of app icons, aren't covered yet.
 - Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. Instagram has other reporting paths, and this patch doesn't claim to stop every one.
+- A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
 - Only one Instagram build has been checked so far. Expect a patch to stop on a newer one until it's checked.
 
 ## Troubleshooting

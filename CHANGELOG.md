@@ -16,3 +16,4 @@ The first set of patches, checked against Instagram 449.0.0.52.84 (build 3855118
 * `HushGram settings`, from Hushfacebook: a switch for each feature, Pause, automatic safe mode after three quick crashes in a row, Debug logging and a diagnostic report that leaves out links, IDs, cookies and sign-in tokens. It opens from a shortcut on Instagram's launcher icon, and that works before you sign in too: when Instagram's sign-in screen comes up over it, the settings move in front.
 * Runs on Android 9 and newer, which is Instagram 449's own floor. The settings screen, the launcher shortcut, safe mode and the report export all have Android 9 and 10 paths, since Hushfacebook's code expected Android 11.
 * German, Spanish, Indonesian, Brazilian Portuguese and Turkish translations for everything HushGram shows.
+* Checked beside a patched Threads signed with the same key: neither declares anything the other does, and both open and run side by side.
