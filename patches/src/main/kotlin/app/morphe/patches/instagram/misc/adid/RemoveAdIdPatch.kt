@@ -25,13 +25,17 @@ internal val AD_PERMISSIONS = listOf(
     "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
 )
 
+/** The two elements a manifest asks for a permission with; the second only on Android 6 and later. */
+private val REQUEST_TAGS = listOf("uses-permission", "uses-permission-sdk-23")
+
 /**
- * Takes every request for [AD_PERMISSIONS] out of [manifest]. A manifest that doesn't ask for all
- * of them isn't one this was checked against, so it's refused before anything is removed.
+ * Takes every request for [AD_PERMISSIONS] out of [manifest], in either form. A manifest that doesn't
+ * ask for all of them isn't one this was checked against, so it's refused before anything is removed.
  */
 internal fun removeAdPermissions(manifest: Document) {
-    val requests = manifest.getElementsByTagName("uses-permission")
-        .let { list -> (0 until list.length).map { list.item(it) as Element } }
+    val requests = REQUEST_TAGS.flatMap { tag ->
+        manifest.getElementsByTagName(tag).let { list -> (0 until list.length).map { list.item(it) as Element } }
+    }
     val byName = AD_PERMISSIONS.associateWith { name -> requests.filter { it.getAttribute("android:name") == name } }
     val missing = byName.filterValues { it.isEmpty() }.keys
     if (missing.isNotEmpty()) {

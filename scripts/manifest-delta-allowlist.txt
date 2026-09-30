@@ -7,7 +7,8 @@
 #   exported-removed     <kind>:<class>         something other apps can no longer reach
 #
 # scripts/verify-all-patches.ps1 reads it and stops a run whose patched manifest changed in a way
-# it doesn't list.
+# it doesn't list. That run applies every patch, so it also stops when a change listed here is
+# missing: each line is a change some patch makes.
 #
 # The settings shortcut is published at run time and every hook but one is bytecode, so the patched
 # manifest should read like stock. A patch that asks for a permission, drops one, or changes what

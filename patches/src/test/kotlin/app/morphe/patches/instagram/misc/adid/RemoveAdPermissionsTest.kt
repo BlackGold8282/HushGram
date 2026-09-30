@@ -28,6 +28,17 @@ class RemoveAdPermissionsTest {
         assertEquals("the ad services library", 1, manifest.getElementsByTagName("uses-library").length)
     }
 
+    /** A request in the Android 6 form goes too, and one asked for only that way counts as asked for. */
+    @Test
+    fun theAndroidSixFormGoesToo() {
+        val manifest = manifest(others + AD_PERMISSIONS.drop(1), sdk23 = AD_PERMISSIONS + "android.permission.CAMERA")
+
+        removeAdPermissions(manifest)
+
+        assertEquals(others, requested(manifest))
+        assertEquals(listOf("android.permission.CAMERA"), requested(manifest, "uses-permission-sdk-23"))
+    }
+
     /** A manifest that doesn't ask for one of them fails at patch time, naming it, with nothing removed. */
     @Test
     fun aManifestMissingOneFailsBeforeAnythingIsRemoved() {
@@ -42,16 +53,17 @@ class RemoveAdPermissionsTest {
         }
     }
 
-    private fun manifest(permissions: List<String>): Document {
+    private fun manifest(permissions: List<String>, sdk23: List<String> = emptyList()): Document {
         val xml = buildString {
             append("""<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.instagram.android">""")
             permissions.forEach { append("""<uses-permission android:name="$it"/>""") }
+            sdk23.forEach { append("""<uses-permission-sdk-23 android:name="$it"/>""") }
             append("""<application><property android:name="android.adservices.AD_SERVICES_CONFIG" android:resource="@xml/ad_services_config"/>""")
             append("""<uses-library android:name="android.ext.adservices" android:required="false"/></application></manifest>""")
         }
         return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml.byteInputStream())
     }
 
-    private fun requested(manifest: Document): List<String> = manifest.getElementsByTagName("uses-permission")
+    private fun requested(manifest: Document, tag: String = "uses-permission"): List<String> = manifest.getElementsByTagName(tag)
         .let { list -> (0 until list.length).map { (list.item(it) as Element).getAttribute("android:name") } }
 }

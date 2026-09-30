@@ -181,6 +181,7 @@ try {
     if ($cliExitCode -ne 0) { Write-Warning "The desktop CLI exited with $cliExitCode." }
     if (-not $validation.Valid) { Write-Warning "[verify] $($validation.Reason)" }
     $unapprovedChanges = @()
+    $unmade = @()
     if ($cliExitCode -eq 0 -and $validation.Valid) {
         # What patching did to the manifest, against the APK the CLI patched, held to the allowlist.
         $manifestChanges = @(ConvertTo-ManifestDeltaEntries -Delta (Get-ManifestDelta `
@@ -193,12 +194,21 @@ try {
             $mark = if ($approvedChanges -ccontains $change) { 'approved' } else { 'NOT APPROVED' }
             Write-Host "[verify]   $change ($mark)"
         }
+        # Every patch is applied here, so each approved change is one this run should have made. One
+        # left out means the patch that makes it no longer does, which the patch's own status row
+        # can't show: that comes from its bytecode half.
         $unmade = @($approvedChanges | Where-Object { $manifestChanges -cnotcontains $_ })
-        if ($unmade.Count -gt 0) { Write-Host "[verify] approved but not made here: $($unmade -join ', ')" }
+        if ($unmade.Count -gt 0) { Write-Host "[verify] approved but not made: $($unmade -join ', ')" }
     }
-    if ($cliExitCode -eq 0 -and $validation.Valid -and $unapprovedChanges.Count -gt 0) {
-        Write-Warning ('[verify] the patched manifest changed in ways scripts/manifest-delta-allowlist.txt ' +
-            "doesn't approve: $($unapprovedChanges -join ', ')")
+    if ($cliExitCode -eq 0 -and $validation.Valid -and ($unapprovedChanges.Count -gt 0 -or $unmade.Count -gt 0)) {
+        if ($unapprovedChanges.Count -gt 0) {
+            Write-Warning ('[verify] the patched manifest changed in ways scripts/manifest-delta-allowlist.txt ' +
+                "doesn't approve: $($unapprovedChanges -join ', ')")
+        }
+        if ($unmade.Count -gt 0) {
+            Write-Warning ('[verify] scripts/manifest-delta-allowlist.txt approves changes every patch together ' +
+                "should make, and the patched manifest doesn't have them: $($unmade -join ', ')")
+        }
     } elseif ($cliExitCode -eq 0 -and $validation.Valid) {
         # The rebuilt resource table against the stock one. A resource patch has Morphe decode and
         # rebuild the app's whole table, and an id the rebuild loses only fails when the app
