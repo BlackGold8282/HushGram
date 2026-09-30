@@ -34,7 +34,7 @@ val disableAnalyticsPatch = bytecodePatch(
     execute {
         requireStatusMethod("disableAnalytics")
 
-        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph")) { target ->
+        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt")) { target ->
             when (target) {
                 // Instagram's own logging_client_events and pigeon_nest addresses, built from a host.
                 "builder" -> AnalyticsEndpointFingerprint.matchAllOrNull().orEmpty().let { matches ->
@@ -44,6 +44,9 @@ val disableAnalyticsPatch = bytecodePatch(
                         else -> "${matches.size} methods build the logging_client_events address, expected one"
                     }
                 }
+                // The address the MQTT client posts its analytics to, which the server can set in the
+                // client's settings. Its fallback is the Graph address, which "graph" covers already.
+                "mqtt" -> wrapMqttAnalyticsEndpoint(ENDPOINT)
                 // The same events to Facebook's Graph API, as a constant wherever Instagram names it.
                 else -> if (filterEveryStringLoad(GRAPH_LOGGING_ENDPOINT, ENDPOINT) > 0) {
                     null

@@ -15,6 +15,7 @@ Every HushGram release, newest first.
 * New patch, `Download any video`, off until you pick it. A post in your feed that is a video gets Download in its menu, and a tap saves it at your download quality without Instagram's watermark. Its switch is under Downloads.
 * New Downloads section in HushGram's settings. It lists the saves that are running, each with a Cancel button, and holds the download quality, the save folder, the video file name and a switch that saves videos other apps can open.
 * New patch, `Stop Story auto-advance`. A story stays on screen until you tap or swipe, however long it runs. Turn its switch off for Instagram's timing.
+* `Disable analytics` also covers the analytics address Instagram's server can hand its push connection. Before, only the address built into the app went to the loopback address, and a different one from the server went through as is.
 
 ### HushGram v0.0.1
 

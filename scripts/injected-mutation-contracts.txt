@@ -38,6 +38,9 @@ once-call Lapp/hushgram/extension/instagram/misc/BuildExpiry;->suppress()Z in (L
 # builder's rule is shared-call: the builder calls it once and no other method holding its strings
 # calls it, whoever else does.
 shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String; in static (Ljava/lang/String;Z)Ljava/lang/String; holding https:// /pigeon_nest /logging_client_events
+# The MQTT client's settings constructor, the one taking a JSONObject that holds both keys below,
+# hands the analytics_endpoint value it reads to endpoint() once.
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String; in instance (Lorg/json/JSONObject;)V holding php_sandbox_host_name mqtt-mini.facebook.com
 #
 # Don't send reel watch history asks the extension first thing in both record methods of the batch
 # Instagram posts to clips/write_seen_state/. The one recording a reel reached, an instance method
