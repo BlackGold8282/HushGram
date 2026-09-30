@@ -1,5 +1,7 @@
 # Indonesian for HushGram: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+%1$s of %2$s	%1$s dari %2$s
+%1$s so far	%1$s terunduh
 %1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
 A diagnostic report is already being saved.	Sudah ada laporan diagnostik yang sedang disimpan.
@@ -13,6 +15,7 @@ Clear diagnostic data	Hapus data diagnostik
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
 Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
 Copy quick report	Salin laporan singkat
+Copying to the gallery	Menyalin ke galeri
 Couldn't put back the diagnostic data. Try again.	Data diagnostik tidak dapat dikembalikan. Coba lagi.
 Couldn't start the report export. Try again shortly.	Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.
 Couldn't turn HushGram back on. Try again.	HushGram tidak dapat diaktifkan lagi. Coba lagi.
@@ -21,6 +24,8 @@ Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketu
 Diagnostic data put back.	Data diagnostik dikembalikan.
 Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
 Disable analytics	Nonaktifkan analitik
+Download failed	Unduhan gagal
+Downloading	Mengunduh
 Empties the log and the hook counts a report would include.	Mengosongkan log dan hitungan hook yang akan dimasukkan ke laporan.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
 Export diagnostic report	Ekspor laporan diagnostik
@@ -28,10 +33,12 @@ From the next start, every switch but Debug logging acts as if it were off. Chan
 Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya
 Hide ads	Sembunyikan iklan
+How far a photo or video you're saving has got, with a button to cancel it	Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya
 HushGram %1$s on Instagram %2$s	HushGram %1$s di Instagram %2$s
 HushGram is on	HushGram aktif
 HushGram is paused	HushGram dijeda
 HushGram pauses when Instagram restarts.	HushGram dijeda saat Instagram dimulai ulang.
+HushGram saves	Penyimpanan HushGram
 HushGram settings	Pengaturan HushGram
 HushGram settings couldn't open	Pengaturan HushGram tidak dapat dibuka
 HushGram turns back on when Instagram restarts.	HushGram aktif lagi saat Instagram dimulai ulang.
@@ -39,8 +46,12 @@ Instagram crashed or froze within a minute of starting three times in a row, so 
 Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.	Instagram berhenti menampilkan layar yang menyatakan versi ini terlalu lama. Build yang ditambal tidak memperbarui dirinya sendiri, jadi ini membuatnya tetap bisa dipakai.
 Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.	Pemeriksaan tanda tangan milik Instagram sendiri melihat sertifikat aslinya, jadi tetap lolos pada build yang ditandatangani ulang ini.
 Instagram's usage events go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Peristiwa penggunaan Instagram dikirim ke alamat di ponsel ini yang menolaknya, bukan ke Instagram dan Facebook. Mulai ulang Instagram setelah mengubahnya.
+Joining the picture and sound	Menggabungkan gambar dan suara
 Licenses	Lisensi
+Link expired. Reopen the item and try again	Tautan kedaluwarsa. Buka ulang kontennya lalu coba lagi
 No app on this phone can open the link. The address is %1$s.	Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.
+Not saved: that isn't an Instagram photo or video	Tidak disimpan: itu bukan foto atau video Instagram
+Not saved: the file is over 512 MB	Tidak disimpan: file lebih dari 512 MB
 OK	Oke
 Pause HushGram	Jeda HushGram
 Pause and diagnostics	Jeda dan diagnostik
@@ -49,9 +60,18 @@ Record patch activity and show errors for a bug report. Leave off during normal 
 Remove build expired popup	Hapus popup build kedaluwarsa
 Retry	Coba lagi
 Sanitize sharing links	Bersihkan tautan berbagi
+Save cancelled	Penyimpanan dibatalkan
 Save full report	Simpan laporan lengkap
 Save the full report in Download/Morphe.	Simpan laporan lengkap di Download/Morphe.
+Saved to %1$s	Disimpan ke %1$s
+Saved to %1$s in lower quality than on Instagram	Disimpan ke %1$s dengan kualitas lebih rendah daripada di Instagram
+Saved to the gallery	Disimpan ke galeri
+Saved to the gallery in lower quality than on Instagram	Disimpan ke galeri dengan kualitas lebih rendah daripada di Instagram
 Saved. Restart Instagram to apply this change.	Tersimpan. Mulai ulang Instagram untuk menerapkan perubahan ini.
+Saving a photo	Menyimpan foto
+Saving a video	Menyimpan video
+Saving...	Menyimpan...
+Saving... Cancel: Downloads in HushGram.	Menyimpan... Batal: Unduhan di HushGram.
 Set when you patched	Diatur saat Anda menambal
 Settings couldn't open	Pengaturan tidak dapat dibuka
 Settings couldn't refresh completely. Reopen settings and try again.	Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.

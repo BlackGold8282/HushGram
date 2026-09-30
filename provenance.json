@@ -41,6 +41,26 @@
     },
     {
       "paths": [
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/**",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/download/**",
+        "extensions/instagram/src/test/resources/app/hushgram/extension/instagram/download/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "3a47363954eea853357e71e7cf3951a5ee984cee",
+      "via": [
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Hushfacebook's video and photo save pipeline, packages moved from app.morphe.extension.facebook to app.hushgram.extension.instagram. MediaDownload became MediaSave without its Facebook hooks: saveVideo, savePhoto and saveItem take the single files as renditions with any size and bitrate the app states, an optional DASH manifest and the post's details, and RenditionPicker ranks a stated size above the address's marker, with a stated bitrate breaking a tie. PostDetails keeps only its value and reads an Instagram media id. PlayerSources, ReelDownload, VideoMenuItem, the settings rows and the patches were left out, with the tests that only drove them. MediaStoreWriter writes the file itself on Android 9, which has no pending rows, and SaveLeftovers sweeps what that leaves. The folder, file names, notification channel and ledger are HushGram's own, and the save text names Instagram. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/instagram/ads/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/analytics/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/buildexpiry/**",

@@ -1,5 +1,7 @@
 # German for HushGram: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+%1$s of %2$s	%1$s von %2$s
+%1$s so far	Bisher %1$s
 %1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Das wurde beim Patchen festgelegt, deshalb kann die Pause es nicht ausschalten. Um es auszuschließen, patche erneut und lass diesen Patch weg.
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Diese wurden beim Patchen festgelegt, deshalb kann die Pause sie nicht ausschalten. Um eines davon auszuschließen, patche erneut und lass den Patch weg, der in Klammern dahinter steht.
 A diagnostic report is already being saved.	Ein Diagnosebericht wird bereits gespeichert.
@@ -13,6 +15,7 @@ Clear diagnostic data	Diagnosedaten löschen
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kopiere einen Kurzbericht oder speichere den vollständigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Prüfe ihn vor dem Teilen auf andere private Angaben.
 Copy a short report to the clipboard.	Kurzen Bericht in die Zwischenablage kopieren.
 Copy quick report	Kurzbericht kopieren
+Copying to the gallery	Wird in die Galerie kopiert
 Couldn't put back the diagnostic data. Try again.	Die Diagnosedaten ließen sich nicht wiederherstellen. Versuche es noch einmal.
 Couldn't start the report export. Try again shortly.	Der Export des Berichts ließ sich nicht starten. Versuche es gleich noch einmal.
 Couldn't turn HushGram back on. Try again.	HushGram ließ sich nicht wieder einschalten. Versuche es noch einmal.
@@ -21,6 +24,8 @@ Diagnostic data cleared. Tap again to put it back.	Diagnosedaten gelöscht. Tipp
 Diagnostic data put back.	Diagnosedaten wiederhergestellt.
 Diagnostic report copied to the clipboard.	Diagnosebericht in die Zwischenablage kopiert.
 Disable analytics	Analysedaten deaktivieren
+Download failed	Download fehlgeschlagen
+Downloading	Wird heruntergeladen
 Empties the log and the hook counts a report would include.	Leert das Protokoll und die Hook-Zähler, die ein Bericht enthalten würde.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Jeder Schalter außer der Debug-Protokollierung verhält sich, als wäre er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.
 Export diagnostic report	Diagnosebericht exportieren
@@ -28,10 +33,12 @@ From the next start, every switch but Debug logging acts as if it were off. Chan
 Full report saved to %1$s	Vollständiger Bericht gespeichert unter %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut
 Hide ads	Werbung ausblenden
+How far a photo or video you're saving has got, with a button to cancel it	Fortschritt beim Speichern eines Fotos oder Videos, mit einem Button zum Abbrechen
 HushGram %1$s on Instagram %2$s	HushGram %1$s auf Instagram %2$s
 HushGram is on	HushGram ist aktiv
 HushGram is paused	HushGram ist pausiert
 HushGram pauses when Instagram restarts.	HushGram pausiert, sobald Instagram neu startet.
+HushGram saves	Speichern mit HushGram
 HushGram settings	HushGram-Einstellungen
 HushGram settings couldn't open	HushGram-Einstellungen ließen sich nicht öffnen
 HushGram turns back on when Instagram restarts.	HushGram ist wieder aktiv, sobald Instagram neu startet.
@@ -39,8 +46,12 @@ Instagram crashed or froze within a minute of starting three times in a row, so 
 Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.	Instagram zeigt den Bildschirm nicht mehr an, der meldet, dass diese Version zu alt ist. Ein gepatchter Build aktualisiert sich nicht von selbst, so bleibt er nutzbar.
 Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.	Die eigenen Signaturprüfungen von Instagram sehen die Originalzertifikate und bestehen deshalb auch mit diesem neu signierten Build.
 Instagram's usage events go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Die Nutzungsereignisse von Instagram gehen an eine Adresse auf diesem Telefon, die sie abweist, statt an Instagram und Facebook. Starte Instagram nach einer Änderung neu.
+Joining the picture and sound	Bild und Ton werden zusammengefügt
 Licenses	Lizenzen
+Link expired. Reopen the item and try again	Link abgelaufen. Öffne den Inhalt neu und versuche es noch einmal
 No app on this phone can open the link. The address is %1$s.	Keine App auf diesem Handy kann den Link öffnen. Die Adresse ist %1$s.
+Not saved: that isn't an Instagram photo or video	Nicht gespeichert: Das ist kein Foto oder Video von Instagram
+Not saved: the file is over 512 MB	Nicht gespeichert: Die Datei ist über 512 MB groß
 OK	OK
 Pause HushGram	HushGram pausieren
 Pause and diagnostics	Pause und Diagnose
@@ -49,9 +60,18 @@ Record patch activity and show errors for a bug report. Leave off during normal 
 Remove build expired popup	Hinweis auf abgelaufene Version entfernen
 Retry	Erneut versuchen
 Sanitize sharing links	Geteilte Links bereinigen
+Save cancelled	Speichern abgebrochen
 Save full report	Vollständigen Bericht speichern
 Save the full report in Download/Morphe.	Vollständigen Bericht unter Download/Morphe speichern.
+Saved to %1$s	Gespeichert unter %1$s
+Saved to %1$s in lower quality than on Instagram	Gespeichert unter %1$s, in geringerer Qualität als auf Instagram
+Saved to the gallery	In der Galerie gespeichert
+Saved to the gallery in lower quality than on Instagram	In der Galerie gespeichert, in geringerer Qualität als auf Instagram
 Saved. Restart Instagram to apply this change.	Gespeichert. Starte Instagram neu, um diese Änderung zu übernehmen.
+Saving a photo	Foto wird gespeichert
+Saving a video	Video wird gespeichert
+Saving...	Wird gespeichert …
+Saving... Cancel: Downloads in HushGram.	Wird gespeichert … Abbrechen: Downloads in HushGram.
 Set when you patched	Beim Patchen festgelegt
 Settings couldn't open	Einstellungen ließen sich nicht öffnen
 Settings couldn't refresh completely. Reopen settings and try again.	Die Einstellungen ließen sich nicht vollständig aktualisieren. Öffne sie neu und versuche es noch einmal.

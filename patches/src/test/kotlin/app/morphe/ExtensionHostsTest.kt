@@ -13,7 +13,9 @@ import org.junit.Test
 
 /**
  * What the README's Privacy section says about the extension, held to its source: which web
- * addresses the code names, and that nothing in it opens a connection by itself.
+ * addresses the code names, and the one place that opens a connection by itself, the save
+ * pipeline's Downloader, which fetches only what the person saves and only from Meta's media
+ * servers (MediaUrlPolicy).
  *
  * <p>Comments don't count. Licence headers and design notes name hosts the code never contacts,
  * so string literals and code are read apart first, which also stops the `//` inside a URL from
@@ -39,12 +41,13 @@ class ExtensionHostsTest {
     }
 
     @Test
-    fun `nothing in the extension opens a connection itself`() {
+    fun `only the media transport opens a connection itself`() {
         val openers = sources().filter { (_, source) -> NETWORK.containsMatchIn(split(source).second) }
             .map { it.first }.toSortedSet()
         assertEquals(
-            "The README says the extension never goes online by itself. These files open connections",
-            sortedSetOf<String>(),
+            "The extension goes online by itself only to download what the person saves, through the " +
+                "save pipeline's Downloader. These files open connections",
+            TRANSPORTS.toSortedSet(),
             openers,
         )
     }
@@ -105,6 +108,15 @@ class ExtensionHostsTest {
          * address Disable analytics sends Instagram's events to, which never leaves the phone.
          */
         val ALLOWED_HOSTS = setOf("github.com", "127.0.0.1")
+
+        /**
+         * The files that may open a connection. The save pipeline's Downloader fetches what the
+         * person saves, from Meta's media servers only. The README's Privacy section has to say so
+         * once a patch calls it.
+         */
+        val TRANSPORTS = listOf(
+            "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/Downloader.java",
+        )
         val URL = Regex("""(?:https?|wss?)://([A-Za-z0-9.-]+)""")
         val NETWORK = Regex(
             """\b(?:HttpURLConnection|HttpsURLConnection|URLConnection|openConnection|Socket|SSLSocket|""" +
