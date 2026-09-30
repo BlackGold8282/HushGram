@@ -41,4 +41,8 @@ public final class SettingsStatus {
     public static boolean reelWatchHistory() {
         return false;
     }
+
+    public static boolean storyAutoAdvance() {
+        return false;
+    }
 }

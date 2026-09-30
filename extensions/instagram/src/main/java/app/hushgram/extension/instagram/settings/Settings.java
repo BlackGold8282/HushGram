@@ -52,4 +52,11 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DONT_SEND_REEL_WATCH_HISTORY =
             new BooleanSetting("hushgram_dont_send_reel_watch_history", TRUE);
+
+    /**
+     * A story whose photo timer ran out or whose video ended stays on screen until you tap or
+     * swipe, instead of the viewer moving on by itself.
+     */
+    public static final BooleanSetting BLOCK_STORY_AUTO_ADVANCE =
+            new BooleanSetting("hushgram_block_story_auto_advance", TRUE);
 }

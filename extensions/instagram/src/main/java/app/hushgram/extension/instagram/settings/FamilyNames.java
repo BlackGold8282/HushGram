@@ -22,6 +22,7 @@ public final class FamilyNames {
     public static final String BUILD_EXPIRED_POPUP = "Remove build expired popup";
     public static final String RESTORE_TRUST = "Restore trust on re-signed builds";
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
+    public static final String STORY_AUTO_ADVANCE = "Stop Story auto-advance";
 
     private FamilyNames() {
     }

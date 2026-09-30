@@ -144,6 +144,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : reels) section.addPreference(row);
         }
 
+        if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
+            PreferenceCategory stories = category(screen, L10n.t("Stories"));
+            stories.addPreference(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
+                    L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.")));
+        }
+
         if (build.contains(PatchFamily.BUILD_EXPIRED_POPUP)) {
             PreferenceCategory updates = category(screen, L10n.t("Updates"));
             updates.addPreference(toggle(context, Settings.REMOVE_BUILD_EXPIRED_POPUP,

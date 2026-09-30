@@ -84,6 +84,9 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # calls to stand-ins. The patcher rewrites only the root classes*.dex, and the in-app browser's dex
 # (split_heliumcore, three dex entries in the merge) still makes those calls itself, so a no-call
 # rule, which counts every dex, can't hold.
+# Stop Story auto-advance puts its call first in the story viewer's handler for a finished item,
+# which its fingerprint picks by the viewer's kept class name. The handler holds "userSession" and a
+# string with spaces, and 13 instance methods taking an Object hold "userSession" on 449.
 # Restore trust on re-signed builds puts its call first in the package signer reader, which its
 # fingerprint picks by the SigningInfo and PackageInfo calls it makes. The reader holds no string,
 # so no rule can pick it.

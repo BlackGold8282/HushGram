@@ -43,7 +43,9 @@ public enum PatchFamily {
             Settings.REMOVE_BUILD_EXPIRED_POPUP),
     RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix"),
     REEL_WATCH_HISTORY(FamilyNames.REEL_WATCH_HISTORY, "reelWatchHistory", null,
-            Settings.DONT_SEND_REEL_WATCH_HISTORY);
+            Settings.DONT_SEND_REEL_WATCH_HISTORY),
+    STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
+            Settings.BLOCK_STORY_AUTO_ADVANCE);
 
     /** The name Morphe Manager lists the patch under. */
     public final String patchName;
