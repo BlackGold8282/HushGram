@@ -108,6 +108,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_download_reels", TRUE);
 
     /**
+     * A double tap on a post in the feed or on a reel doesn't like it. The patch is off in the
+     * default selection, so a build that has it asked for it, and the switch starts on.
+     */
+    public static final BooleanSetting TURN_OFF_DOUBLE_TAP_LIKE =
+            new BooleanSetting("hushgram_turn_off_double_tap_like", TRUE);
+
+    /**
      * Download in the menu of anyone's story, photo or video, saving it through the save pipeline
      * below. Instagram's own menu offers a save only on your own stories.
      */

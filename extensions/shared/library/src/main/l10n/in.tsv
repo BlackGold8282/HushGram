@@ -147,3 +147,5 @@ Instagram isn't told which stories you watch, so you stay off their viewer lists
 Advertising ID removed	ID iklan dihapus
 Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.	Instagram tidak dapat membaca ID iklan ponselmu atau memberi tahu layanan iklan Android iklan mana yang kamu lihat atau ketuk. Izin untuk itu sudah dihapus dari build ini.
 the removed advertising ID permissions	izin ID iklan yang dihapus
+Turn off double tap to like	Matikan ketuk dua kali untuk menyukai
+A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.	Mengetuk dua kali postingan atau reel tidak lagi menyukainya atau menampilkan hati. Satu ketukan dan tombol Suka tetap berfungsi seperti biasa.

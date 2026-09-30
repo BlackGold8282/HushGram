@@ -147,3 +147,5 @@ Instagram isn't told which stories you watch, so you stay off their viewer lists
 Advertising ID removed	Reklam kimliği kaldırıldı
 Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.	Instagram telefonunun reklam kimliğini okuyamaz ve Android'in reklam hizmetlerine hangi reklamları gördüğünü veya dokunduğunu bildiremez. Bunlar için gereken izinler bu sürümden kaldırıldı.
 the removed advertising ID permissions	kaldırılan reklam kimliği izinleri
+Turn off double tap to like	Beğenmek için çift dokunmayı kapat
+A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.	Bir gönderiye veya reel'e çift dokunmak artık onu beğenmez ve kalp göstermez. Tek dokunuş ve Beğen düğmesi eskisi gibi çalışır.

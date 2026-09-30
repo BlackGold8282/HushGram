@@ -147,3 +147,5 @@ Instagram isn't told which stories you watch, so you stay off their viewer lists
 Advertising ID removed	ID de publicidad eliminado
 Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.	Instagram no puede leer el ID de publicidad de tu teléfono ni decir a los servicios de publicidad de Android qué anuncios viste o tocaste. Los permisos para ello ya no están en esta versión.
 the removed advertising ID permissions	los permisos del ID de publicidad eliminados
+Turn off double tap to like	Desactivar tocar dos veces para dar Me gusta
+A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.	Tocar dos veces una publicación o un reel ya no le da Me gusta ni muestra un corazón. Un toque y el botón Me gusta funcionan como antes.

@@ -147,3 +147,5 @@ Instagram isn't told which stories you watch, so you stay off their viewer lists
 Advertising ID removed	Werbe-ID entfernt
 Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.	Instagram kann die Werbe-ID deines Telefons nicht lesen und den Werbediensten von Android nicht mitteilen, welche Anzeigen du gesehen oder angetippt hast. Die Berechtigungen dafür fehlen in diesem Build.
 the removed advertising ID permissions	die entfernten Berechtigungen für die Werbe-ID
+Turn off double tap to like	Doppeltippen zum Liken ausschalten
+A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.	Doppeltippen auf einen Beitrag oder ein Reel vergibt kein „Gefällt mir“ mehr und zeigt kein Herz. Einmal tippen und der „Gefällt mir“-Button funktionieren wie bisher.

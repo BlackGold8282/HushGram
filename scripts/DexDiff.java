@@ -158,11 +158,11 @@ public class DexDiff {
      *       the extension doesn't leave it.
      *   <li>"start-call &lt;method reference&gt; [in [static|instance] &lt;shape&gt;] holding
      *       &lt;string&gt; [&lt;string&gt; ...]": exactly one method outside the bundle's own code
-     *       loads every one of the strings and has the shape, a descriptor such as
-     *       {@code (Landroidx/fragment/app/FragmentActivity;*)V} where * stands for any run of
-     *       characters. That method calls the method reference, with nothing before the call but
-     *       plain instructions (no other call, branch, switch, return or throw), and no other
-     *       method loading the strings calls it.
+     *       loads every one of the strings, a space in one written as \s, and has the shape, a
+     *       descriptor such as {@code (Landroidx/fragment/app/FragmentActivity;*)V} where * stands
+     *       for any run of characters. That method calls the method reference, with nothing before
+     *       the call but plain instructions (no other call, branch, switch, return or throw), and
+     *       no other method loading the strings calls it.
      *   <li>"no-call &lt;method reference&gt; outside &lt;class prefix&gt;": no class but those whose
      *       type starts with &lt;class prefix&gt; calls it. For a call the patch sends to the
      *       extension everywhere, where the extension makes the real one and a call left anywhere
@@ -248,7 +248,9 @@ public class DexDiff {
                 if (isStatic != null) b.append(isStatic ? "static " : "instance ");
                 b.append(shape);
             }
-            return b.append(" holding ").append(String.join(" ", strings)).toString();
+            List<String> written = new ArrayList<>();
+            for (String s : strings) written.add(s.replace(" ", "\\s"));
+            return b.append(" holding ").append(String.join(" ", written)).toString();
         }
 
         /** Whether [m] has this rule's shape: its static flag and its descriptor. */
@@ -306,7 +308,9 @@ public class DexDiff {
             shape = parts[at++];
         }
         if (at >= parts.length || !parts[at].equals("holding")) return null;
-        List<String> strings = new ArrayList<>(Arrays.asList(parts).subList(at + 1, parts.length));
+        // The line is split on spaces, so a string holding one writes it as \s.
+        List<String> strings = new ArrayList<>();
+        for (String s : Arrays.asList(parts).subList(at + 1, parts.length)) strings.add(s.replace("\\s", " "));
         if (strings.isEmpty() || new TreeSet<>(strings).size() != strings.size()) return null;
         return new Contract(kind, parts[1], String.join(" ", strings), after, replaced, strings, isStatic, shape);
     }

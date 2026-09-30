@@ -196,6 +196,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Adds Download to every reel's more menu, saved at your download quality. Off or paused, "
                             + "Instagram's own menu returns.")));
         }
+        if (build.contains(PatchFamily.DOUBLE_TAP_LIKE)) {
+            reels.add(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE, L10n.t("Turn off double tap to like"),
+                    L10n.t("A double tap on a post or reel no longer likes it or shows a heart. A single tap and "
+                            + "the Like button work as before.")));
+        }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"));
             for (Preference row : reels) section.addPreference(row);

@@ -11,7 +11,8 @@
 #   shared-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
 # A start-call, next-call, sole-call, once-call or shared-call rule picks its method by every string
 # it names and its shape, and exactly one of Instagram's methods may answer that; name as much as the
-# patch's own fingerprint finds the method by. A string with a space in it can't be named.
+# patch's own fingerprint finds the method by. A string with a space in it is written with \s for
+# each space.
 #
 # One guard per hot method. A guard the patch puts first in a method gets a start-call rule, which
 # holds it first there and in no other method holding the same strings, and a once-call rule, which
@@ -224,3 +225,14 @@ once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->seeking(Ljava
 # one method that posts the stories you watched to media/seen/. The send holds no string, so no rule
 # can pick it (its class holds pending_reel_seen_states_, the method doesn't). StorySeenHookTest
 # checks on the 449 fixture that the guard lands there once and nowhere else in the store.
+#
+# Turn off double tap to like asks the extension first thing in the feed's onDoubleTapMedia, the one
+# instance method holding the report it files without an activity, and returns there before the
+# heart and the like. Left out, a double tap on a post likes it; twice or elsewhere, it isn't the
+# guard the patch wrote.
+start-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->holdBackPost()Z in instance (*)V holding DefaultMediaHolderGestureDetectorDelegateImpl#onDoubleTapMedia\scalled\swith\snull\sactivity
+once-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->holdBackPost()Z in instance (*)V holding DefaultMediaHolderGestureDetectorDelegateImpl#onDoubleTapMedia\scalled\swith\snull\sactivity
+# In the Reels viewer's double tap it hands over the like action the handler just read, and the
+# handler likes through the answer. It comes after the skip and forward gestures, so it isn't
+# first. The handler is the one method with the purge marker the patch finds it by.
+once-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->likeAction(Ljava/lang/Object;)Ljava/lang/Object; in instance (*)V holding android_purge_26_q3_GestureActionHandler_handleDoubleTapMedia

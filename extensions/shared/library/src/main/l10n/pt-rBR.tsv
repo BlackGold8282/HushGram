@@ -147,3 +147,5 @@ Instagram isn't told which stories you watch, so you stay off their viewer lists
 Advertising ID removed	ID de publicidade removido
 Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.	O Instagram não consegue ler o ID de publicidade do seu celular nem informar aos serviços de anúncios do Android quais anúncios você viu ou tocou. As permissões para isso foram removidas desta versão.
 the removed advertising ID permissions	as permissões do ID de publicidade removidas
+Turn off double tap to like	Desativar toque duplo para curtir
+A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.	Tocar duas vezes em uma publicação ou reel não curte mais nem mostra um coração. Um toque e o botão Curtir funcionam como antes.

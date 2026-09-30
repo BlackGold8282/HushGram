@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(294);
+        Map<String, String> table = new HashMap<>(298);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -66,6 +66,8 @@ public final class L10nTranslations {
                 "%1$s. Diese wurden beim Patchen festgelegt, deshalb kann die Pause sie nicht ausschalten. Um eines davon auszuschlie\u00dfen, patche erneut und lass den Patch weg, der in Klammern dahinter steht.");
         table.put("A diagnostic report is already being saved.",
                 "Ein Diagnosebericht wird bereits gespeichert.");
+        table.put("A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.",
+                "Doppeltippen auf einen Beitrag oder ein Reel vergibt kein \u201eGef\u00e4llt mir\u201c mehr und zeigt kein Herz. Einmal tippen und der \u201eGef\u00e4llt mir\u201c-Button funktionieren wie bisher.");
         table.put("A file named %1$s in %2$s paused HushGram.",
                 "Eine Datei namens %1$s in %2$s hat HushGram pausiert.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
@@ -172,11 +174,11 @@ public final class L10nTranslations {
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
         table.put("Hide Reels in the feed",
                 "Reels im Feed ausblenden");
-        table.put("Hide ads",
-                "Werbung ausblenden");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Hide ads",
+                "Werbung ausblenden");
         table.put("Hide creation and promotion pills",
                 "Hinweise zum Erstellen und Werbung ausblenden");
         table.put("Hide friends' activity and comment previews",
@@ -295,11 +297,11 @@ public final class L10nTranslations {
                 "Gesponserte Beitr\u00e4ge, Reels und Stories. Instagram erf\u00e4hrt, dass keine Werbung eingef\u00fcgt wurde, also bleibt keine L\u00fccke.");
         table.put("Stays in while paused",
                 "Bleibt w\u00e4hrend der Pause aktiv");
-        table.put("Stop Story auto-advance",
-                "Automatisches Weiterschalten von Stories stoppen");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Stop Story auto-advance",
+                "Automatisches Weiterschalten von Stories stoppen");
         table.put("Stories",
                 "Stories");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
@@ -330,6 +332,8 @@ public final class L10nTranslations {
                 "Diese werden beim Patchen in Morphe Manager ausgew\u00e4hlt, und die Pause schaltet sie nicht aus. Patche erneut, um sie zu \u00e4ndern.");
         table.put("Try again, or go back to Instagram.",
                 "Versuche es noch einmal oder kehre zu Instagram zur\u00fcck.");
+        table.put("Turn off double tap to like",
+                "Doppeltippen zum Liken ausschalten");
         table.put("Updates",
                 "Updates");
         table.put("Version",
@@ -357,7 +361,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(294);
+        Map<String, String> table = new HashMap<>(298);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -377,6 +381,8 @@ public final class L10nTranslations {
                 "%1$s. Estos cambios se aplicaron al parchear, as\u00ed que Pausar no puede desactivarlos. Para descartar uno, vuelve a parchear sin el parche que aparece entre par\u00e9ntesis despu\u00e9s de \u00e9l.");
         table.put("A diagnostic report is already being saved.",
                 "Ya se est\u00e1 guardando un informe de diagn\u00f3stico.");
+        table.put("A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.",
+                "Tocar dos veces una publicaci\u00f3n o un reel ya no le da Me gusta ni muestra un coraz\u00f3n. Un toque y el bot\u00f3n Me gusta funcionan como antes.");
         table.put("A file named %1$s in %2$s paused HushGram.",
                 "Un archivo llamado %1$s en %2$s paus\u00f3 HushGram.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
@@ -483,11 +489,11 @@ public final class L10nTranslations {
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
         table.put("Hide Reels in the feed",
                 "Ocultar reels en el feed");
-        table.put("Hide ads",
-                "Ocultar anuncios");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Hide ads",
+                "Ocultar anuncios");
         table.put("Hide creation and promotion pills",
                 "Ocultar las etiquetas de creaci\u00f3n y promoci\u00f3n");
         table.put("Hide friends' activity and comment previews",
@@ -606,11 +612,11 @@ public final class L10nTranslations {
                 "Publicaciones, reels e historias patrocinados. A Instagram se le dice que no se insert\u00f3 ning\u00fan anuncio, as\u00ed que no queda ning\u00fan hueco.");
         table.put("Stays in while paused",
                 "Se mantiene durante la pausa");
-        table.put("Stop Story auto-advance",
-                "Detener el avance autom\u00e1tico de historias");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Stop Story auto-advance",
+                "Detener el avance autom\u00e1tico de historias");
         table.put("Stories",
                 "Historias");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
@@ -641,6 +647,8 @@ public final class L10nTranslations {
                 "Se eligen en Morphe Manager al parchear, y Pausar no los desactiva. Vuelve a parchear para cambiarlos.");
         table.put("Try again, or go back to Instagram.",
                 "Int\u00e9ntalo de nuevo o vuelve a Instagram.");
+        table.put("Turn off double tap to like",
+                "Desactivar tocar dos veces para dar Me gusta");
         table.put("Updates",
                 "Actualizaciones");
         table.put("Version",
@@ -668,7 +676,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(294);
+        Map<String, String> table = new HashMap<>(298);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -688,6 +696,8 @@ public final class L10nTranslations {
                 "%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.");
         table.put("A diagnostic report is already being saved.",
                 "Sudah ada laporan diagnostik yang sedang disimpan.");
+        table.put("A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.",
+                "Mengetuk dua kali postingan atau reel tidak lagi menyukainya atau menampilkan hati. Satu ketukan dan tombol Suka tetap berfungsi seperti biasa.");
         table.put("A file named %1$s in %2$s paused HushGram.",
                 "File bernama %1$s di %2$s menjeda HushGram.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
@@ -794,11 +804,11 @@ public final class L10nTranslations {
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
         table.put("Hide Reels in the feed",
                 "Sembunyikan Reels di feed");
-        table.put("Hide ads",
-                "Sembunyikan iklan");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Hide ads",
+                "Sembunyikan iklan");
         table.put("Hide creation and promotion pills",
                 "Sembunyikan label ajakan membuat dan promosi");
         table.put("Hide friends' activity and comment previews",
@@ -917,11 +927,11 @@ public final class L10nTranslations {
                 "Postingan, reel, dan story bersponsor. Instagram diberi tahu bahwa tidak ada iklan yang dimasukkan, jadi tidak ada celah yang tersisa.");
         table.put("Stays in while paused",
                 "Tetap aktif saat dijeda");
-        table.put("Stop Story auto-advance",
-                "Hentikan cerita maju otomatis");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Stop Story auto-advance",
+                "Hentikan cerita maju otomatis");
         table.put("Stories",
                 "Cerita");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
@@ -952,6 +962,8 @@ public final class L10nTranslations {
                 "Semua ini dipilih di Morphe Manager saat Anda menambal, dan Jeda tidak mematikannya. Tambal ulang untuk mengubahnya.");
         table.put("Try again, or go back to Instagram.",
                 "Coba lagi, atau kembali ke Instagram.");
+        table.put("Turn off double tap to like",
+                "Matikan ketuk dua kali untuk menyukai");
         table.put("Updates",
                 "Pembaruan");
         table.put("Version",
@@ -979,7 +991,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(294);
+        Map<String, String> table = new HashMap<>(298);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -999,6 +1011,8 @@ public final class L10nTranslations {
                 "%1$s. Esses itens foram definidos quando voc\u00ea aplicou os patches, ent\u00e3o a pausa n\u00e3o pode desativ\u00e1-los. Para descartar um deles, aplique os patches novamente sem o patch entre par\u00eanteses depois dele.");
         table.put("A diagnostic report is already being saved.",
                 "Um relat\u00f3rio de diagn\u00f3stico j\u00e1 est\u00e1 sendo salvo.");
+        table.put("A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.",
+                "Tocar duas vezes em uma publica\u00e7\u00e3o ou reel n\u00e3o curte mais nem mostra um cora\u00e7\u00e3o. Um toque e o bot\u00e3o Curtir funcionam como antes.");
         table.put("A file named %1$s in %2$s paused HushGram.",
                 "Um arquivo chamado %1$s em %2$s pausou o HushGram.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
@@ -1105,11 +1119,11 @@ public final class L10nTranslations {
                 "GPL-3.0, com os avisos dos projetos em que o HushGram se baseia");
         table.put("Hide Reels in the feed",
                 "Ocultar reels no feed");
-        table.put("Hide ads",
-                "Ocultar an\u00fancios");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Hide ads",
+                "Ocultar an\u00fancios");
         table.put("Hide creation and promotion pills",
                 "Ocultar as etiquetas de cria\u00e7\u00e3o e promo\u00e7\u00e3o");
         table.put("Hide friends' activity and comment previews",
@@ -1228,11 +1242,11 @@ public final class L10nTranslations {
                 "Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum an\u00fancio entrou, ent\u00e3o n\u00e3o sobra nenhum espa\u00e7o vazio.");
         table.put("Stays in while paused",
                 "O que continua ativo na pausa");
-        table.put("Stop Story auto-advance",
-                "Parar o avan\u00e7o autom\u00e1tico dos stories");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Stop Story auto-advance",
+                "Parar o avan\u00e7o autom\u00e1tico dos stories");
         table.put("Stories",
                 "Stories");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
@@ -1263,6 +1277,8 @@ public final class L10nTranslations {
                 "Eles s\u00e3o escolhidos no Morphe Manager quando voc\u00ea aplica os patches, e a pausa n\u00e3o os desativa. Aplique os patches novamente para alter\u00e1-los.");
         table.put("Try again, or go back to Instagram.",
                 "Tente novamente ou volte para o Instagram.");
+        table.put("Turn off double tap to like",
+                "Desativar toque duplo para curtir");
         table.put("Updates",
                 "Atualiza\u00e7\u00f5es");
         table.put("Version",
@@ -1290,7 +1306,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(294);
+        Map<String, String> table = new HashMap<>(298);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1310,6 +1326,8 @@ public final class L10nTranslations {
                 "%1$s. Yamalad\u0131\u011f\u0131nda ayarland\u0131klar\u0131 i\u00e7in Duraklatma bunlar\u0131 kapatamaz. Birini elemek i\u00e7in yeniden yamala ve onun ard\u0131ndan parantez i\u00e7inde yazan yamay\u0131 d\u0131\u015far\u0131da b\u0131rak.");
         table.put("A diagnostic report is already being saved.",
                 "Bir tan\u0131lama raporu zaten kaydediliyor.");
+        table.put("A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.",
+                "Bir g\u00f6nderiye veya reel'e \u00e7ift dokunmak art\u0131k onu be\u011fenmez ve kalp g\u00f6stermez. Tek dokunu\u015f ve Be\u011fen d\u00fc\u011fmesi eskisi gibi \u00e7al\u0131\u015f\u0131r.");
         table.put("A file named %1$s in %2$s paused HushGram.",
                 "%2$s i\u00e7indeki %1$s adl\u0131 bir dosya HushGram'u duraklatt\u0131.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
@@ -1416,11 +1434,11 @@ public final class L10nTranslations {
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
         table.put("Hide Reels in the feed",
                 "Ak\u0131\u015ftaki reelleri gizle");
-        table.put("Hide ads",
-                "Reklamlar\u0131 gizle");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Hide ads",
+                "Reklamlar\u0131 gizle");
         table.put("Hide creation and promotion pills",
                 "Olu\u015fturma ve tan\u0131t\u0131m etiketlerini gizle");
         table.put("Hide friends' activity and comment previews",
@@ -1539,11 +1557,11 @@ public final class L10nTranslations {
                 "Sponsorlu g\u00f6nderiler, reels ve hik\u00e2yeler. Instagram'a hi\u00e7 reklam eklenmedi\u011fi s\u00f6ylenir, b\u00f6ylece bo\u015fluk kalmaz.");
         table.put("Stays in while paused",
                 "Duraklat\u0131lsa da devrede kal\u0131r");
-        table.put("Stop Story auto-advance",
-                "Hikayelerin otomatik ge\u00e7i\u015fini durdur");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Stop Story auto-advance",
+                "Hikayelerin otomatik ge\u00e7i\u015fini durdur");
         table.put("Stories",
                 "Hikayeler");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
@@ -1574,6 +1592,8 @@ public final class L10nTranslations {
                 "Bunlar yamalarken Morphe Manager'da se\u00e7ilir ve Duraklatma bunlar\u0131 kapatmaz. De\u011fi\u015ftirmek i\u00e7in yeniden yamala.");
         table.put("Try again, or go back to Instagram.",
                 "Tekrar dene veya Instagram'a geri d\u00f6n.");
+        table.put("Turn off double tap to like",
+                "Be\u011fenmek i\u00e7in \u00e7ift dokunmay\u0131 kapat");
         table.put("Updates",
                 "G\u00fcncellemeler");
         table.put("Version",
