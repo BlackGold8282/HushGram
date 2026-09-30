@@ -1,5 +1,7 @@
 # Turkish for HushGram: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+%1$s of %2$s	%1$s / %2$s
+%1$s so far	Şimdiye kadar %1$s
 %1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Yamaladığında ayarlandığı için Duraklatma bunu kapatamaz. Bunu elemek için yeniden yamala ve o yamayı dışarıda bırak.
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Yamaladığında ayarlandıkları için Duraklatma bunları kapatamaz. Birini elemek için yeniden yamala ve onun ardından parantez içinde yazan yamayı dışarıda bırak.
 A diagnostic report is already being saved.	Bir tanılama raporu zaten kaydediliyor.
@@ -13,6 +15,7 @@ Clear diagnostic data	Tanılama verilerini temizle
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
 Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
 Copy quick report	Hızlı raporu kopyala
+Copying to the gallery	Galeriye kopyalanıyor
 Couldn't put back the diagnostic data. Try again.	Tanılama verileri geri getirilemedi. Tekrar dene.
 Couldn't start the report export. Try again shortly.	Rapor dışa aktarımı başlatılamadı. Birazdan tekrar dene.
 Couldn't turn HushGram back on. Try again.	HushGram yeniden açılamadı. Tekrar dene.
@@ -21,6 +24,8 @@ Diagnostic data cleared. Tap again to put it back.	Tanılama verileri temizlendi
 Diagnostic data put back.	Tanılama verileri geri getirildi.
 Diagnostic report copied to the clipboard.	Tanılama raporu panoya kopyalandı.
 Disable analytics	Analitiği devre dışı bırak
+Download failed	İndirme başarısız oldu
+Downloading	İndiriliyor
 Empties the log and the hook counts a report would include.	Bir raporun içereceği günlüğü ve kanca sayaçlarını boşaltır.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır, yamaladığında ayarlananlar ise devrede kalır. Ayarların olduğu gibi kalır.
 Export diagnostic report	Tanılama raporunu dışa aktar
@@ -28,10 +33,12 @@ From the next start, every switch but Debug logging acts as if it were off. Chan
 Full report saved to %1$s	Tam rapor şuraya kaydedildi: %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, üzerine kurulduğu projelerin lisans bildirimleriyle
 Hide ads	Reklamları gizle
+How far a photo or video you're saving has got, with a button to cancel it	Kaydettiğin fotoğraf veya videonun ilerleme durumu ve iptal etmek için bir düğme
 HushGram %1$s on Instagram %2$s	Instagram %2$s üzerinde HushGram %1$s
 HushGram is on	HushGram açık
 HushGram is paused	HushGram duraklatıldı
 HushGram pauses when Instagram restarts.	HushGram, Instagram yeniden başladığında duraklatılır.
+HushGram saves	HushGram kaydetme işlemleri
 HushGram settings	HushGram ayarları
 HushGram settings couldn't open	HushGram ayarları açılamadı
 HushGram turns back on when Instagram restarts.	HushGram, Instagram yeniden başladığında tekrar açılır.
@@ -39,8 +46,12 @@ Instagram crashed or froze within a minute of starting three times in a row, so 
 Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.	Instagram bu sürümün çok eski olduğunu söyleyen ekranı artık göstermez. Yamalanmış bir sürüm kendi kendine güncellenmez, bu yüzden bu onu kullanılabilir tutar.
 Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.	Instagram'ın kendi imza denetimleri orijinal sertifikalarını görür, bu yüzden yeniden imzalanmış bu sürümde de geçmeye devam eder.
 Instagram's usage events go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Instagram'ın kullanım olayları, Instagram ve Facebook yerine bu telefonda onları reddeden bir adrese gider. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Joining the picture and sound	Görüntü ve ses birleştiriliyor
 Licenses	Lisanslar
+Link expired. Reopen the item and try again	Bağlantının süresi doldu. Öğeyi yeniden açıp tekrar dene
 No app on this phone can open the link. The address is %1$s.	Bu telefondaki hiçbir uygulama bağlantıyı açamıyor. Adres: %1$s.
+Not saved: that isn't an Instagram photo or video	Kaydedilmedi: Bu bir Instagram fotoğrafı veya videosu değil
+Not saved: the file is over 512 MB	Kaydedilmedi: Dosya 512 MB'tan büyük
 OK	Tamam
 Pause HushGram	HushGram'u duraklat
 Pause and diagnostics	Duraklatma ve tanılama
@@ -49,9 +60,18 @@ Record patch activity and show errors for a bug report. Leave off during normal 
 Remove build expired popup	Süresi dolan sürüm uyarısını kaldır
 Retry	Yeniden dene
 Sanitize sharing links	Paylaşım bağlantılarını temizle
+Save cancelled	Kaydetme iptal edildi
 Save full report	Tam raporu kaydet
 Save the full report in Download/Morphe.	Tam raporu Download/Morphe konumuna kaydeder.
+Saved to %1$s	Şuraya kaydedildi: %1$s
+Saved to %1$s in lower quality than on Instagram	Şuraya Instagram'dakinden düşük kalitede kaydedildi: %1$s
+Saved to the gallery	Galeriye kaydedildi
+Saved to the gallery in lower quality than on Instagram	Galeriye Instagram'dakinden düşük kalitede kaydedildi
 Saved. Restart Instagram to apply this change.	Kaydedildi. Bu değişikliği uygulamak için Instagram'u yeniden başlat.
+Saving a photo	Fotoğraf kaydediliyor
+Saving a video	Video kaydediliyor
+Saving...	Kaydediliyor...
+Saving... Cancel: Downloads in HushGram.	Kaydediliyor... İptal: HushGram'da İndirmeler.
 Set when you patched	Yamaladığında ayarlananlar
 Settings couldn't open	Ayarlar açılamadı
 Settings couldn't refresh completely. Reopen settings and try again.	Ayarlar tamamen yenilenemedi. Ayarları yeniden açıp tekrar dene.

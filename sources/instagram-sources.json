@@ -85,12 +85,13 @@
         "Restore screens on re-signed builds",
         "Hide sponsored posts",
         "Hide sponsored Reels",
-        "Hide sponsored stories"
+        "Hide sponsored stories",
+        "Video and photo saving"
       ],
       "branches": [
         {
           "name": "main",
-          "commit": "fb750dac200b20ab4fa4bc7156c24876810022d9"
+          "commit": "3a47363954eea853357e71e7cf3951a5ee984cee"
         },
         {
           "name": "feat/bgaudio",
@@ -107,7 +108,8 @@
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/resignedtrust",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/LinkCleaner.java",
-        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/FacebookSignature.java"
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/FacebookSignature.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download"
       ],
       "license": {
         "spdx": "GPL-3.0",
@@ -117,14 +119,14 @@
       "contaminatedBy": null,
       "disposition": "adopted",
       "adopted": {
-        "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+        "commit": "3a47363954eea853357e71e7cf3951a5ee984cee",
         "fixtures": {
           "builds": [
             "449.0.0.52.84"
           ]
         }
       },
-      "reason": "HushGram's scaffold, from the same author. The shared extension, the settings screen, the link cleaner and the re-signed build fix were copied from its commit c15d4f79 and renamed for Instagram, and all six of HushGram's patches applied unforced to Instagram 449.0.0.52.84. It patches Facebook, not Instagram, so only the files HushGram took are watched.",
+      "reason": "HushGram's scaffold, from the same author. The shared extension, the settings screen, the link cleaner and the re-signed build fix were copied from its commit c15d4f79 and renamed for Instagram, and all six of HushGram's patches applied unforced to Instagram 449.0.0.52.84. It patches Facebook, not Instagram, so only the files HushGram took are watched. The video and photo save pipeline came later, from its commit 3a473639, as a core that takes plain inputs, with its Facebook hooks left out.",
       "archived": false,
       "forks": [
         "kazimmt/Hushfacebook",
