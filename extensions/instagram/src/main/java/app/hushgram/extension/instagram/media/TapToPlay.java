@@ -49,7 +49,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *
  * <p>Every other start is held, and the player stays where it was, showing its first frame or its
  * cover. Instagram's own autoplay check answers no while the switch is on ({@link #autoplayAllowed}),
- * so the feed draws the play button it draws when data saver is on. Off, paused, before the settings
+ * so the feed draws the play button it draws when data saver is on. A tap on a reel resumes it only
+ * when Instagram knows you paused it yourself, so a tap on a held reel would go down the pause path
+ * and do nothing: {@link #resumeOnTap} sends a tap on a reel that's waiting down the resume path
+ * instead. Off, paused, before the settings
  * are ready, or when anything here throws, every start goes ahead and the check answers what
  * Instagram decided, as it would unpatched.
  */
@@ -72,6 +75,17 @@ public final class TapToPlay {
      */
     static final Set<String> MOMENTARY = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "seek", "seek_force_pause", "paused_for_pinch_to_zoom", "paused_for_replay")));
+
+    /**
+     * The IgVideoPlayerImpl states a tap on a reel starts from: prepared and never started, which is
+     * where the gate leaves a held reel, and paused, which is where a pause for the comments sheet
+     * leaves it. ClipsVideoPlayer's resume restarts a player only from these two, so a tap on a reel
+     * in any other state does what Instagram decided.
+     */
+    static final Set<String> RESUMABLE = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("PREPARED", "PAUSED")));
+
+    /** What {@link ReelStateReader}'s stubs return until the patch fills them in. */
+    static final Object NOT_PATCHED = new Object();
 
     /** How many decisions get a line of their own before the log sums them up. */
     static final int LOGGED_ONE_BY_ONE = 40;
@@ -156,6 +170,56 @@ public final class TapToPlay {
         }
     }
 
+    /**
+     * The hook in Instagram's Reels tap, at the branch where it has decided between resuming the
+     * reel and pausing it, with that decision and the tap's navigator. Instagram resumes only a reel
+     * you paused yourself, so a tap on a reel this patch held took the pause path, found nothing
+     * playing and did nothing, however often you tapped. While the switch is on, a tap on a reel that's
+     * prepared or paused ({@link #RESUMABLE}) resumes it, the way it resumes one you paused, and that
+     * start comes inside the tap's window. That includes a reel Instagram stopped for a tap on one of
+     * its stickers, which its own tap leaves stopped. A playing reel still pauses, and a reel with no
+     * player or one still loading does what Instagram decided. Off, paused, before the settings are
+     * ready, or when anything here throws, the tap does what Instagram decided.
+     */
+    public static boolean resumeOnTap(boolean resume, @Nullable Object navigator) {
+        try {
+            HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
+            RuntimeException failure = failNext;
+            if (failure != null) {
+                failNext = null;
+                throw failure;
+            }
+            if (resume || navigator == null || !on()) return resume;
+            HookStatus.bound(FamilyNames.TAP_TO_PLAY, "Reels tap");
+            Object state = reelStates.stateOf(navigator);
+            if (state == NOT_PATCHED) {
+                HookStatus.missingMember(FamilyNames.TAP_TO_PLAY, "method", "ClipsVideoPlayerController", "the reel's state");
+                return resume;
+            }
+            String name = state instanceof Enum ? ((Enum<?>) state).name() : null;
+            boolean start = name != null && RESUMABLE.contains(name);
+            Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> "Tap to play: a tap on a reel "
+                    + (name == null ? "with no player" : name) + (start ? " starts it" : " goes to Instagram"));
+            return start;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.TAP_TO_PLAY, "Reels tap", failure);
+            return resume;
+        }
+    }
+
+    /** The state of the reel a tap landed on. Tests put their own in. */
+    interface ReelStates {
+        /** IgVideoPlayerImpl's state enum, null when the tap's reel has no player, or {@link #NOT_PATCHED}. */
+        @Nullable
+        Object stateOf(Object navigator);
+    }
+
+    /**
+     * Reaches the reader only through this, from inside {@link #resumeOnTap}'s try, so a reader the
+     * phone refuses to load costs the Reels tap and never the start gate beside it.
+     */
+    static ReelStates reelStates = ReelStateReader::reelState;
+
     private static void logCheckOnce() {
         synchronized (LOG_LOCK) {
             if (checkLogged) return;
@@ -217,9 +281,10 @@ public final class TapToPlay {
         Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> logged);
     }
 
-    /** Forgets every armed player and the log's counts. For tests. */
+    /** Forgets every armed player and the log's counts, and puts the patched reel state reader back. For tests. */
     static void forget() {
         ARMED.clear();
+        reelStates = ReelStateReader::reelState;
         synchronized (LOG_LOCK) {
             decisions = 0;
             allowedSinceSummary = 0;

@@ -33,9 +33,9 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-private const val PATCH = "Tap to play"
+internal const val PATCH = "Tap to play"
 
-private const val TAP_TO_PLAY = "$EXTENSION_PACKAGE/media/TapToPlay;"
+internal const val TAP_TO_PLAY = "$EXTENSION_PACKAGE/media/TapToPlay;"
 internal const val ALLOW_START = "$TAP_TO_PLAY->allowStart(Ljava/lang/Object;Ljava/lang/String;)Z"
 internal const val ALLOW_DIRECT_START = "$TAP_TO_PLAY->allowDirectStart(Ljava/lang/Object;Ljava/lang/String;)Z"
 internal const val PAUSED = "$TAP_TO_PLAY->paused(Ljava/lang/Object;Ljava/lang/String;)V"
@@ -64,7 +64,9 @@ private const val STRING = "Ljava/lang/String;"
  * is gated before it marks the video as playing, so a later tap finds it stopped and starts it.
  * IgGrootPlayer's pause and prepare tell the extension when what a tap started has ended, every
  * touch on an Instagram screen goes past the tap clock, and Instagram's own autoplay check answers
- * no, so the feed draws its play button.
+ * no, so the feed draws its play button. A tap on a reel resumes it only when Instagram knows you
+ * paused it, so the Reels tap's decision goes past the extension too, which sends a tap on a reel
+ * that isn't playing down the resume path ([hookReelTap]).
  *
  * Everything is found before anything changes, so a build that differs stops the patch naming
  * what it couldn't find, and nothing is half done.
@@ -101,6 +103,7 @@ internal class PlayerHooks(
 
 internal fun BytecodePatchContext.holdStartsWithoutATap() {
     val hooks = findPlayerHooks()
+    val reelTap = findReelTap()
 
     mutable(hooks.playInternal).apply {
         requireLocals(PATCH, 1)
@@ -149,6 +152,7 @@ internal fun BytecodePatchContext.holdStartsWithoutATap() {
             }
     }
     mutable(hooks.touch).addInstructions(0, "invoke-static/range { p0 .. p1 }, $TOUCH")
+    hookReelTap(reelTap)
 }
 
 /**

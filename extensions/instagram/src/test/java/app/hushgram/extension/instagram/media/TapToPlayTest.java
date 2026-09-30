@@ -9,6 +9,7 @@ package app.hushgram.extension.instagram.media;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.os.SystemClock;
@@ -66,6 +67,9 @@ public class TapToPlayTest {
         HookStatus.clear();
         LogBufferManager.clearLogBuffer();
     }
+
+    /** Stands in for IgVideoPlayerImpl's state enum: only the constant names matter. */
+    private enum State { IDLE, PREPARING, PREPARED, PLAYING, PAUSED, STOPPING }
 
     private static void tapAt(long upAt) {
         TapClock.record(MotionEvent.ACTION_DOWN, 50, 50, upAt - 90, 8);
@@ -278,6 +282,85 @@ public class TapToPlayTest {
         TapToPlay.autoplayAllowed(true);
         String report = String.join("\n", HookStatus.report());
         assertTrue(report, report.contains(FamilyNames.TAP_TO_PLAY + ": invoked 5, 5 found, 0 missing"));
+    }
+
+    /**
+     * Only a reel Instagram's resume can restart goes down it: prepared, where the gate leaves a held
+     * reel, or paused. Idle, loading, stopping or playing, the tap does what Instagram decided.
+     */
+    @Test
+    public void aTapOnAPreparedOrPausedReelStartsIt() {
+        Object navigator = new Object();
+        for (State state : State.values()) {
+            TapToPlay.reelStates = asked -> {
+                assertSame(navigator, asked);
+                return state;
+            };
+            boolean resumable = state == State.PREPARED || state == State.PAUSED;
+            assertEquals(state.name(), resumable, TapToPlay.resumeOnTap(false, navigator));
+        }
+        TapToPlay.reelStates = asked -> null;
+        assertFalse("no player under the tap: Instagram's answer", TapToPlay.resumeOnTap(false, navigator));
+        assertFalse(TapToPlay.resumeOnTap(false, null));
+        assertTrue(HookStatus.missing(FamilyNames.TAP_TO_PLAY).toString(), HookStatus.missing(FamilyNames.TAP_TO_PLAY).isEmpty());
+    }
+
+    /** A reel you paused yourself already resumes. The reader isn't asked, so it can't turn that yes into a no. */
+    @Test
+    public void instagramsOwnResumeNeverAsksTheReader() {
+        TapToPlay.reelStates = asked -> {
+            throw new AssertionError("asked about a tap Instagram already resumes");
+        };
+        assertTrue(TapToPlay.resumeOnTap(true, new Object()));
+        assertTrue(HookStatus.missing(FamilyNames.TAP_TO_PLAY).toString(), HookStatus.missing(FamilyNames.TAP_TO_PLAY).isEmpty());
+    }
+
+    /**
+     * The sequence on the phone. Instagram's own start of the reel was held. A tap lands on it, the
+     * tap takes the resume path, and the start that path makes on the same tap goes ahead and arms
+     * the player. Without that tap, the same start is held.
+     */
+    @Test
+    public void aTapOnAHeldReelResumesItAndThatStartGoesAhead() {
+        long now = 300_000;
+        Object player = new Object();
+        assertFalse("Instagram's own start, with no tap", TapToPlay.decide(player, "autoplay", now - 5_000, ""));
+        TapToPlay.reelStates = asked -> State.PREPARED;
+        tapAt(now);
+        assertTrue("the tap takes the resume path", TapToPlay.resumeOnTap(false, new Object()));
+        assertTrue("the resume's start, on the tap", TapToPlay.decide(player, "resume", now + 20, ""));
+        assertTrue("armed, so it plays on", TapToPlay.armed(player));
+        assertFalse("the same start with the tap long gone",
+                TapToPlay.decide(new Object(), "resume", now + TapToPlay.TAP_WINDOW_MS + 1, ""));
+    }
+
+    @Test
+    public void offPausedOrNotReadyATapOnAReelDoesWhatInstagramDecided() {
+        TapToPlay.reelStates = asked -> State.PREPARED;
+        Settings.TAP_TO_PLAY.save(false);
+        assertFalse(TapToPlay.resumeOnTap(false, new Object()));
+        Settings.TAP_TO_PLAY.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse(TapToPlay.resumeOnTap(false, new Object()));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> assertFalse(TapToPlay.resumeOnTap(false, new Object())));
+        assertTrue("the control: on, the same tap starts the reel", TapToPlay.resumeOnTap(false, new Object()));
+    }
+
+    @Test
+    public void anUnfilledReaderOrAFailureLeavesTheTapToInstagram() {
+        // forget() put back the stub the patch fills in.
+        assertFalse(TapToPlay.resumeOnTap(false, new Object()));
+        List<String> missing = HookStatus.missing(FamilyNames.TAP_TO_PLAY);
+        assertTrue(missing.toString(), missing.contains("method ClipsVideoPlayerController#the reel's state"));
+
+        TapToPlay.reelStates = asked -> {
+            throw new IllegalStateException("the controller failed");
+        };
+        assertFalse(TapToPlay.resumeOnTap(false, new Object()));
+        missing = HookStatus.missing(FamilyNames.TAP_TO_PLAY);
+        assertTrue(missing.toString(), missing.contains("a working 'Reels tap' hook (it threw "
+                + IllegalStateException.class.getName() + ")"));
     }
 
     /** While the switch is on, the check answers no, so the feed draws its play button. A no stays a no. */

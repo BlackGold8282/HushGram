@@ -17,12 +17,16 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -39,16 +43,33 @@ class TapToPlayHookTest {
     private val core = "Lfixture/CorePlayer;"
     private val checker = "Lfixture/AutoplayChecker;"
     private val string = "Ljava/lang/String;"
+    private val objectType = "Ljava/lang/Object;"
+    private val navigator = "Lfixture/PauseAndMuteNavigator;"
+    private val controller = "Lfixture/ClipsVideoPlayerController;"
+    private val lookup = "Lfixture/ClipsPlayers;"
+    private val holder = "Lfixture/ClipsViewHolder;"
+    private val reelPlayer = "Lfixture/ClipsVideoPlayer;"
+    private val state = "Lfixture/PlayerState;"
+    private val function0 = "Lkotlin/jvm/functions/Function0;"
+
+    /** What the controller's pause logs, which the fixture check finds it by. */
+    private val pauseCurrentPlayerLog = "ClipsVideoPlayerController.pauseCurrentPlayer pauseReason="
 
     /** Every hook the patch writes is in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH)) {
+        for (hook in listOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP)) {
             val type = hook.substringBefore("->")
             val declared = ExtensionDex.classDef(type).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
             assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
+        }
+        val stubs = ExtensionDex.classDef(REEL_STATE_READER).methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        for ((name, count) in REEL_STUBS) {
+            val stub = "$name(${objectType.repeat(count)})$objectType"
+            assertTrue("the stub $stub is not in the extension: $stubs", stub in stubs)
         }
     }
 
@@ -94,6 +115,57 @@ class TapToPlayHookTest {
         val touch = context.method(FRAGMENT_ACTIVITY, "dispatchTouchEvent").code()
         assertEquals(TOUCH, touch[0].referenceText())
         assertEquals("the activity and the event", listOf(1, 2), (touch[0] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+
+        assertReelTapHooked(context.method(navigator, "A01").code(), decision = 1, navigatorRegister = 5)
+        // Each stub, before its first return, reaches one step toward the state of the reel on screen.
+        assertEquals(listOf(navigator, "$navigator->A03:$function0", "$function0->invoke()$objectType"), filled(context, "controllerOf"))
+        assertEquals(listOf(controller, "$controller->A0f()$holder"), filled(context, "holderOf"))
+        assertEquals(listOf(controller, "$controller->A0R:$lookup"), filled(context, "playersOf"))
+        assertEquals(listOf(lookup, holder, "$lookup->A01($holder)$reelPlayer"), filled(context, "playerFor"))
+        assertEquals(listOf(reelPlayer, "$reelPlayer->Cyy()$state"), filled(context, "stateOf"))
+    }
+
+    /** What the filled stub [name] names before its first return. Its own body stays behind it, unreached. */
+    private fun filled(context: BytecodePatchContext, name: String): List<String> =
+        context.method(REEL_STATE_READER, name).code().takeWhile { it.opcode != Opcode.RETURN_OBJECT }.mapNotNull { it.referenceText() }
+
+    /** The decision goes past the extension, with the navigator, just before the branch to the pause path. */
+    private fun assertReelTapHooked(code: List<Instruction>, decision: Int, navigatorRegister: Int, what: String = "the Reels tap") {
+        val pausePath = code.indexOfFirst { it.referenceText() == CLIPS_PAUSE }
+        val branch = code.indices.single { code[it].opcode == Opcode.IF_EQZ && code.target(it) == pausePath }
+        assertEquals("$what: the hook", RESUME_ON_TAP, code[branch - 2].referenceText())
+        assertEquals(
+            "$what: the decision and the navigator", listOf(decision, navigatorRegister),
+            (code[branch - 2] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) },
+        )
+        assertEquals(
+            "$what: the answer replaces the decision", listOf(Opcode.MOVE_RESULT, decision),
+            listOf(code[branch - 1].opcode, (code[branch - 1] as OneRegisterInstruction).registerA),
+        )
+        assertEquals("$what: the branch tests it", decision, (code[branch] as OneRegisterInstruction).registerA)
+    }
+
+    /** Each Reels tap the patch can't hook safely fails at patch time with what it found, before anything is written. */
+    @Test
+    fun aReelsTapThePatchCantReadFailsBeforeAnythingChanges() {
+        val cases = listOf(
+            Reel(secondPauseBranch = true) to "one branch to the pause path",
+            Reel(decision = "p3") to "in a parameter's register",
+            Reel(decision = "v16") to "past v15",
+            Reel(objectDecision = true) to "v1 holds something other than a boolean",
+            Reel(pauseCall = "A0d") to "never pauses through $controller",
+            Reel(privateSupplier = true) to "can't reach $navigator->A03",
+            Reel(privateHolder = true) to "can't reach $holder",
+            Reel(secondHolderAccessor = true) to "one holder accessor on $controller",
+            Reel(playerIsInterface = false) to "$reelPlayer isn't an interface",
+            Reel(stateNames = listOf("IDLE", "PLAYING")) to "one state accessor on $reelPlayer",
+        )
+        for ((reel, expected) in cases) {
+            val context = PatchContexts.of(classes(reel = reel))
+            val failure = assertThrows(PatchException::class.java) { context.holdStartsWithoutATap() }
+            assertTrue("$reel: ${failure.message}", failure.message!!.contains(expected))
+            assertUntouched(context)
+        }
     }
 
     /** A playInternal that reads its IgGrootPlayer from anything but its player can't be gated first thing. */
@@ -131,13 +203,22 @@ class TapToPlayHookTest {
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                // The Reels tap's navigator and controller, then the classes the controller's pause
+                // names, then the classes their methods return, which reaches the player interface
+                // and its state enum.
+                val reel = FixtureDex.classesHolding(bundle, CLIPS_PAUSE) + FixtureDex.classesHolding(bundle, pauseCurrentPlayerLog)
+                val pauses = reel.flatMap { it.methods }.filter { pauseCurrentPlayerLog in it.strings() }
+                val near = FixtureDex.classes(bundle, pauses.flatMap { it.namedTypes() }.toSet()).values.toList()
+                val returned = FixtureDex.classes(bundle, near.flatMap { it.methods }.map { it.returnType }.toSet()).values.toList()
                 val classes = (
                     FixtureDex.classesHolding(bundle, PLAY_INTERNAL) + FixtureDex.classesHolding(bundle, GROOT_PREPARE) +
                         FixtureDex.classesHolding(bundle, AUTOPLAY_CHECKER.last()) +
-                        listOfNotNull(FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY))[FRAGMENT_ACTIVITY])
+                        listOfNotNull(FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY))[FRAGMENT_ACTIVITY]) +
+                        reel + near + returned + ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
                     ).distinctBy { it.type }
                 val context = PatchContexts.of(classes)
                 val hooks = context.findPlayerHooks()
+                val reelTap = context.findReelTap()
                 assertEquals("${bundle.name}: the player's IgGrootPlayer field", hooks.prepare.definingClass, hooks.grootField.type)
                 assertEquals("${bundle.name}: play and prepare are one class's", hooks.prepare.definingClass, hooks.play.definingClass)
                 assertEquals("${bundle.name}: pause is theirs too", hooks.prepare.definingClass, hooks.pause.definingClass)
@@ -156,6 +237,10 @@ class TapToPlayHookTest {
                 assertTrue("${bundle.name}: the check returns", returns.isNotEmpty())
                 returns.forEach { assertEquals("${bundle.name}: the check's return at $it", AUTOPLAY_ALLOWED, check[it - 2].referenceText()) }
                 assertEquals("${bundle.name}: touch", TOUCH, after(hooks.touch)[0].referenceText())
+                // `this` is the first register past the locals: the count less the three declared parameters and itself.
+                assertReelTapHooked(after(reelTap.tap), reelTap.decision, reelTap.tap.implementation!!.registerCount - 4, "${bundle.name}: the Reels tap")
+                assertEquals("${bundle.name}: the state stub", reelTap.state.toString(), filled(context, "stateOf").last())
+                assertEquals("${bundle.name}: the controller stub", "$function0->invoke()$objectType", filled(context, "controllerOf").last())
                 checked += version
             }
         }
@@ -174,9 +259,12 @@ class TapToPlayHookTest {
     }
 
     private fun assertUntouched(context: BytecodePatchContext) {
-        val hooks = setOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH)
-        for ((type, name) in listOf(player to "A0J", groot to "A0X", groot to "A0V", groot to "A0S", checker to "A01")) {
+        val hooks = setOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP)
+        for ((type, name) in listOf(player to "A0J", groot to "A0X", groot to "A0V", groot to "A0S", checker to "A01", navigator to "A01")) {
             assertTrue("$type->$name changed", context.method(type, name).code().none { it.referenceText() in hooks })
+        }
+        for ((name, _) in REEL_STUBS) {
+            assertEquals("the stub $name was filled", Opcode.SGET_OBJECT, context.method(REEL_STATE_READER, name).code().first().opcode)
         }
     }
 
@@ -184,6 +272,20 @@ class TapToPlayHookTest {
         classDefBy(type).methods.first { it.name == name && (parameters == null || it.parameterTypes.map(Any::toString) == parameters) }
 
     private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    private fun Method.strings(): Set<String> =
+        code().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }.toSet()
+
+    /** The classes [this] names: its return, and the fields' and calls' types and owners. */
+    private fun Method.namedTypes(): Set<String> = (
+        listOf(returnType) + code().mapNotNull { (it as? ReferenceInstruction)?.reference }.flatMap { reference ->
+            when (reference) {
+                is FieldReference -> listOf(reference.definingClass, reference.type)
+                is MethodReference -> listOf(reference.definingClass, reference.returnType)
+                else -> emptyList()
+            }
+        }
+        ).filter { it.startsWith("L") }.toSet()
 
     private fun Instruction.referenceText(): String? = (this as? ReferenceInstruction)?.reference?.toString()
 
@@ -196,7 +298,12 @@ class TapToPlayHookTest {
 
     // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
 
-    private fun classes(grootFromElsewhere: Boolean = false, secondPause: Boolean = false, activity: Boolean = true): List<ClassDef> {
+    private fun classes(
+        grootFromElsewhere: Boolean = false,
+        secondPause: Boolean = false,
+        activity: Boolean = true,
+        reel: Reel = Reel(),
+    ): List<ClassDef> {
         val videoPlayer = classDef(
             player,
             listOf(
@@ -268,8 +375,132 @@ class TapToPlayHookTest {
                 """),
             ),
         )
-        return listOfNotNull(videoPlayer, grootPlayer, autoplayChecker, if (activity) fragmentActivity else null)
+        return listOfNotNull(videoPlayer, grootPlayer, autoplayChecker, if (activity) fragmentActivity else null) +
+            reelClasses(reel) + ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER)
     }
+
+    /** How a test's Reels tap stand-ins differ from 449's. */
+    private data class Reel(
+        val secondPauseBranch: Boolean = false,
+        /** The register the tap decides in, v1 in 449. */
+        val decision: String = "v1",
+        /** The decision's register holds an object before the branch. */
+        val objectDecision: Boolean = false,
+        /** The controller method the pause path calls, A0c in 449. */
+        val pauseCall: String = "A0c",
+        val privateSupplier: Boolean = false,
+        val privateHolder: Boolean = false,
+        val secondHolderAccessor: Boolean = false,
+        val playerIsInterface: Boolean = true,
+        val stateNames: List<String> = PLAYER_STATES,
+    )
+
+    /**
+     * PauseAndMuteNavigator's tap, shaped like 449's: nine registers, the decision in v1, `this` in
+     * v5, the resume path first and the pause path after the branch. Then the
+     * ClipsVideoPlayerController it reaches through a Function0 field, whose pause looks up the
+     * player for the holder on screen, the holder, the player interface, and its state enum.
+     */
+    private fun reelClasses(reel: Reel): List<ClassDef> {
+        val d = reel.decision
+        val wide = d == "v16"
+        // Past v15, `this` is too, so the stand-in reads its field through a copy in v5.
+        val self = if (wide) "v5" else "p0"
+        val setDecision = { value: Int ->
+            when {
+                reel.objectDecision -> "iget-object $d, $self, $navigator->A03:$function0"
+                wide -> "const/16 $d, 0x$value"
+                else -> "const/4 $d, 0x$value"
+            }
+        }
+        val tap = classDef(
+            navigator,
+            listOf(
+                method(navigator, "A01", listOf("Landroid/view/View;", objectType, objectType), "V", if (wide) 24 else 9, static = false, body = """
+                    ${if (wide) "move-object/from16 v5, p0" else ""}
+                    const-string v0, "android_purge_26_q3_$TOGGLE_PAUSE"
+                    ${if (d == "p3") "" else setDecision(0)}
+                    if-eqz p3, :decided
+                    ${if (d == "p3") "" else setDecision(1)}
+                    :decided
+                    ${if (reel.secondPauseBranch) "if-eqz p2, :pause" else ""}
+                    if-eqz $d, :pause
+                    const-wide/16 v0, 0x0
+                    return-void
+                    :pause
+                    const-string v3, "$CLIPS_PAUSE"
+                    iget-object v0, $self, $navigator->A03:$function0
+                    invoke-interface { v0 }, $function0->invoke()$objectType
+                    move-result-object v2
+                    check-cast v2, $controller
+                    const/4 v0, 0x1
+                    invoke-virtual { v2, v3, v0, v0 }, $controller->${reel.pauseCall}(Ljava/lang/String;ZZ)I
+                    return-void
+                """),
+            ),
+            listOf(ImmutableField(navigator, "A03", function0, if (reel.privateSupplier) AccessFlags.PRIVATE.value else AccessFlags.PUBLIC.value, null, null, null)),
+        )
+        val clipsController = classDef(
+            controller,
+            listOf(
+                method(controller, "A0c", listOf(string, "Z", "Z"), "I", 7, static = false, body = """
+                    const-string v0, "android_purge_26_q3_$PAUSE_CURRENT_PLAYER"
+                    invoke-virtual { p0 }, $controller->A0f()$holder
+                    move-result-object v2
+                    if-eqz v2, :none
+                    iget-object v0, p0, $controller->A0R:$lookup
+                    invoke-virtual { v0, v2 }, $lookup->A01($holder)$reelPlayer
+                    move-result-object v3
+                    if-eqz v3, :none
+                    invoke-interface { v3, p1 }, $reelPlayer->GS8(Ljava/lang/String;)I
+                    move-result v0
+                    return v0
+                    :none
+                    const/4 v0, 0x0
+                    return v0
+                """),
+                method(controller, "A0f", emptyList(), holder, 2, static = false, body = """
+                    const/4 v0, 0x0
+                    return-object v0
+                """),
+            ) + if (reel.secondHolderAccessor) listOf(method(controller, "A0g", emptyList(), holder, 2, static = false, body = """
+                    const/4 v0, 0x0
+                    return-object v0
+                """)) else emptyList(),
+            listOf(ImmutableField(controller, "A0R", lookup, AccessFlags.PUBLIC.value, null, null, null)),
+        )
+        val players = classDef(
+            lookup,
+            listOf(
+                method(lookup, "A01", listOf(holder), reelPlayer, 3, static = false, body = """
+                    const/4 v0, 0x0
+                    return-object v0
+                """),
+            ),
+        )
+        val holderClass = ImmutableClassDef(
+            holder, if (reel.privateHolder) 0 else AccessFlags.PUBLIC.value, objectType, null, null, null, emptyList(), emptyList(),
+        )
+        val playerInterface = ImmutableClassDef(
+            reelPlayer, AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value or (if (reel.playerIsInterface) AccessFlags.INTERFACE.value else 0),
+            objectType, null, null, null,
+            emptyList(),
+            listOf(abstractMethod(reelPlayer, "GS8", listOf(string), "I"), abstractMethod(reelPlayer, "Cyy", emptyList(), state)),
+        )
+        val stateEnum = ImmutableClassDef(
+            state, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or AccessFlags.ENUM.value, "Ljava/lang/Enum;", null, null, null,
+            emptyList(),
+            listOf(
+                method(state, "<clinit>", emptyList(), "V", 1, static = true, body = reel.stateNames.joinToString("\n") { "const-string v0, \"$it\"" } + "\nreturn-void"),
+            ),
+        )
+        return listOf(tap, clipsController, players, holderClass, playerInterface, stateEnum)
+    }
+
+    private fun abstractMethod(owner: String, name: String, parameters: List<String>, returns: String): Method = ImmutableMethod(
+        owner, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns,
+        AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null,
+    )
 
     private fun method(owner: String, name: String, parameters: List<String>, returns: String, registers: Int, static: Boolean, body: String): Method {
         val flags = AccessFlags.PUBLIC.value or (if (static) AccessFlags.STATIC.value else 0)

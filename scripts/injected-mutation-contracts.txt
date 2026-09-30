@@ -195,6 +195,10 @@ once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowDirectStart(L
 start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(Z)Z in instance ()Z holding VideoAutoplayChecker zero_rating_or_data_saver
+# The Reels tap hands its resume-or-pause decision to resumeOnTap() just before it branches to the
+# "clips_pause" path, so the call isn't first. Two other methods load "clips_pause"; the tap is the
+# one carrying its togglePause marker.
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeOnTap(ZLjava/lang/Object;)Z in instance (Landroid/view/View;*)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause clips_pause
 start-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 once-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 #
