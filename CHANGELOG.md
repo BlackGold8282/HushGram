@@ -11,6 +11,7 @@ Every HushGram release, newest first.
 * New patch, `Don't send reel watch history`. Instagram isn't told which reels you watched or how far into them you got. It only uses that to rank your Reels, so reels you've already seen may come back.
 * New patch, `Hide Reels in the feed`. The rows of suggested reels between posts in your home feed are gone, along with the other units that open the Reels viewer from there. A reel from someone you follow still shows as a post.
 * New patch, `Download any reel`. Every reel's more menu has Download, including the shorter menu some accounts get, and a tap saves the reel at your download quality (the best there is by default) without Instagram's watermark. Its switch is under Reels.
+* New patch, `Download any story`. The menu on anyone's story has Download. A video story saves at your download quality and a photo story at its largest size, into the same folders as reels. Its switch is under Stories.
 * New Downloads section in HushGram's settings. It lists the saves that are running, each with a Cancel button, and holds the download quality, the save folder, the video file name and a switch that saves videos other apps can open.
 * New patch, `Stop Story auto-advance`. A story stays on screen until you tap or swipe, however long it runs. Turn its switch off for Instagram's timing.
 

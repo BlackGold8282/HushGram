@@ -251,13 +251,19 @@ class DownloadReelHookTest {
                 // Opcode.name is the smali name, "if-eqz" or "goto/16".
                 list.indices.filter { index -> list[index] is OffsetInstruction && list[index].opcode.name.let { it.startsWith("if-") || it.startsWith("goto") } }
                     .forEach { jump -> assertTrue("${bundle.name}: the jump at $jump skips addTo()", list.target(jump) !in returns) }
-                val bridges = context.classDefBy(INSTAGRAM_MEDIA).methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) }
+                val bridges = context.classDefBy(INSTAGRAM_MEDIA).methods.filter { it.name in videoBridges }
+                assertEquals("${bundle.name}: the video bridges", videoBridges.size, bridges.size)
                 bridges.forEach { assertEquals("${bundle.name}: ${it.name}", Opcode.CHECK_CAST, it.code().first().opcode) }
                 checked += version
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
     }
+
+    /** The bridges this patch writes. The picture's and the story's are Download any story's. */
+    private val videoBridges = setOf(
+        "videoVersions", "dashManifest", "mediaId", "owner", "takenAt", "username", "versionUrl", "versionWidth", "versionHeight",
+    )
 
     private fun assertFiltered(code: List<Instruction>, call: String, hook: String) {
         val at = code.indexOfFirst { it.referenceText() == call }

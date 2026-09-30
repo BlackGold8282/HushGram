@@ -152,3 +152,18 @@ once-call Lapp/hushgram/extension/instagram/download/ReelDownload;->save(Ljava/l
 # The reduced reel menu, a short list of options that never had Download, hands its list to addTo()
 # where it returns. It returns once on 449, so one call, and addTo() is called nowhere else.
 once-call Lapp/hushgram/extension/instagram/download/ReelDownload;->addTo(Ljava/util/List;Ljava/lang/Object;)V holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_getReducedMenuOptions
+#
+# Download any story: the story menu's builders hand their labels to labels() where they return,
+# and its handlers of a tapped label ask save() first. Several builders and handlers call each, so
+# shared-call, and the rules name the ones that hold a string of their own on 449: the builder for
+# someone else's story and one for your own (each returns once), and the handlers of the new sheet,
+# of your own story's old dialog and of the highlight menu. The other builder and two handlers
+# hold no string, so no rule can pick them.
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence; in static (*)[Ljava/lang/CharSequence; holding location_story_action_sheet story_highlight_action_sheet
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence; in static (*)[Ljava/lang/CharSequence; holding ReelOptionsOverflowHelper location_story_action_sheet
+start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding friendships/mute_friend_reel/%s/
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding friendships/mute_friend_reel/%s/
+start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding story_interactions/bulk_story_like/
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding story_interactions/bulk_story_like/
+start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding manage_highlights
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding manage_highlights

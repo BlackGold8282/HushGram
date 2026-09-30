@@ -201,14 +201,23 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : reels) section.addPreference(row);
         }
 
+        List<Preference> stories = new ArrayList<>();
         if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
-            PreferenceCategory stories = category(screen, L10n.t("Stories"));
-            stories.addPreference(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
+            stories.add(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
                     L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.")));
+        }
+        if (build.contains(PatchFamily.STORY_DOWNLOAD)) {
+            stories.add(toggle(context, Settings.DOWNLOAD_STORIES, L10n.t("Download on stories"),
+                    L10n.t("Adds Download to the menu of anyone's story, photo or video, saved at your download quality. "
+                            + "Off or paused, Instagram's own menu returns.")));
+        }
+        if (!stories.isEmpty()) {
+            PreferenceCategory section = category(screen, L10n.t("Stories"));
+            for (Preference row : stories) section.addPreference(row);
         }
 
         // Any download patch brings this section, so each one that saves joins this condition.
-        if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
+        if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.STORY_DOWNLOAD)) {
             PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
             this.downloads = downloads;
             // Every save reads it, whichever download patch started it, so it's here above the

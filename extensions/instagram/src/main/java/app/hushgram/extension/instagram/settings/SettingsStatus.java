@@ -57,4 +57,8 @@ public final class SettingsStatus {
     public static boolean reelDownload() {
         return false;
     }
+
+    public static boolean storyDownload() {
+        return false;
+    }
 }

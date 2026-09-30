@@ -65,4 +65,34 @@ public final class InstagramMedia {
     public static Integer versionHeight(Object version) {
         return null;
     }
+
+    /** A Media's {@code image_versions2}: the sizes Instagram lists for its picture. */
+    public static Object imageVersions(Object media) {
+        return null;
+    }
+
+    /** The {@code candidates} of a picture's sizes, one per size. */
+    public static List<?> imageCandidates(Object imageVersions) {
+        return null;
+    }
+
+    /** A candidate's address. */
+    public static String candidateUrl(Object candidate) {
+        return null;
+    }
+
+    /** A candidate's width in pixels, or 0 as built. */
+    public static int candidateWidth(Object candidate) {
+        return 0;
+    }
+
+    /** A candidate's height in pixels, or 0 as built. */
+    public static int candidateHeight(Object candidate) {
+        return 0;
+    }
+
+    /** The Media a story's menu is open on, read off the menu's helper, or null for a story with none. */
+    public static Object storyMedia(Object menu) {
+        return null;
+    }
 }
