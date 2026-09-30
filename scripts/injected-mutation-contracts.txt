@@ -1,0 +1,77 @@
+# Call sites a patched Instagram must have, checked across every dex of the APK by DexDiff.java.
+#   single-call <method reference> in <caller method name>
+#   first-call <method reference> on <class>
+#   first-call <method reference> on-type-named <GraphQL type>
+#   first-call <method reference> outside <package prefix>
+#   start-call <method reference> [in [static|instance] <(parameters)return, * for any run>] holding <string> [<string> ...]
+#   no-call <method reference> outside <package prefix>
+#   next-call <method reference> after <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+#   sole-call <method reference> replacing <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+#   once-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+#   shared-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+# A start-call, next-call, sole-call, once-call or shared-call rule picks its method by every string
+# it names and its shape, and exactly one of Instagram's methods may answer that; name as much as the
+# patch's own fingerprint finds the method by. A string with a space in it can't be named.
+#
+# One guard per hot method. A guard the patch puts first in a method gets a start-call rule, which
+# holds it first there and in no other method holding the same strings, and a once-call rule, which
+# holds it to one call in that method and none anywhere else. start-call alone passes a guard
+# written in twice, since the first of the two is still first.
+#
+# The patch fingerprint picks the method that puts a sponsored item into a feed by
+# "cross_surface_duplicate_ad" and "Is ad pod", a static method answering a boolean. "Is ad pod" has
+# a space, so the rule names the other string and the shape: of the four methods holding it on 449,
+# one is static and answers a boolean. Left out, every ad goes in; twice or elsewhere, it's no
+# longer the guard Hide ads wrote.
+start-call Lapp/hushgram/extension/instagram/ads/Ads;->hide()Z in static (*)Z holding cross_surface_duplicate_ad
+once-call Lapp/hushgram/extension/instagram/ads/Ads;->hide()Z in static (*)Z holding cross_surface_duplicate_ad
+# Remove build expired popup asks the extension first thing in the method that shows the "this
+# version has expired" lockout over the main activity. Two methods of its class hold
+# "lockout_active"; the lockout is the one taking the activity first.
+start-call Lapp/hushgram/extension/instagram/misc/BuildExpiry;->suppress()Z in (Landroidx/fragment/app/FragmentActivity;*)V holding lockout_active
+once-call Lapp/hushgram/extension/instagram/misc/BuildExpiry;->suppress()Z in (Landroidx/fragment/app/FragmentActivity;*)V holding lockout_active
+#
+# Disable analytics passes the address Instagram uploads its usage events to through the extension
+# before the builder returns it. The builder is the one static method taking a host and a flag that
+# holds all three pieces of the address, and it returns once on 449, so one call. The extension's
+# endpoint() is also called wherever Instagram loads Facebook's Graph logging address, so the
+# builder's rule is shared-call: the builder calls it once and no other method holding its strings
+# calls it, whoever else does.
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String; in static (Ljava/lang/String;Z)Ljava/lang/String; holding https:// /pigeon_nest /logging_client_events
+#
+# Sanitize sharing links passes the link each of Instagram's two share link parsers reads through
+# the extension, once, before the parser stores it: the permalink parser for a post or reel and the
+# parser for a story's share URL. Each is the one instance parser holding its field name and its
+# GraphQL type name. Both call the same filter, so each rule is shared-call.
+shared-call Lapp/hushgram/extension/instagram/misc/LinkCleaner;->sanitizeShared(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding permalink XDTPermalinkResponse
+shared-call Lapp/hushgram/extension/instagram/misc/LinkCleaner;->sanitizeShared(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding story_item_to_share_url XDTStoryItemThirdPartySharingUrlResponse
+#
+# The extension gets its context first thing in the application's onCreate, and the settings patch
+# calls the extension before each return of that onCreate. 449's onCreate returns once, so each is
+# one call; a build whose onCreate returns in more places gets a call per return, and the second
+# rule has to change with it. The main activity's onNewIntent hands a shortcut tap to the settings
+# screen first thing. The extension itself calls none of the three.
+single-call Lapp/hushgram/extension/shared/Utils;->setContext(Landroid/content/Context;)V in onCreate
+single-call Lapp/hushgram/extension/instagram/settings/SettingsEntry;->onApplicationCreate(Landroid/content/Context;)V in onCreate
+single-call Lapp/hushgram/extension/instagram/settings/SettingsEntry;->onNewIntent(Landroid/app/Activity;Landroid/content/Intent;)V in onNewIntent
+# Instagram publishes shortcuts of its own, and the settings patch sends every one of these calls to
+# the extension, which puts the HushGram shortcut back in front afterwards. One left in Instagram's
+# code is a publish that can push the shortcut out of a launcher's short list.
+no-call Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V outside Lapp/hushgram/extension/
+no-call Landroid/content/pm/ShortcutManager;->addDynamicShortcuts(Ljava/util/List;)Z outside Lapp/hushgram/extension/
+no-call Landroid/content/pm/ShortcutManager;->setDynamicShortcuts(Ljava/util/List;)Z outside Lapp/hushgram/extension/
+no-call Landroid/content/pm/ShortcutManager;->updateShortcuts(Ljava/util/List;)Z outside Lapp/hushgram/extension/
+no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outside Lapp/hushgram/extension/
+#
+# Not pinned:
+# Disable analytics also sends every load of Facebook's Graph logging address through endpoint().
+# Three methods load it on 449: a string table and two getters of the same shape holding nothing
+# else, so no rule can single one out, and shared-call on the table would count the getters' calls
+# against it.
+# Sanitize sharing links also sends ClipboardManager.setPrimaryClip and both Intent.createChooser
+# calls to stand-ins. The patcher rewrites only the root classes*.dex, and the in-app browser's dex
+# (split_heliumcore, three dex entries in the merge) still makes those calls itself, so a no-call
+# rule, which counts every dex, can't hold.
+# Restore trust on re-signed builds puts its call first in the package signer reader, which its
+# fingerprint picks by the SigningInfo and PackageInfo calls it makes. The reader holds no string,
+# so no rule can pick it.

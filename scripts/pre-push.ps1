@@ -15,8 +15,11 @@
     When a pushed commit changes the build, the patches, the extension or a root file their tests
     read, the tip is checked out into a clean worktree and built there: the unit tests, both lints,
     the catalog regenerated and compared, the bundle, and every declared build patched when
-    HUSHGRAM_FIXTURE_DIR holds it. The ledger's rules run when the ledger or its scripts move.
-    Set HUSHGRAM_SKIP_PRE_PUSH=1 to push anyway.
+    HUSHGRAM_FIXTURE_DIR holds it. A change to the verification scripts or their contract and
+    allowlist files counts as a build change too, so the declared builds are verified again with
+    them. The ledger's rules run when the ledger or its scripts move, and the injected-register,
+    device helper and resource table suites when their own files move. Set
+    HUSHGRAM_SKIP_PRE_PUSH=1 to push anyway.
 #>
 [CmdletBinding()]
 param(
@@ -50,7 +53,9 @@ $committer = 'matt_parker@outlook.com'
 $assistant = @('c', 'l', 'a', 'u', 'd', 'e') -join ''
 $aiPattern = "(?i)\b($assistant|anthropic|openai|chatgpt|codex|copilot|gemini)\b"
 $buildPaths = '^(extensions/|patches/|gradle/|build\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|' +
-    'NOTICE$|provenance\.json$|README\.md$|patches-list\.json$|sources/)'
+    'NOTICE$|provenance\.json$|README\.md$|patches-list\.json$|sources/|' +
+    'scripts/(DexDiff\.java|ResourceTableCheck\.java|MergeSplits\.java|injected-mutation-contracts\.txt|' +
+    'injected-register-removal-allowlist\.txt|verify-all-patches\.ps1|verify-injected-registers\.ps1)$)'
 $ledgerPaths = '^(sources/|scripts/(instagram-sources|test-instagram-sources|audit-instagram-sources)\.ps1$|NOTICE$|provenance\.json$)'
 $zero = '0' * 40
 
@@ -106,6 +111,55 @@ if (@($changed | Where-Object { $_ -match $ledgerPaths }).Count -gt 0) {
     Write-Step 'the source ledger or its rules changed, running them'
     & pwsh -NoProfile -File (Join-Path $Root 'scripts/test-instagram-sources.ps1')
     if ($LASTEXITCODE -ne 0) { Stop-Push 'scripts/test-instagram-sources.ps1 failed' }
+}
+
+# The verification gates' own suites, each when its files move. Each runs the working tree's copy,
+# as the ledger's does, and a suite the gate expects that isn't there stops the push rather than
+# being skipped with a note.
+$injectedRegisterVerifierPaths = @(
+    'scripts/BadDexFixture.java',
+    'scripts/DexDiff.java',
+    'scripts/injected-mutation-contracts.txt',
+    'scripts/injected-register-contracts.ps1',
+    'scripts/injected-register-removal-allowlist.txt',
+    'scripts/script-wiring.ps1',
+    'scripts/test-injected-registers.ps1',
+    'scripts/verify-all-patches.ps1',
+    'scripts/verify-injected-registers.ps1'
+)
+$touchesInjectedRegisterVerifier = @($changed | Where-Object { $_ -in $injectedRegisterVerifierPaths }).Count -gt 0
+$resourceTableCheckPaths = @(
+    'scripts/MergeSplits.java',
+    'scripts/ResourceTableCheck.java',
+    'scripts/test-resource-table-check.ps1',
+    'scripts/verify-all-patches.ps1'
+)
+$touchesResourceTableCheck = @($changed | Where-Object { $_ -in $resourceTableCheckPaths }).Count -gt 0
+$injectedRegisterDevicePaths = @(
+    'scripts/injected-register-device.ps1',
+    'scripts/script-wiring.ps1',
+    'scripts/test-injected-register-device.ps1',
+    'scripts/verify-injected-registers.ps1'
+)
+$touchesInjectedRegisterDevice = @($changed | Where-Object { $_ -in $injectedRegisterDevicePaths }).Count -gt 0
+$suites = @()
+if ($touchesInjectedRegisterVerifier) {
+    $suites += , @('scripts/test-injected-registers.ps1', 'the injected-register verifier changed, running its fixture tests')
+}
+if ($touchesResourceTableCheck) {
+    $suites += , @('scripts/test-resource-table-check.ps1', 'the resource table check changed, running its fixture tests')
+}
+if ($touchesInjectedRegisterDevice) {
+    $suites += , @('scripts/test-injected-register-device.ps1', 'the injected-register device helper changed, running its cleanup fixtures')
+}
+foreach ($suite in $suites) {
+    $suiteScript = Join-Path $Root $suite[0]
+    if (-not (Test-Path -LiteralPath $suiteScript -PathType Leaf)) {
+        Stop-Push "$($suite[0]) is missing. The gate expects it, so the push stops."
+    }
+    Write-Step $suite[1]
+    & pwsh -NoProfile -File $suiteScript -Root $Root
+    if ($LASTEXITCODE -ne 0) { Stop-Push "$($suite[0]) failed" }
 }
 
 if (@($changed | Where-Object { $_ -match $buildPaths }).Count -eq 0 -or $tips.Count -eq 0) {

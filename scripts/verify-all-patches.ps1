@@ -17,11 +17,19 @@
     A split bundle is merged into one APK first, with the CLI's own merger (Get-MergedApk), and
     the CLI patches that merge. A clean run reads the manifests of the merge and the patched APK
     with aapt2 and prints what patching changed: permissions asked for or dropped, components
-    exported or no longer. A change scripts/manifest-delta-allowlist.txt doesn't approve fails
-    the run.
+    exported or no longer. A change scripts/manifest-delta-allowlist.txt doesn't approve stops
+    the run there. It then holds the patched APK's resource table to the merge's with
+    ResourceTableCheck.java: every resource of every package has to resolve by its id with its
+    type and each configuration's value, and every file and reference the patched values name
+    has to be there. A failure names the id. What the patches rewrote, what the rebuild renamed
+    and what was added go in a report beside the result file.
 
-    Hushfacebook's resource-table and injected-register checks are left out for now; ROADMAP.md
-    has them as an open item.
+    Last, verify-injected-registers.ps1 holds the patched dex to the stock dex with DexDiff.java:
+    register counts, branch targets, invoke registers, parameter kinds and try ranges in every
+    changed and added method, the merge held to base.apk's classes*.dex byte for byte, and the
+    call sites scripts/injected-mutation-contracts.txt pins, one guard per hot method among them.
+    Its report goes beside the result file too. The device half of that script (dex2oat on a
+    phone or emulator) runs only when it's called with -Serial, which this script never passes.
 
 .EXAMPLE
     scripts/verify-all-patches.ps1 -Apk C:\path\to\native-fixture.apk `
@@ -192,9 +200,47 @@ try {
         Write-Warning ('[verify] the patched manifest changed in ways scripts/manifest-delta-allowlist.txt ' +
             "doesn't approve: $($unapprovedChanges -join ', ')")
     } elseif ($cliExitCode -eq 0 -and $validation.Valid) {
-        Write-Host ('[verify] success: every requested patch applied to a valid APK whose manifest changes ' +
-            'are all approved.')
-        $exitCode = 0
+        # The rebuilt resource table against the stock one. A resource patch has Morphe decode and
+        # rebuild the app's whole table, and an id the rebuild loses only fails when the app
+        # inflates it. The stock side is the APK the CLI patched, the split bundle's merge: that is
+        # the table the patched APK was rebuilt from, and base.apk alone lacks every resource the
+        # splits carry.
+        $resourceReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-resources-$runId.txt") -Root $workRoot
+        # Continue for the call alone, as for the CLI: a JDK note or a stack trace on stderr would
+        # otherwise end the run under Windows PowerShell 5.1 before the exit code is read.
+        $preference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            $global:LASTEXITCODE = -1
+            $resourceOutput = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
+                $patchInput $out $resourceReport 2>&1)
+            $resourceExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+        }
+        $resourceOutput | ForEach-Object { Write-Host "[verify] $_" }
+        Write-Host "[verify] resource report: $resourceReport"
+        if ($resourceExitCode -eq 0) {
+            # The injected code against Instagram's: registers, branches, invokes, parameters and
+            # try ranges, the shapes that pass the CLI and fail on a device, and the call sites
+            # injected-mutation-contracts.txt pins, which the device verifier doesn't check.
+            $registerReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-registers-$runId.txt") -Root $workRoot
+            $global:LASTEXITCODE = 0
+            & (Join-Path $PSScriptRoot 'verify-injected-registers.ps1') -CleanApk $stockApk -CleanMerged $patchInput `
+                -PatchedApk $out -ReportPath $registerReport -Java $Java -DesktopJar $DesktopJar -Aapt2 $Aapt2
+            $registerExitCode = $LASTEXITCODE
+            Write-Host "[verify] register report: $registerReport"
+            if ($registerExitCode -eq 0) {
+                Write-Host ('[verify] success: every requested patch applied to a valid APK whose manifest changes ' +
+                    'are all approved, whose resource table holds every stock resource and whose injected code ' +
+                    'passes the structural and contract checks.')
+                $exitCode = 0
+            } else {
+                Write-Warning "[verify] the injected code failed its structural or contract checks (exit $registerExitCode)."
+            }
+        } else {
+            Write-Warning "[verify] the patched resource table failed its check against the stock one (exit $resourceExitCode)."
+        }
     }
 } finally {
     Remove-GeneratedPath -Path $runDir -Root $workRoot
