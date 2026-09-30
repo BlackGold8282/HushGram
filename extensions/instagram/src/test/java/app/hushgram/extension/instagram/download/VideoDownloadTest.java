@@ -6,6 +6,8 @@ package app.hushgram.extension.instagram.download;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -19,7 +21,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowToast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
@@ -73,6 +77,34 @@ public class VideoDownloadTest {
         assertFalse(VideoDownload.save(new Object(), activity));
         assertFalse(VideoDownload.save(null, activity));
         assertEquals(null, ShadowToast.getTextOfLatestToast());
+    }
+
+    /**
+     * With the switch on, the short menu's list gets Download in front, so its row shows first; the
+     * list Instagram made is left as it was. A list that has Download already comes back as is.
+     */
+    @Test
+    public void theShortMenuKeepsDownloadFirst() {
+        List<String> options = Arrays.asList("WHY_AM_I_SEEING_THIS", "SEE_MORE", "REPORT");
+
+        List<?> allowed = VideoDownload.allow(options, "DOWNLOAD");
+
+        assertEquals(Arrays.asList("DOWNLOAD", "WHY_AM_I_SEEING_THIS", "SEE_MORE", "REPORT"), allowed);
+        assertEquals(Arrays.asList("WHY_AM_I_SEEING_THIS", "SEE_MORE", "REPORT"), options);
+        List<String> already = Arrays.asList("REPORT", "DOWNLOAD");
+        assertSame(already, VideoDownload.allow(already, "DOWNLOAD"));
+    }
+
+    /** Off, or with nothing to go on, the short menu's list is Instagram's own. */
+    @Test
+    public void offTheShortMenuIsInstagrams() {
+        List<String> options = Arrays.asList("WHY_AM_I_SEEING_THIS", "REPORT");
+        assertSame(options, VideoDownload.allow(options, null));
+        assertNull(VideoDownload.allow(null, "DOWNLOAD"));
+
+        Settings.DOWNLOAD_VIDEOS.save(false);
+
+        assertSame(options, VideoDownload.allow(options, "DOWNLOAD"));
     }
 
     /** Without the bridges written, a post has no video, and the read doesn't throw. */

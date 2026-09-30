@@ -12,7 +12,8 @@
 # A start-call, next-call, sole-call, once-call or shared-call rule picks its method by every string
 # it names and its shape, and exactly one of Instagram's methods may answer that; name as much as the
 # patch's own fingerprint finds the method by. A string with a space in it is written with \s for
-# each space, and a backslash as \\.
+# each space, and a backslash as \\. A string written as a field reference (Lclass;->name:type) is
+# held by a method that reads or writes that field, for a method that loads no string of its own.
 #
 # One guard per hot method. A guard the patch puts first in a method gets a start-call rule, which
 # holds it first there and in no other method holding the same strings, and a once-call rule, which
@@ -184,6 +185,11 @@ shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljav
 # it isn't first, and the rule is once-call.
 once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V in instance ()Ljava/lang/Object; holding MediaOptionsOverflowHelper basel_template_option_overflow_menu
 once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->save(Ljava/lang/Object;Landroid/app/Activity;)Z in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
+# The short menu most of the feed opens keeps only the rows whose option is on a list made by a
+# method holding no string, so the rule picks it by the two options it reads: the one static method
+# taking a flag and answering a list that reads "Why you're seeing this" and Report. It returns
+# once on 449, and allow() goes in before the return, so it's one call and not the first.
+once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List; in static (Z)Ljava/util/List; holding Lcom/instagram/feed/media/mediaoption/MediaOption$Option;->WHY_AM_I_SEEING_THIS:Lcom/instagram/feed/media/mediaoption/MediaOption$Option; Lcom/instagram/feed/media/mediaoption/MediaOption$Option;->REPORT:Lcom/instagram/feed/media/mediaoption/MediaOption$Option;
 #
 # Tap to play: IgGrootPlayer's play asks allowDirectStart() first, its prepare tells rebound()
 # first, and the autoplay check hands its answer to autoplayAllowed() where it returns, once on

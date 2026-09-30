@@ -59,11 +59,12 @@ class DownloadVideoHookTest {
     private val contextType = "Landroid/content/Context;"
     private val mine = "Lfixture/Owner;->mine(Ljava/lang/Object;)Z"
     private val adder = "$state->A00($kind$OPTION${state}Ljava/lang/CharSequence;Ljava/util/ArrayList;Z)V"
+    private val shortMenu = "Lfixture/ShortMenu;"
 
     /** The hooks the patch writes are in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(OFFER_VIDEO, SAVE_VIDEO)) {
+        for (hook in listOf(OFFER_VIDEO, SAVE_VIDEO, ALLOW_VIDEO)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -141,6 +142,53 @@ class DownloadVideoHookTest {
         for (branch in listOf(2, 9)) assertEquals("the branch at $branch", 11, code.target(branch))
     }
 
+    /**
+     * Each return of the short menu's list hands the list to allow() first, with Download in a
+     * register the list isn't in, and takes back what it answers. A jump that went to a return goes
+     * to its hook.
+     */
+    @Test
+    fun theShortMenuListAsksAllowAtEachReturn() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryVideo()
+
+        val code = context.method(shortMenu, "A01").code()
+        val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+        assertEquals("the returns", 2, returns.size)
+        for ((at, list) in returns.zip(listOf(1, 0))) {
+            val spare = if (list == 0) 1 else 0
+            assertEquals("the option at $at", DOWNLOAD, code[at - 3].referenceText())
+            assertEquals("its register", spare, (code[at - 3] as OneRegisterInstruction).registerA)
+            val call = code[at - 2] as Instruction35c
+            assertEquals(ALLOW_VIDEO, call.referenceText())
+            assertEquals("allow()'s arguments at $at", listOf(list, spare), listOf(call.registerC, call.registerD))
+            assertEquals(Opcode.MOVE_RESULT_OBJECT, code[at - 1].opcode)
+            assertEquals("the list taken back at $at", list, (code[at - 1] as OneRegisterInstruction).registerA)
+            assertEquals("the list returned at $at", list, (code[at] as OneRegisterInstruction).registerA)
+        }
+        val jump = code.indexOfFirst { it.opcode == Opcode.IF_EQZ }
+        assertEquals("the jump to the last return", returns.last() - 3, code.target(jump))
+        assertEquals("allow() calls", 2, code.count { it.referenceText() == ALLOW_VIDEO })
+    }
+
+    /** A short menu list the patch can't tell apart or can't hook fails the patch before anything changes. */
+    @Test
+    fun aShortMenuListItCantHookFailsBeforeAnythingChanges() {
+        for ((case, classes) in listOf(
+            "no list" to classes(shortLists = 0),
+            "two lists" to classes(shortLists = 2),
+            "one local register" to classes(shortListRegisters = 2),
+        )) {
+            val context = PatchContexts.of(classes)
+            assertThrows(case, PatchException::class.java) { context.offerDownloadOnEveryVideo() }
+            assertUntouched(context)
+            if (case != "no list") {
+                assertTrue("$case: the list changed", context.method(shortMenu, "A01").code().none { it.referenceText() == ALLOW_VIDEO })
+            }
+        }
+    }
+
     /** Rows after Download that the download check can reach aren't anyone else's for sure, and nothing changes. */
     @Test
     fun aJumpAfterTheCheckFailsBeforeAnythingChanges() {
@@ -180,10 +228,12 @@ class DownloadVideoHookTest {
                     val marked = dex.stringSection.any { it.startsWith("android_purge_") && PURGE_MARKER.find(it)?.groupValues?.get(1) == ELIGIBLE_MARKER }
                     val loads = dex.fieldSection.any { it.toString() == DOWNLOAD }
                     val named = dex.stringSection.any { it == FEED_HELPER_NAME }
-                    if (!marked && !loads && !named && dex.classes.none { it.type in types }) return@forEach
+                    val options = dex.fieldSection.any { it.toString() == WHY_OPTION }
+                    if (!marked && !loads && !named && !options && dex.classes.none { it.type in types }) return@forEach
                     for (classDef in dex.classes) {
                         val wanted = classDef.type in types || classDef.originalName() == FEED_HELPER_NAME || classDef.methods.any { method ->
-                            ELIGIBLE_MARKER in method.markers() || method.code().any { it.referenceText() == DOWNLOAD }
+                            ELIGIBLE_MARKER in method.markers() || method.code().any { it.referenceText() == DOWNLOAD } ||
+                                method.isShortMenuList()
                         }
                         if (wanted) classes += ImmutableClassDef.of(classDef)
                     }
@@ -209,6 +259,15 @@ class DownloadVideoHookTest {
                 val row = context.method(INSTAGRAM_MEDIA, "addDownloadRow").code()
                 assertTrue("${bundle.name}: the row bridge", row.any { it.referenceText() == DOWNLOAD } && row.any { it.opcode == Opcode.INVOKE_STATIC_RANGE })
                 assertEquals("${bundle.name}: the post bridge", Opcode.CHECK_CAST, context.method(INSTAGRAM_MEDIA, "feedMenuMedia").code().first().opcode)
+                val lists = classes.flatMap { it.methods }.filter { it.isShortMenuList() }
+                assertEquals("${bundle.name}: the short menu's lists", 1, lists.size)
+                val list = context.method(lists.single().definingClass, lists.single().name, listOf("Z")).code()
+                val returns = list.indices.filter { list[it].opcode == Opcode.RETURN_OBJECT }
+                assertEquals("${bundle.name}: allow() calls", returns.size, list.count { it.referenceText() == ALLOW_VIDEO })
+                returns.forEach { at ->
+                    assertEquals("${bundle.name}: allow() before the return at $at", ALLOW_VIDEO, list[at - 2].referenceText())
+                    assertEquals("${bundle.name}: Download handed to it", DOWNLOAD, list[at - 3].referenceText())
+                }
                 val bridges = context.classDefBy(INSTAGRAM_MEDIA).methods.filter { it.name in videoBridges }
                 assertEquals("${bundle.name}: the video bridges", videoBridges.size, bridges.size)
                 bridges.forEach { assertEquals("${bundle.name}: ${it.name}", Opcode.CHECK_CAST, it.code().first().opcode) }
@@ -245,7 +304,13 @@ class DownloadVideoHookTest {
 
     // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
 
-    private fun classes(name: String = FEED_HELPER_NAME, lateJump: Boolean = false, handlerRegisters: Int = 42): List<ClassDef> {
+    private fun classes(
+        name: String = FEED_HELPER_NAME,
+        lateJump: Boolean = false,
+        handlerRegisters: Int = 42,
+        shortLists: Int = 1,
+        shortListRegisters: Int = 4,
+    ): List<ClassDef> {
         val menu = ImmutableClassDef(
             helper, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
             listOf(
@@ -335,8 +400,35 @@ class DownloadVideoHookTest {
             """)
         val versionGetters = listOf("getUrl" to ("url" to "Ljava/lang/String;"), "DvO" to ("width" to "Ljava/lang/Integer;"),
             "CK7" to ("height" to "Ljava/lang/Integer;"))
+        // The short menu's list of the options it keeps: made once, answered as it is on one arm and
+        // made read-only on the other, where a jump goes to the return.
+        val shortList = { listName: String ->
+            method(shortMenu, listName, listOf("Z"), "Ljava/util/List;", shortListRegisters, static = true, body = """
+                sget-object v1, $WHY_OPTION
+                sget-object v0, $REPORT_OPTION
+                filled-new-array { v1, v0 }, [$OPTION
+                move-result-object v1
+                invoke-static { v1 }, Ljava/util/Arrays;->asList([Ljava/lang/Object;)Ljava/util/List;
+                move-result-object v1
+                if-nez p0, :short
+                return-object v1
+                :short
+                invoke-static { v1 }, Ljava/util/Collections;->unmodifiableList(Ljava/util/List;)Ljava/util/List;
+                move-result-object v0
+                if-eqz v0, :done
+                :done
+                return-object v0
+            """)
+        }
+        val shortMenus = classDef(shortMenu, listOf("A01", "A02").take(shortLists).map(shortList) +
+            // A static list of the same shape reading Report alone, which isn't the menu's.
+            method(shortMenu, "A03", listOf("Z"), "Ljava/util/List;", 2, static = true, body = """
+                sget-object v0, $REPORT_OPTION
+                const/4 v0, 0x0
+                return-object v0
+            """))
         return listOf(
-            menu, builder, eligible,
+            menu, builder, eligible, shortMenus,
             classDef(MEDIA, mediaGetters),
             classDef(USER, listOf(getter(USER, "A89", "username", "Ljava/lang/String;"))),
             ImmutableClassDef(

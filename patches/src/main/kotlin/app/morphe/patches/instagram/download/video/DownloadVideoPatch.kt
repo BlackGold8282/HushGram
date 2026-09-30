@@ -51,6 +51,12 @@ private const val PATCH = "Download any video"
 private const val VIDEO_DOWNLOAD = "$EXTENSION_PACKAGE/download/VideoDownload;"
 internal const val OFFER_VIDEO = "$VIDEO_DOWNLOAD->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V"
 internal const val SAVE_VIDEO = "$VIDEO_DOWNLOAD->save(Ljava/lang/Object;Landroid/app/Activity;)Z"
+internal const val ALLOW_VIDEO = "$VIDEO_DOWNLOAD->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;"
+
+/** The options the short feed menu's list of kept options reads first and last: "Why you're seeing this" and Report. */
+internal const val WHY_OPTION = "$OPTION->WHY_AM_I_SEEING_THIS:$OPTION"
+internal const val REPORT_OPTION = "$OPTION->REPORT:$OPTION"
+private const val LIST = "Ljava/util/List;"
 
 /** The name Instagram's build keeps, in a static field, for the class that runs a feed post's menu. */
 internal const val FEED_HELPER_NAME = "MediaOptionsOverflowHelper"
@@ -75,6 +81,11 @@ private const val ADD_DOWNLOAD_ROW = "addDownloadRow"
  * start it asks the extension, which adds the same row, built the way Instagram builds it, to a
  * post with a video. A tap on Download saves the video from the addresses its Media already holds,
  * the way Hushfacebook's Download any video does.
+ *
+ * Most of the feed now opens a short menu instead ("Why you're seeing this", Interested, Not
+ * interested, Report, under an "About this reel" summary on a reel). It shows only the rows whose
+ * option is on a fixed list, in that list's order, so it dropped the Download row. The list goes
+ * through the extension before it's returned, which puts Download first while the switch is on.
  *
  * Everything is found before anything changes, so a build that differs stops the patch naming
  * what it couldn't find, and nothing is half done.
@@ -120,11 +131,13 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
     val helpers = mutableListOf<ClassDef>()
     val eligibles = mutableListOf<Method>()
     val loaders = mutableListOf<Method>()
+    val shortLists = mutableListOf<Method>()
     classDefForEach { classDef ->
         if (classDef.originalName() == FEED_HELPER_NAME) helpers += classDef
         classDef.methods.forEach { method ->
             if (ELIGIBLE_MARKER in method.markers()) eligibles += method
             if (method.code().any { it.opcode == Opcode.SGET_OBJECT && it.referenceText() == DOWNLOAD }) loaders += method
+            if (method.isShortMenuList()) shortLists += method
         }
     }
     val helper = helpers.singleOrNull() ?: throw PatchException(
@@ -169,7 +182,34 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         it.name == ADD_DOWNLOAD_ROW && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
             it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;", ARRAY_LIST)
     } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static $ADD_DOWNLOAD_ROW(Object, ArrayList)")
+    val shortList = shortLists.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one list of the options the short feed menu keeps, a static method taking a flag that reads " +
+            "$WHY_OPTION and $REPORT_OPTION, found " +
+            if (shortLists.isEmpty()) "none" else shortLists.joinToString { "${it.definingClass}->${it.name}" },
+    )
+    val kept = mutable(shortList)
+    kept.requireLocals(PATCH, 2)
+    val keptCode = kept.code()
+    val returns = keptCode.indices.filter { keptCode[it].opcode == Opcode.RETURN_OBJECT }
+    if (returns.isEmpty()) throw PatchException("$PATCH: ${kept.definingClass}->${kept.name} never returns its list")
+    returns.map { (keptCode[it] as OneRegisterInstruction).registerA }.firstOrNull { it > 15 }?.let {
+        throw PatchException("$PATCH: ${kept.definingClass}->${kept.name} returns its list in v$it, out of an invoke's reach")
+    }
     val writeBridges = mediaBridges(PATCH)
+
+    // Last return first, so the indices before it stay where they were.
+    for (index in returns.reversed()) {
+        val list = (keptCode[index] as OneRegisterInstruction).registerA
+        val spare = if (list == 0) 1 else 0
+        kept.addInstructionsAtControlFlowLabel(
+            index,
+            """
+                sget-object v$spare, $DOWNLOAD
+                invoke-static { v$list, v$spare }, $ALLOW_VIDEO
+                move-result-object v$list
+            """,
+        )
+    }
 
     mutable(builder).addInstructionsAtControlFlowLabel(
         others.at,
@@ -319,6 +359,15 @@ internal fun Method.othersRow(eligible: Method): OthersRow {
     } ?: throw PatchException("$PATCH: in $where anyone else's rows never read the post")
     return OthersRow(at, state, rows, stateType, adder, kind, context, label, media)
 }
+
+/**
+ * Whether [this] makes the list of options the short feed menu keeps: a static method taking a flag
+ * and answering a list, reading "Why you're seeing this" and Report. The flag picks one of two
+ * such lists, both made here, so every return gets the hook.
+ */
+internal fun Method.isShortMenuList(): Boolean =
+    AccessFlags.STATIC.isSet(accessFlags) && returnType == LIST && parameterTypes.map(Any::toString) == listOf("Z") &&
+        code().mapNotNull { it.referenceText() }.let { WHY_OPTION in it && REPORT_OPTION in it }
 
 private val STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)

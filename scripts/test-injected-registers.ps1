@@ -64,8 +64,11 @@
     sole-call rule. The feed guard's call in the runnable that swaps an edge into the feed is left
     out, sent to another method of the runnable holding the first size of its log line with run()
     left alone, sent there as well as in run(), sent twice, and a second run() answers the rule, a
-    build each, each failing the once-call rule for its own reason; the contract file may hold no
-    other once-call rule. The link filter call Sanitize sharing links puts in each of Instagram's
+    build each, each failing the once-call rule for its own reason. Download any video's call in the
+    short feed menu's list, a method holding no string that its rule picks by the two options it
+    reads, is left out, or sent to a method of the same shape reading one of them with the list
+    left alone, a build each, each failing that once-call rule; the contract file may hold no other
+    once-call rule. The link filter call Sanitize sharing links puts in each of Instagram's
     two link parsers is left out of the post parser, made twice there, made in a static method
     holding the parser's names as well, and a second parser answers the rule, a build each, each
     failing the post parser's shared-call rule for its own reason while the story parser's call
@@ -723,8 +726,9 @@ try {
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
         "contract $watchRule`: in place of it on v2, v1 in $watchFlush")) `
         "The good build's watch-history hook was not reported in place of the executor call.`n$($good.Output -join "`n")"
-    # The feed guard asks the extension once in the runnable that swaps an edge into the feed. The
-    # contract file's one once-call rule is that guard, so a rule this suite builds no bad fixtures
+    # The feed guard asks the extension once in the runnable that swaps an edge into the feed, and
+    # Download any video's call once in the short feed menu's list, picked by the fields it reads.
+    # The contract file's two once-call rules are those, so a rule this suite builds no bad fixtures
     # for can't pass on a count nobody checks.
     $swapHook = 'Lapp/hushgram/extension/fixture/feed/FeedFilter;->hideSwappedEdge(Ljava/lang/Object;Ljava/lang/Object;)Z'
     $swapRun = 'Lfixture/EdgeSwap;->run()V'
@@ -732,10 +736,16 @@ try {
     $swapRule = "once-call $swapHook in instance ()V holding sizeBefore sizeAfter"
     $onceCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*once-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($onceCallRules.Count -eq 1 -and $onceCallRules[0] -ceq $swapRule) `
-        "The contract file's once-call rules are not the swap guard this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
+    $allowHook = 'Lapp/hushgram/extension/fixture/download/VideoDownload;->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;'
+    $allowKept = 'Lfixture/MenuOptions;->kept(Z)Ljava/util/List;'
+    $allowHeld = '"Lfixture/MenuOption;->WHY:Lfixture/MenuOption;" and "Lfixture/MenuOption;->REPORT:Lfixture/MenuOption;" with the shape static (Z)Ljava/util/List;'
+    $allowRule = "once-call $allowHook in static (Z)Ljava/util/List; holding Lfixture/MenuOption;->WHY:Lfixture/MenuOption; Lfixture/MenuOption;->REPORT:Lfixture/MenuOption;"
+    Assert-True ($onceCallRules.Count -eq 2 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule) `
+        "The contract file's once-call rules are not the swap guard and the menu list this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
         "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $allowRule`: once in $allowKept")) `
+        "The good build's menu list call was not reported once in the list, picked by its fields.`n$($good.Output -join "`n")"
     # Sanitize sharing links passes each link parser's link through one filter, which the other
     # parser calls too. The fixture's two shared-call rules are those parsers, so a rule this suite
     # builds no bad fixtures for can't pass on a count nobody checks.
@@ -903,6 +913,8 @@ try {
         'bad-swap-hook-also-elsewhere' = 'contract'
         'bad-swap-hook-twice' = 'contract'
         'bad-swap-two-runs' = 'contract'
+        'bad-options-hook-missing' = 'contract'
+        'bad-options-hook-decoy' = 'contract'
         'bad-shared-hook-missing' = 'contract'
         'bad-shared-hook-twice' = 'contract'
         'bad-shared-hook-also-elsewhere' = 'contract'
@@ -1028,6 +1040,18 @@ try {
         $fails = @((Get-Findings $badResults[$case.Key]).Fails)
         Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
             "$($case.Key) did not fail with its own swap finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
+    # Each menu list build fails on its once-call rule alone: no call, or one only in the method
+    # reading Report alone, which the rule's fields don't pick.
+    $allowFails = [ordered]@{
+        'bad-options-hook-missing' = "[diff] FAIL: contract: $allowHook is not called in $allowKept, the one method holding $allowHeld"
+        'bad-options-hook-decoy' = "[diff] FAIL: contract: $allowHook is not called in $allowKept, the one method holding " +
+            "$allowHeld; the host methods that call it: Lfixture/MenuOptions;->reportOnly(Z)Ljava/util/List;"
+    }
+    foreach ($case in $allowFails.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+            "$($case.Key) did not fail with its own menu list finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
     }
     # Each link parser build fails on the post parser's shared-call rule alone, for its own reason:
     # no filter call, two, one in the static method holding the parser's names as well, or a second

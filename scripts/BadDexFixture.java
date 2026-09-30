@@ -100,8 +100,11 @@ import java.util.Set;
  * is the shared-call kind: a host class stands in for Instagram's two link parsers, a shared
  * post's and a shared story's, each holding its field and response type names and passing its
  * link through the same extension filter, as Sanitize sharing links does. Beside them sit a static
- * method holding the post parser's names and, in one build, a second parser holding them too. The
- * rules all these builds are held to are written beside them as contracts.txt, since HushGram's
+ * method holding the post parser's names and, in one build, a second parser holding them too. So is
+ * a rule picking its method by the fields it reads: Instagram's short feed menu keeps only the
+ * options on a list made by a method holding no string, and Download any video passes that list
+ * through the extension. Beside it sits a method of the same shape reading one of the two options.
+ * The rules all these builds are held to are written beside them as contracts.txt, since HushGram's
  * own contract file names Instagram's code.
  *
  *   java -cp &lt;cli jar&gt; BadDexFixture.java &lt;outDir&gt;
@@ -231,6 +234,19 @@ public class BadDexFixture {
     /** The two sizes the swap log line reports, which the swap rule picks the runnable by. */
     private static final List<String> SWAP_SIZES = Arrays.asList("sizeBefore", "sizeAfter");
 
+    /**
+     * Instagram's short feed menu, a class Redex renames, whose list of the options it keeps holds
+     * no string: the option type, the two options that list's rule picks it by, and the extension
+     * call Download any video passes the list through.
+     */
+    private static final String MENU_OPTIONS = "Lfixture/MenuOptions;";
+    private static final String MENU_OPTION = "Lfixture/MenuOption;";
+    private static final ImmutableFieldReference WHY_OPTION = new ImmutableFieldReference(MENU_OPTION, "WHY", MENU_OPTION);
+    private static final ImmutableFieldReference REPORT_OPTION = new ImmutableFieldReference(MENU_OPTION, "REPORT", MENU_OPTION);
+    private static final String VIDEO_DOWNLOAD = "Lapp/hushgram/extension/fixture/download/VideoDownload;";
+    private static final ImmutableMethodReference ALLOW =
+            method(VIDEO_DOWNLOAD, "allow", "Ljava/util/List;", "Ljava/util/List;", OBJECT);
+
     /** Instagram's JSON parsers for a shared post's link and a shared story's, classes Redex renames. */
     private static final String LINK_PARSERS = "Lfixture/LinkParsers;";
     /** The filter both parsers pass their link through, as Sanitize sharing links does. */
@@ -253,6 +269,7 @@ public class BadDexFixture {
             "# Written by BadDexFixture.java for test-injected-registers.ps1.",
             "single-call Lapp/hushgram/extension/fixture/feed/FeedFilter;->hideEdge(Ljava/lang/Object;Ljava/lang/Object;)Z in addNewEdgeToCollection",
             "once-call Lapp/hushgram/extension/fixture/feed/FeedFilter;->hideSwappedEdge(Ljava/lang/Object;Ljava/lang/Object;)Z in instance ()V holding sizeBefore sizeAfter",
+            "once-call Lapp/hushgram/extension/fixture/download/VideoDownload;->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List; in static (Z)Ljava/util/List; holding Lfixture/MenuOption;->WHY:Lfixture/MenuOption; Lfixture/MenuOption;->REPORT:Lfixture/MenuOption;",
             "first-call Lapp/hushgram/extension/fixture/feed/GenAiLabel;->detectedInfo(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;",
             "first-call Lapp/hushgram/extension/fixture/feed/GenAiLabel;->selfDisclosureInfo(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;",
             "first-call Lapp/hushgram/extension/fixture/feed/RecommendationLabel;->recommendationContext(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;",
@@ -1378,6 +1395,46 @@ public class BadDexFixture {
                         "Ljava/lang/String;", true, body(1, op(Opcode.RETURN_OBJECT, 0)), "Ljava/lang/String;")));
     }
 
+    /**
+     * A static method of the short feed menu taking a flag and answering a list: it reads each of
+     * [options] into v1, passes the list in v0 through the extension's allow() [hooks] times and
+     * answers it.
+     */
+    private static Method optionsMethod(String name, List<ImmutableFieldReference> options, int hooks) {
+        List<Instruction> instructions = new ArrayList<>();
+        instructions.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+        for (ImmutableFieldReference option : options) {
+            instructions.add(new ImmutableInstruction21c(Opcode.SGET_OBJECT, 1, option));
+        }
+        for (int i = 0; i < hooks; i++) {
+            instructions.add(invoke(ALLOW, 0, 1));
+            instructions.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+        }
+        instructions.add(op(Opcode.RETURN_OBJECT, 0));
+        return define(MENU_OPTIONS, name, "Ljava/util/List;", true,
+                new ImmutableMethodImplementation(3, instructions, null, null), "Z");
+    }
+
+    /**
+     * Instagram's short feed menu. kept, the list of the options it keeps, reads both options its
+     * once-call rule names and passes the list through allow() [hooks] times. Beside it sits a
+     * method of the same shape reading Report alone, which with [partSent] passes its list through
+     * allow() as well, so a rule that took a method reading fewer than every field it names would
+     * pick that one too.
+     */
+    private static ClassDef menuOptions(int hooks, boolean partSent) {
+        return new ImmutableClassDef(MENU_OPTIONS, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Arrays.asList(optionsMethod("kept", Arrays.asList(WHY_OPTION, REPORT_OPTION), hooks),
+                        optionsMethod("reportOnly", Collections.singletonList(REPORT_OPTION), partSent ? 1 : 0)));
+    }
+
+    /** The extension's allow(), static, the list in v0: it answers the list as it came. */
+    private static ClassDef videoDownload() {
+        return new ImmutableClassDef(VIDEO_DOWNLOAD, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
+                OBJECT, null, null, null, null, Collections.singletonList(define(VIDEO_DOWNLOAD, "allow",
+                        "Ljava/util/List;", true, body(2, op(Opcode.RETURN_OBJECT, 0)), "Ljava/util/List;", OBJECT)));
+    }
+
     /** [classes] with the top bar replaced by [topBar]. */
     private static List<ClassDef> withTopBar(List<ClassDef> classes, ClassDef topBar) {
         List<ClassDef> replaced = new ArrayList<>(classes);
@@ -1551,7 +1608,7 @@ public class BadDexFixture {
                 reelLikeHelper(likeHook(), Collections.<Instruction>emptyList()),
                 attachmentTap(tapHook(), Collections.<Instruction>emptyList()), doubleTapLike(),
                 speedToast(toastHook(3), Collections.<Instruction>emptyList()), reelSpeed(),
-                linkParsers(1, 1, false, false), linkFilter());
+                linkParsers(1, 1, false, false), linkFilter(), menuOptions(1, false), videoDownload());
     }
 
     /** The clean host, Facebook's classes as they ship, with the batcher's flush making [handOver]. */
@@ -1568,7 +1625,7 @@ public class BadDexFixture {
                 reelLikeHelper(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 attachmentTap(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 speedToast(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
-                linkParsers(0, 0, false, false));
+                linkParsers(0, 0, false, false), menuOptions(0, false));
     }
 
     /**
@@ -2177,6 +2234,11 @@ public class BadDexFixture {
         // contract: a second method answering the swap rule, so it can't say which one the guard
         // belongs in, although the guard is where it was.
         dexes.put("bad-swap-two-runs", replaced(good(), edgeSwap(swapGuard(), false, true)));
+
+        // contract: the short feed menu's list left without allow(), so Download never gets in.
+        dexes.put("bad-options-hook-missing", replaced(good(), menuOptions(0, false)));
+        // contract: allow() in the method reading Report alone, and the list left as Instagram makes it.
+        dexes.put("bad-options-hook-decoy", replaced(good(), menuOptions(0, true)));
 
         // contract: the post parser left without its filter call, the story parser's kept.
         dexes.put("bad-shared-hook-missing", replaced(good(), linkParsers(0, 1, false, false)));

@@ -28,6 +28,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <ul>
  *   <li>The menu's builder calls {@link #offer} where it starts on the rows for someone else's
  *       post. With the switch on, a post with a video gets Instagram's Download row there.
+ *   <li>The short menu most of the feed opens shows only the rows whose option is on a fixed list,
+ *       in the list's order. The method that makes the list hands it to {@link #allow}, which puts
+ *       Download first with the switch on.
  *   <li>The menu's handler asks {@link #save} first when Download is tapped, which saves the video
  *       from the addresses its Media already holds, through {@link MediaSave}. A post without a
  *       video goes to Instagram's own download.
@@ -54,6 +57,27 @@ public final class VideoDownload {
             InstagramMedia.addDownloadRow(menu, rows);
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed menu", t);
+        }
+    }
+
+    /**
+     * Answers [options], the options the short feed menu keeps, with [download], Instagram's
+     * Download option, in front when the switch is on. The menu keeps a row only when its option is
+     * on this list and orders the rows by it, so without this the row {@link #offer} added never
+     * shows there. A list that already has Download, or any list with the switch off, comes back
+     * as it came. Never throws.
+     */
+    public static List<?> allow(List<?> options, Object download) {
+        try {
+            HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
+            if (options == null || download == null || !on() || options.contains(download)) return options;
+            List<Object> allowed = new ArrayList<>(options.size() + 1);
+            allowed.add(download);
+            allowed.addAll(options);
+            return allowed;
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "short feed menu", t);
+            return options;
         }
     }
 

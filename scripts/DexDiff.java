@@ -21,6 +21,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.formats.ArrayPayload;
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.android.tools.smali.dexlib2.iface.reference.Reference;
 import com.android.tools.smali.dexlib2.iface.reference.StringReference;
@@ -160,7 +161,9 @@ public class DexDiff {
      *       &lt;string&gt; [&lt;string&gt; ...]": exactly one method outside the bundle's own code
      *       loads every one of the strings, a space in one written as \s and a backslash as \\, and has the shape, a
      *       descriptor such as {@code (Landroidx/fragment/app/FragmentActivity;*)V} where * stands
-     *       for any run of characters. That method calls the method reference, with nothing before
+     *       for any run of characters. A string written as a field reference, such as
+     *       {@code Lcom/example/Kind;->REPORT:Lcom/example/Kind;}, is held by a method that reads or
+     *       writes that field, for a method that loads no string of its own. That method calls the method reference, with nothing before
      *       the call but plain instructions (no other call, branch, switch, return or throw), and
      *       no other method loading the strings calls it.
      *   <li>"no-call &lt;method reference&gt; outside &lt;class prefix&gt;": no class but those whose
@@ -1437,7 +1440,7 @@ public class DexDiff {
         }
     }
 
-    /** Adds [m] to each rule whose strings it loads, every one of them. */
+    /** Adds [m] to each rule whose strings it loads, every one of them, a field reference by reading or writing the field. */
     private static void recordHolders(String s, Method m, List<Contract> rules, Set<String> wanted,
             Map<Contract, List<Holder>> holders) {
         if (m.getImplementation() == null) return;
@@ -1445,9 +1448,11 @@ public class DexDiff {
         for (Instruction i : m.getImplementation().getInstructions()) {
             if (!(i instanceof ReferenceInstruction)) continue;
             Reference r = ((ReferenceInstruction) i).getReference();
-            if (!(r instanceof StringReference) || !wanted.contains(((StringReference) r).getString())) continue;
+            String loaded = r instanceof StringReference ? ((StringReference) r).getString()
+                    : r instanceof FieldReference ? r.toString() : null;
+            if (loaded == null || !wanted.contains(loaded)) continue;
             if (held == null) held = new HashSet<>();
-            held.add(((StringReference) r).getString());
+            held.add(loaded);
         }
         if (held == null) return;
         for (Contract rule : rules) {
