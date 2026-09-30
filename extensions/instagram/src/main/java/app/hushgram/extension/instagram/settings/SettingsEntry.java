@@ -34,6 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import app.hushgram.extension.instagram.download.SaveLeftovers;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
@@ -94,6 +95,8 @@ public final class SettingsEntry {
         } catch (Exception ex) {
             Logger.printException(() -> "Settings entry: could not watch activities", ex);
         }
+        // A save Android stopped halfway left a pending gallery row, a work file or a notification.
+        SaveLeftovers.sweepAfterStart(context);
         publishShortcut(context);
     }
 

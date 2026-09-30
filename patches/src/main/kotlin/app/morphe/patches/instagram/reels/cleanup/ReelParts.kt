@@ -12,14 +12,6 @@ internal const val HIDE_CHIPS = "$DECLUTTER->hideChips()Z"
 internal const val HIDE_SOCIAL_FOOTER = "$DECLUTTER->hideSocialFooter()Z"
 
 /**
- * Instagram's build loads a marker string first thing in many of its methods, named for the class
- * and method they came from before the names were shortened: "android_purge_26_q3_" and then, for
- * instance, "ClipsFollowButtonComponent_render". The first part moves with the release, so a part
- * is found by the rest, which this pattern reads off.
- */
-internal val PURGE_MARKER = Regex("""^android_purge_[^_]+_[^_]+_(.+)$""")
-
-/**
  * A part of the Reels viewer the patch hides: the method whose marker ends in [marker], and the
  * extension hook asked first thing in it. A render answers nothing when the hook says to hide, and
  * the check answers no.

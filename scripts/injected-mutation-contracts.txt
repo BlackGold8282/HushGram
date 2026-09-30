@@ -135,3 +135,17 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # the extension. The helper is the class's one static method reading from JSON, found through the
 # parser holding "media_or_ad" and "clips_netego", and it holds no string itself, so no rule can
 # pick it.
+#
+# Download any reel lets the Download row into each builder of the reel's more menu: the download
+# check's answer goes through offer() in the legacy builder and both redesigned ones, and the flag
+# that holds the row back goes through withhold() in the two redesigned ones. Each builder is the one
+# method holding its marker (the legacy one's marker is also in a static string table, which answers
+# a string, so the shape leaves it out). offer() and withhold() are in several builders, so
+# shared-call. The menu's handler of a tapped option asks save() when the option is Download, after
+# comparing the option, so the call isn't first and the rule is once-call.
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(Z)Z in static (*)V holding android_purge_26_q3_ClipsDownloadUtil_shouldShowProducerDownloadControls
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(Z)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_showRedesignBottomSheet_2
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(Z)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_addNonAuthorSpecificRows
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->withhold(Z)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_showRedesignBottomSheet_2
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->withhold(Z)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_addNonAuthorSpecificRows
+once-call Lapp/hushgram/extension/instagram/download/ReelDownload;->save(Ljava/lang/Object;Landroid/app/Activity;)Z holding android_purge_26_q3_ClipsOrganicMoreOptionsHelper_handleOptionSelected

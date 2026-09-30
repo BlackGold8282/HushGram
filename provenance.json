@@ -73,7 +73,11 @@
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/ads/**",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/settings/SettingsRow.kt",
-        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/SettingsScreenRow.java"
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/SettingsScreenRow.java",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/download/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/extension/PurgeMarkers.kt",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/InstagramMedia.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/ReelDownload.java"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/HushGram",
