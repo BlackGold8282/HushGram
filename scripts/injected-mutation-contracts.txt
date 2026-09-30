@@ -12,7 +12,7 @@
 # A start-call, next-call, sole-call, once-call or shared-call rule picks its method by every string
 # it names and its shape, and exactly one of Instagram's methods may answer that; name as much as the
 # patch's own fingerprint finds the method by. A string with a space in it is written with \s for
-# each space.
+# each space, and a backslash as \\.
 #
 # One guard per hot method. A guard the patch puts first in a method gets a start-call rule, which
 # holds it first there and in no other method holding the same strings, and a once-call rule, which

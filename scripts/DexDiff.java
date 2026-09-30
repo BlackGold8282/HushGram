@@ -158,7 +158,7 @@ public class DexDiff {
      *       the extension doesn't leave it.
      *   <li>"start-call &lt;method reference&gt; [in [static|instance] &lt;shape&gt;] holding
      *       &lt;string&gt; [&lt;string&gt; ...]": exactly one method outside the bundle's own code
-     *       loads every one of the strings, a space in one written as \s, and has the shape, a
+     *       loads every one of the strings, a space in one written as \s and a backslash as \\, and has the shape, a
      *       descriptor such as {@code (Landroidx/fragment/app/FragmentActivity;*)V} where * stands
      *       for any run of characters. That method calls the method reference, with nothing before
      *       the call but plain instructions (no other call, branch, switch, return or throw), and
@@ -196,6 +196,30 @@ public class DexDiff {
      *       passes its link through: once-call would count the other parsers' calls against it.
      * </ul>
      */
+    /** A string as a rule line writes it: a backslash as two, then a space as \s. */
+    static String escape(String s) {
+        return s.replace("\\", "\\\\").replace(" ", "\\s");
+    }
+
+    /** The string a rule line wrote with {@link #escape}. A backslash before anything else stays as it is. */
+    static String unescape(String written) {
+        StringBuilder b = new StringBuilder(written.length());
+        for (int i = 0; i < written.length(); i++) {
+            char c = written.charAt(i);
+            char next = i + 1 < written.length() ? written.charAt(i + 1) : 0;
+            if (c == '\\' && next == 's') {
+                b.append(' ');
+                i++;
+            } else if (c == '\\' && next == '\\') {
+                b.append('\\');
+                i++;
+            } else {
+                b.append(c);
+            }
+        }
+        return b.toString();
+    }
+
     /** The kind a first-call rule that names its class by GraphQL type is read into. */
     private static final String TYPED_FIRST_CALL = "first-call-typed";
     /** The kind a first-call rule that asks only for a call leaving a class prefix is read into. */
@@ -249,7 +273,7 @@ public class DexDiff {
                 b.append(shape);
             }
             List<String> written = new ArrayList<>();
-            for (String s : strings) written.add(s.replace(" ", "\\s"));
+            for (String s : strings) written.add(escape(s));
             return b.append(" holding ").append(String.join(" ", written)).toString();
         }
 
@@ -308,9 +332,9 @@ public class DexDiff {
             shape = parts[at++];
         }
         if (at >= parts.length || !parts[at].equals("holding")) return null;
-        // The line is split on spaces, so a string holding one writes it as \s.
+        // The line is split on spaces, so a string holding one writes it as \s, and a backslash as \\.
         List<String> strings = new ArrayList<>();
-        for (String s : Arrays.asList(parts).subList(at + 1, parts.length)) strings.add(s.replace("\\s", " "));
+        for (String s : Arrays.asList(parts).subList(at + 1, parts.length)) strings.add(unescape(s));
         if (strings.isEmpty() || new TreeSet<>(strings).size() != strings.size()) return null;
         return new Contract(kind, parts[1], String.join(" ", strings), after, replaced, strings, isStatic, shape);
     }

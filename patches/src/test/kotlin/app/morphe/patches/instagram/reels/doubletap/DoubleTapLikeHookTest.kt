@@ -58,12 +58,12 @@ class DoubleTapLikeHookTest {
 
         context.turnOffDoubleTapLikes()
 
-        assertGuardFirst("the feed double tap", context.mutableClassDefBy(feed).methods.single { it.name == "FGC" }.code())
-        val reel = context.mutableClassDefBy(handler).methods.single { it.name == "DzK" }.code()
-        assertAskedAfterRead("the Reels double tap", reel, "$handler->A0I:$action")
+        assertGuardFirst("the feed double tap", context.mutableClassDefBy(feed).methods.single { it.name == "onDoubleTap" }.code())
+        val reel = context.mutableClassDefBy(handler).methods.single { it.name == "handleDoubleTap" }.code()
+        assertAskedAfterRead("the Reels double tap", reel, "$handler->likeAction:$action")
         assertTrue(
             "the setter was touched",
-            context.mutableClassDefBy(handler).methods.single { it.name == "H7v" }.code().none { it.referenceText() == LIKE_ACTION },
+            context.mutableClassDefBy(handler).methods.single { it.name == "setLikeAction" }.code().none { it.referenceText() == LIKE_ACTION },
         )
     }
 
@@ -165,7 +165,7 @@ class DoubleTapLikeHookTest {
         val feedClass = classDef(
             feed,
             (0 until feeds).map { copy ->
-                method(feed, if (copy == 0) "FGC" else "FGD", listOf("Ljava/lang/Object;"), "V", 3, """
+                method(feed, if (copy == 0) "onDoubleTap" else "onDoubleTapAgain", listOf("Ljava/lang/Object;"), "V", 3, """
                     const-string v0, "$FEED_DOUBLE_TAP"
                     return-void
                 """)
@@ -173,19 +173,19 @@ class DoubleTapLikeHookTest {
         )
         val readAndCheck = if (checkedLater) {
             """
-                iget-object v1, p0, $handler->A0I:$action
+                iget-object v1, p0, $handler->likeAction:$action
                 const/4 v0, 0x0
                 if-eqz v1, :done
             """
         } else {
             """
-                iget-object v1, p0, $handler->A0I:$action
+                iget-object v1, p0, $handler->likeAction:$action
                 if-eqz v1, :done
             """
         }
-        val secondRead = if (reads > 1) "iget-object v0, p0, $handler->A0I:$action" else ""
+        val secondRead = if (reads > 1) "iget-object v0, p0, $handler->likeAction:$action" else ""
         val handle = (0 until handlers).map { copy ->
-            method(handler, if (copy == 0) "DzK" else "DzL", emptyList(), "V", 3, """
+            method(handler, if (copy == 0) "handleDoubleTap" else "handleDoubleTapAgain", emptyList(), "V", 3, """
                 const-string v0, "$handleMarker"
                 $secondRead
                 $readAndCheck
@@ -196,12 +196,12 @@ class DoubleTapLikeHookTest {
         }
         val setterBody = """
             const-string v0, "$setterMarker"
-            iput-object p1, p0, $handler->A0I:$action
-            ${if (setterWrites > 1) "iput-object p1, p0, $handler->A0J:$action" else ""}
+            iput-object p1, p0, $handler->likeAction:$action
+            ${if (setterWrites > 1) "iput-object p1, p0, $handler->otherLikeAction:$action" else ""}
             return-void
         """
         val setterOwner = if (setterElsewhere) "Lfixture/OtherHandler;" else handler
-        val setter = method(setterOwner, "H7v", listOf(action), "V", 3, setterBody)
+        val setter = method(setterOwner, "setLikeAction", listOf(action), "V", 3, setterBody)
         val handlerClass = classDef(handler, handle + (if (setterElsewhere) emptyList() else listOf(setter)))
         return listOfNotNull(feedClass, handlerClass, if (setterElsewhere) classDef(setterOwner, listOf(setter)) else null)
     }
