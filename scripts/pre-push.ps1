@@ -199,9 +199,11 @@ foreach ($suite in $suites) {
 }
 
 # The release facts, when a published file or a list or script the check reads moves. Every push
-# but the index push leaves the description's test counts alone and lets the index lag a version
-# still being prepared. The index push, the one that hands a release to Manager users, is held to
-# the published release: its bundle, SBOM, receipt and SHA256SUMS.txt, the tag, and the census.
+# but the index push leaves the description's test counts and this checkout's build outputs alone
+# and lets the index lag a version still being prepared. The index push, the one that hands a
+# release to Manager users, is held to the published release: its bundle, SBOM, receipt and
+# SHA256SUMS.txt, the tag, the census, and the test counts its description quotes. Both sets come
+# from Get-ReleaseFactsArguments in common.ps1, which test-release-tooling.ps1 runs as well.
 $releaseFactPaths = @(
     '.github/ISSUE_TEMPLATE/bug_report.yml',
     'CHANGELOG.md',
@@ -230,28 +232,24 @@ if (@($changed | Where-Object { $_ -in $releaseFactPaths }).Count -gt 0 -and $ti
             Stop-Push ("an index push checks the bundle and receipt this checkout built, so push it from a clean " +
                 "checkout of $factsTip")
         }
-        $indexVersion = [string](Get-Content -LiteralPath (Join-Path $Root 'patches-bundle.json') -Raw | ConvertFrom-Json).version
-        $builtHere = Join-Path $Root "patches/build/release/patches-$indexVersion.mpp"
-        $factsArguments = @('-Root', $Root, '-VerifyPublishedAsset')
-        if (Test-Path -LiteralPath $builtHere -PathType Leaf) {
-            Write-Step "a new index, checking the published release against patches-$indexVersion.mpp built here"
-            $factsArguments += @('-ArtifactPath', $builtHere)
+        $factsArguments = Get-ReleaseFactsArguments -Push Index -Root $Root
+        if ($factsArguments.Contains('ArtifactPath')) {
+            Write-Step "a new index, checking the published release against $(Split-Path -Leaf $factsArguments['ArtifactPath']) built here"
         } else {
-            Write-Step "a new index and no patches-$indexVersion.mpp built here, so the published asset is checked on its own"
-            $factsArguments += '-ArtifactIsHosted'
+            Write-Step 'a new index and no bundle built here for the version it publishes, so the published asset is checked on its own'
         }
-        & pwsh -NoProfile -File (Join-Path $Root 'scripts/validate-release-facts.ps1') @factsArguments
+        & pwsh -NoProfile -File (Join-Path $Root 'scripts/validate-release-facts.ps1') @(ConvertTo-ScriptArguments $factsArguments)
         if ($LASTEXITCODE -ne 0) { Stop-Push 'the published release does not agree with the index' }
     } elseif ($inPlace) {
-        # The test results here are whatever this checkout last ran, often nothing since a merge
-        # moved its sources, so they're left unread. The build below runs the tests on the tip.
+        # The test results and the bundle here are whatever this checkout last built, often nothing
+        # since a merge moved its sources, so they're left unread. The build below tests the tip.
         Write-Step 'a published file changed, checking the release facts'
-        & pwsh -NoProfile -File (Join-Path $Root 'scripts/validate-release-facts.ps1') -Root $Root `
-            -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipTestResults
+        & pwsh -NoProfile -File (Join-Path $Root 'scripts/validate-release-facts.ps1') `
+            @(ConvertTo-ScriptArguments (Get-ReleaseFactsArguments -Push Ordinary -Root $Root))
         if ($LASTEXITCODE -ne 0) { Stop-Push 'the release facts do not agree' }
     } else {
         # The pushed commit's own check, in a worktree of it. Its build folders can hold another
-        # commit's test results, so they're left unread.
+        # commit's outputs, so they're left unread.
         $factsTree = Join-Path ([System.IO.Path]::GetTempPath()) ('hushgram-facts-' + [guid]::NewGuid().ToString('N').Substring(0, 12))
         Write-Step "a published file changed, checking the release facts of $($factsTip.Substring(0, 12)) in a clean worktree"
         Invoke-Git worktree add --detach $factsTree $factsTip | Out-Null
@@ -259,7 +257,7 @@ if (@($changed | Where-Object { $_ -in $releaseFactPaths }).Count -gt 0 -and $ti
         try {
             $factsCheck = Join-Path $factsTree 'scripts/validate-release-facts.ps1'
             if (Test-Path -LiteralPath $factsCheck -PathType Leaf) {
-                & pwsh -NoProfile -File $factsCheck -Root $factsTree -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipTestResults
+                & pwsh -NoProfile -File $factsCheck @(ConvertTo-ScriptArguments (Get-ReleaseFactsArguments -Push Ordinary -Root $factsTree))
                 $factsExit = $LASTEXITCODE
             } else {
                 Write-Step "$($factsTip.Substring(0, 12)) has no release check of its own"

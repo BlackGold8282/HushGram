@@ -1381,16 +1381,50 @@ $factsScript = Join-Path $PSScriptRoot 'validate-release-facts.ps1'
 $bugFormRelative = '.github/ISSUE_TEMPLATE/bug_report.yml'
 $factsRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushgram-facts-" + [guid]::NewGuid().ToString('N'))
 $factsFiles = @('patches-list.json', 'gradle.properties', 'README.md', 'CHANGELOG.md', 'gradle/libs.versions.toml', $bugFormRelative)
-try {
-    foreach ($relative in $factsFiles) {
-        $destination = Join-Path $factsRoot $relative
-        New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
-        Copy-Item -LiteralPath (Join-Path $Root $relative) -Destination $destination
+# Both copies start from before the first release: no index, since patches-bundle.json is never
+# copied, a README that says there's no release yet, and the version being built described under
+# Unreleased. Once HushGram has a release, this checkout's README names it and its CHANGELOG
+# dates it, and a copy naming a release with no index is refused for exactly that, so both go
+# back to what a release replaces. Until 2026-09-30 the suite asserted the checkout had no index
+# instead, and the hook runs it on every README change, so the index push and every push after
+# it would have been refused.
+$preReleaseVersion = Get-BundleVersion -Root $Root
+$preReleaseSentence = "There's no release yet. Version $preReleaseVersion is the current build, and until " +
+    'a release is published you build the bundle yourself (see [Building from source](#building-from-source)).'
+function Copy-PreReleaseFile([string]$Relative, [string]$To) {
+    $destination = Join-Path $To $Relative
+    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $Root $Relative) -Destination $destination
+    if ($Relative -eq 'CHANGELOG.md') {
+        $text = Get-Content -LiteralPath $destination -Raw
+        $version = [regex]::Escape($preReleaseVersion)
+        if ($text -match "(?ms)^##\s+Unreleased\b(?:(?!^##\s).)*?^###\s+HushGram\s+v$version\s*$") { return }
+        # The version's dated section, bullets unscoped again, as the section Unreleased held.
+        $dated = [regex]::Match($text, "(?ms)^##\s+$version\s+\(\d{4}-\d{2}-\d{2}\)[^\r\n]*(?<body>.*?)(?=^##\s|\z)")
+        Assert-True $dated.Success ("This checkout's CHANGELOG describes $preReleaseVersion neither under Unreleased nor " +
+            'under a dated heading, so the release cases have nothing to start from.')
+        $section = "### HushGram v$preReleaseVersion" + ($dated.Groups['body'].Value -replace '(?m)^\* \*\*Instagram:\*\* ', '* ')
+        $text = $text.Remove($dated.Index, $dated.Length)
+        $unreleased = [regex]::Match($text, '(?m)^##\s+Unreleased[^\r\n]*\r?\n')
+        $text = if ($unreleased.Success) {
+            $text.Insert($unreleased.Index + $unreleased.Length, "`n$section")
+        } else {
+            $text.Insert($dated.Index, "## Unreleased`n`n$section")
+        }
+        Set-Content -LiteralPath $destination -Encoding UTF8 -NoNewline -Value $text
+        return
     }
-    # The published index is the one file this checkout doesn't have yet. It starts absent here too.
-    Assert-True (-not (Test-Path -LiteralPath (Join-Path $Root 'patches-bundle.json'))) `
-        ('This checkout has a patches-bundle.json now, so HushGram has a release. Hold the copy below to it ' +
-            'the way Hushfacebook holds its own, and keep the no-index cases on a copy without it.')
+    if ($Relative -ne 'README.md') { return }
+    $text = Get-Content -LiteralPath $destination -Raw
+    if ($text -match "(?i)\bThere's no release yet\b") { return }
+    $released = '(?im)^[^\r\n]*\blatest (?:published )?release is (?:still )?\[?v\d[^\r\n]*$'
+    Assert-True ($text -match $released) ("This checkout's README says neither that there's no release yet nor " +
+        'which release is the latest, so the release cases have nothing to start from.')
+    Set-Content -LiteralPath $destination -Encoding UTF8 -NoNewline -Value ([regex]::Replace($text, $released,
+            $preReleaseSentence.Replace('$', '$$')))
+}
+try {
+    foreach ($relative in $factsFiles) { Copy-PreReleaseFile $relative $factsRoot }
 
     # What the check says, warnings and notes included. 6>&1, not *>: the notes are Write-Host, and
     # redirecting every stream also swallows the terminating error, so each refusal would pass unseen.
@@ -1532,6 +1566,23 @@ try {
 
     # A bundle built here, which the check holds to the patcher the catalog pins. Stamped by another
     # patcher, Manager at the README's floor refuses it.
+    # Test results as Gradle writes them, one class per file, for the cases below.
+    $runtimeResults = 'extensions/instagram/build/test-results/testDebugUnitTest'
+    $patchResults = 'patches/build/test-results/test'
+    function Write-FactsResults {
+        param([string]$Folder, [string]$Suite, [int]$Tests, [int]$Skipped = 0, [string]$Under = $factsRoot)
+        $directory = Join-Path $Under $Folder
+        Remove-Item -LiteralPath $directory -Recurse -Force -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Path $directory -Force | Out-Null
+        $cases = (1..$Tests | ForEach-Object {
+            if ($_ -le $Skipped) { "<testcase name=`"t$_`" classname=`"fixture.$Suite`"><skipped/></testcase>" }
+            else { "<testcase name=`"t$_`" classname=`"fixture.$Suite`"/>" }
+        }) -join ''
+        Set-Content -LiteralPath (Join-Path $directory "TEST-fixture.$Suite.xml") -Encoding UTF8 -Value (
+            "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$Suite`" tests=`"$Tests`" " +
+            "skipped=`"$Skipped`" failures=`"0`" errors=`"0`">$cases</testsuite>")
+    }
+
     $factsBundle = Get-ReleaseBundlePath -Root $factsRoot -Version $versionHere
     $pinnedHere = (Read-CatalogToolchain -Source 'the copied catalog' `
         -Text (Get-Content -LiteralPath (Join-Path $factsRoot 'gradle/libs.versions.toml') -Raw)).PatcherVersion
@@ -1550,31 +1601,33 @@ try {
                     'A bundle stamped by another patcher was accepted.'
             }
         }
+        # The same old bundle, and a run with a skipped test beside it, on the hook's own set for an
+        # ordinary push (the in-place branch and the worktree branch both take it). Both belong to
+        # whatever this checkout built last, so a push that only moved the README or the pin is not
+        # refused for them. Without -SkipLocalBuild this set is refused twice over.
+        Write-FactsResults $runtimeResults 'RuntimeTest' 3 -Skipped 1
+        $ordinaryPush = Get-ReleaseFactsArguments -Push Ordinary -Root $factsRoot
+        Assert-True (-not $ordinaryPush.Contains('SkipUrlCheck')) 'The hook skips the URL checks on an ordinary push.'
+        $ordinaryPush['SkipUrlCheck'] = $true
+        $global:LASTEXITCODE = 0
+        $said = @(& $factsScript @ordinaryPush 6>&1 | ForEach-Object { "$_" }) -join "`n"
+        Assert-True ($LASTEXITCODE -eq 0 -and $said -like '*the bundle in patches/build/release was left unread*' -and
+            $said -like '*the test results here were left unread*') `
+            "The hook's check for an ordinary push read this checkout's old bundle or test results: $said"
+        $ordinaryPush.Remove('SkipLocalBuild')
+        Assert-Throws { & $factsScript @ordinaryPush 6>&1 | Out-Null } '*skipped=1*' `
+            'An ordinary push without -SkipLocalBuild read past a skipped test, so the case above proves nothing.'
     } finally {
+        Remove-Item -LiteralPath (Join-Path $factsRoot 'extensions') -Recurse -Force -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath (Join-Path $factsRoot 'patches') -Recurse -Force -ErrorAction SilentlyContinue
     }
 
     # Runtime test results that are here get read even when no description quotes them: a skipped
-    # test fails the lenient check, and the pre-push hook's worktree run leaves them unread.
-    $runtimeResults = 'extensions/instagram/build/test-results/testDebugUnitTest'
-    $patchResults = 'patches/build/test-results/test'
-    function Write-FactsResults {
-        param([string]$Folder, [string]$Suite, [int]$Tests, [int]$Skipped = 0)
-        $directory = Join-Path $factsRoot $Folder
-        Remove-Item -LiteralPath $directory -Recurse -Force -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory -Path $directory -Force | Out-Null
-        $cases = (1..$Tests | ForEach-Object {
-            if ($_ -le $Skipped) { "<testcase name=`"t$_`" classname=`"fixture.$Suite`"><skipped/></testcase>" }
-            else { "<testcase name=`"t$_`" classname=`"fixture.$Suite`"/>" }
-        }) -join ''
-        Set-Content -LiteralPath (Join-Path $directory "TEST-fixture.$Suite.xml") -Encoding UTF8 -Value (
-            "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$Suite`" tests=`"$Tests`" " +
-            "skipped=`"$Skipped`" failures=`"0`" errors=`"0`">$cases</testsuite>")
-    }
+    # test fails the lenient check, and the pre-push hook's ordinary set leaves them unread.
     try {
         Write-FactsResults $runtimeResults 'RuntimeTest' 4 -Skipped 1
         Assert-Throws { Invoke-Facts } '*skipped=1*' 'A check before the first release read past a skipped runtime test.'
-        $said = Invoke-Facts @{ SkipTestResults = $true }
+        $said = Invoke-Facts @{ SkipLocalBuild = $true }
         Assert-True ($said -like '*the test results here were left unread*') "A check told to leave the test results unread read them: $said"
     } finally {
         Remove-Item -LiteralPath (Join-Path $factsRoot 'extensions') -Recurse -Force -ErrorAction SilentlyContinue
@@ -1715,8 +1768,10 @@ try {
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
         Remove-Item -LiteralPath (Join-Path $factsRoot 'patches') -Recurse -Force
         Assert-Throws { Invoke-Facts -Strict } '*No patch test results*' 'A strict check ran with no patch test results.'
-        Assert-Throws { Invoke-Facts -Strict @{ SkipTestResults = $true } } '*SkipDescriptionTestCount*' `
+        Assert-Throws { Invoke-Facts -Strict @{ SkipLocalBuild = $true } } '*SkipDescriptionTestCount*' `
             'A check holding the description to its counts left the results unread.'
+        Assert-Throws { Invoke-Facts @{ SkipLocalBuild = $true; VerifyPublishedAsset = $true } } '*SkipLocalBuild leaves the bundle*' `
+            'A published asset check was told to leave the bundle built here unread.'
     } finally {
         foreach ($folder in @('patches', 'extensions')) {
             Remove-Item -LiteralPath (Join-Path $factsRoot $folder) -Recurse -Force -ErrorAction SilentlyContinue
@@ -1748,11 +1803,7 @@ try {
     # release is held to the census, and .gitignore has to keep the receipt and the build out.
     $releaseFiles = @('patches-list.json', 'gradle.properties', 'README.md', 'CHANGELOG.md', 'gradle/libs.versions.toml',
         $bugFormRelative, '.gitignore', 'sources/instagram-sources.json', 'NOTICE', 'provenance.json')
-    foreach ($relative in $releaseFiles) {
-        $destination = Join-Path $releaseRepo $relative
-        New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
-        Copy-Item -LiteralPath (Join-Path $Root $relative) -Destination $destination
-    }
+    foreach ($relative in $releaseFiles) { Copy-PreReleaseFile $relative $releaseRepo }
     # The ledger, dated today, so the census a release is held to passes and each case below is
     # refused for its own fact. The checked-in ledger's date moves with every audit.
     $releaseLedgerPath = Join-Path $releaseRepo 'sources/instagram-sources.json'
@@ -1840,12 +1891,13 @@ try {
         }
         Set-Content -LiteralPath $releaseReceipt -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 12)
     }
-    # The run the hook makes for a push that carries a receipt: lenient, and with no network.
-    # What it says is kept, to tell a receipt it compared from one it never found.
+    # The run the hook makes for an ordinary push that carries a receipt (its own set), with no
+    # network. What it says is kept, to tell a receipt it compared from one it never found.
     function Invoke-ReleaseCheck {
+        $ordinary = Get-ReleaseFactsArguments -Push Ordinary -Root $releaseRepo
+        $ordinary['SkipUrlCheck'] = $true
         $global:LASTEXITCODE = 0
-        $said = @(& $factsScript -Root $releaseRepo -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipUrlCheck 6>&1 |
-            ForEach-Object { "$_" }) -join "`n"
+        $said = @(& $factsScript @ordinary 6>&1 | ForEach-Object { "$_" }) -join "`n"
         if ($LASTEXITCODE -ne 0) { throw "The release check exited $LASTEXITCODE on the release root: $said" }
         return $said
     }
@@ -2323,6 +2375,7 @@ try {
     [System.IO.File]::WriteAllText((Join-Path $releaseRepo 'patches-bundle.json'), ([ordered]@{
             created_at = '2026-09-30T12:00:00'
             description = ("HushGram v$releaseVersionHere`: $($releaseNames.Count) patches for Instagram $declaredBuild.`n`n" +
+                "Validation: 5 runtime tests passed locally. All 7 patch tests passed too.`n`n" +
                 "Needs Morphe Manager $releaseFloor or newer.")
             download_url = "https://github.com/$slugHere/releases/download/v$releaseVersionHere/patches-$releaseVersionHere.mpp"
             signature_download_url = ''
@@ -2370,43 +2423,71 @@ try {
         'copy /y "%HERE%patch-names.txt" "%LISTING%" >nul || exit /b 3',
         'exit /b 0') -join "`r`n") + "`r`n"), [System.Text.Encoding]::ASCII)
     # What GitHub answers: each asset from the served folder by its name, and a 404 for any name
-    # the release doesn't carry. Dot-sourced into each run, so the check finds it first.
+    # the release doesn't carry. Morphe's add-source page answers for this repository only, and gh
+    # reads back the repository description a release sets, unless a case has put another in
+    # $githubDescription. Dot-sourced into each run, so the check finds them first.
+    $githubDescription = "HushGram v$releaseVersionHere`: $($releaseNames.Count) patches for Instagram $declaredBuild."
     $publishedStandIns = {
         function Invoke-WebRequest {
             param($Uri, $Method, $OutFile, $MaximumRedirection, $TimeoutSec, [switch]$PassThru, [switch]$UseBasicParsing)
             # Windows PowerShell 5.1 hands a reply without -UseBasicParsing to the IE parser, which
             # asks first, and a hook can't answer.
             if (-not $UseBasicParsing) { throw "Invoke-WebRequest $Uri without -UseBasicParsing" }
+            if ("$Uri" -ceq "https://morphe.software/add-source?github=$([Uri]::EscapeDataString($slugHere))") {
+                return [pscustomobject]@{ StatusCode = 200; Content = [byte[]]@() }
+            }
+            if (([Uri]$Uri).Host -ne 'github.com') { throw (New-NotFoundAnswer) }
             $served = Join-Path $servedDir ([Uri]$Uri).Segments[-1]
             if (-not (Test-Path -LiteralPath $served -PathType Leaf)) { throw (New-NotFoundAnswer) }
             if ($OutFile) { Copy-Item -LiteralPath $served -Destination $OutFile -Force }
             [pscustomobject]@{ StatusCode = 200; Content = [System.IO.File]::ReadAllBytes($served) }
         }
+        function gh {
+            if (($args -join ' ') -cne "api repos/$slugHere --jq .description") { throw "gh $args is not what the release check asks" }
+            $global:LASTEXITCODE = 0
+            $githubDescription
+        }
     }
-    function Invoke-IndexPushCheck([hashtable]$Arguments) {
+    # The index push runs the hook's own set for it, which reads the network, the description's test
+    # counts and the bundle built here. The desktop CLI and Java come from the variables the hook's
+    # environment would carry, since the hook passes neither.
+    Write-FactsResults $runtimeResults 'RuntimeTest' 5 -Under $releaseRepo
+    Write-FactsResults $patchResults 'PatchTest' 7 -Under $releaseRepo
+    function Invoke-IndexPushCheck([System.Collections.IDictionary]$Arguments) {
         $saved = @{}
-        foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' })) {
+        foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' -or $_.Name -in @('HUSHGRAM_DESKTOP_JAR', 'HUSHGRAM_JAVA') })) {
             $saved[$variable.Name] = $variable.Value
             Remove-Item -LiteralPath ('Env:\' + $variable.Name)
         }
+        $env:HUSHGRAM_DESKTOP_JAR = $stubJar
+        $env:HUSHGRAM_JAVA = $listJava
         # The asset check asks git for the published tag from where it runs, not through -Root.
         Push-Location -LiteralPath $releaseRepo
         try {
             . $publishedStandIns
             . $osvStandIn
             $global:LASTEXITCODE = 0
-            $said = @(& $factsScript -Root $releaseRepo @Arguments 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
+            $said = @(& $factsScript @Arguments 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
             if ($LASTEXITCODE -ne 0) { throw "The release check exited $LASTEXITCODE on the index push: $said" }
             return $said
         } finally {
             Pop-Location
+            Remove-Item -LiteralPath 'Env:\HUSHGRAM_DESKTOP_JAR', 'Env:\HUSHGRAM_JAVA' -ErrorAction SilentlyContinue
             foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
         }
     }
-    $publishedRun = @{ VerifyPublishedAsset = $true; ArtifactPath = $releaseBundle; SkipDescriptionTestCount = $true
-        SkipUrlCheck = $true; DesktopJar = $stubJar; Java = $listJava }
+    $publishedRun = Get-ReleaseFactsArguments -Push Index -Root $releaseRepo
+    Assert-True ($publishedRun['ArtifactPath'] -eq $releaseBundle) `
+        "The hook's index push did not pick the bundle built here for v$releaseVersionHere`: $($publishedRun | ConvertTo-Json -Compress)"
+    foreach ($skip in @('SkipUrlCheck', 'SkipDescriptionTestCount', 'SkipLocalBuild', 'AllowPublishedIndexLag', 'SkipAdvisoryCheck')) {
+        Assert-True (-not $publishedRun.Contains($skip)) "The hook's index push passes -$skip, so a release goes out with that check left out."
+    }
     $said = Invoke-IndexPushCheck $publishedRun
     foreach ($expected in @(
+            "*indexed bundle URL answers 200*",
+            "*Morphe add-source page answers 200*",
+            "*the GitHub description of $slugHere names v$releaseVersionHere, $($releaseNames.Count) patches and Instagram $declaredBuild*",
+            "*5 runtime tests, 7 patch tests*",
             "*the Instagram source census is 0 day(s) old*",
             "*the hosted patches-$releaseVersionHere.mpp matches the bundle built here byte for byte*",
             "*published bundle is pinned to v$releaseVersionHere ($releaseCommit)*",
@@ -2418,12 +2499,44 @@ try {
             "*OSV has no advisory for the libraries patches-$releaseVersionHere.cdx.json lists: gson 2.14.0*")) {
         Assert-True ($said -like $expected) "The index push after the release did not say $expected`: $said"
     }
-    # The hosted asset checked on its own, from a checkout with no bundle built for it.
-    $hostedRun = @{ VerifyPublishedAsset = $true; ArtifactIsHosted = $true; SkipDescriptionTestCount = $true
-        SkipUrlCheck = $true; DesktopJar = $stubJar; Java = $listJava }
-    $said = Invoke-IndexPushCheck $hostedRun
-    Assert-True ($said -like '*is checked on its own*' -and $said -like "*the receipt proves $($releaseNames.Count) patches*") `
-        "The hosted asset was not checked on its own: $said"
+    # The hosted asset checked on its own, from a checkout with no bundle built for it: the hook's
+    # set for that checkout.
+    $asideBundle = "$releaseBundle.aside"
+    Move-Item -LiteralPath $releaseBundle -Destination $asideBundle
+    try {
+        $hostedRun = Get-ReleaseFactsArguments -Push Index -Root $releaseRepo
+        Assert-True ($hostedRun['ArtifactIsHosted'] -and -not $hostedRun.Contains('ArtifactPath')) `
+            "The hook's index push with no bundle built here did not check the hosted one on its own: $($hostedRun | ConvertTo-Json -Compress)"
+        $said = Invoke-IndexPushCheck $hostedRun
+        Assert-True ($said -like '*is checked on its own*' -and $said -like "*the receipt proves $($releaseNames.Count) patches*") `
+            "The hosted asset was not checked on its own: $said"
+    } finally {
+        Move-Item -LiteralPath $asideBundle -Destination $releaseBundle -Force
+    }
+    # What the hook's set reads that the suite's own runs used to skip: the repository description
+    # GitHub shows, Morphe's add-source page, and the test counts the index description quotes.
+    $githubDescription = "HushGram v0.0.1: 3 patches for Instagram $declaredBuild."
+    try {
+        Assert-Throws { Invoke-IndexPushCheck $publishedRun } "*The GitHub description of $slugHere does not say*" `
+            'An index push went through with a GitHub description naming another release.'
+    } finally {
+        $githubDescription = "HushGram v$releaseVersionHere`: $($releaseNames.Count) patches for Instagram $declaredBuild."
+    }
+    $savedSlug = $slugHere
+    $slugHere = 'SysAdminDoc/Elsewhere'
+    try {
+        Assert-Throws { Invoke-IndexPushCheck $publishedRun } '*Morphe add-source page*' `
+            "An index push went through with Morphe's add-source page not answering."
+    } finally {
+        $slugHere = $savedSlug
+    }
+    Write-FactsResults $patchResults 'PatchTest' 6 -Under $releaseRepo
+    try {
+        Assert-Throws { Invoke-IndexPushCheck $publishedRun } '*patch test count*' `
+            'An index push went through quoting a patch test count the run here does not have.'
+    } finally {
+        Write-FactsResults $patchResults 'PatchTest' 7 -Under $releaseRepo
+    }
 
     # Each way the published files can disagree, one at a time, with what was served put back.
     $servedSums = Join-Path $servedDir 'SHA256SUMS.txt'
@@ -2507,10 +2620,22 @@ $releaseCalls = @($prePushAst.FindAll({ param($node)
         $node.Value -eq 'scripts/validate-release-facts.ps1' }, $true))
 Assert-True ($releaseCalls.Count -gt 0) 'pre-push.ps1 no longer runs scripts/validate-release-facts.ps1.'
 $prePushText = [System.IO.File]::ReadAllText($prePush)
-foreach ($switch in @('-VerifyPublishedAsset', '-ArtifactIsHosted', '-AllowPublishedIndexLag', '-SkipDescriptionTestCount', '-SkipTestResults')) {
-    Assert-True ($prePushText -match ('(?m)^[^#\r\n]*' + [regex]::Escape($switch) + '\b')) `
-        "pre-push.ps1 no longer passes $switch to the release check."
+# Its three runs (the index push, an ordinary push checked in place, and one checked in a worktree)
+# take their switches from Get-ReleaseFactsArguments, the sets the cases above run. A branch that
+# spelled its own switches out again would be checked by nothing here, and dropping one of them
+# from the in-place branch used to pass unnoticed as long as the worktree branch still had it.
+$factsRuns = @($prePushAst.FindAll({ param($node)
+        $node -is [System.Management.Automation.Language.CommandAst] -and
+        $node.GetCommandName() -eq 'pwsh' -and $node.Extent.Text -match 'factsCheck|validate-release-facts' }, $true))
+Assert-True ($factsRuns.Count -eq 3) "pre-push.ps1 runs the release check $($factsRuns.Count) times, not the three this suite knows."
+foreach ($run in $factsRuns) {
+    Assert-True ($run.Extent.Text -match 'ConvertTo-ScriptArguments' -and $run.Extent.Text -notmatch '-Skip|-Allow|-Verify|-Artifact') `
+        "A release check in pre-push.ps1 doesn't take the hook's set from Get-ReleaseFactsArguments: $($run.Extent.Text)"
 }
+$pushKinds = @([regex]::Matches(($prePushText -split "`n" | Where-Object { $_ -notmatch '^\s*#' }) -join "`n",
+        'Get-ReleaseFactsArguments -Push (\w+)') | ForEach-Object { $_.Groups[1].Value })
+Assert-True (($pushKinds -join ',') -eq 'Index,Ordinary,Ordinary') `
+    "pre-push.ps1 should take the Index set for the index push and the Ordinary set for both other branches, but takes $($pushKinds -join ', ')."
 # Every file the release check reads makes the hook run it, and every release script makes it run
 # this suite. A list that forgot one let a change to it go out unchecked.
 foreach ($published in @('patches-bundle.json', 'patches-list.json', 'gradle.properties', 'README.md', 'CHANGELOG.md',

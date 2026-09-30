@@ -97,6 +97,7 @@
       "paths": [
         "scripts/advisory-exceptions.txt",
         "scripts/build-release-receipt.ps1",
+        "scripts/common.ps1",
         "scripts/release-advisories.ps1",
         "scripts/release-receipt.ps1",
         "scripts/test-release-tooling.ps1",

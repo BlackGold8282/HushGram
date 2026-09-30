@@ -13,6 +13,11 @@
     -LiteralPath. And the desktop CLI was looked up by two functions with different search
     orders, one returning $null and one throwing. Copies of a guard drift in the direction of whichever caller was
     edited last, which is the direction nobody checked.
+
+    Assert-UrlReachable is taken from Hushfacebook's scripts/common.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 814acd23d7b70d5d23abce6cb6c97767e16a051e).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026; its own header says how. The rest is
+    HushGram's.
 #>
 
 function Resolve-WithinRoot {
@@ -99,6 +104,57 @@ function Get-ReleaseBundlePath {
 
     if (-not $Version) { $Version = Get-BundleVersion -Root $Root }
     return Join-Path $Root "patches/build/release/patches-$Version.mpp"
+}
+
+function Get-ReleaseFactsArguments {
+    <#
+    .SYNOPSIS
+        The switches the pre-push hook runs validate-release-facts.ps1 with, for one kind of push.
+    .DESCRIPTION
+        Index is the push that rewrites patches-bundle.json and hands a release to Manager users.
+        It's held to everything: the published files, the network, the description's test counts,
+        and the bundle this checkout built for the version the index publishes, or the hosted one
+        on its own when there's none.
+
+        Ordinary is every other push that moves a file the check reads. The description stays
+        with the release it describes, the index may lag a version still being prepared, and this
+        checkout's build outputs (test results and patches/build/release) are left unread, since
+        they can belong to another commit: a bundle built before the catalog's patcher pin moved
+        refused every push after the move.
+
+        The hook and scripts/test-release-tooling.ps1 both take their sets from here, so the suite
+        runs the hook's own checks rather than a copy of them.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][ValidateSet('Index', 'Ordinary')][string]$Push,
+        [Parameter(Mandatory = $true)][string]$Root
+    )
+    if ($Push -eq 'Ordinary') {
+        return [ordered]@{ Root = $Root; SkipDescriptionTestCount = $true; AllowPublishedIndexLag = $true; SkipLocalBuild = $true }
+    }
+    $arguments = [ordered]@{ Root = $Root; VerifyPublishedAsset = $true }
+    $indexVersion = [string](Get-Content -LiteralPath (Join-Path $Root 'patches-bundle.json') -Raw | ConvertFrom-Json).version
+    $builtHere = Get-ReleaseBundlePath -Root $Root -Version $indexVersion
+    if (Test-Path -LiteralPath $builtHere -PathType Leaf) { $arguments['ArtifactPath'] = $builtHere }
+    else { $arguments['ArtifactIsHosted'] = $true }
+    return $arguments
+}
+
+function ConvertTo-ScriptArguments {
+    <#
+    .SYNOPSIS
+        A set from Get-ReleaseFactsArguments as the words pwsh -File takes.
+    #>
+    param([Parameter(Mandatory = $true)][System.Collections.IDictionary]$Arguments)
+    foreach ($key in $Arguments.Keys) {
+        $value = $Arguments[$key]
+        if ($value -is [bool]) {
+            if ($value) { "-$key" }
+        } else {
+            "-$key"
+            [string]$value
+        }
+    }
 }
 
 function Get-SourcesNewerThanBundle {

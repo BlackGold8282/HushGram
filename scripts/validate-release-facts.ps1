@@ -60,10 +60,13 @@ param(
     # with no HUSHGRAM_FIXTURE_DIR, and a skip matters only to a count a description quotes. A
     # release and a run by hand check everything.
     [switch]$SkipDescriptionTestCount,
-    # Leaves the test results unread. The pre-push hook passes it when it checks a pushed commit in
-    # its gate worktree, whose build folders can hold another commit's results. Only with
-    # -SkipDescriptionTestCount, since a description's counts are read off those results.
-    [switch]$SkipTestResults,
+    # Leaves this checkout's build outputs unread: the test results and the bundle in
+    # patches/build/release. Both can belong to another commit, and an old bundle stamped by the
+    # patcher the catalog pinned before refused every push after the pin moved. The pre-push hook
+    # passes it on every push but the index push (Get-ReleaseFactsArguments in common.ps1). Only
+    # with -SkipDescriptionTestCount, since a description's counts are read off those results, and
+    # never with -VerifyPublishedAsset, which is held to a bundle.
+    [switch]$SkipLocalBuild,
     # Release source changes have to reach GitHub before their tag and bundle can be published.
     # During that preparation, patches-bundle.json still describes the working release. This
     # includes a newer source version and an unreleased catalog change held at the current version.
@@ -156,6 +159,9 @@ if ($ArtifactIsHosted -and -not $VerifyPublishedAsset) {
 }
 if ($ArtifactIsHosted -and $ArtifactPath) {
     throw 'Pass -ArtifactPath for a bundle built here, or -ArtifactIsHosted to check the published asset on its own, not both.'
+}
+if ($SkipLocalBuild -and ($VerifyPublishedAsset -or $ArtifactPath)) {
+    throw '-SkipLocalBuild leaves the bundle built here unread, and a published asset check or -ArtifactPath reads one.'
 }
 
 # No index until HushGram's first release is published, and a release check can't run without one:
@@ -430,17 +436,17 @@ if (-not $hasIndex) {
 }
 
 $testRoot = Join-Path $rootPath 'extensions/instagram/build/test-results/testDebugUnitTest'
-if ($SkipTestResults -and -not $SkipDescriptionTestCount) {
-    throw '-SkipTestResults leaves nothing to hold the description test counts to. Pass -SkipDescriptionTestCount with it.'
+if ($SkipLocalBuild -and -not $SkipDescriptionTestCount) {
+    throw '-SkipLocalBuild leaves nothing to hold the description test counts to. Pass -SkipDescriptionTestCount with it.'
 }
-$testFiles = @(if (-not $SkipTestResults) {
+$testFiles = @(if (-not $SkipLocalBuild) {
     Get-ChildItem -LiteralPath $testRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue
 })
 if ($testFiles.Count -eq 0) {
     if (-not $SkipDescriptionTestCount) {
         throw "No runtime test results found under $testRoot. Run :extensions:instagram:testDebugUnitTest first."
     }
-    if ($SkipTestResults) {
+    if ($SkipLocalBuild) {
         Write-Host '[release] the test results here were left unread, since they can belong to another commit'
     } else {
         Write-Host ('[release] no runtime test results here, and this push rewrites no release ' +
@@ -1182,6 +1188,13 @@ function Test-ReleaseReceiptHere {
 
 $bundlePath = if ($ArtifactPath) { $ArtifactPath } else {
     Get-ReleaseBundlePath -Root $rootPath -Version $releaseVersion
+}
+if ($SkipLocalBuild) {
+    Write-Host ("[release] the bundle in patches/build/release was left unread, since it can belong to another " +
+        "commit, so its patcher stamp is not compared against the catalog pin $pinnedPatcher")
+    Test-ReleaseReceiptHere
+    Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testFacts)
+    exit 0
 }
 if (-not (Test-Path -LiteralPath $bundlePath -PathType Leaf)) {
     # The stamp is a fact about a built bundle, and only the hash comparison needs one built
