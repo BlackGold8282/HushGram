@@ -1,18 +1,20 @@
+![HushGram. Keep the moments. Cut the noise.](assets/readme-hero.png)
+
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.1-E1306C" alt="Version 0.0.1">
+  <img src="https://img.shields.io/badge/version-0.0.2-E1306C" alt="Version 0.0.2">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Instagram-449.0.0.52.84-E1306C" alt="Instagram 449.0.0.52.84">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.32.0%2B-8A2BE2" alt="For Morphe Manager 1.32.0 or newer">
 </p>
 
-# HushGram
+# <img src="assets/icon.png" width="36" alt=""> HushGram
 
 HushGram is a Morphe patch bundle for Instagram on Android. It hides the ads, keeps the tracking keys off the links you share, and stops Instagram from sending its usage events home.
 
 It's the Instagram member of a small family. [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) does the same job for Facebook, and HushGram is built on its foundation: the same settings screen, pause switch, diagnostics and checks.
 
-There's no release yet. Version 0.0.1 is the first set of patches, and until a release is published you build the bundle yourself (see [Building from source](#building-from-source)).
+There's no release yet. Version 0.0.2 is the current build, and until a release is published you build the bundle yourself (see [Building from source](#building-from-source)).
 
 This project has no connection to Meta or to the Morphe project. Neither endorses it, and neither wrote it.
 
