@@ -153,6 +153,48 @@ public class TapToPlayTest {
         assertFalse("a pause with no reason", TapToPlay.armed(paused));
     }
 
+    /**
+     * The long video viewer's scrubber pauses a playing video with "Seek start" and plays it again
+     * when the drag ends, with an automatic start and no tap, since a drag isn't one. The video
+     * plays on from where it was dragged to.
+     */
+    @Test
+    public void aDragOfTheLongVideoScrubberKeepsItPlaying() {
+        Object player = new Object();
+        TapToPlayForTests.tapEnded(10);
+        assertTrue(TapToPlay.allowStart(player, "autoplay"));
+        TapClock.forget();
+
+        TapToPlay.paused(player, "Seek start");
+
+        assertTrue("the seek's pause disarmed it", TapToPlay.armed(player));
+        assertTrue("the play at the drag's end", TapToPlay.allowStart(player, "autoplay"));
+    }
+
+    /** Debug logging says what ended a start, and a pause Instagram plays on from ends none. */
+    @Test
+    public void debugLoggingSaysWhatEndedAStart() {
+        BaseSettings.DEBUG.save(true);
+        LogBufferManager.clearLogBuffer();
+        Object seeking = new Object();
+        Object scrolled = new Object();
+        Object rebound = new Object();
+        TapToPlayForTests.tapEnded(10);
+        for (Object player : Arrays.asList(seeking, scrolled, rebound)) assertTrue(TapToPlay.allowStart(player, "autoplay"));
+        TapClock.forget();
+        SystemClock.sleep(TapToPlay.BIND_GRACE_MS + 1);
+
+        TapToPlay.paused(seeking, "Seek start");
+        TapToPlay.paused(scrolled, "scroll");
+        TapToPlay.paused(new Object(), "scroll");
+        TapToPlay.rebound(rebound);
+
+        String report = LogBufferManager.buildExportText();
+        assertEquals(report, 1, occurrences(report, "Tap to play: a pause for scroll ends a start"));
+        assertTrue(report, report.contains("Tap to play: a new video ends a start"));
+        assertFalse(report, report.contains("Seek start ends"));
+    }
+
     /** A new video disarms, but not a prepare right after the start the gate just let through. */
     @Test
     public void aNewVideoDisarmsButTheStartsOwnPrepareDoesnt() {

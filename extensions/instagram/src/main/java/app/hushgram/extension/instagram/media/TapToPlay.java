@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -70,11 +71,12 @@ public final class TapToPlay {
     /**
      * Pause reasons Instagram plays the same video again right after, so they don't undo the tap
      * that started it: a seek pauses and plays again with "seek_force_pause", a drag of the
-     * scrubber with "seek", a pinch to zoom with "paused_for_pinch_to_zoom", and a reel that
-     * loops with "paused_for_replay".
+     * scrubber with "seek", a drag of the long video viewer's scrubber with "Seek start" (it pauses
+     * only a playing video, and plays it again at "Seek end"), a pinch to zoom with
+     * "paused_for_pinch_to_zoom", and a reel that loops with "paused_for_replay".
      */
     static final Set<String> MOMENTARY = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "seek", "seek_force_pause", "paused_for_pinch_to_zoom", "paused_for_replay")));
+            "seek", "seek_force_pause", "Seek start", "paused_for_pinch_to_zoom", "paused_for_replay")));
 
     /**
      * The IgVideoPlayerImpl states a tap on a reel starts from: prepared and never started, which is
@@ -100,6 +102,7 @@ public final class TapToPlay {
     private static int decisions;
     private static int allowedSinceSummary;
     private static int heldSinceSummary;
+    private static int endedStarts;
     private static boolean checkLogged;
 
     /** Makes the next decision throw, once. For tests. */
@@ -129,7 +132,9 @@ public final class TapToPlay {
         try {
             HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
             HookStatus.bound(FamilyNames.TAP_TO_PLAY, "player pause");
-            if (reason == null || !MOMENTARY.contains(reason)) ARMED.disarm(player);
+            if ((reason == null || !MOMENTARY.contains(reason)) && ARMED.disarm(player)) {
+                logEnded(() -> "a pause for " + (reason == null ? "no reason" : reason));
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.TAP_TO_PLAY, "player pause", failure);
         }
@@ -140,7 +145,9 @@ public final class TapToPlay {
         try {
             HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
             HookStatus.bound(FamilyNames.TAP_TO_PLAY, "player prepare");
-            ARMED.disarmUnlessArmedSince(player, SystemClock.uptimeMillis() - BIND_GRACE_MS);
+            if (ARMED.disarmUnlessArmedSince(player, SystemClock.uptimeMillis() - BIND_GRACE_MS)) {
+                logEnded(() -> "a new video");
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.TAP_TO_PLAY, "player prepare", failure);
         }
@@ -281,6 +288,23 @@ public final class TapToPlay {
         Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> logged);
     }
 
+    /**
+     * Logs what ended a start this gate let through, so a video that stops after a seek or a swipe
+     * shows why in the diagnostic export. The first {@link #LOGGED_ONE_BY_ONE} get a line each, then
+     * one line per {@link #SUMMED_UP_BY}.
+     */
+    private static void logEnded(Supplier<String> why) {
+        int count;
+        synchronized (LOG_LOCK) {
+            count = ++endedStarts;
+        }
+        if (count <= LOGGED_ONE_BY_ONE) {
+            Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> "Tap to play: " + why.get() + " ends a start");
+        } else if ((count - LOGGED_ONE_BY_ONE) % SUMMED_UP_BY == 0) {
+            Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> "Tap to play: " + SUMMED_UP_BY + " more starts ended");
+        }
+    }
+
     /** Forgets every armed player and the log's counts, and puts the patched reel state reader back. For tests. */
     static void forget() {
         ARMED.clear();
@@ -289,6 +313,7 @@ public final class TapToPlay {
             decisions = 0;
             allowedSinceSummary = 0;
             heldSinceSummary = 0;
+            endedStarts = 0;
             checkLogged = false;
         }
         failNext = null;
@@ -320,9 +345,10 @@ public final class TapToPlay {
             return player != null && armedAt.containsKey(new Key(player, null));
         }
 
-        synchronized void disarm(@Nullable Object player) {
+        /** True when [player] was armed. */
+        synchronized boolean disarm(@Nullable Object player) {
             purge();
-            if (player != null) armedAt.remove(new Key(player, null));
+            return player != null && armedAt.remove(new Key(player, null)) != null;
         }
 
         synchronized void expireBindGrace() {
@@ -330,13 +356,15 @@ public final class TapToPlay {
             armedAt.replaceAll((player, at) -> Long.MIN_VALUE);
         }
 
-        /** Disarms [player] unless its start came at or after [since]. */
-        synchronized void disarmUnlessArmedSince(@Nullable Object player, long since) {
+        /** Disarms [player] unless its start came at or after [since]. True when it did. */
+        synchronized boolean disarmUnlessArmedSince(@Nullable Object player, long since) {
             purge();
-            if (player == null) return;
+            if (player == null) return false;
             Key key = new Key(player, null);
             Long at = armedAt.get(key);
-            if (at != null && at < since) armedAt.remove(key);
+            if (at == null || at >= since) return false;
+            armedAt.remove(key);
+            return true;
         }
 
         synchronized int size() {

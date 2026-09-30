@@ -246,7 +246,7 @@ public final class ResumePlayback {
             if (!on() || player == null) return;
             HookStatus.bound(FAMILY, "player pause");
             if (PLAYERS.seekingNow(player) || (reason != null && TapToPlay.MOMENTARY.contains(reason))) return;
-            remember(player, System.currentTimeMillis());
+            remember(player, System.currentTimeMillis(), reason == null ? "a pause" : "a pause for " + reason);
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "player pause", failure);
         }
@@ -261,7 +261,7 @@ public final class ResumePlayback {
             HookStatus.invoked(FAMILY);
             if (!on() || player == null) return;
             HookStatus.bound(FAMILY, "player bind");
-            remember(player, System.currentTimeMillis());
+            remember(player, System.currentTimeMillis(), "a new video");
             PLAYERS.rebound(player, SystemClock.uptimeMillis());
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "player bind", failure);
@@ -381,8 +381,8 @@ public final class ResumePlayback {
         }
     }
 
-    /** Saves where [player]'s video is, or forgets its point when it's at the end. */
-    static void remember(Object player, long now) {
+    /** Saves where [player]'s video is, or forgets its point when it's at the end. [why] goes in the log. */
+    static void remember(Object player, long now, String why) {
         Facts facts = readFacts(player);
         if (facts == null) return;
         int length = readDuration(player);
@@ -399,7 +399,7 @@ public final class ResumePlayback {
         } else if (at >= MIN_SAVED_MS) {
             store.put(facts.videoId, at, now);
             count(SAVED);
-            log(() -> "Resume long videos: saved " + clock(at) + " of " + clock(length));
+            log(() -> "Resume long videos: saved " + clock(at) + " of " + clock(length) + " at " + why);
         } else {
             log(() -> "Resume long videos: stopped at " + clock(at) + " of " + clock(length) + ", too early to save");
         }

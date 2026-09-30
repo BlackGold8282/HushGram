@@ -275,6 +275,8 @@ public class ResumePlaybackTest {
         // it's leaving, and plays on from the new one.
         player.position = 5 * MINUTE;
         for (String reason : TapToPlay.MOMENTARY) ResumePlayback.stopped(player, reason);
+        // The long video viewer's scrubber, by name, so it can't drop out of the set unnoticed.
+        ResumePlayback.stopped(player, "Seek start");
         assertTrue("a seek's pause saved a point", opened(video).seeks.isEmpty());
         assertFalse(report(), report().contains("point saved"));
 
