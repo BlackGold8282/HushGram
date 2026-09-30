@@ -19,7 +19,7 @@ This project has no connection to Meta or to the Morphe project. Neither endorse
 ## Why use it
 
 - **No sponsored posts.** Ads in the feed, Reels and Stories don't go in, and Instagram doesn't leave a gap where they would have been.
-- **Cleaner links.** When you copy a link or share one, `stkn` (the per-share id Instagram adds now), `igsh`, `utm_source` and the other tracking keys come off. The link still opens the same post.
+- **Cleaner links.** When you copy a link or share one, through Android's share sheet or straight to WhatsApp or another app from Instagram's own, `stkn` (the per-share id Instagram adds now), `igsh`, `utm_source` and the other tracking keys come off. The link still opens the same post.
 - **Less sent home.** Instagram's usage events go to an address on your own phone that refuses them.
 - **A build that keeps working.** A patched Instagram doesn't update itself, and Instagram locks out an old build after a few weeks. HushGram stops that lockout screen.
 
@@ -84,7 +84,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 ## Known limitations
 
 - Settings open from the launcher shortcut only for now. A launcher that doesn't show app shortcuts on a long press can't reach them yet, and an entry inside Instagram's own settings is planned.
-- Sanitize sharing links covers Copy link, the Android share sheet and the post and story links Instagram's server hands out. A profile's share link, and sharing straight into another app from Instagram's own row of app icons, aren't covered yet.
+- Sanitize sharing links covers Copy link, the Android share sheet, the app buttons in Instagram's own share sheet and the post and story links Instagram's server hands out. A profile's share link hasn't been checked on a phone yet.
 - Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. Instagram has other reporting paths, and this patch doesn't claim to stop every one.
 - A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
 - Only one Instagram build has been checked so far. Expect a patch to stop on a newer one until it's checked.

@@ -9,7 +9,7 @@ Every HushGram release, newest first.
 The first set of patches, checked against Instagram 449.0.0.52.84 (build 385511871, arm64-v8a).
 
 * New patch, `Hide ads`. Sponsored posts, reels and stories don't go in, and Instagram is told the ad didn't go in, so it doesn't leave a gap.
-* New patch, `Sanitize sharing links`. Copy link and the Android share sheet lose `stkn` (the per-share id Instagram 449 adds to every shared link), `igsh`, `igshid`, `utm_source` and Instagram's other tracking keys, and so do the post and story links Instagram's server hands out for sharing. Keys come off Instagram's own links only.
+* New patch, `Sanitize sharing links`. Copy link, the Android share sheet and the app buttons in Instagram's own share sheet (WhatsApp and the rest, which skip Android's) lose `stkn` (the per-share id Instagram 449 adds to every shared link), `igsh`, `igshid`, `utm_source` and Instagram's other tracking keys, and so do the post and story links Instagram's server hands out for sharing. Keys come off Instagram's own links only.
 * New patch, `Disable analytics`. Instagram's usage events go to your phone's loopback address, which refuses them, instead of to Instagram's and Facebook's logging servers.
 * New patch, `Remove build expired popup`. A patched Instagram doesn't update itself, and without this Instagram locks it out after a few weeks with a screen that says the version is too old.
 * `Restore trust on re-signed builds`, from Hushfacebook. Instagram's own signature checks see Instagram's two original certificates on a build you signed yourself.

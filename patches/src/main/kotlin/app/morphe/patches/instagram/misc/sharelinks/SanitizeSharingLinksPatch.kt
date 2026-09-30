@@ -77,6 +77,20 @@ internal val SHARE_SHEET_EXITS = listOf(
     ),
 )
 
+/**
+ * Every activity Instagram starts. A share straight to one app, the row of app icons in Instagram's
+ * own share sheet among them, is an ACTION_SEND intent with no share sheet in between, and it leaves
+ * through here whichever way its text was filled in. The stand-ins clean only ACTION_SEND intents.
+ * Instagram's launchers all end in these two; it never starts an activity through Activity's own.
+ */
+internal val DIRECT_SHARE_EXITS = listOf(
+    LinkExit("Landroid/content/Context;", "startActivity", "(Landroid/content/Intent;)V", virtual = true),
+    LinkExit(
+        "Landroid/content/Context;", "startActivity",
+        "(Landroid/content/Intent;Landroid/os/Bundle;)V", virtual = true,
+    ),
+)
+
 @Suppress("unused")
 val sanitizeSharingLinksPatch = bytecodePatch(
     name = "Sanitize sharing links",
@@ -92,15 +106,17 @@ val sanitizeSharingLinksPatch = bytecodePatch(
     execute {
         requireStatusMethod("sanitizeSharingLinks")
 
-        val targets = listOf("permalink parser", "story link parser", "clipboard copies", "share sheets")
+        val targets = listOf("permalink parser", "story link parser", "clipboard copies", "share sheets", "direct shares")
         handleTargets(PATCH, "ways a link leaves Instagram", targets) { target ->
             when (target) {
                 "permalink parser" -> sanitizeParsedLink(PermalinkParserFingerprint, PERMALINK_TYPE)
                 "story link parser" -> sanitizeParsedLink(StoryShareUrlParserFingerprint, STORY_SHARE_URL_TYPE)
                 "clipboard copies" -> if (rerouteLinkExits(CLIPBOARD_EXITS) > 0) null
                     else "no code calls ClipboardManager.setPrimaryClip"
-                else -> if (rerouteLinkExits(SHARE_SHEET_EXITS) > 0) null
+                "share sheets" -> if (rerouteLinkExits(SHARE_SHEET_EXITS) > 0) null
                     else "no code calls Intent.createChooser"
+                else -> if (rerouteLinkExits(DIRECT_SHARE_EXITS) > 0) null
+                    else "no code calls Context.startActivity"
             }
         }
 
@@ -151,7 +167,7 @@ internal fun Method.linkStore(typeName: String): Pair<Int, Int>? {
  * Sends each call to one of [exits] in Instagram's own code to its LinkCleaner stand-in, which
  * cleans the text and makes the real call. Answers how many calls it sent.
  */
-private fun BytecodePatchContext.rerouteLinkExits(exits: List<LinkExit>): Int {
+internal fun BytecodePatchContext.rerouteLinkExits(exits: List<LinkExit>): Int {
     val owners = mutableListOf<String>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach

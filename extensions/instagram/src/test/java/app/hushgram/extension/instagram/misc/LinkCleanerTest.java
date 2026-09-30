@@ -6,14 +6,19 @@ package app.hushgram.extension.instagram.misc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.robolectric.Shadows.shadowOf;
 
+import android.app.Application;
 import android.content.ClipData;
 import android.content.Intent;
+import android.os.Bundle;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.shadows.ShadowActivity;
 
 import app.hushgram.extension.shared.SettingsContextRule;
 
@@ -44,6 +49,48 @@ public class LinkCleanerTest {
         ClipData clip = ClipData.newPlainText("link", "https://www.instagram.com/reel/C1/?stkn=abc&igsh=xyz");
         assertEquals("https://www.instagram.com/reel/C1/",
                 LinkCleaner.sanitizedClip(clip).getItemAt(0).getText().toString());
+    }
+
+    /** WhatsApp's button in Instagram's share sheet: an ACTION_SEND for one package, no chooser. */
+    @Test
+    public void aShareSentStraightToOneAppLosesItsTrackingKeys() {
+        Application app = RuntimeEnvironment.getApplication();
+        Intent share = new Intent(Intent.ACTION_SEND).setType("text/plain").setPackage("com.whatsapp")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(Intent.EXTRA_TEXT, "https://www.instagram.com/p/C1/?stkn=abc&igsh=xyz");
+        LinkCleaner.startActivity(app, share);
+        Intent started = shadowOf(app).getNextStartedActivity();
+        assertEquals("com.whatsapp", started.getPackage());
+        assertEquals("https://www.instagram.com/p/C1/", started.getStringExtra(Intent.EXTRA_TEXT));
+    }
+
+    @Test
+    public void aShareStartedWithOptionsKeepsThemAndLosesItsTrackingKeys() {
+        Application app = RuntimeEnvironment.getApplication();
+        Bundle options = new Bundle();
+        options.putString("marker", "kept");
+        Intent share = new Intent(Intent.ACTION_SEND).setType("text/plain").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(Intent.EXTRA_TEXT, "Look https://instagram.com/someone?igsh=xyz");
+        LinkCleaner.startActivity(app, share, options);
+        ShadowActivity.IntentForResult started = shadowOf(app).getNextStartedActivityForResult();
+        assertEquals("Look https://instagram.com/someone", started.intent.getStringExtra(Intent.EXTRA_TEXT));
+        assertEquals("kept", started.options.getString("marker"));
+    }
+
+    /** Only a share changes. Anything else Instagram starts keeps its text, links and all. */
+    @Test
+    public void anythingElseStartedGoesAsItCame() {
+        Application app = RuntimeEnvironment.getApplication();
+        String link = "https://www.instagram.com/p/C1/?igsh=xyz";
+        Intent view = new Intent(Intent.ACTION_VIEW).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(Intent.EXTRA_TEXT, link);
+        LinkCleaner.startActivity(app, view);
+        assertEquals(link, shadowOf(app).getNextStartedActivity().getStringExtra(Intent.EXTRA_TEXT));
+    }
+
+    @Test
+    public void aProfileLinkLosesItsTrackingKeys() {
+        assertEquals("https://www.instagram.com/someone", LinkCleaner.clean("https://www.instagram.com/someone?igsh=abc&utm_source=qr"));
     }
 
     @Test

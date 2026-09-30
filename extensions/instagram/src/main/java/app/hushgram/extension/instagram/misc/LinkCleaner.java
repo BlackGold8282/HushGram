@@ -8,8 +8,10 @@ package app.hushgram.extension.instagram.misc;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.os.Bundle;
 
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -37,8 +39,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * nothing.
  *
  * <p>Three ways in: the two share-link parsers hand their link here as Instagram reads it from
- * the server, and every clipboard copy and share sheet Instagram opens goes through the stand-ins
- * below, which clean the Instagram links in the text on its way out. Nothing here goes online.
+ * the server, and every clipboard copy, share sheet and share Instagram sends straight to one app
+ * goes through the stand-ins below, which clean the Instagram links in the text on its way out.
+ * Nothing here goes online.
  */
 public final class LinkCleaner {
 
@@ -89,6 +92,26 @@ public final class LinkCleaner {
     /** Stands in for {@link Intent#createChooser(Intent, CharSequence, IntentSender)}, cleaning the shared text first. */
     public static Intent createChooser(Intent target, CharSequence title, IntentSender sender) {
         return Intent.createChooser(sanitizedShare(target), title, sender);
+    }
+
+    /**
+     * Stands in for {@link Context#startActivity(Intent)}. A share Instagram sends straight to one
+     * app, with no share sheet in between, goes with its Instagram links cleaned; every other
+     * intent goes as it came.
+     */
+    public static void startActivity(Context context, Intent intent) {
+        context.startActivity(sanitizedDirectShare(intent));
+    }
+
+    /** Stands in for {@link Context#startActivity(Intent, Bundle)}, the same way. */
+    public static void startActivity(Context context, Intent intent, Bundle options) {
+        context.startActivity(sanitizedDirectShare(intent), options);
+    }
+
+    /** [intent] cleaned the way a share sheet's target is when it's an ACTION_SEND, or as it came. */
+    static Intent sanitizedDirectShare(Intent intent) {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return intent;
+        return sanitizedShare(intent);
     }
 
     /**
