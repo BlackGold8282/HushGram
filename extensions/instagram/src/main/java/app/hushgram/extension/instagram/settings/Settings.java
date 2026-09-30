@@ -202,4 +202,11 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting FILENAME_TEMPLATE =
             new StringSetting("hushgram_filename_template", FileNameTemplate.DEFAULT);
+
+    /**
+     * The Before you sign in notice at the top of the settings screen was tapped away. It isn't a
+     * switch: a pause doesn't bring the notice back, and a settings backup leaves it out.
+     */
+    public static final BooleanSetting SIGN_IN_NOTICE_HIDDEN =
+            new BooleanSetting("hushgram_sign_in_notice_hidden", FALSE, false, false);
 }

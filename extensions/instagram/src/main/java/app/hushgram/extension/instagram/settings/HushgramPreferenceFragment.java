@@ -83,6 +83,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static final String SOURCE_ADDRESS = SOURCE_URL.substring(SOURCE_URL.indexOf("://") + 3);
     /** The English of the row listing what Pause can't reach, and its key in {@link L10n}. */
     static final String STAYS_WHILE_PAUSED = "Stays in while paused";
+    /** The Before you sign in notice's key, which finds it on the screen. */
+    static final String SIGN_IN_NOTICE_KEY = "hushgram_sign_in_notice";
 
     /** The first row, which says whether HushGram runs now and whether the next start changes that. */
     @Nullable
@@ -145,6 +147,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         setPreferenceScreen(screen);
 
         screen.addPreference(statusCard(context));
+        if (!Settings.SIGN_IN_NOTICE_HIDDEN.savedValue()) screen.addPreference(signInNotice(context, screen));
         // The export row below reads this; registering twice keeps one.
         PatchFamily.registerDiagnostics();
         Set<PatchFamily> build = PatchFamily.inThisBuild();
@@ -407,6 +410,30 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             return true;
         });
         return card;
+    }
+
+    /**
+     * How to sign in with the least risk to the account, under the status card until a tap hides
+     * it for good. Most reported suspensions of patched Instagram start at the sign-in, and this
+     * screen opens before it.
+     */
+    private static Preference signInNotice(Context context, PreferenceScreen screen) {
+        Row notice = new Row(context);
+        notice.setPersistent(false);
+        notice.setKey(SIGN_IN_NOTICE_KEY);
+        notice.setIcon(SettingsIcons.icon(context, SettingsIcons.ABOUT, ScreenColors.DEFAULT.heading));
+        notice.setTitle(L10n.t("Before you sign in"));
+        notice.setSummary(L10n.t("Most suspensions reported with patched Instagram start at the sign-in. Use an "
+                + "account you've had for a while, finish any phone or ID check Instagram asks for, and don't "
+                + "clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.")
+                + " " + L10n.t("Tap to hide this."));
+        notice.actsAtOnce = true;
+        notice.setOnPreferenceClickListener(row -> {
+            Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
+            screen.removePreference(row);
+            return true;
+        });
+        return notice;
     }
 
     void resumeFromOverview() {

@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(306);
+        Map<String, String> table = new HashMap<>(312);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -86,6 +86,8 @@ public final class L10nTranslations {
                 "Werbe-ID entfernt");
         table.put("Back",
                 "Zur\u00fcck");
+        table.put("Before you sign in",
+                "Bevor du dich anmeldest");
         table.put("Best",
                 "Beste");
         table.put("Cancel",
@@ -172,11 +174,11 @@ public final class L10nTranslations {
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
-        table.put("Hide Reels in the feed",
-                "Reels im Feed ausblenden");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Hide Reels in the feed",
+                "Reels im Feed ausblenden");
         table.put("Hide ads",
                 "Werbung ausblenden");
         table.put("Hide creation and promotion pills",
@@ -225,6 +227,8 @@ public final class L10nTranslations {
                 "Lizenzen");
         table.put("Link expired. Reopen the item and try again",
                 "Link abgelaufen. \u00d6ffne den Inhalt neu und versuche es noch einmal");
+        table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
+                "Die meisten gemeldeten Sperrungen bei gepatchtem Instagram beginnen mit der Anmeldung. Nutze ein Konto, das du schon l\u00e4nger hast, schlie\u00dfe jede Pr\u00fcfung von Telefonnummer oder Ausweis ab, die Instagram verlangt, und l\u00f6sche danach nicht die Daten von Instagram. Auf einem gerooteten Handy bleibst du mit einer Root-Mount-Installation angemeldet.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
         table.put("Not saved: that isn't an Instagram photo or video",
@@ -293,13 +297,13 @@ public final class L10nTranslations {
                 "Einstellungen lie\u00dfen sich nicht \u00f6ffnen");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Die Einstellungen lie\u00dfen sich nicht vollst\u00e4ndig aktualisieren. \u00d6ffne sie neu und versuche es noch einmal.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Smallest",
                 "Kleinste");
         table.put("Source code and issues",
                 "Quellcode und Issues");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Gesponserte Beitr\u00e4ge, Reels und Stories. Instagram erf\u00e4hrt, dass keine Werbung eingef\u00fcgt wurde, also bleibt keine L\u00fccke.");
         table.put("Stays in while paused",
@@ -312,6 +316,8 @@ public final class L10nTranslations {
                 "Entfernt Reels aus der Tab-Leiste. Reels in deinem Feed und Reels, die dir jemand schickt, \u00f6ffnen sich weiterhin. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Entfernt stkn, igsh, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst, und \u00f6ffnet Bio-Links ohne Umweg \u00fcber Instagrams Klick-Tracker. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
+        table.put("Tap to hide this.",
+                "Zum Ausblenden tippen.");
         table.put("Tap to play",
                 "Zum Abspielen tippen");
         table.put("Tap to turn it back on.",
@@ -369,7 +375,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(306);
+        Map<String, String> table = new HashMap<>(312);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -409,6 +415,8 @@ public final class L10nTranslations {
                 "ID de publicidad eliminado");
         table.put("Back",
                 "Atr\u00e1s");
+        table.put("Before you sign in",
+                "Antes de iniciar sesi\u00f3n");
         table.put("Best",
                 "La mejor");
         table.put("Cancel",
@@ -495,11 +503,11 @@ public final class L10nTranslations {
                 "Informe completo guardado en %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
-        table.put("Hide Reels in the feed",
-                "Ocultar reels en el feed");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Hide Reels in the feed",
+                "Ocultar reels en el feed");
         table.put("Hide ads",
                 "Ocultar anuncios");
         table.put("Hide creation and promotion pills",
@@ -548,6 +556,8 @@ public final class L10nTranslations {
                 "Licencias");
         table.put("Link expired. Reopen the item and try again",
                 "El enlace expir\u00f3. Vuelve a abrir el contenido e int\u00e9ntalo de nuevo");
+        table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
+                "La mayor\u00eda de las suspensiones que se reportan con Instagram parcheado empiezan al iniciar sesi\u00f3n. Usa una cuenta que tengas desde hace tiempo, completa cualquier verificaci\u00f3n de tel\u00e9fono o de identidad que te pida Instagram y no borres los datos de Instagram despu\u00e9s. En un tel\u00e9fono con root, una instalaci\u00f3n Root Mount mantiene tu sesi\u00f3n iniciada.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
         table.put("Not saved: that isn't an Instagram photo or video",
@@ -616,13 +626,13 @@ public final class L10nTranslations {
                 "No se pudo abrir la configuraci\u00f3n");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "No se pudo actualizar la configuraci\u00f3n por completo. Vuelve a abrirla e int\u00e9ntalo de nuevo.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Smallest",
                 "La m\u00e1s peque\u00f1a");
         table.put("Source code and issues",
                 "C\u00f3digo fuente e incidencias");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Publicaciones, reels e historias patrocinados. A Instagram se le dice que no se insert\u00f3 ning\u00fan anuncio, as\u00ed que no queda ning\u00fan hueco.");
         table.put("Stays in while paused",
@@ -635,6 +645,8 @@ public final class L10nTranslations {
                 "Quita Reels de la barra de pesta\u00f1as. Los reels de tu feed y los que te env\u00edan se siguen abriendo. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biograf\u00eda sin pasar por el rastreador de clics de Instagram. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
+        table.put("Tap to hide this.",
+                "Toca para ocultar esto.");
         table.put("Tap to play",
                 "Toca para reproducir");
         table.put("Tap to turn it back on.",
@@ -692,7 +704,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(306);
+        Map<String, String> table = new HashMap<>(312);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -732,6 +744,8 @@ public final class L10nTranslations {
                 "ID iklan dihapus");
         table.put("Back",
                 "Kembali");
+        table.put("Before you sign in",
+                "Sebelum Anda masuk");
         table.put("Best",
                 "Terbaik");
         table.put("Cancel",
@@ -818,11 +832,11 @@ public final class L10nTranslations {
                 "Laporan lengkap disimpan ke %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
-        table.put("Hide Reels in the feed",
-                "Sembunyikan Reels di feed");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Hide Reels in the feed",
+                "Sembunyikan Reels di feed");
         table.put("Hide ads",
                 "Sembunyikan iklan");
         table.put("Hide creation and promotion pills",
@@ -871,6 +885,8 @@ public final class L10nTranslations {
                 "Lisensi");
         table.put("Link expired. Reopen the item and try again",
                 "Tautan kedaluwarsa. Buka ulang kontennya lalu coba lagi");
+        table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
+                "Sebagian besar penangguhan akun yang dilaporkan pada Instagram yang ditambal bermula saat masuk. Gunakan akun yang sudah lama Anda miliki, selesaikan pemeriksaan nomor telepon atau identitas yang diminta Instagram, dan jangan hapus data Instagram setelahnya. Di ponsel yang sudah di-root, pemasangan Root Mount membuat Anda tetap masuk.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
         table.put("Not saved: that isn't an Instagram photo or video",
@@ -939,13 +955,13 @@ public final class L10nTranslations {
                 "Pengaturan tidak dapat dibuka");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Smallest",
                 "Terkecil");
         table.put("Source code and issues",
                 "Kode sumber dan laporan masalah");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Postingan, reel, dan story bersponsor. Instagram diberi tahu bahwa tidak ada iklan yang dimasukkan, jadi tidak ada celah yang tersisa.");
         table.put("Stays in while paused",
@@ -958,6 +974,8 @@ public final class L10nTranslations {
                 "Menghapus Reels dari bilah tab. Reels di feed kamu dan reels yang dikirim orang lain tetap bisa dibuka. Mulai ulang Instagram setelah mengubahnya.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
+        table.put("Tap to hide this.",
+                "Ketuk untuk menyembunyikan ini.");
         table.put("Tap to play",
                 "Ketuk untuk memutar");
         table.put("Tap to turn it back on.",
@@ -1015,7 +1033,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(306);
+        Map<String, String> table = new HashMap<>(312);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1055,6 +1073,8 @@ public final class L10nTranslations {
                 "ID de publicidade removido");
         table.put("Back",
                 "Voltar");
+        table.put("Before you sign in",
+                "Antes de entrar");
         table.put("Best",
                 "A melhor");
         table.put("Cancel",
@@ -1141,11 +1161,11 @@ public final class L10nTranslations {
                 "Relat\u00f3rio completo salvo em %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, com os avisos dos projetos em que o HushGram se baseia");
-        table.put("Hide Reels in the feed",
-                "Ocultar reels no feed");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Hide Reels in the feed",
+                "Ocultar reels no feed");
         table.put("Hide ads",
                 "Ocultar an\u00fancios");
         table.put("Hide creation and promotion pills",
@@ -1194,6 +1214,8 @@ public final class L10nTranslations {
                 "Licen\u00e7as");
         table.put("Link expired. Reopen the item and try again",
                 "Link expirado. Reabra o item e tente novamente");
+        table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
+                "A maioria das suspens\u00f5es relatadas com o Instagram com patches come\u00e7a no login. Use uma conta que voc\u00ea j\u00e1 tem h\u00e1 algum tempo, conclua qualquer verifica\u00e7\u00e3o de telefone ou de identidade que o Instagram pedir e n\u00e3o apague os dados do Instagram depois. Em um celular com root, uma instala\u00e7\u00e3o Root Mount mant\u00e9m voc\u00ea conectado.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
         table.put("Not saved: that isn't an Instagram photo or video",
@@ -1262,13 +1284,13 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel abrir as configura\u00e7\u00f5es");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "N\u00e3o foi poss\u00edvel atualizar completamente as configura\u00e7\u00f5es. Reabra as configura\u00e7\u00f5es e tente novamente.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Smallest",
                 "A menor");
         table.put("Source code and issues",
                 "C\u00f3digo-fonte e relatos de problemas");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum an\u00fancio entrou, ent\u00e3o n\u00e3o sobra nenhum espa\u00e7o vazio.");
         table.put("Stays in while paused",
@@ -1281,6 +1303,8 @@ public final class L10nTranslations {
                 "Tira o Reels da barra de abas. Os reels do seu feed e os que mandam para voc\u00ea continuam abrindo. Reinicie o Instagram depois de mudar.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.");
+        table.put("Tap to hide this.",
+                "Toque para ocultar isto.");
         table.put("Tap to play",
                 "Tocar para reproduzir");
         table.put("Tap to turn it back on.",
@@ -1338,7 +1362,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(306);
+        Map<String, String> table = new HashMap<>(312);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1378,6 +1402,8 @@ public final class L10nTranslations {
                 "Reklam kimli\u011fi kald\u0131r\u0131ld\u0131");
         table.put("Back",
                 "Geri");
+        table.put("Before you sign in",
+                "Giri\u015f yapmadan \u00f6nce");
         table.put("Best",
                 "En iyi");
         table.put("Cancel",
@@ -1464,11 +1490,11 @@ public final class L10nTranslations {
                 "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
-        table.put("Hide Reels in the feed",
-                "Ak\u0131\u015ftaki reelleri gizle");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Hide Reels in the feed",
+                "Ak\u0131\u015ftaki reelleri gizle");
         table.put("Hide ads",
                 "Reklamlar\u0131 gizle");
         table.put("Hide creation and promotion pills",
@@ -1517,6 +1543,8 @@ public final class L10nTranslations {
                 "Lisanslar");
         table.put("Link expired. Reopen the item and try again",
                 "Ba\u011flant\u0131n\u0131n s\u00fcresi doldu. \u00d6\u011feyi yeniden a\u00e7\u0131p tekrar dene");
+        table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
+                "Yamal\u0131 Instagram ile bildirilen hesap ask\u0131ya almalar\u0131n\u0131n \u00e7o\u011fu giri\u015fte ba\u015flar. Bir s\u00fcredir kulland\u0131\u011f\u0131n bir hesap kullan, Instagram'\u0131n istedi\u011fi telefon veya kimlik do\u011frulamas\u0131n\u0131 tamamla ve sonras\u0131nda Instagram'\u0131n verilerini silme. Root'lu bir telefonda Root Mount kurulumu oturumunu a\u00e7\u0131k tutar.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
         table.put("Not saved: that isn't an Instagram photo or video",
@@ -1585,13 +1613,13 @@ public final class L10nTranslations {
                 "Ayarlar a\u00e7\u0131lamad\u0131");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Ayarlar tamamen yenilenemedi. Ayarlar\u0131 yeniden a\u00e7\u0131p tekrar dene.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Smallest",
                 "En k\u00fc\u00e7\u00fck");
         table.put("Source code and issues",
                 "Kaynak kodu ve sorunlar");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Sponsorlu g\u00f6nderiler, reels ve hik\u00e2yeler. Instagram'a hi\u00e7 reklam eklenmedi\u011fi s\u00f6ylenir, b\u00f6ylece bo\u015fluk kalmaz.");
         table.put("Stays in while paused",
@@ -1604,6 +1632,8 @@ public final class L10nTranslations {
                 "Reels'i sekme \u00e7ubu\u011fundan kald\u0131r\u0131r. Ak\u0131\u015f\u0131ndaki reels'ler ve sana g\u00f6nderilen reels'ler a\u00e7\u0131lmaya devam eder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan stkn, igsh, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r, biyografi ba\u011flant\u0131lar\u0131n\u0131 Instagram'\u0131n t\u0131klama izleyicisinden ge\u00e7meden a\u00e7ar. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
+        table.put("Tap to hide this.",
+                "Gizlemek i\u00e7in dokun.");
         table.put("Tap to play",
                 "Oynatmak i\u00e7in dokun");
         table.put("Tap to turn it back on.",

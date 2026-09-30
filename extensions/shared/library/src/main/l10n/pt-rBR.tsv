@@ -9,6 +9,7 @@ A file named %1$s in %2$s paused HushGram.	Um arquivo chamado %1$s em %2$s pauso
 About	Sobre
 Ads and privacy	Anúncios e privacidade
 Back	Voltar
+Before you sign in	Antes de entrar
 Cancel	Cancelar
 Changing these	Como alterar estas opções
 Clear diagnostic data	Limpar dados de diagnóstico
@@ -49,6 +50,7 @@ Instagram's usage events go to an address on this phone that refuses them, inste
 Joining the picture and sound	Juntando a imagem e o som
 Licenses	Licenças
 Link expired. Reopen the item and try again	Link expirado. Reabra o item e tente novamente
+Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.	A maioria das suspensões relatadas com o Instagram com patches começa no login. Use uma conta que você já tem há algum tempo, conclua qualquer verificação de telefone ou de identidade que o Instagram pedir e não apague os dados do Instagram depois. Em um celular com root, uma instalação Root Mount mantém você conectado.
 No app on this phone can open the link. The address is %1$s.	Nenhum aplicativo neste dispositivo consegue abrir o link. O endereço é %1$s.
 Not saved: that isn't an Instagram photo or video	Não salvo: isso não é uma foto nem um vídeo do Instagram
 Not saved: the file is over 512 MB	Não foi salvo: o arquivo tem mais de 512 MB
@@ -79,6 +81,7 @@ Source code and issues	Código-fonte e relatos de problemas
 Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.	Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum anúncio entrou, então não sobra nenhum espaço vazio.
 Stays in while paused	O que continua ativo na pausa
 Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.	Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que você copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.
+Tap to hide this.	Toque para ocultar isto.
 Tap to turn it back on.	Toque para reativar.
 The diagnostic report couldn't be saved yet. Try again in a moment.	O relatório de diagnóstico ainda não pôde ser salvo. Tente de novo em instantes.
 The diagnostic report couldn't be saved. Try again.	Não foi possível salvar o relatório de diagnóstico. Tente de novo.

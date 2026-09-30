@@ -9,6 +9,7 @@ A file named %1$s in %2$s paused HushGram.	%2$s içindeki %1$s adlı bir dosya H
 About	Hakkında
 Ads and privacy	Reklamlar ve gizlilik
 Back	Geri
+Before you sign in	Giriş yapmadan önce
 Cancel	İptal
 Changing these	Bunları değiştirmek
 Clear diagnostic data	Tanılama verilerini temizle
@@ -49,6 +50,7 @@ Instagram's usage events go to an address on this phone that refuses them, inste
 Joining the picture and sound	Görüntü ve ses birleştiriliyor
 Licenses	Lisanslar
 Link expired. Reopen the item and try again	Bağlantının süresi doldu. Öğeyi yeniden açıp tekrar dene
+Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.	Yamalı Instagram ile bildirilen hesap askıya almalarının çoğu girişte başlar. Bir süredir kullandığın bir hesap kullan, Instagram'ın istediği telefon veya kimlik doğrulamasını tamamla ve sonrasında Instagram'ın verilerini silme. Root'lu bir telefonda Root Mount kurulumu oturumunu açık tutar.
 No app on this phone can open the link. The address is %1$s.	Bu telefondaki hiçbir uygulama bağlantıyı açamıyor. Adres: %1$s.
 Not saved: that isn't an Instagram photo or video	Kaydedilmedi: Bu bir Instagram fotoğrafı veya videosu değil
 Not saved: the file is over 512 MB	Kaydedilmedi: Dosya 512 MB'tan büyük
@@ -79,6 +81,7 @@ Source code and issues	Kaynak kodu ve sorunlar
 Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.	Sponsorlu gönderiler, reels ve hikâyeler. Instagram'a hiç reklam eklenmediği söylenir, böylece boşluk kalmaz.
 Stays in while paused	Duraklatılsa da devrede kalır
 Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.	Kopyaladığın veya paylaştığın bağlantılardan stkn, igsh, utm_source ve diğer izleme anahtarlarını kaldırır, biyografi bağlantılarını Instagram'ın tıklama izleyicisinden geçmeden açar. Bir bağlantının açtığı gönderi, reel veya profil aynı kalır.
+Tap to hide this.	Gizlemek için dokun.
 Tap to turn it back on.	Yeniden açmak için dokun.
 The diagnostic report couldn't be saved yet. Try again in a moment.	Tanılama raporu henüz kaydedilemedi. Birazdan tekrar dene.
 The diagnostic report couldn't be saved. Try again.	Tanılama raporu kaydedilemedi. Tekrar dene.
