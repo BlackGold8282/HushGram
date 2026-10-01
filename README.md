@@ -61,7 +61,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 
 ## Patches
 
-There are 22 patches for `com.instagram.android`, checked against Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The newest, Keep the reel speed, comes after v0.0.2 and goes out with the next release.
+There are 23 patches for `com.instagram.android`, checked against Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The two newest, Keep the reel speed and Hide suggested posts, come after v0.0.2 and go out with the next release.
 
 | Patch | What it does |
 |---|---|
@@ -74,6 +74,7 @@ There are 22 patches for `com.instagram.android`, checked against Instagram 449.
 | `Download any video` | Adds Download to the menu of a post in your feed with a video. Videos save at the Download quality you set, without Instagram's watermark. |
 | `Hide ads` | Hides sponsored posts, reels and stories. Instagram is told the ad didn't go in, so no gap is left where it would have been. |
 | `Hide Reels in the feed` | Removes the rows of suggested reels between posts in your home feed, and the other units that open the Reels viewer from there. A reel someone you follow posts stays. |
+| `Hide suggested posts` | Removes the posts and reels from accounts you don't follow that Instagram puts in your home feed as Suggested for you, and the rows of accounts, shops and hashtags it suggests you follow. Each has its own switch. Posts from accounts you follow stay. |
 | `Hide the Reels tab` | Takes the Reels tab off the tab bar, and a start or a notification meant for it opens Home. Reels in your feed and reels people send you still open, and a change to the switch shows once Instagram restarts. |
 | `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too. |
 | `Keep the reel speed` | Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play at 2x too, until you slide the lock off, hold the edge and let go, or Instagram restarts. |
@@ -102,6 +103,7 @@ Long-press Instagram's icon on your home screen and tap **HushGram settings**. O
 At the top, a card says whether HushGram is on or paused. Below it:
 
 - **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links, Open links in external browser and Disable analytics.
+- **Feed** holds Hide suggested posts' two switches: Hide suggested accounts and Hide suggested posts.
 - **Reels** holds the switches for Hide Reels in the feed, the three parts of Clean up Reels, Don't send reel watch history, Download on reels, Turn off double tap to like, Hide the Reels tab and Keep the reel speed.
 - **Stories** holds the switches for Stop Story auto-advance, View stories anonymously and Download on stories.
 - **Playback** holds the switches for Tap to play and Resume long videos, and Default playback quality with its Playback quality list: Auto, Data saver, Up to 480p, Up to 720p or Highest.
@@ -182,7 +184,7 @@ The diagnostic report stays on your phone until you copy or share it yourself.
 | [andrewliang25/morphe-patches](https://github.com/andrewliang25/morphe-patches) at `5db2e57`, by way of Hushfacebook | The fix for re-signed builds, pointed here at Instagram's own two signing certificates, and Open links in external browser, pointed at Instagram's in-app browser. |
 | [SysAdminDoc/hushfeed](https://github.com/SysAdminDoc/hushfeed), [tiktok-patches-for-morphe](https://github.com/icysymmetra/tiktok-patches-for-morphe), [Morphe](https://github.com/MorpheApp) and [ReVanced](https://gitlab.com/ReVanced/revanced-patches) | Where Hushfacebook's foundation came from: the patcher, the patch template and the shared library. |
 
-Hide ads, Disable analytics, Remove build expired popup, Remove the advertising ID, Hide Reels in the feed, Clean up Reels, Don't send reel watch history, Turn off double tap to like, Hide the Reels tab, Keep the reel speed, Stop Story auto-advance, View stories anonymously, the Instagram side of Download any reel, Download any story and Download any video, the Instagram side of Tap to play, Resume long videos and Default playback quality, and the Instagram side of Sanitize sharing links were written here.
+Hide ads, Disable analytics, Remove build expired popup, Remove the advertising ID, Hide Reels in the feed, Hide suggested posts, Clean up Reels, Don't send reel watch history, Turn off double tap to like, Hide the Reels tab, Keep the reel speed, Stop Story auto-advance, View stories anonymously, the Instagram side of Download any reel, Download any story and Download any video, the Instagram side of Tap to play, Resume long videos and Default playback quality, and the Instagram side of Sanitize sharing links were written here.
 
 Every source file says where it came from in its header, and [provenance.json](provenance.json) maps each file to the project and commit it came from, with its licence. [docs/sources.md](docs/sources.md) covers the other Instagram patch sources and what each one does. The ledger behind it, [sources/instagram-sources.json](sources/instagram-sources.json), pins each source's licence, and code is only ported from a source it lists as adopted.
 

@@ -88,6 +88,20 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FEED_REELS =
             new BooleanSetting("hushgram_hide_feed_reels", TRUE);
 
+    /**
+     * The rows in the home feed of accounts, shops and hashtags Instagram suggests you follow, and
+     * its other units of suggestions.
+     */
+    public static final BooleanSetting HIDE_SUGGESTED_ACCOUNTS =
+            new BooleanSetting("hushgram_hide_suggested_accounts", TRUE);
+
+    /**
+     * The single posts and reels in the home feed from accounts you don't follow, which Instagram
+     * labels "Suggested for you" or "Suggested Reel".
+     */
+    public static final BooleanSetting HIDE_SUGGESTED_POSTS =
+            new BooleanSetting("hushgram_hide_suggested_posts", TRUE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);

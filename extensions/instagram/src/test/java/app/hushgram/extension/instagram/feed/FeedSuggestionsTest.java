@@ -1,0 +1,134 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.feed;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+
+import java.util.List;
+
+import app.hushgram.extension.instagram.reels.FeedReels;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.diagnostics.FeedFilterCounters;
+
+/** Which home feed items Hide suggested posts takes out, and which it leaves. */
+@RunWith(RobolectricTestRunner.class)
+public class FeedSuggestionsTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    /** Shaped like Instagram 449's feed item kinds, a few of them. */
+    enum Kind {
+        MEDIA, AD, CLIPS_NETEGO, END_OF_FEED_DEMARCATOR, STORIES_NETEGO, EXPLORE_STORY, SUGGESTED_USERS, SUGGESTED_TOP_ACCOUNTS,
+        SUGGESTED_PRODUCERS, SUGGESTED_PRODUCERS_V2, SUGGESTED_CLOSE_FRIENDS, SUGGESTED_BUSINESSES, SUGGESTED_SHOPS,
+        SUGGESTED_HASHTAGS, SUGGESTED_SHAREABLE_LISTS, FOLLOW_CHAIN_USERS, TYA_SUGGESTIONS_IN_FEED_UNIT,
+        KICKSTART_FEED_UNIT
+    }
+
+    /** The item's other enum on 449: why the feed was fetched. */
+    enum Fetch { COLD_START, PULL_TO_REFRESH }
+
+    /** A feed item with its enum fields, the kind not first among them. */
+    static final class Item {
+        Fetch fetch = Fetch.COLD_START;
+        Kind kind;
+        String id = "3719";
+
+        Item(Kind kind) {
+            this.kind = kind;
+        }
+    }
+
+    @Test
+    public void everySuggestedAccountsUnitIsTakenOut() {
+        for (String name : FeedSuggestions.ACCOUNT_UNITS) {
+            assertNull(name, FeedSuggestions.filter(new Item(Kind.valueOf(name))));
+        }
+    }
+
+    /**
+     * Posts, ads, the reels row (Hide Reels in the feed's), the end of the feed, the stories row and
+     * Threads' suggestion unit all stay.
+     */
+    @Test
+    public void everythingElseStays() {
+        for (Kind kind : new Kind[] {Kind.MEDIA, Kind.AD, Kind.CLIPS_NETEGO, Kind.END_OF_FEED_DEMARCATOR,
+                Kind.STORIES_NETEGO, Kind.KICKSTART_FEED_UNIT}) {
+            Item item = new Item(kind);
+            assertSame(kind.name(), item, FeedSuggestions.filter(item));
+        }
+        Item unset = new Item(null);
+        assertSame(unset, FeedSuggestions.filter(unset));
+        assertNull(FeedSuggestions.filter(null));
+    }
+
+    /** A single post or reel labeled "Suggested for you" or "Suggested Reel" is an explore story. */
+    @Test
+    public void aSuggestedPostIsTakenOut() {
+        assertNull(FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY)));
+    }
+
+    /** Each switch holds back its own kind only. */
+    @Test
+    public void withASwitchOffItsKindStays() {
+        Settings.HIDE_SUGGESTED_ACCOUNTS.save(false);
+        try {
+            Item row = new Item(Kind.SUGGESTED_USERS);
+            assertSame(row, FeedSuggestions.filter(row));
+            assertNull(FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY)));
+        } finally {
+            Settings.HIDE_SUGGESTED_ACCOUNTS.save(true);
+        }
+        Settings.HIDE_SUGGESTED_POSTS.save(false);
+        try {
+            Item post = new Item(Kind.EXPLORE_STORY);
+            assertSame(post, FeedSuggestions.filter(post));
+            assertNull(FeedSuggestions.filter(new Item(Kind.SUGGESTED_USERS)));
+        } finally {
+            Settings.HIDE_SUGGESTED_POSTS.save(true);
+        }
+    }
+
+    /**
+     * With both patches in, the parse helper's answer goes through both filters, in the order the
+     * patches applied, and the two read their kinds off the same item class. Either order takes out
+     * the same items.
+     */
+    @Test
+    public void besideHideReelsInTheFeedEachTakesOutItsOwn() {
+        for (Kind kind : Kind.values()) {
+            boolean dropped = kind == Kind.CLIPS_NETEGO || FeedSuggestions.KINDS.contains(kind.name());
+            Item item = new Item(kind);
+            Object reelsFirst = FeedSuggestions.filter(FeedReels.filter(item));
+            Object suggestionsFirst = FeedReels.filter(FeedSuggestions.filter(item));
+            if (dropped) {
+                assertNull(kind.name(), reelsFirst);
+                assertNull(kind.name(), suggestionsFirst);
+            } else {
+                assertSame(kind.name(), item, reelsFirst);
+                assertSame(kind.name(), item, suggestionsFirst);
+            }
+        }
+    }
+
+    /** The diagnostic report counts the suggestions seen and the ones taken out, by kind. */
+    @Test
+    public void theReportCountsTheSuggestions() {
+        FeedFilterCounters.snapshotAndClear();
+        FeedSuggestions.filter(new Item(Kind.SUGGESTED_USERS));
+        FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY));
+        FeedSuggestions.filter(new Item(Kind.MEDIA));
+        List<String> report = FeedFilterCounters.report();
+        assertTrue(report.toString(), report.toString().contains(FeedSuggestions.ROUTE));
+        assertTrue(report.toString(), report.toString().contains("SUGGESTED_USERS"));
+        assertTrue(report.toString(), report.toString().contains("EXPLORE_STORY"));
+    }
+}

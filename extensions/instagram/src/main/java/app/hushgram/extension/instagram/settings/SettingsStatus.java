@@ -62,6 +62,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean feedSuggestions() {
+        return false;
+    }
+
     public static boolean reelDeclutter() {
         return false;
     }

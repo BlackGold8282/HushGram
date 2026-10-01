@@ -157,7 +157,8 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # Hide Reels in the feed passes the item the home feed item class's parse helper returns through
 # the extension. The helper is the class's one static method reading from JSON, found through the
 # parser holding "media_or_ad" and "clips_netego", and it holds no string itself, so no rule can
-# pick it.
+# pick it. Hide suggested posts passes the same item through its own filter at the same returns,
+# beside Hide Reels in the feed's when both are in, so no rule can pick it either.
 #
 # Download any reel lets the Download row into each builder of the reel's more menu: the download
 # check's answer goes through offer() in the legacy builder and both redesigned ones, and the flag

@@ -180,6 +180,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : privacy) section.addPreference(row);
         }
 
+        if (build.contains(PatchFamily.FEED_SUGGESTIONS)) {
+            PreferenceCategory feed = category(screen, L10n.t("Feed"));
+            feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_ACCOUNTS, L10n.t("Hide suggested accounts"),
+                    L10n.t("The rows of accounts, shops and hashtags Instagram suggests you follow.")));
+            feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_POSTS, L10n.t("Hide suggested posts"),
+                    L10n.t("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from "
+                            + "accounts you follow stay.")));
+        }
+
         List<Preference> reels = new ArrayList<>();
         if (build.contains(PatchFamily.FEED_REELS)) {
             reels.add(toggle(context, Settings.HIDE_FEED_REELS, L10n.t("Hide Reels in the feed"),
