@@ -61,6 +61,31 @@ public final class Analytics {
         return refused(url);
     }
 
+    /**
+     * Injected where Lacrima, Instagram's error reporter, uses the address of its crash reports or
+     * its startup pings. Lacrima sends what it has pending as Instagram starts, on a thread of its
+     * own, a few milliseconds before HushGram can read its switches. Until then the address is
+     * refused, as the switch's default would have it, even with the switch off or HushGram paused:
+     * a crash report does nothing for the person using the app. It can't wait for the switch
+     * instead. Instagram's main thread waits for that send before it reaches onCreate, where the
+     * settings become ready, so a wait only stalls the start (5 s on 449, the length of the wait).
+     * After that it's {@link #endpoint}'s answer. Never throws.
+     */
+    public static String reportEndpoint(String url) {
+        HookStatus.invoked(FamilyNames.DISABLE_ANALYTICS);
+        if (url == null) return null;
+        try {
+            if (!Utils.settingsReady()) {
+                log(url, "refused, before the settings were ready");
+                return refused(url);
+            }
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "report address", t);
+            return url;
+        }
+        return endpoint(url);
+    }
+
     /** Logs [url], without its query, and [what] happened to it, once per process. */
     private static void log(String url, String what) {
         try {

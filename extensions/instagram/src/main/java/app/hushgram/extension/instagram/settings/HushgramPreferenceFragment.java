@@ -171,8 +171,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         if (build.contains(PatchFamily.DISABLE_ANALYTICS)) {
             privacy.add(toggle(context, Settings.DISABLE_ANALYTICS, L10n.t("Disable analytics"),
-                    L10n.t("Instagram's usage events go to an address on this phone that refuses them, instead of "
-                            + "to Instagram and Facebook. Restart Instagram after changing it.")));
+                    L10n.t("Instagram's usage events and crash reports go to an address on this phone that "
+                            + "refuses them, instead of to Instagram and Facebook. Restart Instagram after "
+                            + "changing it.")));
         }
         if (!privacy.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Ads and privacy"));

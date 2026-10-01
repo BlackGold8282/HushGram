@@ -58,12 +58,57 @@ public class AnalyticsTest {
         assertEquals(EVENTS, Analytics.endpoint(EVENTS));
     }
 
-    /** Lacrima's report address, read back for a send, keeps its path on the refused port. */
+    private static final String REPORTS = "https://b-www.facebook.com/mobile/reliability_event_log_upload/";
+
+    /** Lacrima's report address follows the switch once the settings are ready, keeping its path. */
     @Test
-    public void theCrashReportAddressGoesToTheRefusedPort() {
+    public void theCrashReportAddressFollowsTheSwitch() {
         Settings.DISABLE_ANALYTICS.save(true);
-        assertEquals("https://127.0.0.1:9/mobile/reliability_event_log_upload/",
-                Analytics.endpoint("https://b-www.facebook.com/mobile/reliability_event_log_upload/"));
+        assertEquals("https://127.0.0.1:9/mobile/reliability_event_log_upload/", Analytics.reportEndpoint(REPORTS));
+        assertNull(Analytics.reportEndpoint(null));
+
+        Settings.DISABLE_ANALYTICS.save(false);
+        assertEquals(REPORTS, Analytics.reportEndpoint(REPORTS));
+    }
+
+    /**
+     * Lacrima sends its pending reports as Instagram starts, on a thread of its own, before HushGram
+     * can read a switch, and they're refused then even with the switch off. A usage event in that
+     * window still goes out.
+     */
+    @Test
+    public void beforeTheSettingsAreReadyACrashReportIsRefused() {
+        Settings.DISABLE_ANALYTICS.save(false);
+        String[] answers = new String[2];
+        SettingsContextRule.withoutContext(() -> {
+            answers[0] = Analytics.reportEndpoint(REPORTS);
+            answers[1] = Analytics.endpoint(EVENTS);
+        });
+
+        assertEquals("https://127.0.0.1:9/mobile/reliability_event_log_upload/", answers[0]);
+        assertEquals(EVENTS, answers[1]);
+    }
+
+    /**
+     * Instagram's main thread waits for Lacrima's startup send before it gets to setContext, so the
+     * report must answer at once off the main thread too. A wait for the settings stalled 449's
+     * start by the length of the wait.
+     */
+    @Test
+    public void aCrashReportOffTheMainThreadAnswersAtOnce() throws InterruptedException {
+        String[] answer = new String[1];
+        Thread lacrima = new Thread(() -> answer[0] = Analytics.reportEndpoint(REPORTS));
+        SettingsContextRule.withoutContext(() -> {
+            lacrima.start();
+            try {
+                lacrima.join(1_000);
+            } catch (InterruptedException e) {
+                throw new AssertionError(e);
+            }
+            assertFalse("the report waited for the settings", lacrima.isAlive());
+        });
+
+        assertEquals("https://127.0.0.1:9/mobile/reliability_event_log_upload/", answer[0]);
     }
 
     /**

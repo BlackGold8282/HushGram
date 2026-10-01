@@ -47,14 +47,14 @@ shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/la
 # hands the analytics_endpoint value it reads to endpoint() once.
 shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String; in instance (Lorg/json/JSONObject;)V holding php_sandbox_host_name mqtt-mini.facebook.com
 # Lacrima, Instagram's error reporter, posts a startup ping and a debug ping to b-www.facebook.com,
-# the address a constant in each sender's run(). endpoint() takes it once in each.
-shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String; in instance ()V holding https://b-www.facebook.com/mobile/extra_data_collector/ user_id=0&report_type=appstartup&app_id=
-shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String; in instance ()V holding https://b-www.facebook.com/mobile/extra_data_collector/ user_id=0&report_type=debug_ping&debug_ping_ver=
+# the address a constant in each sender's run(). reportEndpoint() takes it once in each.
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->reportEndpoint(Ljava/lang/String;)Ljava/lang/String; in instance ()V holding https://b-www.facebook.com/mobile/extra_data_collector/ user_id=0&report_type=appstartup&app_id=
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->reportEndpoint(Ljava/lang/String;)Ljava/lang/String; in instance ()V holding https://b-www.facebook.com/mobile/extra_data_collector/ user_id=0&report_type=debug_ping&debug_ping_ver=
 # Its crash and reliability reports go to an address it builds at startup and keeps as text, and
-# endpoint() takes it each time a sender reads it back. The direct report sender reads it once. The
-# report sender's factory (ReportSender, ReportAssembler) reads it on two branches, so it has no rule:
-# a rule here holds a method to one call.
-shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String; in instance ()V holding DirectSend DirectReportSource
+# reportEndpoint() takes it each time a sender reads it back. The direct report sender reads it once.
+# The report sender's factory (ReportSender, ReportAssembler) reads it on two branches, so it has no
+# rule: a rule here holds a method to one call.
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->reportEndpoint(Ljava/lang/String;)Ljava/lang/String; in instance ()V holding DirectSend DirectReportSource
 #
 # Don't send reel watch history asks the extension first thing in both record methods of the batch
 # Instagram posts to clips/write_seen_state/. The one recording a reel reached, an instance method

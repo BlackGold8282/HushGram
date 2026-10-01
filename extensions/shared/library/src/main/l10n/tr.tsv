@@ -46,7 +46,7 @@ HushGram turns back on when Instagram restarts.	HushGram, Instagram yeniden baş
 Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.	Instagram açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushGram kendini duraklattı.
 Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.	Instagram bu sürümün çok eski olduğunu söyleyen ekranı artık göstermez. Yamalanmış bir sürüm kendi kendine güncellenmez, bu yüzden bu onu kullanılabilir tutar.
 Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.	Instagram'ın kendi imza denetimleri orijinal sertifikalarını görür, bu yüzden yeniden imzalanmış bu sürümde de geçmeye devam eder.
-Instagram's usage events go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Instagram'ın kullanım olayları, Instagram ve Facebook yerine bu telefonda onları reddeden bir adrese gider. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Instagram'ın kullanım olayları ve çökme raporları, Instagram ve Facebook yerine bu telefonda onları reddeden bir adrese gider. Değiştirdikten sonra Instagram'ı yeniden başlat.
 Joining the picture and sound	Görüntü ve ses birleştiriliyor
 Licenses	Lisanslar
 Link expired. Reopen the item and try again	Bağlantının süresi doldu. Öğeyi yeniden açıp tekrar dene

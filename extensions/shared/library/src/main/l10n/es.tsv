@@ -46,7 +46,7 @@ HushGram turns back on when Instagram restarts.	HushGram vuelve a activarse cuan
 Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.	Tres veces seguidas, Instagram falló o se congeló durante el primer minuto tras iniciarse, así que HushGram se pausó solo.
 Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.	Instagram deja de mostrar la pantalla que dice que esta versión es demasiado antigua. Una versión parcheada no se actualiza sola, así que esto la mantiene usable.
 Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.	Las propias comprobaciones de firma de Instagram ven sus certificados originales, así que siguen pasando en esta versión con nueva firma.
-Instagram's usage events go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Los eventos de uso de Instagram van a una dirección de este teléfono que los rechaza, en lugar de a Instagram y Facebook. Reinicia Instagram después de cambiarlo.
+Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Los eventos de uso y los informes de fallos de Instagram van a una dirección de este teléfono que los rechaza, en lugar de a Instagram y Facebook. Reinicia Instagram después de cambiarlo.
 Joining the picture and sound	Uniendo la imagen y el sonido
 Licenses	Licencias
 Link expired. Reopen the item and try again	El enlace expiró. Vuelve a abrir el contenido e inténtalo de nuevo

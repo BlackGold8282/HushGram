@@ -18,11 +18,15 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 private const val PATCH = "Disable analytics"
 
 private const val ENDPOINT = "$EXTENSION_PACKAGE/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String;"
+
+/** Lacrima's addresses, which it uses a few milliseconds before HushGram's settings are ready. */
+private const val REPORT_ENDPOINT = "$EXTENSION_PACKAGE/misc/Analytics;->reportEndpoint(Ljava/lang/String;)Ljava/lang/String;"
+
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = "Disable analytics",
-    description = "Sends Instagram's usage events to an address on your phone that refuses them, instead " +
-        "of to Instagram's and Facebook's logging servers. Restart Instagram after changing the switch.",
+    description = "Sends Instagram's usage events and crash reports to an address on your phone that refuses " +
+        "them, instead of to Instagram's and Facebook's servers. Restart Instagram after changing the switch.",
     default = true,
 ) {
     category("Privacy")
@@ -52,12 +56,12 @@ val disableAnalyticsPatch = bytecodePatch(
                     when {
                         matches.size > 1 -> "${matches.size} methods build the b-www.facebook.com report address, expected one"
                         matches.isEmpty() -> "no method builds the b-www.facebook.com report address"
-                        filterReportAddressReads(matches.single().method, ENDPOINT) == 0 -> "nothing reads the b-www.facebook.com report address it builds"
+                        filterReportAddressReads(matches.single().method, REPORT_ENDPOINT) == 0 -> "nothing reads the b-www.facebook.com report address it builds"
                         else -> null
                     }
                 }
                 // Lacrima's startup and debug pings, as a constant in each sender.
-                "pings" -> if (filterEveryStringLoad(ERROR_PING_ENDPOINT, ENDPOINT) > 0) {
+                "pings" -> if (filterEveryStringLoad(ERROR_PING_ENDPOINT, REPORT_ENDPOINT) > 0) {
                     null
                 } else {
                     "no code loads $ERROR_PING_ENDPOINT"

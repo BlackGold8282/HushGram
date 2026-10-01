@@ -80,7 +80,7 @@
     },
     {
       "name": "Disable analytics",
-      "description": "Sends Instagram's usage events to an address on your phone that refuses them, instead of to Instagram's and Facebook's logging servers. Restart Instagram after changing the switch.",
+      "description": "Sends Instagram's usage events and crash reports to an address on your phone that refuses them, instead of to Instagram's and Facebook's servers. Restart Instagram after changing the switch.",
       "category": "Privacy",
       "use": true,
       "dependencies": [

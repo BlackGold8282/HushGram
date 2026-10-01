@@ -22,7 +22,7 @@ This project has no connection to Meta or to the Morphe project. Neither endorse
 
 - **No sponsored posts.** Ads in the feed, Reels and Stories don't go in, and Instagram doesn't leave a gap where they would have been.
 - **Cleaner links.** When you copy a link or share one, through Android's share sheet or straight to WhatsApp or another app from Instagram's own, `stkn` (the per-share id Instagram adds now), `igsh`, `utm_source` and the other tracking keys come off. The link still opens the same post. A link in someone's bio opens its page directly, not through `l.instagram.com`, Instagram's click tracker.
-- **Less sent home.** Instagram's usage events go to an address on your own phone that refuses them.
+- **Less sent home.** Instagram's usage events and crash reports go to an address on your own phone that refuses them.
 - **A build that keeps working.** A patched Instagram doesn't update itself, and Instagram locks out an old build after a few weeks. HushGram stops that lockout screen.
 
 Every feature has its own switch, and one Pause switch turns them all off at once when you want to see whether HushGram is behind something odd.
@@ -67,7 +67,7 @@ There are 22 patches for `com.instagram.android`, checked against Instagram 449.
 |---|---|
 | `Clean up Reels` | Hides the Follow button on reels, the pills that push Edits, templates, Meta AI and Ray-Ban Meta glasses, and friends' activity with the comment preview. Each part has its own switch. |
 | `Default playback quality` | Plays videos, reels and video stories at the quality you choose in HushGram's settings, such as Data saver or up to 720p, instead of the one Instagram picks as it plays. |
-| `Disable analytics` | Sends Instagram's usage events to an address on your phone that refuses them, instead of to Instagram's and Facebook's logging servers. Restart Instagram after changing the switch. |
+| `Disable analytics` | Sends Instagram's usage events and crash reports to an address on your phone that refuses them, instead of to Instagram's and Facebook's servers. Restart Instagram after changing the switch. |
 | `Don't send reel watch history` | Stops telling Instagram which reels you watched and how far into them you got. It's used to rank your Reels, and nobody else sees it. Reels you've already watched may come back. |
 | `Download any reel` | Adds Download to every reel's more menu. Reels save at the Download quality you set, best by default, without Instagram's watermark. |
 | `Download any story` | Adds Download to the menu of anyone's story. A video saves at the Download quality you set, a photo at its largest size. |
@@ -132,7 +132,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - Keep the reel speed works with the 2x lock Instagram is still trying out in Reels, so an account without that lock gets nothing from it. Instagram labels only the reel you locked, so the next reels play at 2x without the label, and a hold at the edge of one of them ends at normal speed and stops the carry-over. To slide the lock off, hold the edge of the locked reel again, slide down and let go, and Instagram says "Back to normal speed". Ads start at normal speed. On a phone, one lock carried 2x through 35 reels in a row, and sliding the lock off, letting go of a hold, turning the switch off and restarting Instagram each brought the next reel back to normal speed. No reel ad came up in that run, so the ad case has only been checked in tests.
 - Remove the advertising ID takes away the ID other apps and ad networks share, and Android's ad attribution. Instagram still knows your account, so it still picks and counts the ads it shows you by that. With it picked, Manager rebuilds Instagram's resources as well as its code, so patching takes a little longer.
 - Open links in external browser covers every link that opens Instagram's in-app browser. Pages on Instagram, Facebook, Messenger, Threads and Meta stay in the app because sign-in and checkout there need it, ads stay too, along with any link you follow inside an ad's page, and when no browser on the phone takes a link, it opens in the app as before. On a phone, a bio link opens in the browser and Back comes straight back to Instagram. Links in messages and ads haven't been tried on a phone yet.
-- Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive. On a test phone, a minute of scrolling sent about 8 MB of events to Instagram's logging server with the switch off and nothing with it on. Instagram has other reporting paths, and this patch doesn't claim to stop every one: its traffic to graph.facebook.com and b-www.facebook.com was the same either way.
+- Disable analytics covers the event uploads Instagram and Facebook's logging endpoint receive, and the crash reports and startup pings Instagram sends to b-www.facebook.com. On a test phone, a minute of scrolling sent about 8 MB of events to Instagram's logging server with the switch off and nothing with it on. With the switch on, b-www.facebook.com went from about 175 KB up a minute to no connection at all. Instagram sends the crash reports it's been holding as it starts, before HushGram can read its switches, so those are refused even with the switch off or HushGram paused. Instagram has other reporting paths, and this patch doesn't claim to stop every one: its traffic to graph.facebook.com was the same either way.
 - A patched Threads signed with the same key can't offer "Continue as" your HushGram account yet. It asks you to log in with your password instead.
 - Only one Instagram build has been checked so far. Expect a patch to stop on a newer one until it's checked.
 
@@ -152,7 +152,7 @@ Instagram changed the part that patch looks for. Leave that patch out to get a w
 
 ## Your Instagram account
 
-**Can Meta tell?** Assume yes. A patched Instagram is signed with your key, not Meta's, and `Restore trust on re-signed builds` exists so the parts of the app that read that signature keep working. More to the point, Instagram asks Google's Play Integrity service and your phone's hardware to confirm the app is the unmodified one from the Play Store, and a re-signed build can't pass that. Those checks run when you sign in. With `Disable analytics` on, Instagram's usage events stop reaching Meta as well, and Meta could notice that too.
+**Can Meta tell?** Assume yes. A patched Instagram is signed with your key, not Meta's, and `Restore trust on re-signed builds` exists so the parts of the app that read that signature keep working. More to the point, Instagram asks Google's Play Integrity service and your phone's hardware to confirm the app is the unmodified one from the Play Store, and a re-signed build can't pass that. Those checks run when you sign in. With `Disable analytics` on, Instagram's usage events and crash reports stop reaching Meta as well, and Meta could notice that too.
 
 **What stays the same?** Your feed, stories and reels still come from Meta's servers, and HushGram decides on your phone which of them to show. It doesn't post, like, follow or message for you, and it doesn't change how you sign in.
 

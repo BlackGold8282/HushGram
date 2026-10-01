@@ -10,6 +10,7 @@ Every HushGram release, newest first.
 * **Tooling:** The build moves to Gradle 9.8.0 and Guava 33.7.2. That Guava release fixes a flaw in how it reads serialized data (GHSA-xxph-c9ww-hj94), and every Guava the build used before, its own pin and the older ones the patcher and the test tools asked for, was in the affected range. Nobody was exposed: Guava only runs while the patches are built and tested, and the HushGram bundle doesn't ship it.
 * **Instagram:** Tap to play and Download any reel now take Instagram's yes or no answers in a form that still loads if an Instagram update changes how it returns them. Before, an update like that could have crashed the patched app, and a test now stops a new hook from taking them the old way.
 * **Instagram:** Checked Tap to play against a reel Instagram stops when you tap one of its stickers. Instagram's own tap away from the sticker starts it again, so Tap to play leaves it alone. That was read from Instagram 449's code, since no reel with a tappable sticker turned up on a phone.
+* **Instagram:** Disable analytics now refuses Instagram's crash reports and startup pings to b-www.facebook.com too. On a test phone with the switch on, that host took about 175 KB up a minute before and gets no connection now. Instagram sends the crash reports it's been holding as it starts, before HushGram can read its switches, so those are refused even with the switch off or HushGram paused.
 
 ## 0.0.2 (2026-09-30)
 
