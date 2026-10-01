@@ -61,6 +61,8 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 
 ## Patches
 
+There are 22 patches for `com.instagram.android`, checked against Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The newest, Keep the reel speed, comes after v0.0.2 and goes out with the next release.
+
 | Patch | What it does |
 |---|---|
 | `Clean up Reels` | Hides the Follow button on reels, the pills that push Edits, templates, Meta AI and Ray-Ban Meta glasses, and friends' activity with the comment preview. Each part has its own switch. |
