@@ -66,7 +66,24 @@ public final class FeedSuggestions {
     /** The diagnostic counter route: the suggestions seen, and the ones taken out. */
     static final String ROUTE = "Feed suggestions";
 
+    /** Set once {@link #filter} has taken an item out of the home feed in this run. Tests clear it. */
+    static volatile boolean tookOut;
+
     private FeedSuggestions() {
+    }
+
+    /**
+     * Injected at each read of the home feed adapter's "no next page" flag. Answers 1 (no next
+     * page) once {@link #filter} has taken items out, and [noMorePages] otherwise.
+     *
+     * <p>Instagram reads that flag only beside its own checks that the feed is empty and no page is
+     * loading. With both true and a next page left it draws its loading placeholder, and nothing asks
+     * for that page while the feed is empty, so a Home emptied of suggestions kept the placeholder for
+     * good. Saying there's no next page gets Instagram's own empty feed card instead. A feed with posts
+     * left, or one waiting on a page, draws what it did.
+     */
+    public static int feedEnded(int noMorePages) {
+        return noMorePages != 0 || !tookOut ? noMorePages : 1;
     }
 
     /**
@@ -84,6 +101,7 @@ public final class FeedSuggestions {
             BooleanSetting setting = switchFor(kind);
             if (!Utils.settingsReady() || !setting.get()) return item;
             FeedFilterCounters.removed(ROUTE, 1, kind);
+            tookOut = true;
             Logger.printDebug(() -> "Feed suggestions: took out a " + kind + " item");
             return null;
         } catch (Throwable failure) {

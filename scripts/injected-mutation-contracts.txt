@@ -213,6 +213,13 @@ once-call Lapp/hushgram/extension/instagram/reels/FeedReels;->filter(Ljava/lang/
 once-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->filter(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;)LX/*; calling L*;->parseFromJsonParser(*)Ljava/lang/Object; class-holding feedContent feedItemType
 once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->filter(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;)LX/*; calling L*;->parseFromJsonParser(*)Ljava/lang/Object; class-holding feedContent feedItemType
 #
+# Hide suggested posts answers the home feed adapter's "no next page" flag through feedEnded() at
+# each of its two reads: the model builder, the one method holding both strings below, and the
+# adapter's empty check. The check holds no string, and a class-holding rule for it would count the
+# builder beside it, so it has no rule. Left out of the builder, a Home emptied of suggestions keeps
+# its loading placeholder for good.
+shared-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->feedEnded(I)I in instance (ILjava/lang/Integer;)V holding MainfeedAdapter.buildModels shimmer
+#
 # Hide Meta AI answers each read of Meta AI's search flags through searchFlag(), right after the
 # read. The messages inbox's setup, the invoke() holding "direct_inbox" and "hatch_channel_enabled",
 # reads the "ask Meta AI" bar's flag once. The Search tab's flag and the ring's are read in gates

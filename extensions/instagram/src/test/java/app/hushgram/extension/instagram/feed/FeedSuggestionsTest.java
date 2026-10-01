@@ -4,6 +4,7 @@
  */
 package app.hushgram.extension.instagram.feed;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -137,6 +138,29 @@ public class FeedSuggestionsTest {
                 assertSame(kind.name(), item, suggestionsFirst);
             }
         }
+    }
+
+    /**
+     * The feed's own "no next page" answer stands until an item's been taken out, a kept item or one
+     * whose switch is off included. After that the emptied feed has no next page.
+     */
+    @Test
+    public void theFeedEndsOnceSomethingsTakenOut() {
+        FeedSuggestions.tookOut = false;
+        assertEquals(0, FeedSuggestions.feedEnded(0));
+        assertEquals(1, FeedSuggestions.feedEnded(1));
+        FeedSuggestions.filter(new Item(Kind.MEDIA));
+        Settings.HIDE_SUGGESTED_POSTS.save(false);
+        try {
+            FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY));
+        } finally {
+            Settings.HIDE_SUGGESTED_POSTS.save(true);
+        }
+        assertEquals("nothing taken out yet", 0, FeedSuggestions.feedEnded(0));
+
+        FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY));
+        assertEquals(1, FeedSuggestions.feedEnded(0));
+        assertEquals(1, FeedSuggestions.feedEnded(1));
     }
 
     /** The diagnostic report counts the suggestions seen and the ones taken out, by kind. */
