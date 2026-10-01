@@ -8,6 +8,7 @@ Every HushGram release, newest first.
 * **Instagram:** Open links in external browser now keeps a link you follow inside an ad's page in the app, with the ad. Before, that link left for your browser and closed the ad.
 * **Tooling:** The patched-build check can now pin a hook whose method holds no string of its own, by the strings its class holds. That covers the story seen send, the reel watch progress record and the Reels tab list, so a build missing one of those hooks fails the check instead of only the fixture test.
 * **Tooling:** The build moves to Gradle 9.8.0 and Guava 33.7.2. That Guava release fixes a flaw in how it reads serialized data (GHSA-xxph-c9ww-hj94), and every Guava the build used before, its own pin and the older ones the patcher and the test tools asked for, was in the affected range. Nobody was exposed: Guava only runs while the patches are built and tested, and the HushGram bundle doesn't ship it.
+* **Instagram:** Tap to play and Download any reel now take Instagram's yes or no answers in a form that still loads if an Instagram update changes how it returns them. Before, an update like that could have crashed the patched app, and a test now stops a new hook from taking them the old way.
 
 ## 0.0.2 (2026-09-30)
 
