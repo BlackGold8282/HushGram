@@ -137,6 +137,7 @@
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/sharelinks/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/reels/**",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/reels/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/feed/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/stories/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/feed/**",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/stories/**",
