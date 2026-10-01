@@ -78,6 +78,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storyRingSize() {
+        return false;
+    }
+
     public static boolean followingFeed() {
         return false;
     }

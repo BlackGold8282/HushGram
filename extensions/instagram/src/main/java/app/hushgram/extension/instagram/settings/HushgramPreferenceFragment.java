@@ -45,6 +45,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +55,7 @@ import java.util.Set;
 
 import app.hushgram.extension.instagram.download.DownloadQuality;
 import app.hushgram.extension.instagram.media.PlaybackQuality;
+import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.SaveControl;
 import app.hushgram.extension.instagram.download.SaveFolder;
@@ -269,6 +271,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             stories.add(toggle(context, Settings.HIDE_STORIES_TRAY, L10n.t("Hide the Stories tray"),
                     L10n.t("Takes the whole row of stories off the top of Home, Your story included. Stories still "
                             + "open from a profile or a message.")));
+        }
+        if (build.contains(PatchFamily.STORY_RING)) {
+            stories.add(toggle(context, Settings.STORY_RING, L10n.t("Story ring size"),
+                    L10n.t("The rings in the stories row at the top of Home are drawn at the size below. "
+                            + "Restart Instagram after changing it.")));
+            stories.add(storyRingRow(context));
         }
         if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
             stories.add(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
@@ -744,13 +752,61 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
-    /** The two quality rows' summaries are sentences of their own rather than the chosen entry. */
+    /**
+     * The size the story rings are drawn at. Like the playback quality's row, its values are the
+     * setting's own names and its summary says what the choice does.
+     */
+    static StoryRingRow storyRingRow(Context context) {
+        StoryRingRow row = new StoryRingRow(context);
+        row.setKey(Settings.STORY_RING_SCALE.key);
+        row.setTitle(L10n.t("Ring size"));
+        row.setDialogTitle(L10n.t("Ring size"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        StoryRingSize[] sizes = StoryRingSize.values();
+        CharSequence[] entries = new CharSequence[sizes.length];
+        CharSequence[] values = new CharSequence[sizes.length];
+        for (int i = 0; i < sizes.length; i++) {
+            entries[i] = storyRingLabel(sizes[i]);
+            values[i] = sizes[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.STORY_RING_SCALE.savedValue().name());
+        return row;
+    }
+
+    /** What the list calls [size]. */
+    static String storyRingLabel(StoryRingSize size) {
+        switch (size) {
+            case SMALLEST:
+                return L10n.t("Much smaller");
+            case SMALLER:
+                return L10n.t("Smaller");
+            case LARGER:
+                return L10n.t("Larger");
+            case LARGEST:
+                return L10n.t("Much larger");
+            default:
+                return L10n.t("Instagram's size");
+        }
+    }
+
+    /** What the rings look like at [size], for the row's summary, with its share in the phone's own percent format. */
+    static String storyRingSummary(StoryRingSize size) {
+        if (size == StoryRingSize.INSTAGRAM) return L10n.t("The rings are the size Instagram picks for your screen.");
+        return L10n.f("The rings are %1$s of the size Instagram picks for your screen.",
+                L10n.isolate(NumberFormat.getPercentInstance().format(size.percent() / 100.0)));
+    }
+
+    /** The quality rows' and the ring size's summaries are sentences of their own rather than the chosen entry. */
     @Override
     protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
         if (listPreference instanceof QualityRow) {
             ((QualityRow) listPreference).showSummary();
         } else if (listPreference instanceof PlaybackQualityRow) {
             ((PlaybackQualityRow) listPreference).showSummary();
+        } else if (listPreference instanceof StoryRingRow) {
+            ((StoryRingRow) listPreference).showSummary();
         } else {
             super.updateListPreferenceSummary(listPreference, setting);
         }
@@ -1206,6 +1262,55 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (candidate.name().equals(getValue())) quality = candidate;
             }
             setSummary(playbackQualitySummary(quality));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The story ring size's row. Its summary follows its value, as the playback quality's does, and
+     * it answers that summary itself: ListPreference runs its summary through String.format, and a
+     * share such as "130%" is no format.
+     */
+    static final class StoryRingRow extends ListPreference {
+        @Nullable
+        private String summary;
+
+        StoryRingRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            StoryRingSize size = StoryRingSize.INSTAGRAM;
+            for (StoryRingSize candidate : StoryRingSize.values()) {
+                if (candidate.name().equals(getValue())) size = candidate;
+            }
+            summary = storyRingSummary(size);
+            setSummary(summary);
+        }
+
+        @Override
+        public CharSequence getSummary() {
+            return summary != null ? summary : super.getSummary();
         }
 
         @Override

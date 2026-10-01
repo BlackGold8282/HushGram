@@ -27,6 +27,7 @@ public final class FamilyNames {
     public static final String STORY_AUTO_ADVANCE = "Stop Story auto-advance";
     public static final String STORY_SEEN = "View stories anonymously";
     public static final String STORIES_TRAY = "Hide suggested stories";
+    public static final String STORY_RING = "Story ring size";
     public static final String FEED_REELS = "Hide Reels in the feed";
     public static final String FEED_SUGGESTIONS = "Hide suggested posts";
     public static final String FOLLOWING_FEED = "Start Home on Following";

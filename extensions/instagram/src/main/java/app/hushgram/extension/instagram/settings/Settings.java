@@ -13,6 +13,7 @@ import app.hushgram.extension.instagram.download.DownloadQuality;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.SaveFolder;
 import app.hushgram.extension.instagram.media.PlaybackQuality;
+import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.BooleanSetting;
 import app.hushgram.extension.shared.settings.EnumSetting;
@@ -120,6 +121,24 @@ public class Settings extends BaseSettings {
     /** The whole row of stories at the top of Home, Your story included. Off until you turn it on. */
     public static final BooleanSetting HIDE_STORIES_TRAY =
             new BooleanSetting("hushgram_hide_stories_tray", FALSE);
+
+    /**
+     * The rings in the stories row at the top of Home are drawn at the size in
+     * {@link #STORY_RING_SCALE} ({@link app.hushgram.extension.instagram.stories.StoryRing}). The
+     * patch is off in the default selection, so a build that has it asked for it, and the switch
+     * starts on. Nothing Instagram stores is written, so off or paused, the rings are Instagram's
+     * size again once Home is built anew.
+     */
+    public static final BooleanSetting STORY_RING =
+            new BooleanSetting("hushgram_story_ring", TRUE);
+
+    /**
+     * The size the rings are drawn at while {@link #STORY_RING} is on, as a share of Instagram's.
+     * It starts as Instagram's own, so picking the patch changes nothing until a size is chosen. It
+     * isn't a switch: the switch above it is.
+     */
+    public static final EnumSetting<StoryRingSize> STORY_RING_SCALE =
+            new EnumSetting<>("hushgram_story_ring_size", StoryRingSize.INSTAGRAM);
 
     /**
      * Home opening on the Following feed, with Instagram's For you and Following picker at its top,

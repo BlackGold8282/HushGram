@@ -512,3 +512,9 @@ start-call Lapp/hushgram/extension/instagram/share/ShareSheet;->hideGroupAction(
 once-call Lapp/hushgram/extension/instagram/share/ShareSheet;->hideGroupAction()Z in instance ()V holding Linstagram/features/direct/fragment/sharesheet/DirectShareSheetFragment;->createGroupButton:Landroid/view/View;
 start-call Lapp/hushgram/extension/instagram/share/ShareSheet;->hideGroupSend()Z in instance (Ljava/util/List;ZLcom/instagram/common/session/UserSession;)V holding Lcom/instagram/direct/fragment/sharesheet/view/DirectShareSheetFragmentMessageComposerViewBinder;->A02:LX/0JMf;
 once-call Lapp/hushgram/extension/instagram/share/ShareSheet;->hideGroupSend()Z in instance (Ljava/util/List;ZLcom/instagram/common/session/UserSession;)V holding Lcom/instagram/direct/fragment/sharesheet/view/DirectShareSheetFragmentMessageComposerViewBinder;->A02:LX/0JMf;
+# Story ring size passes the stories row's item size through StoryRing.size right after each of the
+# three places a method settles it, in the row's dimensions and in two static helpers on 449. It gets
+# no rule: none of the three loads a string or reads a field of its own the others don't, and every
+# kind above holds a callee to one call in its method, where this one is called three times in each.
+# StoryRingSizeHookTest checks on the 449 fixture that all nine land right after their
+# double-to-float and that no branch lands on one.
