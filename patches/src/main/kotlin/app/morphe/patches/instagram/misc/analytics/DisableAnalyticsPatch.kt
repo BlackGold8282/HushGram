@@ -18,7 +18,6 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 private const val PATCH = "Disable analytics"
 
 private const val ENDPOINT = "$EXTENSION_PACKAGE/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String;"
-
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = "Disable analytics",
@@ -34,7 +33,7 @@ val disableAnalyticsPatch = bytecodePatch(
     execute {
         requireStatusMethod("disableAnalytics")
 
-        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt")) { target ->
+        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt", "reports", "pings")) { target ->
             when (target) {
                 // Instagram's own logging_client_events and pigeon_nest addresses, built from a host.
                 "builder" -> AnalyticsEndpointFingerprint.matchAllOrNull().orEmpty().let { matches ->
@@ -47,6 +46,22 @@ val disableAnalyticsPatch = bytecodePatch(
                 // The address the MQTT client posts its analytics to, which the server can set in the
                 // client's settings. Its fallback is the Graph address, which "graph" covers already.
                 "mqtt" -> wrapMqttAnalyticsEndpoint(ENDPOINT)
+                // Lacrima's crash and reliability reports, to an address it builds on
+                // b-www.facebook.com before the settings are ready and reads again for each send.
+                "reports" -> ReportAddressFingerprint.matchAllOrNull().orEmpty().let { matches ->
+                    when {
+                        matches.size > 1 -> "${matches.size} methods build the b-www.facebook.com report address, expected one"
+                        matches.isEmpty() -> "no method builds the b-www.facebook.com report address"
+                        filterReportAddressReads(matches.single().method, ENDPOINT) == 0 -> "nothing reads the b-www.facebook.com report address it builds"
+                        else -> null
+                    }
+                }
+                // Lacrima's startup and debug pings, as a constant in each sender.
+                "pings" -> if (filterEveryStringLoad(ERROR_PING_ENDPOINT, ENDPOINT) > 0) {
+                    null
+                } else {
+                    "no code loads $ERROR_PING_ENDPOINT"
+                }
                 // The same events to Facebook's Graph API, as a constant wherever Instagram names it.
                 else -> if (filterEveryStringLoad(GRAPH_LOGGING_ENDPOINT, ENDPOINT) > 0) {
                     null

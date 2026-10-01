@@ -58,6 +58,14 @@ public class AnalyticsTest {
         assertEquals(EVENTS, Analytics.endpoint(EVENTS));
     }
 
+    /** Lacrima's report address, read back for a send, keeps its path on the refused port. */
+    @Test
+    public void theCrashReportAddressGoesToTheRefusedPort() {
+        Settings.DISABLE_ANALYTICS.save(true);
+        assertEquals("https://127.0.0.1:9/mobile/reliability_event_log_upload/",
+                Analytics.endpoint("https://b-www.facebook.com/mobile/reliability_event_log_upload/"));
+    }
+
     /**
      * Each address and outcome is logged once. Logcat on a debugging phone gets the address without
      * the query that could carry a token; the exported report keeps the outcome and the process and
