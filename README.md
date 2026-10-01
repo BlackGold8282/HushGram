@@ -184,6 +184,8 @@ Instagram changed the part that patch looks for. Leave that patch out to get a w
 
 For something that's broken, use the [bug form](https://github.com/SysAdminDoc/HushGram/issues/new?template=bug_report.yml) and attach the diagnostic report it asks for, since it answers most of what we'd need to know. Ideas go on the [feature form](https://github.com/SysAdminDoc/HushGram/issues/new?template=feature_request.yml). When Morphe Manager misbehaves with every app, not only Instagram, [Morphe's own tracker](https://github.com/MorpheApp/morphe-manager/issues) is the place.
 
+Questions, setup help and general chat with other HushGram users go in [Discussions](https://github.com/SysAdminDoc/HushGram/discussions). There's no Telegram or Discord group. Everything stays on GitHub so bug reports and ideas don't get lost between places.
+
 ## Privacy
 
 HushGram doesn't collect anything and has no server. The one connection it opens itself is a download you ask for. Tap Download on a reel, a story or a feed video and HushGram fetches that video or photo over HTTPS from Meta's media servers (`cdninstagram.com`, `fbcdn.net` and `fbsbx.com`), and every address is checked before anything is fetched. An address anywhere else is refused. Apart from that, its code names just two addresses:
