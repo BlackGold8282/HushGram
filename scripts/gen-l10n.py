@@ -1,5 +1,9 @@
 """Turn the translation tables into the Java class the extension carries.
 
+Taken from Hushfacebook's scripts/gen-l10n.py
+(https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+GPL-3.0-only. Modified for HushGram (Instagram), 2026.
+
 Ported from SysAdminDoc/hushfeed scripts/gen-l10n.py at 1f1f81a29ffbe8468a41067b22c05a50283ef9c4
 (GPL-3.0). Modified for Hushfacebook, then for HushGram: tab tables only, the shared library's paths, ASCII-only
 output, and a refusal of invisible characters.

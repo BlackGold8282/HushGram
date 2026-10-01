@@ -23,6 +23,11 @@
 
 .EXAMPLE
     scripts/patch-for-device.ps1 -Serial $env:HUSHGRAM_DEVICE_SERIAL -Replace
+
+.NOTES
+    Taken from Hushfacebook's scripts/patch-for-device.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param(

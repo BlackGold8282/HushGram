@@ -42,6 +42,11 @@
     pwsh -File scripts/audit-instagram-sources.ps1 -SkipGitLabCodeSearch
 .EXAMPLE
     pwsh -File scripts/audit-instagram-sources.ps1 -ValidateOnly
+
+.NOTES
+    Taken from Hushfacebook's scripts/audit-facebook-sources.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param(

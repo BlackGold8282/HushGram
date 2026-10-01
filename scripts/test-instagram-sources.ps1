@@ -22,6 +22,11 @@
     copies files, with a copy that does each of those as the proof the parse can see them.
 
     The pre-push hook runs this for the audit, its rules, the ledger, provenance.json and NOTICE.
+
+.NOTES
+    Taken from Hushfacebook's scripts/test-facebook-sources.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param([string]$Root)

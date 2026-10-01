@@ -1,3 +1,15 @@
+<#
+.SYNOPSIS
+    What the injected-register suites share: the d8 that compiles their fixture classes, and
+    the comparison of two verifier tallies.
+
+.NOTES
+    Taken from Hushfacebook's scripts/injected-register-contracts.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
+#>
+
+
 function Resolve-D8 {
     <#
     .SYNOPSIS

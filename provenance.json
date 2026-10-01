@@ -1,5 +1,5 @@
 {
-  "note": "Where every shipped source file under patches/ and extensions/ came from, and the release scripts ported with them, which their rule names one by one. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. A Meta-app repository named here also has to be allowed by sources/instagram-sources.json.",
+  "note": "Where every shipped source file under patches/ and extensions/ came from, and the scripts ported with them, which their rules name one by one. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. A Meta-app repository named here also has to be allowed by sources/instagram-sources.json.",
   "rules": [
     {
       "paths": [
@@ -127,6 +127,57 @@
       ],
       "license": "GPL-3.0-only",
       "changes": "Hushfacebook's release tooling: the provenance receipt and its SBOM, the receipt builder, the OSV advisory gate with its exceptions file, and the release facts check. The receipt builder reads the declared Instagram builds out of HUSHGRAM_FIXTURE_DIR, finds the desktop CLI the way the other scripts here do, and writes SHA256SUMS.txt beside the bundle. The release facts check reads Instagram's package, build and bug form and HushGram's source ledger, and it has a mode for the time before the first release, when there's no patches-bundle.json yet. Morphe Manager's changelog scope is Instagram, and the SBOM's first-party mark is HushGram's. The receipt, advisory, resolver, CHANGELOG and release sections of Hushfacebook's script contract suite became test-release-tooling.ps1, held to Instagram's one declared build and the manifest removals HushGram approves. The Assert-UrlReachable helper came over into common.ps1 from the same commit. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "scripts/apk-facts.ps1",
+        "scripts/device-install.ps1",
+        "scripts/gen-l10n.py",
+        "scripts/install-hooks.ps1",
+        "scripts/manifest-delta-allowlist.txt",
+        "scripts/MergeSplits.java",
+        "scripts/patch-for-device.ps1",
+        "scripts/patch-report.ps1",
+        "scripts/patch-target.ps1",
+        "scripts/pre-push.ps1",
+        "scripts/Resolve-Java.ps1",
+        "scripts/verify-all-patches.ps1"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "The patching and push scripts HushGram started with. apk-facts.ps1 is the aapt2 lookup, manifest reader and manifest delta taken out of Hushfacebook's release-receipt.ps1. The rest read Instagram's package, builds and fixture folder (HUSHGRAM_FIXTURE_DIR) where they read Facebook's, the push gate checks HushGram's own suites, and the manifest allowlist holds the changes HushGram's patches make. device-install.ps1, MergeSplits.java and patch-report.ps1 are unchanged apart from their provenance note. Changed files say they were modified for HushGram."
+    },
+    {
+      "paths": [
+        "scripts/BadDexFixture.java",
+        "scripts/DexDiff.java",
+        "scripts/injected-mutation-contracts.txt",
+        "scripts/injected-register-contracts.ps1",
+        "scripts/injected-register-device.ps1",
+        "scripts/injected-register-removal-allowlist.txt",
+        "scripts/ResourceTableCheck.java",
+        "scripts/script-wiring.ps1",
+        "scripts/test-injected-register-device.ps1",
+        "scripts/test-injected-registers.ps1",
+        "scripts/test-resource-table-check.ps1",
+        "scripts/verify-injected-registers.ps1",
+        "scripts/audit-instagram-sources.ps1",
+        "scripts/instagram-sources.ps1",
+        "scripts/test-instagram-sources.ps1"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "3a47363954eea853357e71e7cf3951a5ee984cee",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's resource table and injected-register gates with their fixture suites, and its source ledger scripts renamed from facebook-sources to instagram-sources. The contracts pin HushGram's own hooks, with a shared-call rule kind for a filter several methods call, the fixture writes its own contracts since HushGram's name Instagram's code, and the ledger rules are cut down to what an unreleased source needs, with a Meta-family package list, a standalone-patcher kind and retries for a forge that doesn't answer. The removal allowlist, ResourceTableCheck.java and script-wiring.ps1 are unchanged apart from their provenance note. Changed files say they were modified for HushGram."
     },
     {
       "paths": [

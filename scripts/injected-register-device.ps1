@@ -1,3 +1,15 @@
+<#
+.SYNOPSIS
+    The ADB side of a device verify: running adb, naming what failed, and tallying what
+    Android's verifier reported.
+
+.NOTES
+    Taken from Hushfacebook's scripts/injected-register-device.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
+#>
+
+
 function Invoke-HushgramAdbCommand {
     [CmdletBinding()]
     param(

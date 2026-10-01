@@ -212,11 +212,26 @@ class ProvenanceTest {
                 writeText("# Taken from https://github.com/SysAdminDoc/Hushfacebook.\n#\n" +
                     "GHSA-aaaa-bbbb-cccc https://github.com/evil/other\n# https://github.com/evil/other\n")
             }
+            val python = File(dir, "x.py").apply {
+                writeText("\"\"\"Taken from https://github.com/SysAdminDoc/Hushfacebook.\"\"\"\n" +
+                    "PAGE = \"https://github.com/evil/other\"\n")
+            }
+            val program = File(dir, "X.java").apply {
+                writeText("/* Taken from https://github.com/SysAdminDoc/Hushfacebook. */\n\nimport java.io.File;\n\n" +
+                    "class X { String page = \"https://github.com/evil/other\"; }\n")
+            }
             val rule = Rule(listOf("x/**"), "ported", listOf("https://github.com/SysAdminDoc/Hushfacebook"))
             assertEquals(null, headerProblem("x.ps1", headerOf(script), rule))
             assertEquals(null, headerProblem("x.txt", headerOf(list), rule))
+            assertEquals(null, headerProblem("x.py", headerOf(python), rule))
+            assertEquals(null, headerProblem("X.java", headerOf(program), rule))
             assertTrue("a script's body counted as its header", "evil" !in headerOf(script))
             assertTrue("a list's entries counted as its header", "evil" !in headerOf(list))
+            assertTrue("a Python script's body counted as its header", "evil" !in headerOf(python))
+            assertTrue("a Java program's body counted as its header", "evil" !in headerOf(program))
+            // A Java program with nothing above its imports has no header to agree.
+            program.writeText("import java.io.File;\nimport java.util.List;\n// https://github.com/SysAdminDoc/Hushfacebook\n")
+            assertTrue("a Java program without a header passed", headerProblem("X.java", headerOf(program), rule) != null)
             // And a header that names the wrong repository is still read as one.
             script.writeText("<#\n    Taken from https://github.com/evil/other.\n#>\n")
             assertTrue("a script naming a repository outside its chain passed",
@@ -228,14 +243,16 @@ class ProvenanceTest {
 
     /**
      * The part of a file that says where it came from: a script's comment-based help, a list's
-     * leading comment lines, or everything above a Java or Kotlin package line.
+     * leading comment lines, a Python script's docstring, or everything above a Java or Kotlin
+     * package line, or above the imports of a single-file Java program, which has none.
      */
     private fun headerOf(file: File): String {
         val text = file.readText().replace("\r\n", "\n")
         return when (file.extension) {
             "ps1" -> if (text.startsWith("<#")) text.substringBefore("\n#>") else ""
             "txt" -> text.lineSequence().takeWhile { it.startsWith("#") }.joinToString("\n")
-            "java", "kt" -> text.substringBefore("\npackage ")
+            "py" -> if (text.startsWith("\"\"\"")) text.substring(3).substringBefore("\"\"\"") else ""
+            "java", "kt" -> text.substringBefore("\npackage ").substringBefore("\nimport ")
             else -> error("${file.path} has no header format this check knows")
         }
     }

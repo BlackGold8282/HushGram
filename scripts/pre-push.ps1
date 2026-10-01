@@ -27,6 +27,11 @@
     published release itself (-VerifyPublishedAsset), so it has to come from a clean checkout of
     the commit it pushes, with the receipt build-release-receipt.ps1 wrote beside it. Set
     HUSHGRAM_SKIP_PRE_PUSH=1 to push anyway.
+
+.NOTES
+    Taken from Hushfacebook's scripts/pre-push.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param(

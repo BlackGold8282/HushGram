@@ -7,6 +7,11 @@
     Device patching, fixture verification, heap measurements and release validation all need
     the package and version that the bundle supports. Keeping that fact in patches-list.json,
     which is generated from AppCompatibilities.kt, prevents those callers from drifting apart.
+
+.NOTES
+    Taken from Hushfacebook's scripts/patch-target.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 
 function Get-PatchTarget {

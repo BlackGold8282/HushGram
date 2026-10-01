@@ -7,6 +7,11 @@
     what was pushed. Two of them are about evidence rather than errors: a stock build can raise no
     verifier message at all, so a tally only counts once dex2oat has read a file of the pushed size, and
     dex2oat exits 0 while logging that the file it was given doesn't exist.
+
+.NOTES
+    Taken from Hushfacebook's scripts/test-injected-register-device.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param([string]$Root)

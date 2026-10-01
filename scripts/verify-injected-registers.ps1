@@ -59,6 +59,11 @@
 
 .EXAMPLE
     scripts/verify-injected-registers.ps1 -FromDevice -Serial $env:HUSHGRAM_DEVICE_SERIAL
+
+.NOTES
+    Taken from Hushfacebook's scripts/verify-injected-registers.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param(

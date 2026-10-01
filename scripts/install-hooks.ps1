@@ -6,6 +6,11 @@
     Writes .git/hooks/pre-push so a push runs scripts/pre-push.ps1 first. Hooks live outside the
     working tree, so every checkout needs this run once. Pass -Force to replace a hook that is
     already there and was not written by this script.
+
+.NOTES
+    Taken from Hushfacebook's scripts/install-hooks.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param(

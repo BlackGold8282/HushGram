@@ -17,6 +17,10 @@
 # Remove the advertising ID drops the three permissions behind the advertising ID and Android's ad
 # attribution. Instagram 449 targets Android 16, where Google Play services hands an app without
 # AD_ID a string of zeros, and its one attribution call catches the ad services' refusal.
+#
+# Taken from Hushfacebook's scripts/manifest-delta-allowlist.txt
+# (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+# GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 permission-removed com.google.android.gms.permission.AD_ID
 permission-removed android.permission.ACCESS_ADSERVICES_AD_ID
 permission-removed android.permission.ACCESS_ADSERVICES_ATTRIBUTION

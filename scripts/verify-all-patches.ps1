@@ -38,6 +38,11 @@
 .EXAMPLE
     scripts/verify-all-patches.ps1 -Apk C:\fixtures\instagram-older.apk -Force `
         -DesktopJar C:\path\to\morphe-desktop.jar -WorkDir C:\path\to\scratch
+
+.NOTES
+    Taken from Hushfacebook's scripts/verify-all-patches.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param(

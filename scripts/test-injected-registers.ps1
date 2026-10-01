@@ -89,6 +89,11 @@
     verify-injected-registers.ps1 also runs end to end with stand-in tools, and its wiring is read
     through the parser (script-wiring.ps1), with the wiring checks themselves tried on copies that
     drop the calls but keep their text, at least one for each rule of what a script can't reach.
+
+.NOTES
+    Taken from Hushfacebook's scripts/test-injected-registers.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param(

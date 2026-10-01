@@ -23,6 +23,11 @@
     runs ends or every clause that can run ends, default included, a do loop whose body ends, or a
     loop a constant true condition keeps going with no break to leave it. The checks built on that
     match the call and its arguments, not a line that names them.
+
+.NOTES
+    Taken from Hushfacebook's scripts/script-wiring.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Unchanged apart from this note.
 #>
 
 function Get-ScriptAst {

@@ -23,6 +23,11 @@
     scripts/audit-instagram-sources.ps1 refreshes the ledger against those indexes and the forges,
     and its -ValidateOnly run says how old the census is. Nothing in this file reads the network or
     any source's code.
+
+.NOTES
+    Taken from Hushfacebook's scripts/facebook-sources.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 
 . (Join-Path $PSScriptRoot 'patch-target.ps1')

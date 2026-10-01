@@ -4,6 +4,11 @@
 .DESCRIPTION
     Taken from Hushfacebook's release-receipt.ps1: the aapt2 lookup, the manifest reader and the
     manifest delta with its allowlist. verify-all-patches.ps1 and patch-for-device.ps1 load it.
+
+.NOTES
+    Taken from Hushfacebook's scripts/release-receipt.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 
 function Resolve-Aapt2 {

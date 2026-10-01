@@ -11,6 +11,11 @@
 
     The CLI writes its result file from a finally block, so a file exists even after a failed
     compile or save. Nothing here treats the file's existence as the answer.
+
+.NOTES
+    Taken from Hushfacebook's scripts/patch-report.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Unchanged apart from this note.
 #>
 
 function Test-ApkFile {

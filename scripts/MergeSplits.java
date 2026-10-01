@@ -1,3 +1,12 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ *
+ * Taken from Hushfacebook's scripts/MergeSplits.java
+ * (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+ * GPL-3.0-only. Unchanged apart from this note.
+ */
+
 import app.morphe.patcher.apk.ApkMerger;
 
 import java.io.File;

@@ -9,6 +9,11 @@
 
     Candidates are tried in order and each one is asked its version, so a JAVA_HOME pinned to an
     old JDK for some other build cannot shadow a new enough java already on PATH.
+
+.NOTES
+    Taken from Hushfacebook's scripts/Resolve-Java.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 
 function Get-JavaMajorVersion {

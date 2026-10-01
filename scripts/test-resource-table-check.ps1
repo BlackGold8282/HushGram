@@ -18,6 +18,11 @@
     Get-MergedApk and MergeSplits.java: a resource only the split carries is in the merge, a table
     that lost it fails against the merge while base.apk would only have called it added, a plain
     APK comes back as it is, and a bundle the merger can't read is refused.
+
+.NOTES
+    Taken from Hushfacebook's scripts/test-resource-table-check.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 [CmdletBinding()]
 param(

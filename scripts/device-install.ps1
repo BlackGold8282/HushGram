@@ -1,6 +1,11 @@
 <#
 .SYNOPSIS
     Shared guarded ADB operations for a replacement install.
+
+.NOTES
+    Taken from Hushfacebook's scripts/device-install.ps1
+    (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+    GPL-3.0-only. Unchanged apart from this note.
 #>
 
 function Remove-AndroidPackageIfInstalled {
