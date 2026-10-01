@@ -90,7 +90,7 @@ public final class ExternalBrowser {
         if (!switchedOn()) return false;
 
         Uri uri = intent.getData();
-        if (uri == null || !isWebUrl(uri) || isAd(intent)) return false;
+        if (uri == null || !isWebUrl(uri) || isAd(activity, intent)) return false;
 
         Uri target = LinkCleaner.unwrapShims(uri);
         if (isOn(target.getHost(), INTERNAL_HOSTS)) return false;
@@ -121,13 +121,19 @@ public final class ExternalBrowser {
     }
 
     /**
-     * Whether Instagram opened the link for an ad, which stays in the app. Extras that can't be
-     * read count as an ad, so the link stays where Instagram put it.
+     * Whether Instagram opened the link for an ad, which stays in the app. A link followed inside a
+     * page the browser already shows comes to {@code onNewIntent} with no context of its own:
+     * Instagram copies the page's context onto it only after the hook has run, and the browser's
+     * own intent is still the one it was opened with. So a link with no context takes the context
+     * of the page it was followed from, and an ad's follow-up links stay with the ad. Extras that
+     * can't be read count as an ad, so the link stays where Instagram put it.
      */
     @SuppressWarnings("deprecation")
-    private static boolean isAd(Intent intent) {
+    private static boolean isAd(Activity activity, Intent intent) {
         try {
             Object context = intent.getParcelableExtra(IAB_CONTEXT);
+            Intent showing = context == null ? activity.getIntent() : null;
+            if (showing != null && showing != intent) context = showing.getParcelableExtra(IAB_CONTEXT);
             for (Class<?> type = context == null ? null : context.getClass(); type != null; type = type.getSuperclass()) {
                 if (ADS_CONTEXT.equals(type.getName())) return true;
             }

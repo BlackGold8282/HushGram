@@ -165,6 +165,41 @@ public class ExternalBrowserTest {
         assertStays(url, browserWith(url, new IABAdsContext()));
     }
 
+    /** A link followed inside the browser reaches onNewIntent with no context; Instagram copies the page's onto it later. */
+    private static Intent followedLink(String url) {
+        return new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+    }
+
+    /** A link followed inside an ad's page belongs to the ad, so it stays and the ad stays open. */
+    @Test
+    public void anAdsFollowUpLinkStaysInTheApp() {
+        Activity browser = browserWith("https://example.org/landing", new IABAdsContext());
+
+        assertFalse(ExternalBrowser.redirect(browser, followedLink("https://example.org/checkout")));
+        assertNull(shadowOf(browser).getNextStartedActivity());
+        assertFalse("the ad's browser stays open", browser.isFinishing());
+    }
+
+    /** A link of its own, opened organically while an ad's browser is up, carries its context and goes out. */
+    @Test
+    public void aNewOrganicLinkInAnAdsBrowserGoesOut() {
+        Activity browser = browserWith("https://example.org/landing", new IABAdsContext());
+        Intent link = followedLink("https://example.net/bio");
+        link.putExtra("EXTRA_IAB_CONTEXT", new IABOrganicContext());
+
+        assertTrue(ExternalBrowser.redirect(browser, link));
+        assertEquals("https://example.net/bio", shadowOf(browser).getNextStartedActivity().getDataString());
+    }
+
+    /** A link followed inside an organic page goes out like the page did. */
+    @Test
+    public void aFollowUpLinkInAnOrganicBrowserGoesOut() {
+        Activity browser = browserWith("https://example.org/", new IABOrganicContext());
+
+        assertTrue(ExternalBrowser.redirect(browser, followedLink("https://example.org/next")));
+        assertEquals("https://example.org/next", shadowOf(browser).getNextStartedActivity().getDataString());
+    }
+
     /** Only http and https leave. */
     @Test
     public void otherSchemesStayInTheApp() {
