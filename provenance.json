@@ -95,6 +95,22 @@
     },
     {
       "paths": [
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/PlaybackQuality.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/QualityChoice.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/QualityChoiceTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/PlaybackQualitySettingsTest.java",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/media/quality/DefaultPlaybackQualityPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/media/quality/QualityAnchors.kt",
+        "patches/src/test/kotlin/app/morphe/patches/instagram/media/quality/DefaultPlaybackQualityTest.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "830f9499ebfb06fe6c578e4691d8a067ddbd15a8",
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's Default playback quality, packages moved from app.morphe.extension.facebook to app.hushgram.extension.instagram. The quality ladder, the choice rules, the setting and its row in the Playback section came over as they were, with Instagram named in the text. Instagram plays through the same Hero player and DASH format evaluator, but its evaluator carries no preselected quality, so the constructor and setter hooks went. One hook now runs right after the evaluator's choice of a track first keeps its tracks, picks a track by label and hands it to the evaluator's own custom-quality setter through stubs the patch fills, where Facebook's hook wrote the preselected label by field name. The anchors are found through the Hero player's setCustomQualityInternal string and the evaluator's AbrContextAwareConfiguration constructor. The tests were ported with them. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
         "scripts/advisory-exceptions.txt",
         "scripts/build-release-receipt.ps1",
         "scripts/common.ps1",
@@ -138,6 +154,7 @@
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/ReelStateReader.java",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/StoryPlayerReader.java",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/PlayButtons.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/QualityReader.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/PlayButtonsTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/AnalyticsTest.java"
       ],

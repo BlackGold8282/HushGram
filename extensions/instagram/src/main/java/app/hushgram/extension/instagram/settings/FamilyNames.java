@@ -35,6 +35,7 @@ public final class FamilyNames {
     public static final String VIDEO_DOWNLOAD = "Download any video";
     public static final String TAP_TO_PLAY = "Tap to play";
     public static final String RESUME_LONG_VIDEOS = "Resume long videos";
+    public static final String PLAYBACK_QUALITY = "Default playback quality";
 
     private FamilyNames() {
     }

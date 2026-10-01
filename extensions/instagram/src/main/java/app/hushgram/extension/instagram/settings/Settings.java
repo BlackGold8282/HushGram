@@ -12,6 +12,7 @@ import static java.lang.Boolean.TRUE;
 import app.hushgram.extension.instagram.download.DownloadQuality;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.SaveFolder;
+import app.hushgram.extension.instagram.media.PlaybackQuality;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.BooleanSetting;
 import app.hushgram.extension.shared.settings.EnumSetting;
@@ -160,6 +161,24 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting RESUME_LONG_VIDEOS =
             new BooleanSetting("hushgram_resume_long_videos", FALSE);
+
+    /**
+     * Videos, reels and video stories start at the quality in {@link #PLAYBACK_QUALITY}, through
+     * the custom-quality setter of Instagram's DASH format evaluator
+     * ({@link app.hushgram.extension.instagram.media.QualityChoice}). The patch is off in the
+     * default selection, so a build that has it asked for it, and the switch starts on. Nothing
+     * Instagram stores is written, so off or paused, Instagram picks the quality as it did.
+     */
+    public static final BooleanSetting DEFAULT_PLAYBACK_QUALITY =
+            new BooleanSetting("hushgram_default_playback_quality", TRUE);
+
+    /**
+     * The quality videos start at while {@link #DEFAULT_PLAYBACK_QUALITY} is on: Instagram's own
+     * choice, the lowest, a ceiling, or the highest. It starts as Instagram's own, so picking the
+     * patch changes nothing until a quality is chosen. It isn't a switch: the switch above it is.
+     */
+    public static final EnumSetting<PlaybackQuality> PLAYBACK_QUALITY =
+            new EnumSetting<>("hushgram_playback_quality", PlaybackQuality.AUTO);
 
     // ---- Downloads -------------------------------------------------------------------------
     // What every save reads when it starts (app.hushgram.extension.instagram.download), ported

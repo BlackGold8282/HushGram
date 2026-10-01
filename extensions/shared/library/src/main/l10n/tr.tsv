@@ -145,6 +145,17 @@ Tap to play	Oynatmak için dokun
 Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.	Videolar, reels ve hikayeler dokunmanı bekler. Akıştaki videolar, daha az mobil veri kullandığındaki gibi bir oynat düğmesi gösterir.
 Resume long videos	Uzun videolara kaldığın yerden devam et
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	İki dakikadan uzun videolar ve reels kaldığın yerden devam eder. Başka bir yerden başlatmak için çubuğu kaydır. Canlı videolar ve reklamlar normal başlar.
+Default playback quality	Varsayılan oynatma kalitesi
+Videos, reels and stories play at the quality below, starting with the next one you open.	Videolar, reels ve hikayeler, açacağın bir sonrakinden itibaren aşağıdaki kalitede oynatılır.
+Playback quality	Oynatma kalitesi
+Auto	Otomatik
+Data saver	Veri tasarrufu
+Up to %1$s	En fazla %1$s
+Highest	En yüksek
+Instagram picks the quality as each video plays, from your connection.	Instagram, her video oynatılırken kaliteyi bağlantına göre seçer.
+Videos play at the lowest quality Instagram offers for each.	Videolar, Instagram'ın her biri için sunduğu en düşük kalitede oynatılır.
+Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.	Videolar, Instagram'ın her biri için sunduğu en fazla %1$s olan en iyi kalitede ya da hemen üstündekinde oynatılır.
+Videos play at the highest quality Instagram offers for each.	Videolar, Instagram'ın her biri için sunduğu en yüksek kalitede oynatılır.
 View stories anonymously	Hikayeleri anonim olarak izle
 Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.	Instagram hangi hikayeleri izlediğini öğrenmez, bu yüzden izleyici listelerinde yer almazsın. Yanıt vermek veya tepki bırakmak yine de seni gösterir. İzlediğin hikayeler yeniden yeni gibi görünebilir.
 Advertising ID removed	Reklam kimliği kaldırıldı

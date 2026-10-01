@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(312);
+        Map<String, String> table = new HashMap<>(334);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -84,6 +84,8 @@ public final class L10nTranslations {
                 "Werbung und Datenschutz");
         table.put("Advertising ID removed",
                 "Werbe-ID entfernt");
+        table.put("Auto",
+                "Automatisch");
         table.put("Back",
                 "Zur\u00fcck");
         table.put("Before you sign in",
@@ -116,8 +118,12 @@ public final class L10nTranslations {
                 "Der Export des Berichts lie\u00df sich nicht starten. Versuche es gleich noch einmal.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "HushGram lie\u00df sich nicht wieder einschalten. Versuche es noch einmal.");
+        table.put("Data saver",
+                "Datensparmodus");
         table.put("Debug logging",
                 "Debug-Protokollierung");
+        table.put("Default playback quality",
+                "Standard-Wiedergabequalit\u00e4t");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Diagnosedaten gel\u00f6scht. Tippe erneut, um sie wiederherzustellen.");
         table.put("Diagnostic data put back.",
@@ -168,15 +174,15 @@ public final class L10nTranslations {
                 "Ordner auf %1$s gesetzt.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "F\u00fcr WhatsApp, Videoeditoren wie CapCut und InShot oder wenn eine Galerie oder ein Player gespeicherte Videos ohne Ton abspielt. Kann die Qualit\u00e4t senken.");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "Ab dem n\u00e4chsten Start verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.");
         table.put("Full report saved to %1$s",
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("Hide Reels in the feed",
                 "Reels im Feed ausblenden");
         table.put("Hide ads",
@@ -189,6 +195,8 @@ public final class L10nTranslations {
                 "Folgen-Button ausblenden");
         table.put("Hide the Reels tab",
                 "Den Reels-Tab ausblenden");
+        table.put("Highest",
+                "H\u00f6chste");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Fortschritt beim Speichern eines Fotos oder Videos, mit einem Button zum Abbrechen");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -215,6 +223,8 @@ public final class L10nTranslations {
                 "Instagram erf\u00e4hrt nicht, welche Reels du angesehen hast und wie weit. Damit sortiert es deine Reels, und sonst sieht das niemand. Bereits gesehene Reels k\u00f6nnen wieder auftauchen.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
                 "Instagram erf\u00e4hrt nicht, welche Stories du ansiehst, deshalb stehst du nicht in ihren Zuschauerlisten. Wenn du antwortest oder reagierst, sieht man dich trotzdem, und Stories, die du schon angesehen hast, k\u00f6nnen wieder als neu erscheinen.");
+        table.put("Instagram picks the quality as each video plays, from your connection.",
+                "Instagram w\u00e4hlt die Qualit\u00e4t beim Abspielen jedes Videos passend zu deiner Verbindung.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram zeigt den Bildschirm nicht mehr an, der meldet, dass diese Version zu alt ist. Ein gepatchter Build aktualisiert sich nicht von selbst, so bleibt er nutzbar.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -247,6 +257,8 @@ public final class L10nTranslations {
                 "Hinweise wie Edits, Vorlage verwenden, Meta AI und Ray-Ban Meta Brillen. Ein Live-Abzeichen und ein Hinweis auf staatlich kontrollierte Medien bleiben.");
         table.put("Playback",
                 "Wiedergabe");
+        table.put("Playback quality",
+                "Wiedergabequalit\u00e4t");
         table.put("Re-signed build fix",
                 "Fix f\u00fcr neu signierte Builds");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -285,6 +297,9 @@ public final class L10nTranslations {
                 "Gespeichert. Starte Instagram neu, um diese \u00c4nderung zu \u00fcbernehmen.");
         table.put("Saving a photo",
                 "Foto wird gespeichert");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Saving a video",
                 "Video wird gespeichert");
         table.put("Saving...",
@@ -297,9 +312,6 @@ public final class L10nTranslations {
                 "Einstellungen lie\u00dfen sich nicht \u00f6ffnen");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Die Einstellungen lie\u00dfen sich nicht vollst\u00e4ndig aktualisieren. \u00d6ffne sie neu und versuche es noch einmal.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Smallest",
                 "Kleinste");
         table.put("Source code and issues",
@@ -346,6 +358,8 @@ public final class L10nTranslations {
                 "Versuche es noch einmal oder kehre zu Instagram zur\u00fcck.");
         table.put("Turn off double tap to like",
                 "Doppeltippen zum Liken ausschalten");
+        table.put("Up to %1$s",
+                "Bis %1$s");
         table.put("Updates",
                 "Updates");
         table.put("Version",
@@ -360,6 +374,14 @@ public final class L10nTranslations {
                 "Videos hei\u00dfen %1$s. Fotos hei\u00dfen immer %2$s, gefolgt von Datum und Uhrzeit.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Videos landen in %1$s und Fotos in %2$s.");
+        table.put("Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.",
+                "Videos laufen in der besten Qualit\u00e4t bis %1$s, die Instagram f\u00fcr sie anbietet, oder der n\u00e4chsth\u00f6heren.");
+        table.put("Videos play at the highest quality Instagram offers for each.",
+                "Videos laufen in der h\u00f6chsten Qualit\u00e4t, die Instagram f\u00fcr sie anbietet.");
+        table.put("Videos play at the lowest quality Instagram offers for each.",
+                "Videos laufen in der niedrigsten Qualit\u00e4t, die Instagram f\u00fcr sie anbietet.");
+        table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
+                "Videos, Reels und Stories laufen in der Qualit\u00e4t unten, ab dem n\u00e4chsten Video, das du \u00f6ffnest.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Videos, Reels und Stories warten, bis du tippst. Videos im Feed zeigen eine Wiedergabetaste, wie wenn du weniger mobile Daten nutzt.");
         table.put("View stories anonymously",
@@ -375,7 +397,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(312);
+        Map<String, String> table = new HashMap<>(334);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -413,6 +435,8 @@ public final class L10nTranslations {
                 "Anuncios y privacidad");
         table.put("Advertising ID removed",
                 "ID de publicidad eliminado");
+        table.put("Auto",
+                "Autom\u00e1tica");
         table.put("Back",
                 "Atr\u00e1s");
         table.put("Before you sign in",
@@ -445,8 +469,12 @@ public final class L10nTranslations {
                 "No se pudo iniciar la exportaci\u00f3n del informe. Int\u00e9ntalo de nuevo en breve.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "No se pudo volver a activar HushGram. Int\u00e9ntalo de nuevo.");
+        table.put("Data saver",
+                "Ahorro de datos");
         table.put("Debug logging",
                 "Registro de depuraci\u00f3n");
+        table.put("Default playback quality",
+                "Calidad de reproducci\u00f3n predeterminada");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Se borraron los datos de diagn\u00f3stico. Toca de nuevo para restaurarlos.");
         table.put("Diagnostic data put back.",
@@ -497,15 +525,15 @@ public final class L10nTranslations {
                 "Carpeta establecida en %1$s.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Para WhatsApp, editores de video como CapCut e InShot, o una galer\u00eda o un reproductor que reproduzca sin sonido los videos guardados. Puede bajar la calidad.");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "Desde el pr\u00f3ximo inicio, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene, y tus preferencias quedan guardadas.");
         table.put("Full report saved to %1$s",
                 "Informe completo guardado en %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("Hide Reels in the feed",
                 "Ocultar reels en el feed");
         table.put("Hide ads",
@@ -518,6 +546,8 @@ public final class L10nTranslations {
                 "Ocultar el bot\u00f3n Seguir");
         table.put("Hide the Reels tab",
                 "Ocultar la pesta\u00f1a de Reels");
+        table.put("Highest",
+                "La m\u00e1s alta");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "El progreso de la foto o el video que est\u00e1s guardando, con un bot\u00f3n para cancelar");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -544,6 +574,8 @@ public final class L10nTranslations {
                 "Instagram no sabe qu\u00e9 reels viste ni hasta d\u00f3nde llegaste. Con eso ordena tus Reels, y nadie m\u00e1s lo ve. Los reels que ya viste pueden volver a aparecer.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
                 "Instagram no sabe qu\u00e9 historias ves, as\u00ed que no apareces en sus listas de espectadores. Si respondes o reaccionas, se te sigue viendo, y las historias que ya viste pueden volver a aparecer como nuevas.");
+        table.put("Instagram picks the quality as each video plays, from your connection.",
+                "Instagram elige la calidad mientras se reproduce cada video, seg\u00fan tu conexi\u00f3n.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram deja de mostrar la pantalla que dice que esta versi\u00f3n es demasiado antigua. Una versi\u00f3n parcheada no se actualiza sola, as\u00ed que esto la mantiene usable.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -576,6 +608,8 @@ public final class L10nTranslations {
                 "Etiquetas como Edits, Usar plantilla, Meta AI y las gafas Ray-Ban Meta. Una insignia de directo y la etiqueta de medio controlado por el Estado se quedan.");
         table.put("Playback",
                 "Reproducci\u00f3n");
+        table.put("Playback quality",
+                "Calidad de reproducci\u00f3n");
         table.put("Re-signed build fix",
                 "Arreglo para la nueva firma");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -614,6 +648,9 @@ public final class L10nTranslations {
                 "Guardado. Reinicia Instagram para aplicar este cambio.");
         table.put("Saving a photo",
                 "Guardando una foto");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Saving a video",
                 "Guardando un video");
         table.put("Saving...",
@@ -626,9 +663,6 @@ public final class L10nTranslations {
                 "No se pudo abrir la configuraci\u00f3n");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "No se pudo actualizar la configuraci\u00f3n por completo. Vuelve a abrirla e int\u00e9ntalo de nuevo.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Smallest",
                 "La m\u00e1s peque\u00f1a");
         table.put("Source code and issues",
@@ -675,6 +709,8 @@ public final class L10nTranslations {
                 "Int\u00e9ntalo de nuevo o vuelve a Instagram.");
         table.put("Turn off double tap to like",
                 "Desactivar tocar dos veces para dar Me gusta");
+        table.put("Up to %1$s",
+                "Hasta %1$s");
         table.put("Updates",
                 "Actualizaciones");
         table.put("Version",
@@ -689,6 +725,14 @@ public final class L10nTranslations {
                 "Los videos se llaman %1$s. Las fotos siempre se llaman %2$s seguido de la fecha y la hora.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Los videos van a %1$s y las fotos a %2$s.");
+        table.put("Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.",
+                "Los videos se reproducen en la mejor calidad hasta %1$s que Instagram ofrece para cada uno, o en la m\u00e1s cercana por encima.");
+        table.put("Videos play at the highest quality Instagram offers for each.",
+                "Los videos se reproducen en la calidad m\u00e1s alta que Instagram ofrece para cada uno.");
+        table.put("Videos play at the lowest quality Instagram offers for each.",
+                "Los videos se reproducen en la calidad m\u00e1s baja que Instagram ofrece para cada uno.");
+        table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
+                "Los videos, reels e historias se reproducen en la calidad de abajo, a partir del pr\u00f3ximo que abras.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Los videos, reels e historias esperan a que toques. Los videos del feed muestran un bot\u00f3n de reproducir, como cuando usas menos datos m\u00f3viles.");
         table.put("View stories anonymously",
@@ -704,7 +748,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(312);
+        Map<String, String> table = new HashMap<>(334);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -742,6 +786,8 @@ public final class L10nTranslations {
                 "Iklan dan privasi");
         table.put("Advertising ID removed",
                 "ID iklan dihapus");
+        table.put("Auto",
+                "Otomatis");
         table.put("Back",
                 "Kembali");
         table.put("Before you sign in",
@@ -774,8 +820,12 @@ public final class L10nTranslations {
                 "Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "HushGram tidak dapat diaktifkan lagi. Coba lagi.");
+        table.put("Data saver",
+                "Penghemat data");
         table.put("Debug logging",
                 "Pencatatan debug");
+        table.put("Default playback quality",
+                "Kualitas pemutaran default");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.");
         table.put("Diagnostic data put back.",
@@ -826,15 +876,15 @@ public final class L10nTranslations {
                 "Folder diatur menjadi %1$s.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.");
         table.put("Full report saved to %1$s",
                 "Laporan lengkap disimpan ke %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("Hide Reels in the feed",
                 "Sembunyikan Reels di feed");
         table.put("Hide ads",
@@ -847,6 +897,8 @@ public final class L10nTranslations {
                 "Sembunyikan tombol Ikuti");
         table.put("Hide the Reels tab",
                 "Sembunyikan tab Reels");
+        table.put("Highest",
+                "Tertinggi");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -873,6 +925,8 @@ public final class L10nTranslations {
                 "Instagram tidak diberi tahu reel mana yang Anda tonton atau sampai mana. Instagram memakainya untuk mengurutkan Reels Anda, dan tidak ada orang lain yang melihatnya. Reel yang sudah Anda tonton bisa muncul lagi.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
                 "Instagram tidak diberi tahu cerita mana yang kamu tonton, jadi kamu tidak masuk daftar penontonnya. Membalas atau memberi reaksi tetap menunjukkan dirimu, dan cerita yang sudah kamu tonton bisa tampil sebagai cerita baru lagi.");
+        table.put("Instagram picks the quality as each video plays, from your connection.",
+                "Instagram memilih kualitas saat setiap video diputar, sesuai koneksi Anda.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram berhenti menampilkan layar yang menyatakan versi ini terlalu lama. Build yang ditambal tidak memperbarui dirinya sendiri, jadi ini membuatnya tetap bisa dipakai.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -905,6 +959,8 @@ public final class L10nTranslations {
                 "Label seperti Edits, Gunakan template, Meta AI, dan kacamata Ray-Ban Meta. Lencana siaran langsung dan label media yang dikendalikan negara tetap ada.");
         table.put("Playback",
                 "Pemutaran");
+        table.put("Playback quality",
+                "Kualitas pemutaran");
         table.put("Re-signed build fix",
                 "Perbaikan build yang ditandatangani ulang");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -943,6 +999,9 @@ public final class L10nTranslations {
                 "Tersimpan. Mulai ulang Instagram untuk menerapkan perubahan ini.");
         table.put("Saving a photo",
                 "Menyimpan foto");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Saving a video",
                 "Menyimpan video");
         table.put("Saving...",
@@ -955,9 +1014,6 @@ public final class L10nTranslations {
                 "Pengaturan tidak dapat dibuka");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Smallest",
                 "Terkecil");
         table.put("Source code and issues",
@@ -1004,6 +1060,8 @@ public final class L10nTranslations {
                 "Coba lagi, atau kembali ke Instagram.");
         table.put("Turn off double tap to like",
                 "Matikan ketuk dua kali untuk menyukai");
+        table.put("Up to %1$s",
+                "Hingga %1$s");
         table.put("Updates",
                 "Pembaruan");
         table.put("Version",
@@ -1018,6 +1076,14 @@ public final class L10nTranslations {
                 "Video diberi nama %1$s. Foto selalu diberi nama %2$s diikuti tanggal dan waktu.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Video disimpan ke %1$s dan foto ke %2$s.");
+        table.put("Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.",
+                "Video diputar dengan kualitas terbaik hingga %1$s yang ditawarkan Instagram untuk masing-masing, atau yang terdekat di atasnya.");
+        table.put("Videos play at the highest quality Instagram offers for each.",
+                "Video diputar dengan kualitas tertinggi yang ditawarkan Instagram untuk masing-masing.");
+        table.put("Videos play at the lowest quality Instagram offers for each.",
+                "Video diputar dengan kualitas terendah yang ditawarkan Instagram untuk masing-masing.");
+        table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
+                "Video, reels, dan cerita diputar dengan kualitas di bawah, mulai dari yang berikutnya Anda buka.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Video, reels, dan cerita menunggu ketukan Anda. Video di feed menampilkan tombol putar, seperti saat Anda menghemat data seluler.");
         table.put("View stories anonymously",
@@ -1033,7 +1099,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(312);
+        Map<String, String> table = new HashMap<>(334);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1071,6 +1137,8 @@ public final class L10nTranslations {
                 "An\u00fancios e privacidade");
         table.put("Advertising ID removed",
                 "ID de publicidade removido");
+        table.put("Auto",
+                "Autom\u00e1tica");
         table.put("Back",
                 "Voltar");
         table.put("Before you sign in",
@@ -1103,8 +1171,12 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel iniciar a exporta\u00e7\u00e3o do relat\u00f3rio. Tente de novo daqui a pouco.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "N\u00e3o foi poss\u00edvel reativar o HushGram. Tente novamente.");
+        table.put("Data saver",
+                "Economia de dados");
         table.put("Debug logging",
                 "Registro de depura\u00e7\u00e3o");
+        table.put("Default playback quality",
+                "Qualidade de reprodu\u00e7\u00e3o padr\u00e3o");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Dados de diagn\u00f3stico apagados. Toque de novo para restaur\u00e1-los.");
         table.put("Diagnostic data put back.",
@@ -1155,15 +1227,15 @@ public final class L10nTranslations {
                 "Pasta definida como %1$s.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Para o WhatsApp, editores de v\u00eddeo como CapCut e InShot ou uma galeria ou player que reproduza os v\u00eddeos salvos sem som. Pode reduzir a qualidade.");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "A partir da pr\u00f3xima abertura, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo, e suas escolhas ficam salvas.");
         table.put("Full report saved to %1$s",
                 "Relat\u00f3rio completo salvo em %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, com os avisos dos projetos em que o HushGram se baseia");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Hide Reels in the feed",
                 "Ocultar reels no feed");
         table.put("Hide ads",
@@ -1176,6 +1248,8 @@ public final class L10nTranslations {
                 "Ocultar o bot\u00e3o Seguir");
         table.put("Hide the Reels tab",
                 "Ocultar a aba Reels");
+        table.put("Highest",
+                "A mais alta");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Indica o progresso do salvamento de uma foto ou v\u00eddeo, com um bot\u00e3o para cancel\u00e1-lo");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -1202,6 +1276,8 @@ public final class L10nTranslations {
                 "O Instagram n\u00e3o fica sabendo quais reels voc\u00ea assistiu nem at\u00e9 onde. Ele usa isso para ordenar seus Reels, e ningu\u00e9m mais v\u00ea. Reels que voc\u00ea j\u00e1 assistiu podem voltar a aparecer.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
                 "O Instagram n\u00e3o fica sabendo quais Stories voc\u00ea assiste, ent\u00e3o voc\u00ea fica fora das listas de quem viu. Responder ou reagir ainda mostra voc\u00ea, e Stories que voc\u00ea j\u00e1 viu podem voltar a aparecer como novos.");
+        table.put("Instagram picks the quality as each video plays, from your connection.",
+                "O Instagram escolhe a qualidade enquanto cada v\u00eddeo \u00e9 reproduzido, de acordo com sua conex\u00e3o.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "O Instagram para de mostrar a tela que diz que esta vers\u00e3o \u00e9 antiga demais. Uma vers\u00e3o com patches n\u00e3o se atualiza sozinha, ent\u00e3o isso a mant\u00e9m utiliz\u00e1vel.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -1234,6 +1310,8 @@ public final class L10nTranslations {
                 "Etiquetas como Edits, Usar modelo, Meta AI e \u00f3culos Ray-Ban Meta. O selo de ao vivo e o aviso de m\u00eddia controlada pelo Estado continuam.");
         table.put("Playback",
                 "Reprodu\u00e7\u00e3o");
+        table.put("Playback quality",
+                "Qualidade de reprodu\u00e7\u00e3o");
         table.put("Re-signed build fix",
                 "Corre\u00e7\u00e3o para vers\u00e3o com nova assinatura");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1272,6 +1350,9 @@ public final class L10nTranslations {
                 "Salvo. Reinicie o Instagram para aplicar esta altera\u00e7\u00e3o.");
         table.put("Saving a photo",
                 "Salvando uma foto");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Saving a video",
                 "Salvando um v\u00eddeo");
         table.put("Saving...",
@@ -1284,9 +1365,6 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel abrir as configura\u00e7\u00f5es");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "N\u00e3o foi poss\u00edvel atualizar completamente as configura\u00e7\u00f5es. Reabra as configura\u00e7\u00f5es e tente novamente.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Smallest",
                 "A menor");
         table.put("Source code and issues",
@@ -1333,6 +1411,8 @@ public final class L10nTranslations {
                 "Tente novamente ou volte para o Instagram.");
         table.put("Turn off double tap to like",
                 "Desativar toque duplo para curtir");
+        table.put("Up to %1$s",
+                "At\u00e9 %1$s");
         table.put("Updates",
                 "Atualiza\u00e7\u00f5es");
         table.put("Version",
@@ -1347,6 +1427,14 @@ public final class L10nTranslations {
                 "Os v\u00eddeos ser\u00e3o nomeados como %1$s. As fotos sempre recebem o nome %2$s seguido da data e da hora.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Os v\u00eddeos v\u00e3o para %1$s e as fotos para %2$s.");
+        table.put("Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.",
+                "Os v\u00eddeos s\u00e3o reproduzidos na melhor qualidade at\u00e9 %1$s que o Instagram oferece para cada um, ou na mais pr\u00f3xima acima.");
+        table.put("Videos play at the highest quality Instagram offers for each.",
+                "Os v\u00eddeos s\u00e3o reproduzidos na maior qualidade que o Instagram oferece para cada um.");
+        table.put("Videos play at the lowest quality Instagram offers for each.",
+                "Os v\u00eddeos s\u00e3o reproduzidos na menor qualidade que o Instagram oferece para cada um.");
+        table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
+                "V\u00eddeos, reels e stories s\u00e3o reproduzidos na qualidade abaixo, a partir do pr\u00f3ximo que voc\u00ea abrir.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "V\u00eddeos, reels e stories esperam o seu toque. Os v\u00eddeos do feed mostram um bot\u00e3o de reproduzir, como quando voc\u00ea usa menos dados m\u00f3veis.");
         table.put("View stories anonymously",
@@ -1362,7 +1450,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(312);
+        Map<String, String> table = new HashMap<>(334);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1400,6 +1488,8 @@ public final class L10nTranslations {
                 "Reklamlar ve gizlilik");
         table.put("Advertising ID removed",
                 "Reklam kimli\u011fi kald\u0131r\u0131ld\u0131");
+        table.put("Auto",
+                "Otomatik");
         table.put("Back",
                 "Geri");
         table.put("Before you sign in",
@@ -1432,8 +1522,12 @@ public final class L10nTranslations {
                 "Rapor d\u0131\u015fa aktar\u0131m\u0131 ba\u015flat\u0131lamad\u0131. Birazdan tekrar dene.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "HushGram yeniden a\u00e7\u0131lamad\u0131. Tekrar dene.");
+        table.put("Data saver",
+                "Veri tasarrufu");
         table.put("Debug logging",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc");
+        table.put("Default playback quality",
+                "Varsay\u0131lan oynatma kalitesi");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Tan\u0131lama verileri temizlendi. Geri getirmek i\u00e7in tekrar dokun.");
         table.put("Diagnostic data put back.",
@@ -1484,15 +1578,15 @@ public final class L10nTranslations {
                 "Klas\u00f6r %1$s olarak ayarland\u0131.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "WhatsApp, CapCut ve InShot gibi video d\u00fczenleyiciler ya da kaydedilen videolar\u0131 sessiz oynatan bir galeri veya oynat\u0131c\u0131 i\u00e7in. Kaliteyi d\u00fc\u015f\u00fcrebilir.");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "Sonraki a\u00e7\u0131l\u0131\u015ftan itibaren Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r ve tercihlerin kay\u0131tl\u0131 kal\u0131r.");
         table.put("Full report saved to %1$s",
                 "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("Hide Reels in the feed",
                 "Ak\u0131\u015ftaki reelleri gizle");
         table.put("Hide ads",
@@ -1505,6 +1599,8 @@ public final class L10nTranslations {
                 "Takip Et d\u00fc\u011fmesini gizle");
         table.put("Hide the Reels tab",
                 "Reels sekmesini gizle");
+        table.put("Highest",
+                "En y\u00fcksek");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Kaydetti\u011fin foto\u011fraf veya videonun ilerleme durumu ve iptal etmek i\u00e7in bir d\u00fc\u011fme");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -1531,6 +1627,8 @@ public final class L10nTranslations {
                 "Instagram hangi reelleri izledi\u011fini ve ne kadar\u0131n\u0131 izledi\u011fini \u00f6\u011frenmez. Reels ak\u0131\u015f\u0131n\u0131 buna g\u00f6re s\u0131ralar ve bunu ba\u015fka kimse g\u00f6rmez. \u0130zledi\u011fin reeller yeniden kar\u015f\u0131na \u00e7\u0131kabilir.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
                 "Instagram hangi hikayeleri izledi\u011fini \u00f6\u011frenmez, bu y\u00fczden izleyici listelerinde yer almazs\u0131n. Yan\u0131t vermek veya tepki b\u0131rakmak yine de seni g\u00f6sterir. \u0130zledi\u011fin hikayeler yeniden yeni gibi g\u00f6r\u00fcnebilir.");
+        table.put("Instagram picks the quality as each video plays, from your connection.",
+                "Instagram, her video oynat\u0131l\u0131rken kaliteyi ba\u011flant\u0131na g\u00f6re se\u00e7er.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram bu s\u00fcr\u00fcm\u00fcn \u00e7ok eski oldu\u011funu s\u00f6yleyen ekran\u0131 art\u0131k g\u00f6stermez. Yamalanm\u0131\u015f bir s\u00fcr\u00fcm kendi kendine g\u00fcncellenmez, bu y\u00fczden bu onu kullan\u0131labilir tutar.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -1563,6 +1661,8 @@ public final class L10nTranslations {
                 "Edits, \u015eablonu kullan, Meta AI ve Ray-Ban Meta g\u00f6zl\u00fckleri gibi etiketler. Canl\u0131 yay\u0131n rozeti ve devlet kontrol\u00fcndeki medya etiketi kal\u0131r.");
         table.put("Playback",
                 "Oynatma");
+        table.put("Playback quality",
+                "Oynatma kalitesi");
         table.put("Re-signed build fix",
                 "Yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1601,6 +1701,9 @@ public final class L10nTranslations {
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Instagram'u yeniden ba\u015flat.");
         table.put("Saving a photo",
                 "Foto\u011fraf kaydediliyor");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Saving a video",
                 "Video kaydediliyor");
         table.put("Saving...",
@@ -1613,9 +1716,6 @@ public final class L10nTranslations {
                 "Ayarlar a\u00e7\u0131lamad\u0131");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Ayarlar tamamen yenilenemedi. Ayarlar\u0131 yeniden a\u00e7\u0131p tekrar dene.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Smallest",
                 "En k\u00fc\u00e7\u00fck");
         table.put("Source code and issues",
@@ -1662,6 +1762,8 @@ public final class L10nTranslations {
                 "Tekrar dene veya Instagram'a geri d\u00f6n.");
         table.put("Turn off double tap to like",
                 "Be\u011fenmek i\u00e7in \u00e7ift dokunmay\u0131 kapat");
+        table.put("Up to %1$s",
+                "En fazla %1$s");
         table.put("Updates",
                 "G\u00fcncellemeler");
         table.put("Version",
@@ -1676,6 +1778,14 @@ public final class L10nTranslations {
                 "Videolar\u0131n ad\u0131 %1$s olur. Foto\u011fraflar\u0131n ad\u0131 her zaman %2$s ile ba\u015flar, ard\u0131ndan tarih ve saat gelir.");
         table.put("Videos go to %1$s and photos to %2$s.",
                 "Videolar %1$s klas\u00f6r\u00fcne, foto\u011fraflar %2$s klas\u00f6r\u00fcne kaydedilir.");
+        table.put("Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.",
+                "Videolar, Instagram'\u0131n her biri i\u00e7in sundu\u011fu en fazla %1$s olan en iyi kalitede ya da hemen \u00fcst\u00fcndekinde oynat\u0131l\u0131r.");
+        table.put("Videos play at the highest quality Instagram offers for each.",
+                "Videolar, Instagram'\u0131n her biri i\u00e7in sundu\u011fu en y\u00fcksek kalitede oynat\u0131l\u0131r.");
+        table.put("Videos play at the lowest quality Instagram offers for each.",
+                "Videolar, Instagram'\u0131n her biri i\u00e7in sundu\u011fu en d\u00fc\u015f\u00fck kalitede oynat\u0131l\u0131r.");
+        table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
+                "Videolar, reels ve hikayeler, a\u00e7aca\u011f\u0131n bir sonrakinden itibaren a\u015fa\u011f\u0131daki kalitede oynat\u0131l\u0131r.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Videolar, reels ve hikayeler dokunman\u0131 bekler. Ak\u0131\u015ftaki videolar, daha az mobil veri kulland\u0131\u011f\u0131ndaki gibi bir oynat d\u00fc\u011fmesi g\u00f6sterir.");
         table.put("View stories anonymously",

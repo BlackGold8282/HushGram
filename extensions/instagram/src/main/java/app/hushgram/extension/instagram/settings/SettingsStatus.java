@@ -93,4 +93,8 @@ public final class SettingsStatus {
     public static boolean resumeLongVideos() {
         return false;
     }
+
+    public static boolean defaultPlaybackQuality() {
+        return false;
+    }
 }

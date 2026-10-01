@@ -145,6 +145,17 @@ Tap to play	Zum Abspielen tippen
 Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.	Videos, Reels und Stories warten, bis du tippst. Videos im Feed zeigen eine Wiedergabetaste, wie wenn du weniger mobile Daten nutzt.
 Resume long videos	Lange Videos fortsetzen
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Videos und Reels über zwei Minuten laufen an deiner letzten Stelle weiter. Die Suchleiste ändert den Start. Live-Videos und Werbung starten wie gewohnt.
+Default playback quality	Standard-Wiedergabequalität
+Videos, reels and stories play at the quality below, starting with the next one you open.	Videos, Reels und Stories laufen in der Qualität unten, ab dem nächsten Video, das du öffnest.
+Playback quality	Wiedergabequalität
+Auto	Automatisch
+Data saver	Datensparmodus
+Up to %1$s	Bis %1$s
+Highest	Höchste
+Instagram picks the quality as each video plays, from your connection.	Instagram wählt die Qualität beim Abspielen jedes Videos passend zu deiner Verbindung.
+Videos play at the lowest quality Instagram offers for each.	Videos laufen in der niedrigsten Qualität, die Instagram für sie anbietet.
+Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.	Videos laufen in der besten Qualität bis %1$s, die Instagram für sie anbietet, oder der nächsthöheren.
+Videos play at the highest quality Instagram offers for each.	Videos laufen in der höchsten Qualität, die Instagram für sie anbietet.
 View stories anonymously	Stories anonym ansehen
 Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.	Instagram erfährt nicht, welche Stories du ansiehst, deshalb stehst du nicht in ihren Zuschauerlisten. Wenn du antwortest oder reagierst, sieht man dich trotzdem, und Stories, die du schon angesehen hast, können wieder als neu erscheinen.
 Advertising ID removed	Werbe-ID entfernt

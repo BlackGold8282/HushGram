@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 
 import app.hushgram.extension.instagram.download.DownloadQuality;
+import app.hushgram.extension.instagram.media.PlaybackQuality;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.SaveControl;
 import app.hushgram.extension.instagram.download.SaveFolder;
@@ -239,7 +240,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : stories) section.addPreference(row);
         }
 
-        if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
+        if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)
+                || build.contains(PatchFamily.PLAYBACK_QUALITY)) {
             PreferenceCategory playback = category(screen, L10n.t("Playback"));
             if (build.contains(PatchFamily.TAP_TO_PLAY)) {
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY, L10n.t("Tap to play"),
@@ -250,6 +252,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS, L10n.t("Resume long videos"),
                         L10n.t("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. "
                                 + "Live videos and ads start as usual.")));
+            }
+            if (build.contains(PatchFamily.PLAYBACK_QUALITY)) {
+                playback.addPreference(toggle(context, Settings.DEFAULT_PLAYBACK_QUALITY, L10n.t("Default playback quality"),
+                        L10n.t("Videos, reels and stories play at the quality below, starting with the next one you open.")));
+                playback.addPreference(playbackQualityRow(context));
             }
         }
 
@@ -605,11 +612,72 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
-    /** The quality row's summary is a sentence of its own rather than the chosen entry. */
+    /**
+     * The quality videos play at. Like the download quality's row, its values are the setting's own
+     * names and its summary says what the choice does.
+     */
+    static PlaybackQualityRow playbackQualityRow(Context context) {
+        PlaybackQualityRow row = new PlaybackQualityRow(context);
+        row.setKey(Settings.PLAYBACK_QUALITY.key);
+        row.setTitle(L10n.t("Playback quality"));
+        row.setDialogTitle(L10n.t("Playback quality"));
+        // Android's own Cancel follows the activity's language, as the download quality's did.
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        PlaybackQuality[] qualities = PlaybackQuality.values();
+        CharSequence[] entries = new CharSequence[qualities.length];
+        CharSequence[] values = new CharSequence[qualities.length];
+        for (int i = 0; i < qualities.length; i++) {
+            entries[i] = playbackQualityLabel(qualities[i]);
+            values[i] = qualities[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.PLAYBACK_QUALITY.savedValue().name());
+        return row;
+    }
+
+    /** What the list calls [quality]: Auto for Instagram's own choice, and a ceiling by its label. */
+    static String playbackQualityLabel(PlaybackQuality quality) {
+        switch (quality) {
+            case DATA_SAVER:
+                return L10n.t("Data saver");
+            case P480:
+            case P720:
+                return L10n.f("Up to %1$s", L10n.isolate(quality.fileValue));
+            case HIGHEST:
+                return L10n.t("Highest");
+            default:
+                return L10n.t("Auto");
+        }
+    }
+
+    /**
+     * What a video does with [quality], for the row's summary. The rungs are the ones Instagram
+     * offers for each video, so the summary says the video has to offer the quality rather than
+     * promise it.
+     */
+    static String playbackQualitySummary(PlaybackQuality quality) {
+        switch (quality) {
+            case DATA_SAVER:
+                return L10n.t("Videos play at the lowest quality Instagram offers for each.");
+            case P480:
+            case P720:
+                return L10n.f("Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.",
+                        L10n.isolate(quality.fileValue));
+            case HIGHEST:
+                return L10n.t("Videos play at the highest quality Instagram offers for each.");
+            default:
+                return L10n.t("Instagram picks the quality as each video plays, from your connection.");
+        }
+    }
+
+    /** The two quality rows' summaries are sentences of their own rather than the chosen entry. */
     @Override
     protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
         if (listPreference instanceof QualityRow) {
             ((QualityRow) listPreference).showSummary();
+        } else if (listPreference instanceof PlaybackQualityRow) {
+            ((PlaybackQualityRow) listPreference).showSummary();
         } else {
             super.updateListPreferenceSummary(listPreference, setting);
         }
@@ -1026,6 +1094,45 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (candidate.name().equals(getValue())) quality = candidate;
             }
             setSummary(qualitySummary(quality));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The playback quality's row. Its summary follows its value, whoever sets it: the person or the
+     * shared page syncing it from the setting.
+     */
+    static final class PlaybackQualityRow extends ListPreference {
+        PlaybackQualityRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            PlaybackQuality quality = PlaybackQuality.AUTO;
+            for (PlaybackQuality candidate : PlaybackQuality.values()) {
+                if (candidate.name().equals(getValue())) quality = candidate;
+            }
+            setSummary(playbackQualitySummary(quality));
         }
 
         @Override
