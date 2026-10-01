@@ -74,7 +74,7 @@ There are 23 patches for `com.instagram.android`, checked against Instagram 449.
 | `Download any video` | Adds Download to the menu of a post in your feed with a video. Videos save at the Download quality you set, without Instagram's watermark. |
 | `Hide ads` | Hides sponsored posts, reels and stories. Instagram is told the ad didn't go in, so no gap is left where it would have been. |
 | `Hide Reels in the feed` | Removes the rows of suggested reels between posts in your home feed, and the other units that open the Reels viewer from there. A reel someone you follow posts stays. |
-| `Hide suggested posts` | Removes the posts and reels from accounts you don't follow that Instagram puts in your home feed as Suggested for you, and the rows of accounts, shops and hashtags it suggests you follow. Each has its own switch. Posts from accounts you follow stay. |
+| `Hide suggested posts` | Removes the posts and reels from accounts you don't follow that Instagram puts in your home feed as Suggested for you, the rows of accounts, shops and hashtags it suggests you follow, and the posts and accounts from Threads it mixes in. Each has its own switch. Posts from accounts you follow stay. |
 | `Hide the Reels tab` | Takes the Reels tab off the tab bar, and a start or a notification meant for it opens Home. Reels in your feed and reels people send you still open, and a change to the switch shows once Instagram restarts. |
 | `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too. |
 | `Keep the reel speed` | Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play at 2x too, until you slide the lock off, hold the edge and let go, or Instagram restarts. |
@@ -103,7 +103,7 @@ Long-press Instagram's icon on your home screen and tap **HushGram settings**. O
 At the top, a card says whether HushGram is on or paused. Below it:
 
 - **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links, Open links in external browser and Disable analytics.
-- **Feed** holds Hide suggested posts' two switches: Hide suggested accounts and Hide suggested posts.
+- **Feed** holds Hide suggested posts' three switches: Hide suggested accounts, Hide suggested posts and Hide Threads posts.
 - **Reels** holds the switches for Hide Reels in the feed, the three parts of Clean up Reels, Don't send reel watch history, Download on reels, Turn off double tap to like, Hide the Reels tab and Keep the reel speed.
 - **Stories** holds the switches for Stop Story auto-advance, View stories anonymously and Download on stories.
 - **Playback** holds the switches for Tap to play and Resume long videos, and Default playback quality with its Playback quality list: Auto, Data saver, Up to 480p, Up to 720p or Highest.

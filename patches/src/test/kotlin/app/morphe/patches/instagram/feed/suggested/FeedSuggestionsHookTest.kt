@@ -67,13 +67,23 @@ class FeedSuggestionsHookTest {
 
     @Test
     fun aKindEnumMissingASuggestionUnitFailsThePatch() {
-        val context = PatchContexts.of(classes(kindNames = listOf("MEDIA", "AD", SUGGESTED_POST) + ACCOUNT_UNITS.drop(1)))
+        val context = PatchContexts.of(
+            classes(kindNames = listOf("MEDIA", "AD", SUGGESTED_POST) + ACCOUNT_UNITS.drop(1) + THREADS_UNITS),
+        )
         assertThrows(PatchException::class.java) { context.filterSuggestedFeedItems() }
     }
 
     @Test
     fun aKindEnumMissingTheSuggestedPostFailsThePatch() {
-        val context = PatchContexts.of(classes(kindNames = listOf("MEDIA", "AD") + ACCOUNT_UNITS))
+        val context = PatchContexts.of(classes(kindNames = listOf("MEDIA", "AD") + ACCOUNT_UNITS + THREADS_UNITS))
+        assertThrows(PatchException::class.java) { context.filterSuggestedFeedItems() }
+    }
+
+    @Test
+    fun aKindEnumMissingAThreadsUnitFailsThePatch() {
+        val context = PatchContexts.of(
+            classes(kindNames = listOf("MEDIA", "AD", SUGGESTED_POST) + ACCOUNT_UNITS + THREADS_UNITS.dropLast(1)),
+        )
         assertThrows(PatchException::class.java) { context.filterSuggestedFeedItems() }
     }
 
@@ -84,8 +94,8 @@ class FeedSuggestionsHookTest {
     }
 
     /**
-     * In each declared build the item's kind enum names every suggestion unit and the suggested
-     * post, and the parse helper answers through both filters when both patches are in.
+     * In each declared build the item's kind enum names every suggestion unit, the suggested post
+     * and Threads' units, and the parse helper answers through both filters when both patches are in.
      */
     @Test
     fun eachDeclaredBuildFiltersTheParsedFeedItem() {
@@ -106,7 +116,7 @@ class FeedSuggestionsHookTest {
     }
 
     private fun classes(
-        kindNames: List<String> = listOf("MEDIA", "AD", SUGGESTED_POST) + REEL_UNITS + ACCOUNT_UNITS,
+        kindNames: List<String> = listOf("MEDIA", "AD", SUGGESTED_POST) + REEL_UNITS + ACCOUNT_UNITS + THREADS_UNITS,
         fetchNames: List<String> = listOf("COLD_START", "PULL_TO_REFRESH"),
     ) = FeedItemStandIns.classes(kindNames, fetchNames)
 }

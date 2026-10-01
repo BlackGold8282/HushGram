@@ -30,7 +30,8 @@ public class FeedSuggestionsTest {
         MEDIA, AD, CLIPS_NETEGO, END_OF_FEED_DEMARCATOR, STORIES_NETEGO, EXPLORE_STORY, SUGGESTED_USERS, SUGGESTED_TOP_ACCOUNTS,
         SUGGESTED_PRODUCERS, SUGGESTED_PRODUCERS_V2, SUGGESTED_CLOSE_FRIENDS, SUGGESTED_BUSINESSES, SUGGESTED_SHOPS,
         SUGGESTED_HASHTAGS, SUGGESTED_SHAREABLE_LISTS, FOLLOW_CHAIN_USERS, TYA_SUGGESTIONS_IN_FEED_UNIT,
-        KICKSTART_FEED_UNIT
+        THREADS_IN_FEED_UNIT, TIFU_IN_EXPLORE, EOF_TIFU, KICKSTART_FEED_UNIT, COMMUNITIES_IN_FEED_UNIT, SMSL_IN_FEED_UNIT,
+        LIVE_CHAT_IN_FEED_UNIT, SPORT_GAME_IN_FEED_UNIT, MEMU_IN_FEED_UNIT
     }
 
     /** The item's other enum on 449: why the feed was fetched. */
@@ -54,14 +55,21 @@ public class FeedSuggestionsTest {
         }
     }
 
+    @Test
+    public void everyThreadsUnitIsTakenOut() {
+        for (String name : FeedSuggestions.THREADS_UNITS) {
+            assertNull(name, FeedSuggestions.filter(new Item(Kind.valueOf(name))));
+        }
+    }
+
     /**
      * Posts, ads, the reels row (Hide Reels in the feed's), the end of the feed, the stories row and
-     * Threads' suggestion unit all stay.
+     * Meta AI's Imagine unit all stay.
      */
     @Test
     public void everythingElseStays() {
         for (Kind kind : new Kind[] {Kind.MEDIA, Kind.AD, Kind.CLIPS_NETEGO, Kind.END_OF_FEED_DEMARCATOR,
-                Kind.STORIES_NETEGO, Kind.KICKSTART_FEED_UNIT}) {
+                Kind.STORIES_NETEGO, Kind.MEMU_IN_FEED_UNIT}) {
             Item item = new Item(kind);
             assertSame(kind.name(), item, FeedSuggestions.filter(item));
         }
@@ -92,8 +100,20 @@ public class FeedSuggestionsTest {
             Item post = new Item(Kind.EXPLORE_STORY);
             assertSame(post, FeedSuggestions.filter(post));
             assertNull(FeedSuggestions.filter(new Item(Kind.SUGGESTED_USERS)));
+            assertNull(FeedSuggestions.filter(new Item(Kind.THREADS_IN_FEED_UNIT)));
         } finally {
             Settings.HIDE_SUGGESTED_POSTS.save(true);
+        }
+        Settings.HIDE_THREADS_POSTS.save(false);
+        try {
+            Item threads = new Item(Kind.THREADS_IN_FEED_UNIT);
+            assertSame(threads, FeedSuggestions.filter(threads));
+            Item kickstart = new Item(Kind.KICKSTART_FEED_UNIT);
+            assertSame(kickstart, FeedSuggestions.filter(kickstart));
+            assertNull(FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY)));
+            assertNull(FeedSuggestions.filter(new Item(Kind.SUGGESTED_USERS)));
+        } finally {
+            Settings.HIDE_THREADS_POSTS.save(true);
         }
     }
 

@@ -339,7 +339,7 @@
     },
     {
       "name": "Hide suggested posts",
-      "description": "Removes the posts and reels from accounts you don't follow that Instagram puts in your home feed as Suggested for you, and the rows of accounts, shops and hashtags it suggests you follow. Each has its own switch. Posts from accounts you follow stay.",
+      "description": "Removes the posts and reels from accounts you don't follow that Instagram puts in your home feed as Suggested for you, the rows of accounts, shops and hashtags it suggests you follow, and the posts and accounts from Threads it mixes in. Each has its own switch. Posts from accounts you follow stay.",
       "category": "Feed",
       "use": true,
       "dependencies": [

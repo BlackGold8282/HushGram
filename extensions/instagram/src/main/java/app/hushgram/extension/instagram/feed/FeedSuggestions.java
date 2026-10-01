@@ -25,7 +25,8 @@ import app.hushgram.extension.shared.settings.BooleanSetting;
  * of accounts to follow is one of the {@link #ACCOUNT_UNITS}, and a single post or reel from an
  * account you don't follow, labeled "Suggested for you" or "Suggested Reel", is an
  * {@link #SUGGESTED_POST}, which carries its post inside it. A post from an account you follow is a
- * MEDIA item and stays. Each comes back as null while its switch is on, and every caller of that
+ * MEDIA item and stays. Threads' units ({@link #THREADS_UNITS}) bring in posts, communities and
+ * accounts from Threads. Each comes back as null while its switch is on, and every caller of that
  * helper skips a null item, the home feed's page loads and its cache of recommended posts alike.
  *
  * <p>Explore's grid doesn't go through that helper (S22, Instagram 449), so it keeps its posts.
@@ -33,7 +34,7 @@ import app.hushgram.extension.shared.settings.BooleanSetting;
 public final class FeedSuggestions {
     /**
      * The feed item kinds of suggested accounts, shops, hashtags and lists, by the constant names
-     * Instagram 449 gives them. Threads' units (the ones its JSON names text_app_) aren't here.
+     * Instagram 449 gives them.
      */
     static final Set<String> ACCOUNT_UNITS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "SUGGESTED_USERS", "SUGGESTED_TOP_ACCOUNTS", "SUGGESTED_PRODUCERS", "SUGGESTED_PRODUCERS_V2",
@@ -43,12 +44,22 @@ public final class FeedSuggestions {
     /** The kind of a single suggested post or reel ("explore_story" in the feed's JSON). */
     static final String SUGGESTED_POST = "EXPLORE_STORY";
 
+    /**
+     * Threads' units: its posts ("threads_in_feed_unit", and the one at the end of the feed), and
+     * the ones its JSON names text_app_ (accounts to follow on Threads, communities, live chats and
+     * game threads).
+     */
+    static final Set<String> THREADS_UNITS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "THREADS_IN_FEED_UNIT", "TIFU_IN_EXPLORE", "EOF_TIFU", "KICKSTART_FEED_UNIT",
+            "COMMUNITIES_IN_FEED_UNIT", "SMSL_IN_FEED_UNIT", "LIVE_CHAT_IN_FEED_UNIT", "SPORT_GAME_IN_FEED_UNIT")));
+
     /** Every kind this patch reads. */
     static final Set<String> KINDS;
 
     static {
         Set<String> kinds = new HashSet<>(ACCOUNT_UNITS);
         kinds.add(SUGGESTED_POST);
+        kinds.addAll(THREADS_UNITS);
         KINDS = Collections.unmodifiableSet(kinds);
     }
 
@@ -60,8 +71,8 @@ public final class FeedSuggestions {
 
     /**
      * Injected at the return of Instagram's feed item parse helper. Answers null for a unit of
-     * suggested accounts or a suggested post while its switch is on, and [item] itself otherwise,
-     * or when anything goes wrong. Never throws.
+     * suggested accounts, a suggested post or a Threads unit while its switch is on, and [item]
+     * itself otherwise, or when anything goes wrong. Never throws.
      */
     public static Object filter(Object item) {
         if (item == null) return null;
@@ -70,8 +81,7 @@ public final class FeedSuggestions {
             String kind = FeedItemKinds.kindIn(item, KINDS, FamilyNames.FEED_SUGGESTIONS);
             if (kind == null) return item;
             FeedFilterCounters.sawKind(ROUTE, kind);
-            BooleanSetting setting = SUGGESTED_POST.equals(kind)
-                    ? Settings.HIDE_SUGGESTED_POSTS : Settings.HIDE_SUGGESTED_ACCOUNTS;
+            BooleanSetting setting = switchFor(kind);
             if (!Utils.settingsReady() || !setting.get()) return item;
             FeedFilterCounters.removed(ROUTE, 1, kind);
             Logger.printDebug(() -> "Feed suggestions: took out a " + kind + " item");
@@ -80,5 +90,11 @@ public final class FeedSuggestions {
             HookStatus.threw(FamilyNames.FEED_SUGGESTIONS, "feed item", failure);
             return item;
         }
+    }
+
+    private static BooleanSetting switchFor(String kind) {
+        if (SUGGESTED_POST.equals(kind)) return Settings.HIDE_SUGGESTED_POSTS;
+        if (THREADS_UNITS.contains(kind)) return Settings.HIDE_THREADS_POSTS;
+        return Settings.HIDE_SUGGESTED_ACCOUNTS;
     }
 }

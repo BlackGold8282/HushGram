@@ -187,6 +187,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_POSTS, L10n.t("Hide suggested posts"),
                     L10n.t("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from "
                             + "accounts you follow stay.")));
+            feed.addPreference(toggle(context, Settings.HIDE_THREADS_POSTS, L10n.t("Hide Threads posts"),
+                    L10n.t("The posts, accounts and communities from Threads that Instagram mixes into your feed.")));
         }
 
         List<Preference> reels = new ArrayList<>();

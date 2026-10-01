@@ -102,6 +102,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SUGGESTED_POSTS =
             new BooleanSetting("hushgram_hide_suggested_posts", TRUE);
 
+    /**
+     * Threads' units in the home feed: its posts, and the accounts, communities, live chats and game
+     * threads it suggests.
+     */
+    public static final BooleanSetting HIDE_THREADS_POSTS =
+            new BooleanSetting("hushgram_hide_threads_posts", TRUE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);
