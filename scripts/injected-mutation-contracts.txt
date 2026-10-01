@@ -267,10 +267,13 @@ once-call Lapp/hushgram/extension/instagram/download/ReelDownload;->addTo(Ljava/
 # hold no string, so their rules pick them by the menu class's kept name, "ReelOptionsOverflowHelper",
 # which two other classes also hold on 449. The builder is one of the class's two statics taking one
 # renamed object and answering labels, and of those two only it asks a ReelItem a question about
-# the session. One handler is the class's one static taking two renamed objects and a label. The
+# the session. Its rule picks the class by "archive_highlight_option" instead, a label key only the
+# class's label lookup loads: the builder for someone else's story loads "ReelOptionsOverflowHelper"
+# itself and calls labels() too, which a class-holding rule counts as a second caller. One handler
+# is the class's one static taking two renamed objects and a label. The
 # other handler differs from its string-holding siblings only by how many renamed objects it
 # takes, so it still has no rule.
-shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence; in static (LX/*;)[Ljava/lang/CharSequence; calling instance Lcom/instagram/model/reels/ReelItem;->*(Lcom/instagram/common/session/UserSession;)Z class-holding ReelOptionsOverflowHelper
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence; in static (LX/*;)[Ljava/lang/CharSequence; calling instance Lcom/instagram/model/reels/ReelItem;->*(Lcom/instagram/common/session/UserSession;)Z class-holding archive_highlight_option
 start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (LX/*;LX/*;Ljava/lang/CharSequence;)V class-holding ReelOptionsOverflowHelper
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (LX/*;LX/*;Ljava/lang/CharSequence;)V class-holding ReelOptionsOverflowHelper
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence; in static (*)[Ljava/lang/CharSequence; holding location_story_action_sheet story_highlight_action_sheet
