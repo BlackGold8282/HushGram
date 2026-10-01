@@ -34,6 +34,10 @@ public final class Analytics {
     /** What the debug log calls Falco's event stream. */
     static final String STREAM = "Falco's event stream";
 
+    /** The app ids of the "Set up on new device" screens: contact import, then location services. */
+    static final String CONTACTS_SETUP = "com.bloks.www.bloks.ig.ndx.ci.entry.screen";
+    static final String LOCATION_SETUP = "com.bloks.www.bloks.ig.ndx.ls.entry.screen";
+
     private static final String SOURCE = "Analytics";
     private static final Set<String> LOGGED = new HashSet<>();
 
@@ -115,6 +119,28 @@ public final class Analytics {
         }
         log(STREAM, "kept off");
         return 0;
+    }
+
+    /**
+     * Injected first thing where Instagram opens a Bloks screen, handed the screen's app id. Answers
+     * 1, and the screen isn't opened, for the "Set up on new device" screens that ask for contacts
+     * and location, while the switch is on: the events saying they were seen are refused with the
+     * rest, so the server would send them again on every start. Otherwise 0. Never throws.
+     */
+    public static int setupScreen(String appId) {
+        HookStatus.invoked(FamilyNames.DISABLE_ANALYTICS);
+        try {
+            if (!CONTACTS_SETUP.equals(appId) && !LOCATION_SETUP.equals(appId)) return 0;
+            if (!Utils.settingsReady() || !Settings.DISABLE_ANALYTICS.get()) {
+                log(appId, "shown, the switch is off or the settings weren't ready");
+                return 0;
+            }
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "setup screen", t);
+            return 0;
+        }
+        log(appId, "skipped");
+        return 1;
     }
 
     /** Logs [url], without its query, and [what] happened to it, once per process. */

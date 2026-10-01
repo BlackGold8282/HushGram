@@ -73,6 +73,24 @@ public class AnalyticsTest {
         assertEquals(0, Analytics.streamEvents(0));
     }
 
+    /**
+     * On, the contacts and location setup screens are skipped and every other screen opens. Off,
+     * they open too, since Instagram then hears that they were seen.
+     */
+    @Test
+    public void theSetupScreensFollowTheSwitch() {
+        Settings.DISABLE_ANALYTICS.save(true);
+        assertEquals(1, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ci.entry.screen"));
+        assertEquals(1, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ls.entry.screen"));
+        assertEquals(0, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ci.entry.screen.other"));
+        assertEquals(0, Analytics.setupScreen("com.bloks.www.ig.account_center"));
+        assertEquals(0, Analytics.setupScreen(null));
+
+        Settings.DISABLE_ANALYTICS.save(false);
+        assertEquals(0, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ci.entry.screen"));
+        assertEquals(0, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ls.entry.screen"));
+    }
+
     /** Before the settings are ready the stream stays off, even with the switch off: the event is batched instead. */
     @Test
     public void beforeTheSettingsAreReadyTheStreamStaysOff() {

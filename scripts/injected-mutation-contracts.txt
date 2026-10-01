@@ -68,6 +68,18 @@ shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->reportEndpoint(Lj
 # nothing else calls streamEvents(). Left out, events stream to the gateway host whatever the switch
 # says; twice or elsewhere, it isn't the hook the patch wrote.
 once-call Lapp/hushgram/extension/instagram/misc/Analytics;->streamEvents(I)I holding event.streaming.eligible stream_is_active
+# The Bloks screen opener asks setupScreen() first thing in each of its three ways of showing a
+# screen, with the app id it reads off itself, and returns on a yes. Full screen holds the fetch's
+# trace name, the bottom sheet its two bundle keys, and the third holds no string: it's the class's
+# one instance (Context, IgBloksScreenConfig)V handing a screen to the static that shows one, and
+# its class is picked by A0A's TTL check, a string none of the three loads. Left out, the contacts
+# and location setup screens come back on every start while their seen events are refused.
+start-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V holding BKDataFetcher.fetch
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V holding BKDataFetcher.fetch
+start-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V holding bloks_screen_config bottom_sheet_content_fragment
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V holding bloks_screen_config bottom_sheet_content_fragment
+start-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V calling static LX/*;->*(Landroid/content/Context;LX/*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;LX/*;LX/*;I)V class-holding CacheTTL\smust\sbe\spositive
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V calling static LX/*;->*(Landroid/content/Context;LX/*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;LX/*;LX/*;I)V class-holding CacheTTL\smust\sbe\spositive
 #
 # Don't send reel watch history asks the extension first thing in both record methods of the batch
 # Instagram posts to clips/write_seen_state/. The one recording a reel reached, an instance method

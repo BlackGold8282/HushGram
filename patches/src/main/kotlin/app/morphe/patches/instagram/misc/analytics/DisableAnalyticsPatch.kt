@@ -25,11 +25,15 @@ private const val REPORT_ENDPOINT = "$EXTENSION_PACKAGE/misc/Analytics;->reportE
 /** The logger's switch for Falco's event stream. It takes an int, as no hook may take a boolean. */
 internal const val STREAM_EVENTS = "$EXTENSION_PACKAGE/misc/Analytics;->streamEvents(I)I"
 
+/** Whether to skip a Bloks screen, by its app id: the "Set up on new device" screens. */
+internal const val SETUP_SCREEN = "$EXTENSION_PACKAGE/misc/Analytics;->setupScreen(Ljava/lang/String;)I"
+
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = "Disable analytics",
     description = "Sends Instagram's usage events and crash reports to an address on your phone that refuses " +
-        "them, instead of to Instagram's and Facebook's servers. Restart Instagram after changing the switch.",
+        "them, instead of to Instagram's and Facebook's servers. It also skips the contacts and location setup " +
+        "screens, which would come back on every start without those events. Restart Instagram after changing the switch.",
     default = true,
 ) {
     category("Privacy")
@@ -40,7 +44,7 @@ val disableAnalyticsPatch = bytecodePatch(
     execute {
         requireStatusMethod("disableAnalytics")
 
-        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt", "reports", "pings", "stream")) { target ->
+        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt", "reports", "pings", "stream", "setup")) { target ->
             when (target) {
                 // Instagram's own logging_client_events and pigeon_nest addresses, built from a host.
                 "builder" -> AnalyticsEndpointFingerprint.matchAllOrNull().orEmpty().let { matches ->
@@ -65,6 +69,9 @@ val disableAnalyticsPatch = bytecodePatch(
                 }
                 // Falco's event stream, which skips the batch upload the addresses above go to.
                 "stream" -> keepEventsOffTheStream(STREAM_EVENTS)
+                // The contacts and location setup screens, which keep coming back while the events
+                // saying they were seen are refused.
+                "setup" -> skipSetupScreens(SETUP_SCREEN)
                 // Lacrima's startup and debug pings, as a constant in each sender.
                 "pings" -> if (filterEveryStringLoad(ERROR_PING_ENDPOINT, REPORT_ENDPOINT) > 0) {
                     null
