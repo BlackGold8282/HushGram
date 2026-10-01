@@ -168,6 +168,11 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # rule picks those; HideMetaAiHookTest checks all five reads on the fixture.
 shared-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->searchFlag(I)Z in instance ()Ljava/lang/Object; holding direct_inbox hatch_channel_enabled
 #
+# Hide the Explore grid asks the extension once, at the return of the topical Explore page's JSON
+# parser, the one method holding "sectional_items" and "session_paging_token". Search results come
+# through other requests and never pass it.
+once-call Lapp/hushgram/extension/instagram/explore/ExploreGrid;->hide(Ljava/util/List;)Z in instance (*)Ljava/lang/Object; holding sectional_items session_paging_token
+#
 # Download any reel lets the Download row into each builder of the reel's more menu: the download
 # check's answer goes through offer() in the legacy builder and both redesigned ones, and the flag
 # that holds the row back goes through withhold() in the two redesigned ones. Each builder is the one

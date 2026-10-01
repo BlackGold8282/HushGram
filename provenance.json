@@ -140,6 +140,8 @@
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/feed/**",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/metaai/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/metaai/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/explore/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/explore/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/stories/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/feed/**",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/stories/**",

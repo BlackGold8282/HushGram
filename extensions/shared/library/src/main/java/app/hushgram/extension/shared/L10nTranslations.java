@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -163,6 +163,8 @@ public final class L10nTranslations {
                 "Jeder Schalter au\u00dfer der Debug-Protokollierung verh\u00e4lt sich, als w\u00e4re er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.");
         table.put("Example without post details",
                 "Beispiel ohne Beitragsdetails");
+        table.put("Explore",
+                "Entdecken");
         table.put("Export diagnostic report",
                 "Diagnosebericht exportieren");
         table.put("Feed",
@@ -173,11 +175,11 @@ public final class L10nTranslations {
                 "Dateiname auf %1$s gesetzt.");
         table.put("Folder name",
                 "Ordnername");
-        table.put("Folder set to %1$s.",
-                "Ordner auf %1$s gesetzt.");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Folder set to %1$s.",
+                "Ordner auf %1$s gesetzt.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "F\u00fcr WhatsApp, Videoeditoren wie CapCut und InShot oder wenn eine Galerie oder ein Player gespeicherte Videos ohne Ton abspielt. Kann die Qualit\u00e4t senken.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -204,6 +206,8 @@ public final class L10nTranslations {
                 "Vorgeschlagene Konten ausblenden");
         table.put("Hide suggested posts",
                 "Vorgeschlagene Beitr\u00e4ge ausblenden");
+        table.put("Hide the Explore grid",
+                "Entdecken-Raster ausblenden");
         table.put("Hide the Follow button",
                 "Folgen-Button ausblenden");
         table.put("Hide the Reels tab",
@@ -294,13 +298,13 @@ public final class L10nTranslations {
                 "Lange Videos fortsetzen");
         table.put("Retry",
                 "Erneut versuchen");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Sanitize sharing links",
                 "Geteilte Links bereinigen");
         table.put("Save",
                 "Speichern");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Speichern abgebrochen");
         table.put("Save folder",
@@ -369,6 +373,8 @@ public final class L10nTranslations {
                 "Der Diagnosebericht lie\u00df sich nicht speichern. Versuche es noch einmal.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s, um HushGram wieder einzuschalten.");
+        table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
+                "Die Beitr\u00e4ge und Reels unter der Suchleiste im Tab Suche. Die Suche, deine letzten Suchen und die Suchergebnisse bleiben.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
                 "Die Beitr\u00e4ge, Konten und Communitys von Threads, die Instagram in deinen Feed mischt.");
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
@@ -415,21 +421,21 @@ public final class L10nTranslations {
                 "Videos, Reels und Stories warten, bis du tippst. Videos im Feed zeigen eine Wiedergabetaste, wie wenn du weniger mobile Daten nutzt.");
         table.put("View stories anonymously",
                 "Stories anonym ansehen");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Weblinks \u00f6ffnen sich in deinem Standardbrowser, ohne Instagrams Klick-Tracker. Seiten von Instagram und anderen Meta-Diensten sowie Werbung \u00f6ffnen sich weiterhin in der App.");
         table.put("You paused HushGram.",
                 "Du hast HushGram pausiert.");
         table.put("the re-signed build fix",
                 "der Fix f\u00fcr neu signierte Builds");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "die entfernten Berechtigungen f\u00fcr die Werbe-ID");
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -546,6 +552,8 @@ public final class L10nTranslations {
                 "Todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados, y lo que se aplic\u00f3 al parchear se mantiene. Tu configuraci\u00f3n no cambia.");
         table.put("Example without post details",
                 "Ejemplo sin datos de la publicaci\u00f3n");
+        table.put("Explore",
+                "Explorar");
         table.put("Export diagnostic report",
                 "Exportar informe de diagn\u00f3stico");
         table.put("Feed",
@@ -556,11 +564,11 @@ public final class L10nTranslations {
                 "Nombre de archivo establecido en %1$s.");
         table.put("Folder name",
                 "Nombre de carpeta");
-        table.put("Folder set to %1$s.",
-                "Carpeta establecida en %1$s.");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Folder set to %1$s.",
+                "Carpeta establecida en %1$s.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Para WhatsApp, editores de video como CapCut e InShot, o una galer\u00eda o un reproductor que reproduzca sin sonido los videos guardados. Puede bajar la calidad.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -587,6 +595,8 @@ public final class L10nTranslations {
                 "Ocultar cuentas sugeridas");
         table.put("Hide suggested posts",
                 "Ocultar publicaciones sugeridas");
+        table.put("Hide the Explore grid",
+                "Ocultar la cuadr\u00edcula de Explorar");
         table.put("Hide the Follow button",
                 "Ocultar el bot\u00f3n Seguir");
         table.put("Hide the Reels tab",
@@ -677,13 +687,13 @@ public final class L10nTranslations {
                 "Reanudar videos largos");
         table.put("Retry",
                 "Reintentar");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Sanitize sharing links",
                 "Limpiar enlaces compartidos");
         table.put("Save",
                 "Guardar");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Se cancel\u00f3 el guardado");
         table.put("Save folder",
@@ -752,6 +762,8 @@ public final class L10nTranslations {
                 "No se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s para volver a activar HushGram.");
+        table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
+                "Las publicaciones y reels debajo de la barra de la pesta\u00f1a Buscar. La b\u00fasqueda, tus b\u00fasquedas recientes y los resultados se quedan.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
                 "Las publicaciones, cuentas y comunidades de Threads que Instagram mezcla en tu feed.");
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
@@ -798,21 +810,21 @@ public final class L10nTranslations {
                 "Los videos, reels e historias esperan a que toques. Los videos del feed muestran un bot\u00f3n de reproducir, como cuando usas menos datos m\u00f3viles.");
         table.put("View stories anonymously",
                 "Ver historias de forma an\u00f3nima");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Los enlaces web se abren en tu navegador predeterminado, sin el rastreador de clics de Instagram. Las p\u00e1ginas de Instagram y de otros servicios de Meta, y los anuncios, se siguen abriendo en la app.");
         table.put("You paused HushGram.",
                 "Pausaste HushGram.");
         table.put("the re-signed build fix",
                 "el arreglo para la nueva firma");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "los permisos del ID de publicidad eliminados");
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -929,6 +941,8 @@ public final class L10nTranslations {
                 "Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.");
         table.put("Example without post details",
                 "Contoh tanpa detail postingan");
+        table.put("Explore",
+                "Jelajahi");
         table.put("Export diagnostic report",
                 "Ekspor laporan diagnostik");
         table.put("Feed",
@@ -939,11 +953,11 @@ public final class L10nTranslations {
                 "Nama file diatur menjadi %1$s.");
         table.put("Folder name",
                 "Nama folder");
-        table.put("Folder set to %1$s.",
-                "Folder diatur menjadi %1$s.");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Folder set to %1$s.",
+                "Folder diatur menjadi %1$s.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -970,6 +984,8 @@ public final class L10nTranslations {
                 "Sembunyikan akun yang disarankan");
         table.put("Hide suggested posts",
                 "Sembunyikan postingan yang disarankan");
+        table.put("Hide the Explore grid",
+                "Sembunyikan kisi Jelajahi");
         table.put("Hide the Follow button",
                 "Sembunyikan tombol Ikuti");
         table.put("Hide the Reels tab",
@@ -1060,13 +1076,13 @@ public final class L10nTranslations {
                 "Lanjutkan video panjang");
         table.put("Retry",
                 "Coba lagi");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Sanitize sharing links",
                 "Bersihkan tautan berbagi");
         table.put("Save",
                 "Simpan");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Penyimpanan dibatalkan");
         table.put("Save folder",
@@ -1135,6 +1151,8 @@ public final class L10nTranslations {
                 "Laporan diagnostik tidak dapat disimpan. Coba lagi.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushGram lagi.");
+        table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
+                "Postingan dan reel di bawah bilah tab Cari. Pencarian, pencarian terbaru kamu, dan hasil pencarian tetap ada.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
                 "Postingan, akun, dan komunitas dari Threads yang dicampur Instagram ke feed kamu.");
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
@@ -1181,21 +1199,21 @@ public final class L10nTranslations {
                 "Video, reels, dan cerita menunggu ketukan Anda. Video di feed menampilkan tombol putar, seperti saat Anda menghemat data seluler.");
         table.put("View stories anonymously",
                 "Lihat cerita secara anonim");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Tautan web terbuka di browser default kamu, tanpa pelacak klik Instagram. Halaman Instagram dan layanan Meta lainnya, serta iklan, tetap terbuka di aplikasi.");
         table.put("You paused HushGram.",
                 "Anda menjeda HushGram.");
         table.put("the re-signed build fix",
                 "perbaikan build yang ditandatangani ulang");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "izin ID iklan yang dihapus");
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1312,6 +1330,8 @@ public final class L10nTranslations {
                 "Todas as op\u00e7\u00f5es, exceto Registro de depura\u00e7\u00e3o, funcionam como se estivessem desativadas, e o que foi definido ao aplicar os patches permanece ativo. Suas configura\u00e7\u00f5es n\u00e3o s\u00e3o alteradas.");
         table.put("Example without post details",
                 "Exemplo sem detalhes da publica\u00e7\u00e3o");
+        table.put("Explore",
+                "Explorar");
         table.put("Export diagnostic report",
                 "Exportar relat\u00f3rio de diagn\u00f3stico");
         table.put("Feed",
@@ -1322,11 +1342,11 @@ public final class L10nTranslations {
                 "Nome do arquivo definido como %1$s.");
         table.put("Folder name",
                 "Nome da pasta");
-        table.put("Folder set to %1$s.",
-                "Pasta definida como %1$s.");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Folder set to %1$s.",
+                "Pasta definida como %1$s.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Para o WhatsApp, editores de v\u00eddeo como CapCut e InShot ou uma galeria ou player que reproduza os v\u00eddeos salvos sem som. Pode reduzir a qualidade.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -1353,6 +1373,8 @@ public final class L10nTranslations {
                 "Ocultar contas sugeridas");
         table.put("Hide suggested posts",
                 "Ocultar posts sugeridos");
+        table.put("Hide the Explore grid",
+                "Ocultar a grade do Explorar");
         table.put("Hide the Follow button",
                 "Ocultar o bot\u00e3o Seguir");
         table.put("Hide the Reels tab",
@@ -1443,13 +1465,13 @@ public final class L10nTranslations {
                 "Retomar v\u00eddeos longos");
         table.put("Retry",
                 "Tentar novamente");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Sanitize sharing links",
                 "Limpar links compartilhados");
         table.put("Save",
                 "Salvar");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Salvamento cancelado");
         table.put("Save folder",
@@ -1518,6 +1540,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel salvar o relat\u00f3rio de diagn\u00f3stico. Tente de novo.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushGram.");
+        table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
+                "Os posts e reels embaixo da barra da aba Pesquisar. A pesquisa, suas pesquisas recentes e os resultados continuam.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
                 "Os posts, contas e comunidades do Threads que o Instagram mistura no seu feed.");
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
@@ -1564,21 +1588,21 @@ public final class L10nTranslations {
                 "V\u00eddeos, reels e stories esperam o seu toque. Os v\u00eddeos do feed mostram um bot\u00e3o de reproduzir, como quando voc\u00ea usa menos dados m\u00f3veis.");
         table.put("View stories anonymously",
                 "Ver Stories anonimamente");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Links da web abrem no seu navegador padr\u00e3o, sem o rastreador de cliques do Instagram. P\u00e1ginas do Instagram e de outros servi\u00e7os da Meta, e an\u00fancios, continuam abrindo no app.");
         table.put("You paused HushGram.",
                 "Voc\u00ea pausou o HushGram.");
         table.put("the re-signed build fix",
                 "a corre\u00e7\u00e3o para vers\u00e3o reassinada");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "as permiss\u00f5es do ID de publicidade removidas");
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1695,6 +1719,8 @@ public final class L10nTranslations {
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r, yamalad\u0131\u011f\u0131nda ayarlananlar ise devrede kal\u0131r. Ayarlar\u0131n oldu\u011fu gibi kal\u0131r.");
         table.put("Example without post details",
                 "G\u00f6nderi ayr\u0131nt\u0131lar\u0131 olmadan \u00f6rnek");
+        table.put("Explore",
+                "Ke\u015ffet");
         table.put("Export diagnostic report",
                 "Tan\u0131lama raporunu d\u0131\u015fa aktar");
         table.put("Feed",
@@ -1705,11 +1731,11 @@ public final class L10nTranslations {
                 "Dosya ad\u0131 %1$s olarak ayarland\u0131.");
         table.put("Folder name",
                 "Klas\u00f6r ad\u0131");
-        table.put("Folder set to %1$s.",
-                "Klas\u00f6r %1$s olarak ayarland\u0131.");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Folder set to %1$s.",
+                "Klas\u00f6r %1$s olarak ayarland\u0131.");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "WhatsApp, CapCut ve InShot gibi video d\u00fczenleyiciler ya da kaydedilen videolar\u0131 sessiz oynatan bir galeri veya oynat\u0131c\u0131 i\u00e7in. Kaliteyi d\u00fc\u015f\u00fcrebilir.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -1736,6 +1762,8 @@ public final class L10nTranslations {
                 "\u00d6nerilen hesaplar\u0131 gizle");
         table.put("Hide suggested posts",
                 "\u00d6nerilen g\u00f6nderileri gizle");
+        table.put("Hide the Explore grid",
+                "Ke\u015ffet \u0131zgaras\u0131n\u0131 gizle");
         table.put("Hide the Follow button",
                 "Takip Et d\u00fc\u011fmesini gizle");
         table.put("Hide the Reels tab",
@@ -1826,13 +1854,13 @@ public final class L10nTranslations {
                 "Uzun videolara kald\u0131\u011f\u0131n yerden devam et");
         table.put("Retry",
                 "Yeniden dene");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Sanitize sharing links",
                 "Payla\u015f\u0131m ba\u011flant\u0131lar\u0131n\u0131 temizle");
         table.put("Save",
                 "Kaydet");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Kaydetme iptal edildi");
         table.put("Save folder",
@@ -1901,6 +1929,8 @@ public final class L10nTranslations {
                 "Tan\u0131lama raporu kaydedilemedi. Tekrar dene.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. HushGram'u yeniden a\u00e7mak i\u00e7in onu %2$s i\u00e7inden sil.");
+        table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
+                "Ara sekmesinin \u00e7ubu\u011fu alt\u0131ndaki g\u00f6nderiler ve reels videolar\u0131. Arama, son aramalar\u0131n ve arama sonu\u00e7lar\u0131 kal\u0131r.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
                 "Instagram'\u0131n ak\u0131\u015f\u0131na kar\u0131\u015ft\u0131rd\u0131\u011f\u0131 Threads g\u00f6nderileri, hesaplar\u0131 ve topluluklar\u0131.");
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
@@ -1947,15 +1977,15 @@ public final class L10nTranslations {
                 "Videolar, reels ve hikayeler dokunman\u0131 bekler. Ak\u0131\u015ftaki videolar, daha az mobil veri kulland\u0131\u011f\u0131ndaki gibi bir oynat d\u00fc\u011fmesi g\u00f6sterir.");
         table.put("View stories anonymously",
                 "Hikayeleri anonim olarak izle");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Web ba\u011flant\u0131lar\u0131, Instagram'\u0131n t\u0131klama izleyicisi olmadan varsay\u0131lan taray\u0131c\u0131nda a\u00e7\u0131l\u0131r. Instagram ve di\u011fer Meta sayfalar\u0131 ile reklamlar uygulamada a\u00e7\u0131lmaya devam eder.");
         table.put("You paused HushGram.",
                 "HushGram'u duraklatt\u0131n.");
         table.put("the re-signed build fix",
                 "yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "kald\u0131r\u0131lan reklam kimli\u011fi izinleri");
     }

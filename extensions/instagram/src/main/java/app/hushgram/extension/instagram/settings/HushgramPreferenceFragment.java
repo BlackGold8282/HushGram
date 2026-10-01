@@ -200,6 +200,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.")));
         }
 
+        if (build.contains(PatchFamily.EXPLORE_GRID)) {
+            PreferenceCategory explore = category(screen, L10n.t("Explore"));
+            explore.addPreference(toggle(context, Settings.HIDE_EXPLORE_GRID, L10n.t("Hide the Explore grid"),
+                    L10n.t("The posts and reels under the Search tab's bar. Search, your recent searches and "
+                            + "search results stay.")));
+        }
+
         List<Preference> reels = new ArrayList<>();
         if (build.contains(PatchFamily.FEED_REELS)) {
             reels.add(toggle(context, Settings.HIDE_FEED_REELS, L10n.t("Hide Reels in the feed"),

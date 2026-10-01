@@ -120,6 +120,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_META_AI_POSTS =
             new BooleanSetting("hushgram_hide_meta_ai_posts", TRUE);
 
+    /** The grid of posts and reels under the Search tab's bar. Search and its results stay. */
+    public static final BooleanSetting HIDE_EXPLORE_GRID =
+            new BooleanSetting("hushgram_hide_explore_grid", TRUE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);

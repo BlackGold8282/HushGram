@@ -70,6 +70,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean exploreGrid() {
+        return false;
+    }
+
     public static boolean reelDeclutter() {
         return false;
     }
