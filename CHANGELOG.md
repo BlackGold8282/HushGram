@@ -11,6 +11,7 @@ Every HushGram release, newest first.
 * **Instagram:** Tap to play and Download any reel now take Instagram's yes or no answers in a form that still loads if an Instagram update changes how it returns them. Before, an update like that could have crashed the patched app, and a test now stops a new hook from taking them the old way.
 * **Instagram:** Checked Tap to play against a reel Instagram stops when you tap one of its stickers. Instagram's own tap away from the sticker starts it again, so Tap to play leaves it alone. That was read from Instagram 449's code, since no reel with a tappable sticker turned up on a phone.
 * **Instagram:** Disable analytics now refuses Instagram's crash reports and startup pings to b-www.facebook.com too. On a test phone with the switch on, that host took about 175 KB up a minute before and gets no connection now. Instagram sends the crash reports it's been holding as it starts, before HushGram can read its switches, so those are refused even with the switch off or HushGram paused.
+* **Instagram:** Checked HushGram against the duplicate Download row another Morphe source fixed for Instagram 449, where a reel's menu also passes through the feed menu's builder. With Download on reels and Download feed videos on, nine menus on a phone each showed one Download row: the reel viewer's, feed videos' short and longer menus, and suggested reels in the feed.
 
 ## 0.0.2 (2026-09-30)
 
