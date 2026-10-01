@@ -67,6 +67,11 @@ public final class InstagramMedia {
         return null;
     }
 
+    /** A Media's {@code carousel_media}: the pages of a carousel post, in order, or null for any other post. */
+    public static List<?> carouselMedia(Object media) {
+        return null;
+    }
+
     /** A Media's {@code image_versions2}: the sizes Instagram lists for its picture. */
     public static Object imageVersions(Object media) {
         return null;
@@ -100,6 +105,16 @@ public final class InstagramMedia {
     /** The post a feed menu's builder is building rows for, read off its state. */
     public static Object feedMenuMedia(Object menu) {
         return null;
+    }
+
+    /** What Instagram keeps about that post in the feed, read off the builder's state. */
+    public static Object feedMenuItemState(Object menu) {
+        return null;
+    }
+
+    /** The page of a carousel a post's feed state says is on screen, counting from 0, or -1 as built. */
+    public static int carouselIndex(Object itemState) {
+        return -1;
     }
 
     /**

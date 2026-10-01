@@ -63,7 +63,7 @@ public class VideoDownloadTest {
         VideoDownload.offer(new Object(), rows);
 
         assertTrue(rows.isEmpty());
-        assertFalse("a tap was taken from Instagram", VideoDownload.save(new Object(), null));
+        assertFalse("a tap was taken from Instagram", VideoDownload.save(new Object(), new Object(), null));
     }
 
     /**
@@ -74,9 +74,36 @@ public class VideoDownloadTest {
     public void aTapOnAPostWithoutAVideoIsInstagrams() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        assertFalse(VideoDownload.save(new Object(), activity));
-        assertFalse(VideoDownload.save(null, activity));
+        assertFalse(VideoDownload.save(new Object(), new Object(), activity));
+        assertFalse(VideoDownload.save(new Object(), null, activity));
+        assertFalse(VideoDownload.save(null, null, activity));
         assertEquals(null, ShadowToast.getTextOfLatestToast());
+    }
+
+    /** A carousel's page is the one at the index its feed state keeps, and none past either end. */
+    @Test
+    public void aCarouselPageIsTheOneOnScreen() {
+        List<String> pages = Arrays.asList("photo", "video", "another photo");
+
+        assertEquals("video", VideoDownload.page(pages, 1));
+        assertEquals("photo", VideoDownload.page(pages, 0));
+        assertNull("an index it couldn't read", VideoDownload.page(pages, -1));
+        assertNull("past the last page", VideoDownload.page(pages, 3));
+    }
+
+    /**
+     * Without the bridges written, no post is a carousel, so what's on screen is the post itself,
+     * with or without a feed state. A save of the post itself keeps the post's details.
+     */
+    @Test
+    public void anUnpatchedPostIsWhatsShown() {
+        Object post = new Object();
+
+        assertSame(post, VideoDownload.shown(post, new Object()));
+        assertSame(post, VideoDownload.shown(post, null));
+        assertNull(VideoDownload.shown(null, new Object()));
+        assertSame(PostDetails.NONE, VideoDownload.details(post, post));
+        assertSame(PostDetails.NONE, VideoDownload.details(new Object(), post));
     }
 
     /**

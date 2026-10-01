@@ -60,6 +60,10 @@ class DownloadVideoHookTest {
     private val mine = "Lfixture/Owner;->mine(Ljava/lang/Object;)Z"
     private val adder = "$state->A00($kind$OPTION${state}Ljava/lang/CharSequence;Ljava/util/ArrayList;Z)V"
     private val shortMenu = "Lfixture/ShortMenu;"
+    private val itemState = "Lfixture/ItemState;"
+    private val pager = "Lfixture/Pager;"
+    private val elsewhere = "Lfixture/Elsewhere;"
+    private val pageLookup = "$MEDIA_EXT->A0Q($MEDIA" + "I)$MEDIA"
 
     /** The hooks the patch writes are in the extension the bundle ships, public and static. */
     @Test
@@ -119,7 +123,32 @@ class DownloadVideoHookTest {
         assertEquals("$state->media:$MEDIA", media[1].referenceText())
     }
 
-    /** A tap on Download asks save() first, with the post and the menu's activity; any other option goes on. */
+    /**
+     * The carousel bridges read the post's feed state off the builder's state, the page that state
+     * keeps (the field most calls to the page lookup are handed) and a Media's pages.
+     */
+    @Test
+    fun theCarouselBridgesReadThePageOnScreen() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryVideo()
+
+        val item = context.method(INSTAGRAM_MEDIA, "feedMenuItemState").code()
+        assertEquals(listOf(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT), item.take(3).map { it.opcode })
+        assertEquals("$state->item:$itemState", item[1].referenceText())
+        val index = context.method(INSTAGRAM_MEDIA, "carouselIndex").code()
+        assertEquals(listOf(Opcode.CHECK_CAST, Opcode.IGET, Opcode.RETURN), index.take(3).map { it.opcode })
+        assertEquals(itemState, index[0].referenceText())
+        assertEquals("the page, not the field read less often", "$itemState->page:I", index[1].referenceText())
+        val pages = context.method(INSTAGRAM_MEDIA, "carouselMedia").code()
+        assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), pages.take(4).map { it.opcode })
+        assertEquals("$MEDIA->A8k()Ljava/util/List;", pages[1].referenceText())
+    }
+
+    /**
+     * A tap on Download asks save() first, with the post, the post's feed state and the menu's
+     * activity; any other option goes on.
+     */
     @Test
     fun theHandlerAsksSaveFirst() {
         val context = PatchContexts.of(classes())
@@ -130,16 +159,38 @@ class DownloadVideoHookTest {
         assertEquals(
             listOf(
                 Opcode.MOVE_OBJECT_FROM16, Opcode.SGET_OBJECT, Opcode.IF_NE, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC,
-                Opcode.MOVE_RESULT_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID,
+                Opcode.MOVE_RESULT_OBJECT, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT,
+                Opcode.IF_EQZ, Opcode.RETURN_VOID,
             ),
-            code.take(11).map { it.opcode },
+            code.take(12).map { it.opcode },
         )
         assertEquals(DOWNLOAD, code[1].referenceText())
         assertEquals("the getter that reads the post", "$helper->A01($helper)$MEDIA", code[4].referenceText())
         assertEquals("$helper->activity:$activity", code[6].referenceText())
-        assertEquals(SAVE_VIDEO, code[7].referenceText())
-        assertEquals("the original code moved", Opcode.CONST_STRING, code[11].opcode)
-        for (branch in listOf(2, 9)) assertEquals("the branch at $branch", 11, code.target(branch))
+        assertEquals("the post's feed state", "$helper->item:$itemState", code[7].referenceText())
+        val save = code[8] as Instruction35c
+        assertEquals(SAVE_VIDEO, save.referenceText())
+        assertEquals("save()'s arguments", listOf(1, 0, 2), listOf(save.registerC, save.registerD, save.registerE))
+        assertEquals("the original code moved", Opcode.CONST_STRING, code[12].opcode)
+        for (branch in listOf(2, 10)) assertEquals("the branch at $branch", 12, code.target(branch))
+    }
+
+    /**
+     * A carousel page the patch can't place fails it before anything changes: two fields read as
+     * often, no page lookup reading a carousel's pages, or the feed state missing from the menu.
+     */
+    @Test
+    fun aPageItCantPlaceFailsBeforeAnythingChanges() {
+        for ((case, classes) in listOf(
+            "two fields as often" to classes(pageReads = 2 to 2),
+            "no page lookup" to classes(lookupReadsPages = false),
+            "no feed state on the menu" to classes(menuHoldsItem = false),
+        )) {
+            val context = PatchContexts.of(classes)
+            assertThrows(case, PatchException::class.java) { context.offerDownloadOnEveryVideo() }
+            assertUntouched(context)
+            assertEquals("$case: the page bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "carouselIndex").code().first().opcode)
+        }
     }
 
     /**
@@ -219,7 +270,7 @@ class DownloadVideoHookTest {
     @Test
     fun eachDeclaredBuildOffersDownloadOnEveryVideo() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
-        val types = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION)
+        val types = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION, MEDIA_EXT)
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
@@ -229,11 +280,12 @@ class DownloadVideoHookTest {
                     val loads = dex.fieldSection.any { it.toString() == DOWNLOAD }
                     val named = dex.stringSection.any { it == FEED_HELPER_NAME }
                     val options = dex.fieldSection.any { it.toString() == WHY_OPTION }
-                    if (!marked && !loads && !named && !options && dex.classes.none { it.type in types }) return@forEach
+                    val pages = dex.methodSection.any { it.definingClass == MEDIA_EXT }
+                    if (!marked && !loads && !named && !options && !pages && dex.classes.none { it.type in types }) return@forEach
                     for (classDef in dex.classes) {
                         val wanted = classDef.type in types || classDef.originalName() == FEED_HELPER_NAME || classDef.methods.any { method ->
                             ELIGIBLE_MARKER in method.markers() || method.code().any { it.referenceText() == DOWNLOAD } ||
-                                method.isShortMenuList()
+                                method.isShortMenuList() || method.pageReads().isNotEmpty()
                         }
                         if (wanted) classes += ImmutableClassDef.of(classDef)
                     }
@@ -245,8 +297,17 @@ class DownloadVideoHookTest {
                 val menu = classes.single { it.originalName() == FEED_HELPER_NAME }
                 val handler = menu.methods.single { !AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(Any::toString) == listOf(OPTION) && it.returnType == "V" }
                 val handled = context.method(menu.type, handler.name, listOf(OPTION)).code()
-                assertEquals("${bundle.name}: the handler's first call", SAVE_VIDEO,
-                    handled.first { it.opcode == Opcode.INVOKE_STATIC && it.referenceText()?.startsWith("Lapp/hushgram/") == true }.referenceText())
+                val save = handled.indexOfFirst { it.opcode == Opcode.INVOKE_STATIC && it.referenceText()?.startsWith("Lapp/hushgram/") == true }
+                assertEquals("${bundle.name}: the handler's first call", SAVE_VIDEO, handled[save].referenceText())
+                // The menu hands save() the feed state whose page the index bridge reads.
+                val itemType = handled[save - 1].referenceText()!!.substringAfterLast(':')
+                val index = context.method(INSTAGRAM_MEDIA, "carouselIndex").code()
+                assertEquals("${bundle.name}: the page's class", itemType, index[0].referenceText())
+                assertEquals("${bundle.name}: the page", Opcode.IGET, index[1].opcode)
+                assertTrue("${bundle.name}: the page is on the feed state", index[1].referenceText()!!.startsWith("$itemType->"))
+                val item = context.method(INSTAGRAM_MEDIA, "feedMenuItemState").code()
+                assertTrue("${bundle.name}: the builder's feed state", item[1].referenceText()!!.endsWith(":$itemType"))
+                assertEquals("${bundle.name}: the carousel bridge", Opcode.INVOKE_VIRTUAL, context.method(INSTAGRAM_MEDIA, "carouselMedia").code()[1].opcode)
                 val builders = classes.flatMap { it.methods }.filter { method ->
                     context.method(method.definingClass, method.name, method.parameterTypes.map(Any::toString)).code().any { it.referenceText() == OFFER_VIDEO }
                 }
@@ -310,14 +371,19 @@ class DownloadVideoHookTest {
         handlerRegisters: Int = 42,
         shortLists: Int = 1,
         shortListRegisters: Int = 4,
+        pageReads: Pair<Int, Int> = 3 to 1,
+        lookupReadsPages: Boolean = true,
+        menuHoldsItem: Boolean = true,
     ): List<ClassDef> {
         val menu = ImmutableClassDef(
             helper, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
-            listOf(
+            listOfNotNull(
                 ImmutableField(helper, "__redex_internal_original_name", "Ljava/lang/String;",
                     AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value, ImmutableStringEncodedValue(name), null, null),
                 field(helper, "activity", activity),
                 field(helper, "post", MEDIA),
+                field(helper, "item", itemState).takeIf { menuHoldsItem },
+                field(helper, "elsewhere", elsewhere),
             ),
             listOf(
                 method(helper, "A09", listOf(OPTION), "V", handlerRegisters, static = false, body = """
@@ -377,6 +443,7 @@ class DownloadVideoHookTest {
             goto :mine
             :others
             iget-object v1, v0, $state->other:Ljava/lang/Object;
+            iget-object v2, v0, $state->item:$itemState
             iget-object v4, v0, $state->media:$MEDIA
             sget-object v6, $OPTION->REPORT:$OPTION
             const v5, 0x7f000001
@@ -393,6 +460,7 @@ class DownloadVideoHookTest {
             "A8P" to ("video_dash_manifest" to "Ljava/lang/String;"),
             "A3Q" to ("user" to USER),
             "A6v" to ("taken_at" to "Ljava/lang/Long;"),
+            "A8k" to ("carousel_media" to "Ljava/util/List;"),
         ).map { (name, field) -> getter(MEDIA, name, field.first, field.second) } +
             method(MEDIA, "getId", emptyList(), "Ljava/lang/String;", 1, static = false, body = """
                 const/4 v0, 0x0
@@ -427,8 +495,38 @@ class DownloadVideoHookTest {
                 const/4 v0, 0x0
                 return-object v0
             """))
+        // The page lookup, which reads a carousel's pages, and one of the same shape that doesn't.
+        val mediaExt = classDef(MEDIA_EXT, listOf(
+            method(MEDIA_EXT, "A0Q", listOf(MEDIA, "I"), MEDIA, 3, static = true, body = """
+                ${if (lookupReadsPages) "invoke-virtual { p0 }, $MEDIA->A8k()Ljava/util/List;" else "nop"}
+                const/4 v0, 0x0
+                return-object v0
+            """),
+            method(MEDIA_EXT, "A0R", listOf(MEDIA, "I"), MEDIA, 3, static = true, body = """
+                const/4 v0, 0x0
+                return-object v0
+            """),
+        ))
+        // Calls to the lookup: the feed state's page, another of its ints read less often, an int on a
+        // class the builder's state doesn't hold read most often of all, and a constant.
+        fun call(number: Int, holder: String, field: String) =
+            method(pager, "p$number", listOf(MEDIA, holder), MEDIA, 4, static = true, body = """
+                iget v0, p1, $holder->$field:I
+                invoke-static { p0, v0 }, $pageLookup
+                move-result-object v1
+                return-object v1
+            """)
+        val calls = (1..pageReads.first).map { call(it, itemState, "page") } +
+            (1..pageReads.second).map { call(10 + it, itemState, "scroll") } +
+            (1..5).map { call(20 + it, elsewhere, "index") } +
+            method(pager, "constant", listOf(MEDIA), MEDIA, 3, static = true, body = """
+                const/4 v0, 0x0
+                invoke-static { p0, v0 }, $pageLookup
+                move-result-object v1
+                return-object v1
+            """)
         return listOf(
-            menu, builder, eligible, shortMenus,
+            menu, builder, eligible, shortMenus, mediaExt, classDef(pager, calls),
             classDef(MEDIA, mediaGetters),
             classDef(USER, listOf(getter(USER, "A89", "username", "Ljava/lang/String;"))),
             ImmutableClassDef(

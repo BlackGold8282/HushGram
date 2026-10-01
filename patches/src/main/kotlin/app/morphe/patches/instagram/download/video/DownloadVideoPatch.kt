@@ -16,6 +16,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
 import app.morphe.patches.instagram.download.MEDIA
 import app.morphe.patches.instagram.download.mediaBridges
+import app.morphe.patches.instagram.download.pandoGetter
 import app.morphe.patches.instagram.download.reel.DOWNLOAD
 import app.morphe.patches.instagram.download.reel.ELIGIBLE_MARKER
 import app.morphe.patches.instagram.download.reel.OPTION
@@ -45,12 +46,13 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 
 private const val PATCH = "Download any video"
 
 private const val VIDEO_DOWNLOAD = "$EXTENSION_PACKAGE/download/VideoDownload;"
 internal const val OFFER_VIDEO = "$VIDEO_DOWNLOAD->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V"
-internal const val SAVE_VIDEO = "$VIDEO_DOWNLOAD->save(Ljava/lang/Object;Landroid/app/Activity;)Z"
+internal const val SAVE_VIDEO = "$VIDEO_DOWNLOAD->save(Ljava/lang/Object;Ljava/lang/Object;Landroid/app/Activity;)Z"
 internal const val ALLOW_VIDEO = "$VIDEO_DOWNLOAD->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;"
 
 /** The options the short feed menu's list of kept options reads first and last: "Why you're seeing this" and Report. */
@@ -67,9 +69,19 @@ private const val CONTEXT = "Landroid/content/Context;"
 private const val GET_RESOURCES = "Landroid/content/Context;->getResources()Landroid/content/res/Resources;"
 private const val GET_STRING = "Landroid/content/res/Resources;->getString(I)Ljava/lang/String;"
 
-/** The bridges this patch writes: the post a menu is for, and Instagram's Download row. */
+/**
+ * The bridges this patch writes: the post a menu is for, Instagram's Download row, the post's feed
+ * state, the carousel page that state says is on screen, and a carousel's pages.
+ */
 private const val FEED_MENU_MEDIA = "feedMenuMedia"
 private const val ADD_DOWNLOAD_ROW = "addDownloadRow"
+private const val FEED_MENU_ITEM_STATE = "feedMenuItemState"
+private const val CAROUSEL_INDEX = "carouselIndex"
+private const val CAROUSEL_MEDIA = "carouselMedia"
+
+/** Instagram's helpers on a Media, a class that keeps its name, among them the one answering a carousel's page. */
+internal const val MEDIA_EXT = "Lcom/instagram/feed/media/MediaExtKt;"
+private const val CAROUSEL_FIELD = "carousel_media"
 
 /**
  * Download in the menu of anyone's feed post with a video, saving through HushGram's own pipeline.
@@ -82,6 +94,10 @@ private const val ADD_DOWNLOAD_ROW = "addDownloadRow"
  * post with a video. A tap on Download saves the video from the addresses its Media already holds,
  * the way Hushfacebook's Download any video does.
  *
+ * A carousel's Media has no video of its own, only its pages. The post's feed state keeps which
+ * page is on screen, and the menu holds that state, so the extension reads the page there and
+ * offers, and saves, the page when it's a video.
+ *
  * Most of the feed now opens a short menu instead ("Why you're seeing this", Interested, Not
  * interested, Report, under an "About this reel" summary on a reel). It shows only the rows whose
  * option is on a fixed list, in that list's order, so it dropped the Download row. The list goes
@@ -93,8 +109,8 @@ private const val ADD_DOWNLOAD_ROW = "addDownloadRow"
 @Suppress("unused")
 val downloadVideoPatch = bytecodePatch(
     name = "Download any video",
-    description = "Adds Download to the menu of a post in your feed with a video. Videos save at the Download quality you set, " +
-        "without Instagram's watermark.",
+    description = "Adds Download to the menu of a post in your feed with a video, and of a carousel showing a video. " +
+        "Videos save at the Download quality you set, without Instagram's watermark.",
     default = false,
 ) {
     category("Downloads")
@@ -132,12 +148,14 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
     val eligibles = mutableListOf<Method>()
     val loaders = mutableListOf<Method>()
     val shortLists = mutableListOf<Method>()
+    val pageReads = mutableListOf<PageRead>()
     classDefForEach { classDef ->
         if (classDef.originalName() == FEED_HELPER_NAME) helpers += classDef
         classDef.methods.forEach { method ->
             if (ELIGIBLE_MARKER in method.markers()) eligibles += method
             if (method.code().any { it.opcode == Opcode.SGET_OBJECT && it.referenceText() == DOWNLOAD }) loaders += method
             if (method.isShortMenuList()) shortLists += method
+            pageReads += method.pageReads()
         }
     }
     val helper = helpers.singleOrNull() ?: throw PatchException(
@@ -172,12 +190,19 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
     val activities = helper.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == FRAGMENT_ACTIVITY }
     val activity = activities.singleOrNull()
         ?: throw PatchException("$PATCH: expected one $FRAGMENT_ACTIVITY field in $type, found ${activities.size}")
+    val carousel = pandoGetter(PATCH, MEDIA, CAROUSEL_FIELD, LIST)
+    val page = pageIndex(pageReads, carousel, builder, others.stateType, helper)
     val menu = mutable(handler)
     menu.requireLocals(PATCH, 3)
     val bridges = mutableClassDefBy(INSTAGRAM_MEDIA)
-    val postOf = bridges.methods.singleOrNull {
-        it.name == FEED_MENU_MEDIA && AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;")
-    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static $FEED_MENU_MEDIA(Object)")
+    fun bridge(name: String, returns: String) = bridges.methods.singleOrNull {
+        it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == returns &&
+            it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;")
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static $returns $name(Object)")
+    val postOf = bridge(FEED_MENU_MEDIA, "Ljava/lang/Object;")
+    val itemStateOf = bridge(FEED_MENU_ITEM_STATE, "Ljava/lang/Object;")
+    val indexOf = bridge(CAROUSEL_INDEX, "I")
+    val pagesOf = bridge(CAROUSEL_MEDIA, LIST)
     val rowStub = bridges.methods.singleOrNull {
         it.name == ADD_DOWNLOAD_ROW && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
             it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;", ARRAY_LIST)
@@ -226,7 +251,8 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
             invoke-static { v0 }, $type->${media.name}($type)$MEDIA
             move-result-object v1
             iget-object v2, v0, $type->${activity.name}:$FRAGMENT_ACTIVITY
-            invoke-static { v1, v2 }, $SAVE_VIDEO
+            iget-object v0, v0, ${page.menuState}
+            invoke-static { v1, v0, v2 }, $SAVE_VIDEO
             move-result v0
             if-eqz v0, :handle
             return-void
@@ -239,6 +265,31 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         """
             check-cast p0, ${others.stateType}
             iget-object p0, p0, ${others.media}
+            return-object p0
+        """,
+    )
+    itemStateOf.addInstructions(
+        0,
+        """
+            check-cast p0, ${others.stateType}
+            iget-object p0, p0, ${page.builderState}
+            return-object p0
+        """,
+    )
+    indexOf.addInstructions(
+        0,
+        """
+            check-cast p0, ${page.index.definingClass}
+            iget p0, p0, ${page.index}
+            return p0
+        """,
+    )
+    pagesOf.addInstructions(
+        0,
+        """
+            check-cast p0, $MEDIA
+            invoke-virtual { p0 }, ${carousel.definingClass}->${carousel.name}()$LIST
+            move-result-object p0
             return-object p0
         """,
     )
@@ -358,6 +409,79 @@ internal fun Method.othersRow(eligible: Method): OthersRow {
             ?.takeIf { it.definingClass == stateType && it.type == MEDIA }
     } ?: throw PatchException("$PATCH: in $where anyone else's rows never read the post")
     return OthersRow(at, state, rows, stateType, adder, kind, context, label, media)
+}
+
+/** A call to [lookup], one of [MEDIA_EXT]'s (Media, int) methods answering a Media, handed an int read from [field], or null when it isn't one. */
+internal class PageRead(val lookup: String, val field: FieldReference?)
+
+/**
+ * Every call in [this] to a static method of [MEDIA_EXT] taking a Media and an int and answering a
+ * Media, with the int field read into that int just before, if that's where it came from.
+ */
+internal fun Method.pageReads(): List<PageRead> {
+    val code = code()
+    return code.indices.mapNotNull { at ->
+        val call = code[at].methodReference() ?: return@mapNotNull null
+        if (code[at].opcode !in STATIC_CALLS || call.definingClass != MEDIA_EXT || call.returnType != MEDIA ||
+            call.parameterTypes.map(Any::toString) != listOf(MEDIA, "I")
+        ) {
+            return@mapNotNull null
+        }
+        val index = code[at].argumentRegisters()[1]
+        val read = (at - 1 downTo maxOf(0, at - 4)).firstOrNull { code[it].writes(index) }
+            ?.let { code[it].takeIf { instruction -> instruction.opcode == Opcode.IGET } as? ReferenceInstruction }
+        PageRead(call.name, read?.reference as? FieldReference)
+    }
+}
+
+/**
+ * Where the menu finds the carousel page on screen: the int field [index] of the post's feed state,
+ * which the builder's state holds in [builderState] and the menu in [menuState].
+ */
+internal class PageIndex(val index: FieldReference, val builderState: FieldReference, val menuState: FieldReference)
+
+/**
+ * Finds which carousel page a feed post is showing. [MEDIA_EXT] has one static method taking a
+ * Media and an int that reads [carousel], the carousel's pages, and answers the page. Instagram
+ * hands it the page its feed state keeps nearly everywhere it's called, as an int field read just
+ * before, among [reads]. Of those fields, only one on a class the menu, [helper], keeps one field
+ * of and [builder] reads off its state [stateType] counts. It has to be read at least twice as often
+ * as the next such field, so a build where it's unclear stops the patch rather than guess.
+ */
+internal fun BytecodePatchContext.pageIndex(
+    reads: List<PageRead>,
+    carousel: Method,
+    builder: Method,
+    stateType: String,
+    helper: ClassDef,
+): PageIndex {
+    val lookups = classDefBy(MEDIA_EXT).methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == MEDIA &&
+            it.parameterTypes.map(Any::toString) == listOf(MEDIA, "I") && it.calls(carousel)
+    }
+    val lookup = lookups.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one method on $MEDIA_EXT answering a carousel's page, found " +
+            if (lookups.isEmpty()) "none" else lookups.joinToString { it.name },
+    )
+    fun menuState(type: String) = helper.fields.singleOrNull { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == type }
+        ?.let { ImmutableFieldReference(it.definingClass, it.name, it.type) }
+    val builderReads = builder.code().mapNotNull { instruction ->
+        ((instruction.takeIf { it.opcode == Opcode.IGET_OBJECT } as? ReferenceInstruction)?.reference as? FieldReference)
+            ?.takeIf { it.definingClass == stateType }
+    }.distinctBy { it.toString() }
+    fun builderState(type: String) = builderReads.singleOrNull { it.type == type }
+    val fields = reads.filter { it.lookup == lookup.name }.mapNotNull { it.field }
+        .filter { it.type == "I" && menuState(it.definingClass) != null && builderState(it.definingClass) != null }
+    val ranked = fields.groupBy { it.toString() }.values.sortedByDescending { it.size }
+    val top = ranked.firstOrNull() ?: throw PatchException(
+        "$PATCH: no call to ${lookup.definingClass}->${lookup.name} reads its page from a feed state the menu and its builder hold",
+    )
+    val next = ranked.getOrNull(1)
+    if (next != null && top.size < 2 * next.size) {
+        throw PatchException("$PATCH: the carousel page is either ${top.first()} (${top.size} reads) or ${next.first()} (${next.size} reads)")
+    }
+    val index = top.first()
+    return PageIndex(index, builderState(index.definingClass)!!, menuState(index.definingClass)!!)
 }
 
 /**
