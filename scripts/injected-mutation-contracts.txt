@@ -162,11 +162,17 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # (split_heliumcore, three dex entries in the merge) still makes those calls itself, so a no-call
 # rule, which counts every dex, can't hold.
 # Stop Story auto-advance puts its call first in the story viewer's handler for a finished item,
-# which its fingerprint picks by the viewer's kept class name. The handler holds "userSession" and a
-# string with spaces, and 13 instance methods taking an Object hold "userSession" on 449.
+# which its fingerprint picks by the viewer's kept class name. The handler holds "userSession" and
+# "Required value was null.", and four instance methods taking an Object hold both on 449, so no
+# rule can pick it yet.
 # Restore trust on re-signed builds puts its call first in the package signer reader, which its
 # fingerprint picks by the SigningInfo and PackageInfo calls it makes. The reader holds no string,
-# so no rule can pick it.
+# so the rule holds the old signatures array it reads, which 28 methods read on 449. Of
+# those, the reader is the one instance method taking nothing and answering one of Instagram's
+# renamed classes, and it reads the signing history too. Left out, Instagram's signature checks see
+# your key; twice or elsewhere, it isn't the call the patch wrote.
+start-call Lapp/hushgram/extension/instagram/misc/InstagramSignature;->originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List; in instance ()LX/*; calling Landroid/content/pm/SigningInfo;->getSigningCertificateHistory()[Landroid/content/pm/Signature; holding Landroid/content/pm/PackageInfo;->signatures:[Landroid/content/pm/Signature;
+once-call Lapp/hushgram/extension/instagram/misc/InstagramSignature;->originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List; in instance ()LX/*; calling Landroid/content/pm/SigningInfo;->getSigningCertificateHistory()[Landroid/content/pm/Signature; holding Landroid/content/pm/PackageInfo;->signatures:[Landroid/content/pm/Signature;
 # Start on x86 devices asks protectCode() in front of each call Instagram makes to its code
 # protection step, RuntimeInternals.mprotectExecCode(). One caller is the idle task runner, an
 # instance method taking nothing whose other arms hold "IgProfiloSessionManager"; the call picks it
@@ -176,10 +182,17 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 shared-call Lapp/hushgram/extension/instagram/misc/TranslatedStart;->protectCode()I in instance ()V calling static Lcom/facebook/common/dextricks/RuntimeInternals;->mprotectExecCode()V holding IgProfiloSessionManager
 # Hide Reels in the feed passes the item the home feed item class's parse helper returns through
 # the extension. The helper is the class's one static method reading from JSON, found through the
-# parser holding "media_or_ad" and "clips_netego", and it holds no string itself, so no rule can
-# pick it. Hide suggested posts passes the same item through its own filter at the same returns,
-# beside Hide Reels in the feed's when both are in, so no rule can pick it either. Hide Meta AI's
-# filter goes in at the same returns too.
+# parser holding "media_or_ad" and "clips_netego". It holds no string itself, so the rule picks it
+# by its class's: "feedContent" and "feedItemType", the names its getters check, held together only
+# by the item class on 449. Of the class's three static methods taking one object and answering one
+# of Instagram's renamed classes, the helper is the one calling parseFromJsonParser. Hide suggested
+# posts and Hide Meta AI pass the same item through their own filters at the same return, so each of
+# the three gets a rule. The helper returns once on 449, and each filter is called nowhere else, so
+# once-call. Left out, that patch's items stay in the feed; twice or elsewhere, it isn't the filter
+# the patch wrote.
+once-call Lapp/hushgram/extension/instagram/reels/FeedReels;->filter(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;)LX/*; calling L*;->parseFromJsonParser(*)Ljava/lang/Object; class-holding feedContent feedItemType
+once-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->filter(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;)LX/*; calling L*;->parseFromJsonParser(*)Ljava/lang/Object; class-holding feedContent feedItemType
+once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->filter(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;)LX/*; calling L*;->parseFromJsonParser(*)Ljava/lang/Object; class-holding feedContent feedItemType
 #
 # Hide Meta AI answers each read of Meta AI's search flags through searchFlag(), right after the
 # read. The messages inbox's setup, the invoke() holding "direct_inbox" and "hatch_channel_enabled",
@@ -251,7 +264,15 @@ once-call Lapp/hushgram/extension/instagram/download/ReelDownload;->addTo(Ljava/
 # shared-call, and the rules name the ones that hold a string of their own on 449: the builder for
 # someone else's story and one for your own (each returns once), and the handlers of the new sheet,
 # of your own story's old dialog and of the highlight menu. The other builder and two handlers
-# hold no string, so no rule can pick them.
+# hold no string, so their rules pick them by the menu class's kept name, "ReelOptionsOverflowHelper",
+# which two other classes also hold on 449. The builder is one of the class's two statics taking one
+# renamed object and answering labels, and of those two only it asks a ReelItem a question about
+# the session. One handler is the class's one static taking two renamed objects and a label. The
+# other handler differs from its string-holding siblings only by how many renamed objects it
+# takes, so it still has no rule.
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence; in static (LX/*;)[Ljava/lang/CharSequence; calling instance Lcom/instagram/model/reels/ReelItem;->*(Lcom/instagram/common/session/UserSession;)Z class-holding ReelOptionsOverflowHelper
+start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (LX/*;LX/*;Ljava/lang/CharSequence;)V class-holding ReelOptionsOverflowHelper
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (LX/*;LX/*;Ljava/lang/CharSequence;)V class-holding ReelOptionsOverflowHelper
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence; in static (*)[Ljava/lang/CharSequence; holding location_story_action_sheet story_highlight_action_sheet
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labels([Ljava/lang/CharSequence;)[Ljava/lang/CharSequence; in static (*)[Ljava/lang/CharSequence; holding ReelOptionsOverflowHelper location_story_action_sheet
 start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding friendships/mute_friend_reel/%s/
@@ -281,10 +302,18 @@ once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->allow(Ljava
 #
 # Tap to play: IgGrootPlayer's play asks allowDirectStart() first, its prepare tells rebound()
 # first, and the autoplay check hands its answer to autoplayAllowed() where it returns, once on
-# 449. The touch dispatch feeds the tap clock first. No rule can pick IgVideoPlayerImpl's
-# playInternal, which asks allowStart(): its strings other than "autoplay" have spaces, and the
-# story player's own static playInternal holds "autoplay" with the same shape. IgGrootPlayer's
-# pause holds no string at all.
+# 449. The touch dispatch feeds the tap clock first. IgVideoPlayerImpl's playInternal asks
+# allowStart() first, after reading the IgGrootPlayer it plays; it's the one method holding its log
+# line, a static taking its player, a reason and two flags. IgGrootPlayer's pause tells paused()
+# first. It holds no string, so the rule picks it by its class's prepare log line: of the class's
+# two methods taking a string and answering nothing, the pause is the one that hands a string on to
+# a (String) method of one of Instagram's renamed classes, the player underneath; the other only
+# logs. Left out, a video starts with no tap, or a pause no longer disarms the player; twice or
+# elsewhere, it isn't the hook the patch wrote.
+start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowStart(Ljava/lang/Object;Ljava/lang/String;)Z in static (L*;Ljava/lang/String;ZZ)V holding IgVideoPlayerImpl.playInternal\splayAfterSeek:\s
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowStart(Ljava/lang/Object;Ljava/lang/String;)Z in static (L*;Ljava/lang/String;ZZ)V holding IgVideoPlayerImpl.playInternal\splayAfterSeek:\s
+start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->paused(Ljava/lang/Object;Ljava/lang/String;)V in instance (Ljava/lang/String;)V calling instance LX/*;->*(Ljava/lang/String;)V class-holding IgGrootPlayer.prepare
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->paused(Ljava/lang/Object;Ljava/lang/String;)V in instance (Ljava/lang/String;)V calling instance LX/*;->*(Ljava/lang/String;)V class-holding IgGrootPlayer.prepare
 start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowDirectStart(Ljava/lang/Object;Ljava/lang/String;)Z in instance (Ljava/lang/String;Z)V holding retry play_after_recovery
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowDirectStart(Ljava/lang/Object;Ljava/lang/String;)Z in instance (Ljava/lang/String;Z)V holding retry play_after_recovery
 start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
@@ -318,8 +347,18 @@ single-call Lapp/hushgram/extension/instagram/media/TapToPlay;->playButtonTapped
 # stop takes a reason and a flag and holds "clips_pip" and "ig_text"; the pause tells stopped() too,
 # so the stop's rule is shared-call. The bind's strings without a space are its inner prepare's
 # trace name and "reportVideoPlayerShouldStart". The seek takes a position and two flags and holds
-# "clips_viewer" and "resume". No rule can pick the pause, which holds no string, or the end and
-# loop callbacks, whose strings have spaces.
+# "clips_viewer" and "resume". The end and loop callbacks are the one method each holding its log
+# line, a callback taking IgGrootPlayer and one taking nothing, and each tells ended(), so their
+# rules are shared-call. The pause holds no string, so its rule picks it by its class's playInternal
+# log line: of the player's four methods taking a string and answering nothing, the pause is the one
+# handing a string on to a (String) method of a renamed class, IgGrootPlayer's pause. One other
+# makes a File of its string, which is why the rule asks for a renamed class.
+start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->stopped(Ljava/lang/Object;Ljava/lang/String;)V in instance (Ljava/lang/String;)V calling instance LX/*;->*(Ljava/lang/String;)V class-holding IgVideoPlayerImpl.playInternal\splayAfterSeek:\s
+shared-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->stopped(Ljava/lang/Object;Ljava/lang/String;)V in instance (Ljava/lang/String;)V calling instance LX/*;->*(Ljava/lang/String;)V class-holding IgVideoPlayerImpl.playInternal\splayAfterSeek:\s
+start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->ended(Ljava/lang/Object;)V in instance (L*;)V holding Playback\scompleted\s
+shared-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->ended(Ljava/lang/Object;)V in instance (L*;)V holding Playback\scompleted\s
+start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->ended(Ljava/lang/Object;)V in instance ()V holding Playback\slooping\s
+shared-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->ended(Ljava/lang/Object;)V in instance ()V holding Playback\slooping\s
 start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->started(Ljava/lang/Object;)V in instance (JJ)V holding video_cached warmed voice_translation_language_code
 once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->started(Ljava/lang/Object;)V in instance (JJ)V holding video_cached warmed voice_translation_language_code
 start-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->stopped(Ljava/lang/Object;Ljava/lang/String;)V in instance (Ljava/lang/String;Z)V holding clips_pip ig_text
