@@ -78,6 +78,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean keepReelSpeed() {
+        return false;
+    }
+
     public static boolean storyDownload() {
         return false;
     }

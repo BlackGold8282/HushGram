@@ -131,6 +131,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_reels_tab", TRUE, true);
 
     /**
+     * The speed locked with Instagram's own 2x lock on a reel stays for the next reels, until the
+     * lock is slid off, a hold at the edge is let go of, or Instagram restarts.
+     */
+    public static final BooleanSetting KEEP_REEL_SPEED =
+            new BooleanSetting("hushgram_keep_reel_speed", TRUE);
+
+    /**
      * Download in the menu of anyone's story, photo or video, saving it through the save pipeline
      * below. Instagram's own menu offers a save only on your own stories.
      */

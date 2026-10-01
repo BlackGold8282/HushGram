@@ -2,6 +2,10 @@
 
 Every HushGram release, newest first.
 
+## Unreleased
+
+* **Instagram:** New patch, `Keep the reel speed`. Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play at 2x too. Sliding the lock off, or holding the edge and letting go, takes them back to normal speed, and so does restarting Instagram. Ads start at normal speed. Its switch is under Reels.
+
 ## 0.0.2 (2026-09-30)
 
 * **Instagram:** HushGram's first release: 21 patches for Instagram 449.0.0.52.84 (build 385511871, arm64-v8a), on Android 9 and newer.

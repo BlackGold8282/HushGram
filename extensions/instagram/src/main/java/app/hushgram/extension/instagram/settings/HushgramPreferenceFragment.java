@@ -215,6 +215,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Takes Reels off the tab bar. Reels in your feed and reels people send you still "
                             + "open. Restart Instagram after changing it.")));
         }
+        if (build.contains(PatchFamily.KEEP_REEL_SPEED)) {
+            reels.add(toggle(context, Settings.KEEP_REEL_SPEED, L10n.t("Keep the reel speed"),
+                    L10n.t("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. "
+                            + "Slide the lock off, or hold the edge and let go, to go back to normal speed.")));
+        }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"));
             for (Preference row : reels) section.addPreference(row);

@@ -271,6 +271,24 @@ shared-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tab(Ljava/lang/Ob
 # them by, and the home tab calls ReelsTab.tab as well, so the switch's rule is shared-call.
 # HideReelsTabHookTest checks on the 449 fixture that each of the three lands once, where it should.
 #
+# Keep the reel speed hands the extension each speed first thing in the Reels player controller's
+# setPlaybackSpeed, the one method holding its marker. The hold handler, the one method holding
+# fast play's lock-begin marker and onLongPressEnd's, tells it after that marker that a lock began
+# and after its "ended" event that a hold ended without one. The long-press reset, holding its own
+# marker, the lock-end marker and cancel_lock_up, hands over the end's reason and asks for the speed
+# it's about to set the reel to. maybeResumePlayer hands over the reel and its player just before it
+# plays them. Each hook is called from its one method and nowhere else. Left out, a lock stays on the
+# reel it was made on; twice or elsewhere, it isn't the hook the patch wrote. KeepReelSpeedHookTest
+# checks on the 449 fixture where each one lands.
+start-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->speedSet(F)V in instance (Lkotlin/jvm/functions/Function1;F)V holding android_purge_26_q3_ClipsVideoPlayerController_setPlaybackSpeed
+once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->speedSet(F)V in instance (Lkotlin/jvm/functions/Function1;F)V holding android_purge_26_q3_ClipsVideoPlayerController_setPlaybackSpeed
+once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->lockedUp()V in static (*)Ljava/lang/Object; holding android_purge_26_q2_ClipsFastPlayLogger_logFastPlayLockUpBegin android_purge_26_q2_ClipsLongPressController_onLongPressEnd
+once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->holdEnded()V in static (*)Ljava/lang/Object; holding android_purge_26_q2_ClipsFastPlayLogger_logFastPlayLockUpBegin ended
+once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->lockUpEnded(Ljava/lang/String;)V in static (*)V holding android_purge_26_q2_ClipsLongPressToFeatureController_reset android_purge_26_q2_ClipsFastPlayLogger_logFastPlayLockUpEnd cancel_lock_up
+once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->resetSpeed(F)F in static (*)V holding android_purge_26_q2_ClipsLongPressToFeatureController_reset android_purge_26_q2_ClipsFastPlayLogger_logFastPlayLockUpEnd cancel_lock_up
+once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->item(Ljava/lang/Object;)V in instance (*)V holding android_purge_26_q3_ClipsVideoPlayerController_maybeResumePlayer
+once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->resuming(Ljava/lang/Object;)V in instance (*)V holding android_purge_26_q3_ClipsVideoPlayerController_maybeResumePlayer
+#
 # Open links in external browser asks the extension right after the in-app browser's own super
 # call, in onCreate and in onNewIntent. Both call the one redirect, so each rule is shared-call:
 # once in its method and in no other method holding its strings. On 449 only the browser's
