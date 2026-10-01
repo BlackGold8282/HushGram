@@ -129,7 +129,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 
 ## Known limitations
 
-- Sanitize sharing links covers Copy link, the Android share sheet, the app buttons in Instagram's own share sheet, a profile's share link and the post and story links Instagram's server hands out. Bio links open without Instagram's click tracker. Links in messages and story link stickers haven't been checked on a phone yet.
+- Sanitize sharing links covers Copy link, the Android share sheet, the app buttons in Instagram's own share sheet, a profile's share link and the post and story links Instagram's server hands out. Bio links open without Instagram's click tracker. Instagram's in-app browser has its own Copy link and Share in its menu, which hand out the address of the page you're on and aren't touched. Instagram's own links open in the app rather than there, and on a test phone a Help Center page shared as its plain address with nothing added. Links in messages and story link stickers haven't been checked on a phone yet.
 - Clean up Reels has only been seen on a phone with an account that follows almost no one, so the Follow button is the part checked there. The pills and friends' activity are hidden by the same kind of hook but haven't shown up on that account yet.
 - Don't send reel watch history keeps reels out of the list from the moment it's on. A list Instagram saved before you patched can still go out once.
 - Download any reel saves the reel's video. A photo post that turns up in Reels has no video to save, so Download says it failed there.
