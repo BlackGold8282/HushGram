@@ -23,15 +23,15 @@
 # holds it to one call in that method and none anywhere else. start-call alone passes a guard
 # written in twice, since the first of the two is still first.
 #
+# Taken from Hushfacebook's scripts/injected-mutation-contracts.txt
+# (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+# GPL-3.0-only. Modified for HushGram (Instagram), 2026.
+#
 # The patch fingerprint picks the method that puts a sponsored item into a feed by
 # "cross_surface_duplicate_ad" and "Is ad pod", a static method answering a boolean. "Is ad pod" has
 # a space, so the rule names the other string and the shape: of the four methods holding it on 449,
 # one is static and answers a boolean. Left out, every ad goes in; twice or elsewhere, it's no
 # longer the guard Hide ads wrote.
-#
-# Taken from Hushfacebook's scripts/injected-mutation-contracts.txt
-# (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
-# GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 start-call Lapp/hushgram/extension/instagram/ads/Ads;->hide()Z in static (*)Z holding cross_surface_duplicate_ad
 once-call Lapp/hushgram/extension/instagram/ads/Ads;->hide()Z in static (*)Z holding cross_surface_duplicate_ad
 # Remove build expired popup asks the extension first thing in the method that shows the "this
