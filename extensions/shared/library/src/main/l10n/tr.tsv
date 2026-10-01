@@ -163,6 +163,10 @@ Instagram can't read your phone's advertising ID or tell Android's ad services w
 the removed advertising ID permissions	kaldırılan reklam kimliği izinleri
 Turn off double tap to like	Beğenmek için çift dokunmayı kapat
 A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.	Bir gönderiye veya reel'e çift dokunmak artık onu beğenmez ve kalp göstermez. Tek dokunuş ve Beğen düğmesi eskisi gibi çalışır.
+On posts	Gönderilerde
+A double tap on a post doesn't like it. Turn this off to keep double tap to like on posts.	Bir gönderiye çift dokunmak onu beğenmez. Gönderileri çift dokunarak beğenmeye devam etmek için bunu kapat.
+On reels	Reel'lerde
+A double tap on a reel doesn't like it. Turn this off to keep double tap to like on reels.	Bir reel'e çift dokunmak onu beğenmez. Reel'leri çift dokunarak beğenmeye devam etmek için bunu kapat.
 Hide the Reels tab	Reels sekmesini gizle
 Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.	Reels'i sekme çubuğundan kaldırır. Akışındaki reels'ler ve sana gönderilen reels'ler açılmaya devam eder. Değiştirdikten sonra Instagram'ı yeniden başlat.
 Keep the reel speed	Reel hızını koru

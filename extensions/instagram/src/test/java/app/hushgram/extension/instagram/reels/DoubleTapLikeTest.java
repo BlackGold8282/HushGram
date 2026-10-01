@@ -4,6 +4,7 @@
  */
 package app.hushgram.extension.instagram.reels;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -27,6 +28,8 @@ public class DoubleTapLikeTest {
     @After
     public void tearDown() {
         Settings.TURN_OFF_DOUBLE_TAP_LIKE.save(true);
+        Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_POSTS.save(true);
+        Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS.save(true);
     }
 
     /** On, a post's double tap returns early and a reel's like action comes back empty, and both are counted. */
@@ -43,6 +46,30 @@ public class DoubleTapLikeTest {
     /** Off, the post's double tap goes on and the reel keeps its own like action. */
     @Test
     public void withTheSwitchOffADoubleTapLikes() {
+        Settings.TURN_OFF_DOUBLE_TAP_LIKE.save(false);
+        Object action = new Object();
+        assertFalse(DoubleTapLike.holdBackPost());
+        assertSame(action, DoubleTapLike.likeAction(action));
+    }
+
+    /** Each of the two switches under it holds back its own double tap and leaves the other alone. */
+    @Test
+    public void postsAndReelsAreHeldBackApart() {
+        Object action = new Object();
+        for (boolean posts : new boolean[] {true, false}) {
+            for (boolean reels : new boolean[] {true, false}) {
+                Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_POSTS.save(posts);
+                Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS.save(reels);
+                String which = "posts " + posts + ", reels " + reels;
+                assertEquals(which, posts, DoubleTapLike.holdBackPost());
+                assertEquals(which, reels ? null : action, DoubleTapLike.likeAction(action));
+            }
+        }
+    }
+
+    /** With the switch off, neither of the two under it holds anything back. */
+    @Test
+    public void withTheSwitchOffNeitherOfTheTwoUnderItCounts() {
         Settings.TURN_OFF_DOUBLE_TAP_LIKE.save(false);
         Object action = new Object();
         assertFalse(DoubleTapLike.holdBackPost());

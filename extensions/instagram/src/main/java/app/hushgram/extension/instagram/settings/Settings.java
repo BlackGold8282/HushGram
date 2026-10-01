@@ -8,6 +8,7 @@ package app.hushgram.extension.instagram.settings;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static app.hushgram.extension.shared.settings.Setting.parent;
 
 import app.hushgram.extension.instagram.download.DownloadQuality;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
@@ -230,11 +231,20 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_download_reels", TRUE);
 
     /**
-     * A double tap on a post in the feed or on a reel doesn't like it. The patch is off in the
-     * default selection, so a build that has it asked for it, and the switch starts on.
+     * A double tap on a post in the feed or on a reel doesn't like it, where the two switches under
+     * it say so. The patch is off in the default selection, so a build that has it asked for it, and
+     * the switches start on.
      */
     public static final BooleanSetting TURN_OFF_DOUBLE_TAP_LIKE =
             new BooleanSetting("hushgram_turn_off_double_tap_like", TRUE);
+
+    /** Under {@link #TURN_OFF_DOUBLE_TAP_LIKE}: a double tap on a post in the feed doesn't like it. */
+    public static final BooleanSetting TURN_OFF_DOUBLE_TAP_LIKE_ON_POSTS =
+            new BooleanSetting("hushgram_turn_off_double_tap_like_on_posts", TRUE, parent(TURN_OFF_DOUBLE_TAP_LIKE));
+
+    /** Under {@link #TURN_OFF_DOUBLE_TAP_LIKE}: a double tap on a reel doesn't like it. */
+    public static final BooleanSetting TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS =
+            new BooleanSetting("hushgram_turn_off_double_tap_like_on_reels", TRUE, parent(TURN_OFF_DOUBLE_TAP_LIKE));
 
     /**
      * Reels is off the tab bar, and a start or a switch meant for it lands on Home. Instagram builds

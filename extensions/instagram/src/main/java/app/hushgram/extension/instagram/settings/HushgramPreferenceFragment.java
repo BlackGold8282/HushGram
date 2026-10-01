@@ -251,6 +251,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             reels.add(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE, L10n.t("Turn off double tap to like"),
                     L10n.t("A double tap on a post or reel no longer likes it or shows a heart. A single tap and "
                             + "the Like button work as before.")));
+            reels.add(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_POSTS, L10n.t("On posts"),
+                    L10n.t("A double tap on a post doesn't like it. Turn this off to keep double tap to like on posts.")));
+            reels.add(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS, L10n.t("On reels"),
+                    L10n.t("A double tap on a reel doesn't like it. Turn this off to keep double tap to like on reels.")));
         }
         if (build.contains(PatchFamily.REELS_TAB)) {
             reels.add(toggle(context, Settings.HIDE_REELS_TAB, L10n.t("Hide the Reels tab"),

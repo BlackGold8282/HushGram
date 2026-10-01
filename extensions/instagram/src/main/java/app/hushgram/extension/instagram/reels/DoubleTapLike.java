@@ -12,6 +12,7 @@ import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.diagnostics.FeedFilterCounters;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.BooleanSetting;
 
 /**
  * What the Turn off double tap to like patch asks before a double tap likes a post or a reel.
@@ -25,9 +26,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * handler's own path for a viewer with no like action. Double tap to skip and to go forward work as
  * before, and so does a single tap.
  *
- * <p>The Like button likes through other code, so it goes through, and so does every double tap
- * while the switch is off, HushGram is paused or the settings aren't ready, or when anything in here
- * fails.
+ * <p>The switch has one under it for posts and one for reels, so a double tap can keep liking in one
+ * place and not the other. The Like button likes through other code, so it goes through, and so does
+ * every double tap while the switch or the one for its place is off, HushGram is paused or the
+ * settings aren't ready, or when anything in here fails.
  */
 public final class DoubleTapLike {
     /** The diagnostic counter route: each double tap that would have liked, and the ones held back. */
@@ -44,7 +46,7 @@ public final class DoubleTapLike {
      * return before the heart or the like. Never throws.
      */
     public static boolean holdBackPost() {
-        return holdingBack("post");
+        return holdingBack("post", Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_POSTS);
     }
 
     /**
@@ -54,14 +56,15 @@ public final class DoubleTapLike {
      */
     @Nullable
     public static Object likeAction(@Nullable Object action) {
-        return action != null && holdingBack("reel") ? null : action;
+        return action != null && holdingBack("reel", Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS) ? null : action;
     }
 
-    private static boolean holdingBack(String what) {
+    /** Whether the switch and the one under it for this kind of double tap hold it back. */
+    private static boolean holdingBack(String what, BooleanSetting here) {
         try {
             HookStatus.invoked(FamilyNames.DOUBLE_TAP_LIKE);
             FeedFilterCounters.sawList(ROUTE, 1);
-            if (!Utils.settingsReady() || !Settings.TURN_OFF_DOUBLE_TAP_LIKE.get()) return false;
+            if (!Utils.settingsReady() || !Settings.TURN_OFF_DOUBLE_TAP_LIKE.get() || !here.get()) return false;
             FeedFilterCounters.removed(ROUTE, 1, HELD_BACK);
             Logger.printDebug(() -> "Double tap likes: held back a double tap on a " + what);
             return true;
