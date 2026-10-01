@@ -219,3 +219,8 @@ Remove the empty space at the bottom	Leeren Platz unten entfernen
 Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.	Instagram lässt unter der Tableiste manchmal leeren Platz für eine Navigationsleiste, die gar nicht da ist, wenn dein Handy die Navigationsleiste ausblendet oder Instagram in einem Pop-up-Fenster läuft. Damit verschwindet dieser Platz. Starte Instagram nach einer Änderung neu.
 Only accounts you follow	Nur Konten, denen du folgst
 Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.	Entfernt „Für dich“ aus der Auswahl oben auf der Startseite, damit sie bei „Gefolgt“ oder „Favoriten“ bleibt. Funktioniert zusammen mit „Startseite mit Gefolgt öffnen“. Starte Instagram nach einer Änderung neu.
+Profiles	Profile
+Show if a profile follows you	Zeigen, ob ein Profil dir folgt
+Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Zeigt Folgt dir oder Folgt dir nicht neben dem Namen im Profil einer Person, hinter den Pronomen, falls angegeben. Es erscheint erst etwas, wenn Instagram es geprüft hat.
+Follows you	Folgt dir
+Doesn't follow you	Folgt dir nicht

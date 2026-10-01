@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(438);
+        Map<String, String> table = new HashMap<>(448);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -81,6 +81,8 @@ public final class L10nTranslations {
                 "F\u00fcgt dem Men\u00fc eines Beitrags mit Video in deinem Feed \u201eHerunterladen\u201c hinzu. Nutzt die Qualit\u00e4t unten. Aus oder pausiert gilt wieder das Men\u00fc von Instagram.");
         table.put("Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.",
                 "F\u00fcgt dem Men\u00fc jeder Story die Option Herunterladen hinzu, ob Foto oder Video, gespeichert in deiner Download-Qualit\u00e4t. Ausgeschaltet oder pausiert kommt Instagrams eigenes Men\u00fc zur\u00fcck.");
+        table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
+                "Zeigt Folgt dir oder Folgt dir nicht neben dem Namen im Profil einer Person, hinter den Pronomen, falls angegeben. Es erscheint erst etwas, wenn Instagram es gepr\u00fcft hat.");
         table.put("Ads and privacy",
                 "Werbung und Datenschutz");
         table.put("Advertising ID removed",
@@ -137,6 +139,8 @@ public final class L10nTranslations {
                 "Diagnosebericht in die Zwischenablage kopiert.");
         table.put("Disable analytics",
                 "Analysedaten deaktivieren");
+        table.put("Doesn't follow you",
+                "Folgt dir nicht");
         table.put("Don't send reel watch history",
                 "Reel-Wiedergabeverlauf nicht senden");
         table.put("Download",
@@ -171,13 +175,13 @@ public final class L10nTranslations {
                 "Beispiel ohne Beitragsdetails");
         table.put("Explore",
                 "Entdecken");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("Export diagnostic report",
                 "Diagnosebericht exportieren");
         table.put("Feed",
                 "Feed");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("File name",
                 "Dateiname");
         table.put("File name set to %1$s.",
@@ -186,6 +190,8 @@ public final class L10nTranslations {
                 "Ordnername");
         table.put("Folder set to %1$s.",
                 "Ordner auf %1$s gesetzt.");
+        table.put("Follows you",
+                "Folgt dir");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "F\u00fcr WhatsApp, Videoeditoren wie CapCut und InShot oder wenn eine Galerie oder ein Player gespeicherte Videos ohne Ton abspielt. Kann die Qualit\u00e4t senken.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -292,15 +298,15 @@ public final class L10nTranslations {
                 "Videos, Chats und Bilder von dir aus Meta AI, die Instagram in deinen Home-Feed setzt.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "Die meisten gemeldeten Sperrungen bei gepatchtem Instagram beginnen mit der Anmeldung. Nutze ein Konto, das du schon l\u00e4nger hast, schlie\u00dfe jede Pr\u00fcfung von Telefonnummer oder Ausweis ab, die Instagram verlangt, und l\u00f6sche danach nicht die Daten von Instagram. Auf einem gerooteten Handy bleibst du mit einer Root-Mount-Installation angemeldet.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Much larger",
                 "Viel gr\u00f6\u00dfer");
         table.put("Much smaller",
                 "Viel kleiner");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "Nicht gespeichert: Das ist kein Foto oder Video von Instagram");
         table.put("Not saved: the file is over 512 MB",
@@ -325,6 +331,8 @@ public final class L10nTranslations {
                 "Wiedergabequalit\u00e4t");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Beitr\u00e4ge und Reels von Konten, denen du nicht folgst, markiert mit \u201eVorschl\u00e4ge f\u00fcr dich\u201c. Beitr\u00e4ge von Konten, denen du folgst, bleiben.");
+        table.put("Profiles",
+                "Profile");
         table.put("Pure black dark mode",
                 "Rein schwarzer Dunkelmodus");
         table.put("Re-signed build fix",
@@ -383,6 +391,8 @@ public final class L10nTranslations {
                 "Die Einstellungen lie\u00dfen sich nicht vollst\u00e4ndig aktualisieren. \u00d6ffne sie neu und versuche es noch einmal.");
         table.put("Sharing",
                 "Teilen");
+        table.put("Show if a profile follows you",
+                "Zeigen, ob ein Profil dir folgt");
         table.put("Smaller",
                 "Kleiner");
         table.put("Smallest",
@@ -411,6 +421,9 @@ public final class L10nTranslations {
                 "Entfernt \u201eReposten\u201c und die Anzahl bei Beitr\u00e4gen und Reels, damit nichts aus Versehen f\u00fcr deine Follower erneut gepostet wird. \u00dcber \u201eTeilen\u201c schickst du einen Beitrag oder ein Reel weiterhin an andere.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Entfernt stkn, igsh, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst, und \u00f6ffnet Bio-Links ohne Umweg \u00fcber Instagrams Klick-Tracker. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Entfernt die ganze Stories-Leiste oben auf der Startseite, \u201eDeine Story\u201c eingeschlossen. Stories lassen sich weiter \u00fcber ein Profil oder eine Nachricht \u00f6ffnen.");
         table.put("Tap to hide this.",
@@ -421,9 +434,6 @@ public final class L10nTranslations {
                 "Zum Wiedereinschalten tippen.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Der Folgen-Button neben dem Namen der Person, die das Reel gepostet hat. Auf ihrem Profil gibt es ihn weiterhin.");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
                 "Der Tab Suche und der Bereich oben in deinen Nachrichten bekommen eine normale Suchleiste ohne Meta AI, Suchergebnisse verlieren ihre Leiste f\u00fcr Folgefragen, und die obere Leiste der Startseite verliert die Meta-AI-Schaltfl\u00e4chen. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -505,7 +515,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(438);
+        Map<String, String> table = new HashMap<>(448);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -540,6 +550,8 @@ public final class L10nTranslations {
                 "A\u00f1ade Descargar al men\u00fa de una publicaci\u00f3n con video en tu feed. Usa la calidad de abajo. Desactivado o en pausa, vuelve el men\u00fa de Instagram.");
         table.put("Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.",
                 "A\u00f1ade Descargar al men\u00fa de la historia de cualquier persona, sea foto o video, con tu calidad de descarga. Desactivado o en pausa, vuelve el men\u00fa propio de Instagram.");
+        table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
+                "A\u00f1ade Te sigue o No te sigue junto al nombre en el perfil de alguien, despu\u00e9s de sus pronombres si los tiene. No se muestra nada hasta que Instagram lo haya comprobado.");
         table.put("Ads and privacy",
                 "Anuncios y privacidad");
         table.put("Advertising ID removed",
@@ -596,6 +608,8 @@ public final class L10nTranslations {
                 "Informe de diagn\u00f3stico copiado en el portapapeles.");
         table.put("Disable analytics",
                 "Desactivar anal\u00edticas");
+        table.put("Doesn't follow you",
+                "No te sigue");
         table.put("Don't send reel watch history",
                 "No enviar el historial de reels vistos");
         table.put("Download",
@@ -630,13 +644,13 @@ public final class L10nTranslations {
                 "Ejemplo sin datos de la publicaci\u00f3n");
         table.put("Explore",
                 "Explorar");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("Export diagnostic report",
                 "Exportar informe de diagn\u00f3stico");
         table.put("Feed",
                 "Feed");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("File name",
                 "Nombre de archivo");
         table.put("File name set to %1$s.",
@@ -645,6 +659,8 @@ public final class L10nTranslations {
                 "Nombre de carpeta");
         table.put("Folder set to %1$s.",
                 "Carpeta establecida en %1$s.");
+        table.put("Follows you",
+                "Te sigue");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Para WhatsApp, editores de video como CapCut e InShot, o una galer\u00eda o un reproductor que reproduzca sin sonido los videos guardados. Puede bajar la calidad.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -751,15 +767,15 @@ public final class L10nTranslations {
                 "Los videos, chats e im\u00e1genes tuyas de Meta AI que Instagram pone en tu feed de inicio.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "La mayor\u00eda de las suspensiones que se reportan con Instagram parcheado empiezan al iniciar sesi\u00f3n. Usa una cuenta que tengas desde hace tiempo, completa cualquier verificaci\u00f3n de tel\u00e9fono o de identidad que te pida Instagram y no borres los datos de Instagram despu\u00e9s. En un tel\u00e9fono con root, una instalaci\u00f3n Root Mount mantiene tu sesi\u00f3n iniciada.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Much larger",
                 "Mucho m\u00e1s grande");
         table.put("Much smaller",
                 "Mucho m\u00e1s peque\u00f1o");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "No se guard\u00f3: no es una foto ni un video de Instagram");
         table.put("Not saved: the file is over 512 MB",
@@ -784,6 +800,8 @@ public final class L10nTranslations {
                 "Calidad de reproducci\u00f3n");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Publicaciones y reels de cuentas que no sigues, marcados como Sugerencias para ti. Las publicaciones de las cuentas que sigues se quedan.");
+        table.put("Profiles",
+                "Perfiles");
         table.put("Pure black dark mode",
                 "Modo oscuro negro puro");
         table.put("Re-signed build fix",
@@ -842,6 +860,8 @@ public final class L10nTranslations {
                 "No se pudo actualizar la configuraci\u00f3n por completo. Vuelve a abrirla e int\u00e9ntalo de nuevo.");
         table.put("Sharing",
                 "Compartir");
+        table.put("Show if a profile follows you",
+                "Mostrar si un perfil te sigue");
         table.put("Smaller",
                 "M\u00e1s peque\u00f1o");
         table.put("Smallest",
@@ -870,6 +890,9 @@ public final class L10nTranslations {
                 "Quita Republicar y su contador de las publicaciones y los reels, para que nada se republique por error para tus seguidores. Compartir sigue enviando una publicaci\u00f3n o un reel a alguien.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biograf\u00eda sin pasar por el rastreador de clics de Instagram. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Quita toda la fila de historias de arriba de Inicio, incluida Tu historia. Las historias se siguen abriendo desde un perfil o un mensaje.");
         table.put("Tap to hide this.",
@@ -880,9 +903,6 @@ public final class L10nTranslations {
                 "Toca para volver a activarlo.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "El bot\u00f3n Seguir junto al autor de un reel. Su perfil lo sigue teniendo.");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
                 "La pesta\u00f1a Buscar y la parte de arriba de tus mensajes tienen una barra de b\u00fasqueda normal, sin Meta AI, los resultados de b\u00fasqueda pierden su barra de preguntas de seguimiento y la barra superior de Inicio pierde los botones de Meta AI. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -964,7 +984,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(438);
+        Map<String, String> table = new HashMap<>(448);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -999,6 +1019,8 @@ public final class L10nTranslations {
                 "Menambahkan Unduh ke menu postingan berisi video di feed kamu. Memakai kualitas di bawah. Saat nonaktif atau dijeda, menu Instagram sendiri kembali.");
         table.put("Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.",
                 "Menambahkan Unduh ke menu cerita siapa pun, foto atau video, disimpan dengan kualitas unduhan Anda. Saat nonaktif atau dijeda, menu asli Instagram kembali.");
+        table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
+                "Menambahkan Mengikuti kamu atau Tidak mengikuti kamu di samping nama di profil seseorang, setelah kata ganti mereka jika ada. Tidak ada yang muncul sampai Instagram memeriksanya.");
         table.put("Ads and privacy",
                 "Iklan dan privasi");
         table.put("Advertising ID removed",
@@ -1055,6 +1077,8 @@ public final class L10nTranslations {
                 "Laporan diagnostik disalin ke papan klip.");
         table.put("Disable analytics",
                 "Nonaktifkan analitik");
+        table.put("Doesn't follow you",
+                "Tidak mengikuti kamu");
         table.put("Don't send reel watch history",
                 "Jangan kirim riwayat tontonan reel");
         table.put("Download",
@@ -1089,13 +1113,13 @@ public final class L10nTranslations {
                 "Contoh tanpa detail postingan");
         table.put("Explore",
                 "Jelajahi");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("Export diagnostic report",
                 "Ekspor laporan diagnostik");
         table.put("Feed",
                 "Feed");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("File name",
                 "Nama file");
         table.put("File name set to %1$s.",
@@ -1104,6 +1128,8 @@ public final class L10nTranslations {
                 "Nama folder");
         table.put("Folder set to %1$s.",
                 "Folder diatur menjadi %1$s.");
+        table.put("Follows you",
+                "Mengikuti kamu");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -1210,15 +1236,15 @@ public final class L10nTranslations {
                 "Video, chat, dan gambar dirimu dari Meta AI yang dimasukkan Instagram ke feed beranda kamu.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "Sebagian besar penangguhan akun yang dilaporkan pada Instagram yang ditambal bermula saat masuk. Gunakan akun yang sudah lama Anda miliki, selesaikan pemeriksaan nomor telepon atau identitas yang diminta Instagram, dan jangan hapus data Instagram setelahnya. Di ponsel yang sudah di-root, pemasangan Root Mount membuat Anda tetap masuk.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Much larger",
                 "Jauh lebih besar");
         table.put("Much smaller",
                 "Jauh lebih kecil");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "Tidak disimpan: itu bukan foto atau video Instagram");
         table.put("Not saved: the file is over 512 MB",
@@ -1243,6 +1269,8 @@ public final class L10nTranslations {
                 "Kualitas pemutaran");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Postingan dan reel dari akun yang tidak kamu ikuti, bertanda Disarankan untuk kamu. Postingan dari akun yang kamu ikuti tetap ada.");
+        table.put("Profiles",
+                "Profil");
         table.put("Pure black dark mode",
                 "Mode gelap hitam pekat");
         table.put("Re-signed build fix",
@@ -1301,6 +1329,8 @@ public final class L10nTranslations {
                 "Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.");
         table.put("Sharing",
                 "Berbagi");
+        table.put("Show if a profile follows you",
+                "Tampilkan apakah profil mengikuti kamu");
         table.put("Smaller",
                 "Lebih kecil");
         table.put("Smallest",
@@ -1329,6 +1359,9 @@ public final class L10nTranslations {
                 "Menghapus Posting ulang dan jumlahnya dari postingan dan reel, agar tidak ada yang terposting ulang ke pengikut Anda secara tidak sengaja. Bagikan tetap mengirim postingan atau reel ke seseorang.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Menghapus seluruh baris cerita di atas Beranda, termasuk Cerita Anda. Cerita tetap bisa dibuka dari profil atau pesan.");
         table.put("Tap to hide this.",
@@ -1339,9 +1372,6 @@ public final class L10nTranslations {
                 "Ketuk untuk mengaktifkan HushGram lagi.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Tombol Ikuti di samping pembuat reel. Profilnya tetap punya tombol itu.");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
                 "Tab Cari dan bagian atas pesan kamu mendapat bilah pencarian biasa, tanpa Meta AI, hasil pencarian kehilangan bilah pertanyaan lanjutannya, dan bilah atas Beranda kehilangan tombol Meta AI. Mulai ulang Instagram setelah mengubahnya.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -1423,7 +1453,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(438);
+        Map<String, String> table = new HashMap<>(448);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1458,6 +1488,8 @@ public final class L10nTranslations {
                 "Adiciona Baixar ao menu de um post com v\u00eddeo no seu feed. Usa a qualidade abaixo. Desligado ou pausado, o menu do Instagram volta.");
         table.put("Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.",
                 "Adiciona Baixar ao menu do story de qualquer pessoa, foto ou v\u00eddeo, salvo na sua qualidade de download. Desativado ou pausado, o menu do pr\u00f3prio Instagram volta.");
+        table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
+                "Adiciona Segue voc\u00ea ou N\u00e3o segue voc\u00ea ao lado do nome no perfil de algu\u00e9m, depois dos pronomes, se a pessoa tiver definido. Nada aparece at\u00e9 o Instagram verificar.");
         table.put("Ads and privacy",
                 "An\u00fancios e privacidade");
         table.put("Advertising ID removed",
@@ -1514,6 +1546,8 @@ public final class L10nTranslations {
                 "Relat\u00f3rio de diagn\u00f3stico copiado para a \u00e1rea de transfer\u00eancia.");
         table.put("Disable analytics",
                 "Desativar an\u00e1lises");
+        table.put("Doesn't follow you",
+                "N\u00e3o segue voc\u00ea");
         table.put("Don't send reel watch history",
                 "N\u00e3o enviar o hist\u00f3rico de reels assistidos");
         table.put("Download",
@@ -1548,13 +1582,13 @@ public final class L10nTranslations {
                 "Exemplo sem detalhes da publica\u00e7\u00e3o");
         table.put("Explore",
                 "Explorar");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Export diagnostic report",
                 "Exportar relat\u00f3rio de diagn\u00f3stico");
         table.put("Feed",
                 "Feed");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("File name",
                 "Nome do arquivo");
         table.put("File name set to %1$s.",
@@ -1563,6 +1597,8 @@ public final class L10nTranslations {
                 "Nome da pasta");
         table.put("Folder set to %1$s.",
                 "Pasta definida como %1$s.");
+        table.put("Follows you",
+                "Segue voc\u00ea");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "Para o WhatsApp, editores de v\u00eddeo como CapCut e InShot ou uma galeria ou player que reproduza os v\u00eddeos salvos sem som. Pode reduzir a qualidade.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -1669,15 +1705,15 @@ public final class L10nTranslations {
                 "Os v\u00eddeos, chats e imagens suas da Meta AI que o Instagram coloca no seu feed inicial.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "A maioria das suspens\u00f5es relatadas com o Instagram com patches come\u00e7a no login. Use uma conta que voc\u00ea j\u00e1 tem h\u00e1 algum tempo, conclua qualquer verifica\u00e7\u00e3o de telefone ou de identidade que o Instagram pedir e n\u00e3o apague os dados do Instagram depois. Em um celular com root, uma instala\u00e7\u00e3o Root Mount mant\u00e9m voc\u00ea conectado.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Much larger",
                 "Bem maior");
         table.put("Much smaller",
                 "Bem menor");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "N\u00e3o salvo: isso n\u00e3o \u00e9 uma foto nem um v\u00eddeo do Instagram");
         table.put("Not saved: the file is over 512 MB",
@@ -1702,6 +1738,8 @@ public final class L10nTranslations {
                 "Qualidade de reprodu\u00e7\u00e3o");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Posts e reels de contas que voc\u00ea n\u00e3o segue, marcados como Sugest\u00f5es para voc\u00ea. Posts de contas que voc\u00ea segue continuam l\u00e1.");
+        table.put("Profiles",
+                "Perfis");
         table.put("Pure black dark mode",
                 "Modo escuro preto puro");
         table.put("Re-signed build fix",
@@ -1760,6 +1798,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel atualizar completamente as configura\u00e7\u00f5es. Reabra as configura\u00e7\u00f5es e tente novamente.");
         table.put("Sharing",
                 "Compartilhamento");
+        table.put("Show if a profile follows you",
+                "Mostrar se um perfil segue voc\u00ea");
         table.put("Smaller",
                 "Menor");
         table.put("Smallest",
@@ -1788,6 +1828,9 @@ public final class L10nTranslations {
                 "Tira Repostar e a contagem dos posts e reels, para nada ser repostado para seus seguidores sem querer. Compartilhar continua enviando um post ou reel para algu\u00e9m.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Tira toda a fileira de stories do topo do In\u00edcio, incluindo o Seu story. Os stories ainda abrem por um perfil ou uma mensagem.");
         table.put("Tap to hide this.",
@@ -1798,9 +1841,6 @@ public final class L10nTranslations {
                 "Toque para reativar.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "O bot\u00e3o Seguir ao lado de quem postou o reel. O perfil da pessoa continua com ele.");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
                 "A aba Pesquisar e o topo das suas mensagens ficam com uma barra de pesquisa comum, sem a Meta AI, os resultados da pesquisa perdem a barra de perguntas de acompanhamento e a barra superior do In\u00edcio perde os bot\u00f5es da Meta AI. Reinicie o Instagram depois de mudar.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
@@ -1882,7 +1922,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(438);
+        Map<String, String> table = new HashMap<>(448);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1917,6 +1957,8 @@ public final class L10nTranslations {
                 "Ak\u0131\u015f\u0131ndaki videolu bir g\u00f6nderinin men\u00fcs\u00fcne \u0130ndir ekler. A\u015fa\u011f\u0131daki kaliteyi kullan\u0131r. Kapal\u0131yken veya duraklat\u0131ld\u0131\u011f\u0131nda Instagram'\u0131n kendi men\u00fcs\u00fc geri gelir.");
         table.put("Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.",
                 "Herkesin hikayesinin men\u00fcs\u00fcne \u0130ndir ekler, foto\u011fraf ya da video, indirme kalitende kaydedilir. Kapal\u0131yken veya duraklat\u0131ld\u0131\u011f\u0131nda Instagram'\u0131n kendi men\u00fcs\u00fc geri gelir.");
+        table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
+                "Birinin profilinde ad\u0131n\u0131n yan\u0131na, zamirleri varsa onlardan sonra, Seni takip ediyor ya da Seni takip etmiyor ekler. Instagram kontrol edene kadar hi\u00e7bir \u015fey g\u00f6r\u00fcnmez.");
         table.put("Ads and privacy",
                 "Reklamlar ve gizlilik");
         table.put("Advertising ID removed",
@@ -1973,6 +2015,8 @@ public final class L10nTranslations {
                 "Tan\u0131lama raporu panoya kopyaland\u0131.");
         table.put("Disable analytics",
                 "Analiti\u011fi devre d\u0131\u015f\u0131 b\u0131rak");
+        table.put("Doesn't follow you",
+                "Seni takip etmiyor");
         table.put("Don't send reel watch history",
                 "Reel izleme ge\u00e7mi\u015fini g\u00f6nderme");
         table.put("Download",
@@ -2007,13 +2051,13 @@ public final class L10nTranslations {
                 "G\u00f6nderi ayr\u0131nt\u0131lar\u0131 olmadan \u00f6rnek");
         table.put("Explore",
                 "Ke\u015ffet");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("Export diagnostic report",
                 "Tan\u0131lama raporunu d\u0131\u015fa aktar");
         table.put("Feed",
                 "Ak\u0131\u015f");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("File name",
                 "Dosya ad\u0131");
         table.put("File name set to %1$s.",
@@ -2022,6 +2066,8 @@ public final class L10nTranslations {
                 "Klas\u00f6r ad\u0131");
         table.put("Folder set to %1$s.",
                 "Klas\u00f6r %1$s olarak ayarland\u0131.");
+        table.put("Follows you",
+                "Seni takip ediyor");
         table.put("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.",
                 "WhatsApp, CapCut ve InShot gibi video d\u00fczenleyiciler ya da kaydedilen videolar\u0131 sessiz oynatan bir galeri veya oynat\u0131c\u0131 i\u00e7in. Kaliteyi d\u00fc\u015f\u00fcrebilir.");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -2128,15 +2174,15 @@ public final class L10nTranslations {
                 "Instagram'\u0131n ana ak\u0131\u015f\u0131na koydu\u011fu Meta AI videolar\u0131, sohbetleri ve senin g\u00f6rsellerin.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "Yamal\u0131 Instagram ile bildirilen hesap ask\u0131ya almalar\u0131n\u0131n \u00e7o\u011fu giri\u015fte ba\u015flar. Bir s\u00fcredir kulland\u0131\u011f\u0131n bir hesap kullan, Instagram'\u0131n istedi\u011fi telefon veya kimlik do\u011frulamas\u0131n\u0131 tamamla ve sonras\u0131nda Instagram'\u0131n verilerini silme. Root'lu bir telefonda Root Mount kurulumu oturumunu a\u00e7\u0131k tutar.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Much larger",
                 "\u00c7ok daha b\u00fcy\u00fck");
         table.put("Much smaller",
                 "\u00c7ok daha k\u00fc\u00e7\u00fck");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "Kaydedilmedi: Bu bir Instagram foto\u011fraf\u0131 veya videosu de\u011fil");
         table.put("Not saved: the file is over 512 MB",
@@ -2161,6 +2207,8 @@ public final class L10nTranslations {
                 "Oynatma kalitesi");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Takip etmedi\u011fin hesaplardan gelen, Senin i\u00e7in \u00f6nerilenler olarak i\u015faretli g\u00f6nderiler ve reel'ler. Takip etti\u011fin hesaplar\u0131n g\u00f6nderileri kal\u0131r.");
+        table.put("Profiles",
+                "Profiller");
         table.put("Pure black dark mode",
                 "Saf siyah karanl\u0131k mod");
         table.put("Re-signed build fix",
@@ -2219,6 +2267,8 @@ public final class L10nTranslations {
                 "Ayarlar tamamen yenilenemedi. Ayarlar\u0131 yeniden a\u00e7\u0131p tekrar dene.");
         table.put("Sharing",
                 "Payla\u015f\u0131m");
+        table.put("Show if a profile follows you",
+                "Bir profilin seni takip edip etmedi\u011fini g\u00f6ster");
         table.put("Smaller",
                 "Daha k\u00fc\u00e7\u00fck");
         table.put("Smallest",
@@ -2247,6 +2297,9 @@ public final class L10nTranslations {
                 "G\u00f6nderilerden ve reels videolar\u0131ndan Yeniden payla\u015f d\u00fc\u011fmesini ve say\u0131s\u0131n\u0131 kald\u0131r\u0131r, b\u00f6ylece hi\u00e7bir \u015fey yanl\u0131\u015fl\u0131kla takip\u00e7ilerine yeniden payla\u015f\u0131lmaz. Payla\u015f ile bir g\u00f6nderiyi veya reels videosunu birine g\u00f6ndermeye devam edebilirsin.");
         table.put("Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan stkn, igsh, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r, biyografi ba\u011flant\u0131lar\u0131n\u0131 Instagram'\u0131n t\u0131klama izleyicisinden ge\u00e7meden a\u00e7ar. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Ana Sayfa'n\u0131n \u00fcst\u00fcndeki hikaye s\u0131ras\u0131n\u0131, Hikayen dahil tamamen kald\u0131r\u0131r. Hikayeler bir profilden veya mesajdan a\u00e7\u0131lmaya devam eder.");
         table.put("Tap to hide this.",
@@ -2257,9 +2310,6 @@ public final class L10nTranslations {
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Bir reelin sahibinin yan\u0131ndaki Takip Et d\u00fc\u011fmesi. Profilinde h\u00e2l\u00e2 var.");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
                 "Ara sekmesi ve mesajlar\u0131n\u0131n \u00fcst\u00fc, Meta AI olmadan sade bir arama \u00e7ubu\u011fu al\u0131r, arama sonu\u00e7lar\u0131 takip sorusu \u00e7ubu\u011funu kaybeder ve Ana Sayfa'n\u0131n \u00fcst \u00e7ubu\u011fu Meta AI d\u00fc\u011fmelerini kaybeder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",

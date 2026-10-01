@@ -194,6 +194,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting REMOVE_BOTTOM_SPACE =
             new BooleanSetting("hushgram_remove_bottom_space", TRUE);
 
+    /**
+     * Follows you or Doesn't follow you beside the name on someone's profile
+     * ({@link app.hushgram.extension.instagram.profile.FriendshipStatus}). Read each time Instagram
+     * binds a profile's name.
+     */
+    public static final BooleanSetting SHOW_FRIENDSHIP_STATUS =
+            new BooleanSetting("hushgram_show_friendship_status", TRUE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);

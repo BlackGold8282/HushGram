@@ -334,6 +334,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
 
+        if (build.contains(PatchFamily.FRIENDSHIP_STATUS)) {
+            PreferenceCategory profiles = category(screen, L10n.t("Profiles"));
+            profiles.addPreference(toggle(context, Settings.SHOW_FRIENDSHIP_STATUS, L10n.t("Show if a profile follows you"),
+                    L10n.t("Adds Follows you or Doesn't follow you beside the name on someone's profile, after "
+                            + "their pronouns if they've set any. Nothing shows until Instagram has checked.")));
+        }
+
         if (build.contains(PatchFamily.BOTTOM_SPACE)) {
             PreferenceCategory layout = category(screen, L10n.t("Layout"));
             layout.addPreference(toggle(context, Settings.REMOVE_BOTTOM_SPACE, L10n.t("Remove the empty space at the bottom"),
