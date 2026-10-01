@@ -34,6 +34,7 @@ public final class FamilyNames {
     public static final String META_AI = "Hide Meta AI";
     public static final String EXPLORE_GRID = "Hide the Explore grid";
     public static final String SHARE_SHEET = "Hide group buttons on the share sheet";
+    public static final String REPOST_BUTTON = "Hide the Repost button";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";

@@ -169,6 +169,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SHARE_SHEET_GROUP =
             new BooleanSetting("hushgram_hide_share_sheet_group", TRUE);
 
+    /**
+     * The Repost button under posts and beside reels, with its count: every post and reel reads as
+     * one that can't be reposted ({@link app.hushgram.extension.instagram.share.RepostButton}).
+     * Nothing Instagram stores is written, so off or paused, Repost is back on the next post drawn.
+     */
+    public static final BooleanSetting HIDE_REPOST_BUTTON =
+            new BooleanSetting("hushgram_hide_repost_button", TRUE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);

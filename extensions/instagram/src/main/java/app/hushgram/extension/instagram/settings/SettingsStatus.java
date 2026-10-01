@@ -82,6 +82,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean repostButton() {
+        return false;
+    }
+
     public static boolean followingFeed() {
         return false;
     }

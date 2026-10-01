@@ -317,11 +317,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
 
-        if (build.contains(PatchFamily.SHARE_SHEET)) {
+        if (build.contains(PatchFamily.SHARE_SHEET) || build.contains(PatchFamily.REPOST_BUTTON)) {
             PreferenceCategory sharing = category(screen, L10n.t("Sharing"));
-            sharing.addPreference(toggle(context, Settings.HIDE_SHARE_SHEET_GROUP, L10n.t("Hide group buttons"),
-                    L10n.t("Leaves New group out of the share sheet, and the button that sends to the people you "
-                            + "picked as a group. Send separately stays, and you can still start a group from your messages.")));
+            if (build.contains(PatchFamily.SHARE_SHEET)) {
+                sharing.addPreference(toggle(context, Settings.HIDE_SHARE_SHEET_GROUP, L10n.t("Hide group buttons"),
+                        L10n.t("Leaves New group out of the share sheet, and the button that sends to the people you "
+                                + "picked as a group. Send separately stays, and you can still start a group from your messages.")));
+            }
+            if (build.contains(PatchFamily.REPOST_BUTTON)) {
+                sharing.addPreference(toggle(context, Settings.HIDE_REPOST_BUTTON, L10n.t("Hide the Repost button"),
+                        L10n.t("Takes Repost and its count off posts and reels, so nothing gets reposted to your "
+                                + "followers by mistake. Share still sends a post or reel to someone.")));
+            }
         }
 
         // Any download patch brings this section, so each one that saves joins this condition.
