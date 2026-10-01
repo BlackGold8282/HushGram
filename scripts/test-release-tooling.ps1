@@ -1342,6 +1342,18 @@ try {
         $scoped.Reason -like '*scripts/dependency-advisory-exceptions.txt*' -and
         $scoped.Reason -notlike '*what the bundle carries*') `
         'Tooling findings were described as shipped libraries or directed to payload exceptions.'
+    # The affected settings/UTP versions from the 2026-10-01 live audit must still fail.
+    $osvAnswers = @{
+        'pkg:maven/io.netty/netty-handler@4.1.110.Final' = '{"vulns":[{"id":"GHSA-c4c3-7fpv-j4q5","aliases":["CVE-2026-75595"],"database_specific":{"severity":"CRITICAL"}}]}'
+        'pkg:maven/org.jdom/jdom2@2.0.6' = '{"vulns":[{"id":"GHSA-2363-cqg2-863c","aliases":["CVE-2021-33813"],"database_specific":{"severity":"HIGH"}}]}'
+        'pkg:maven/org.bitbucket.b_c/jose4j@0.9.5' = '{"vulns":[{"id":"GHSA-3677-xxcr-wjqv","aliases":["CVE-2024-29371"],"database_specific":{"severity":"HIGH"}}]}'
+    }
+    foreach ($purl in $osvAnswers.Keys) {
+        $control = @(Get-SbomAdvisories -Sbom (New-GateSbom @($purl)))
+        Assert-True ($control.Count -eq 1 -and $control[0].Severity.Serious -and
+            -not (Test-AdvisoryFindings -Findings $control).Valid) `
+            "The affected host-tool control passed: $purl"
+    }
     $osvAnswers = $osvRecorded
 } finally {
     Remove-Item -LiteralPath $advisoryRoot -Recurse -Force -ErrorAction SilentlyContinue

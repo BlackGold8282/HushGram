@@ -65,6 +65,15 @@ buildscript {
                 // not reach it. Match the reviewed catalog pin (GHSA-xxph-c9ww-hj94).
                 useVersion("33.7.2-jre")
             }
+            // AGP's settings classpath: fixed in jose4j 0.9.6 and JDOM 2.0.6.1.
+            // https://github.com/advisories/GHSA-3677-xxcr-wjqv
+            // https://github.com/advisories/GHSA-2363-cqg2-863c
+            if (requested.group == "org.bitbucket.b_c" && requested.name == "jose4j") {
+                useVersion("0.9.7")
+            }
+            if (requested.group == "org.jdom" && requested.name == "jdom2") {
+                useVersion("2.0.6.1")
+            }
         }
     }
 }

@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** AGP's host test tools use Netty 4.1.138, and the settings plugin uses JDOM 2.0.6.1 and jose4j 0.9.7, removing the affected versions found by the dependency audit. These libraries aren't in the shipped extension payload.
+
 * **Tooling:** The dependency audit reports the resolved settings, plugin, build, test and host-contract graphs separately from the shipped SBOM. Missing dependencies stop it. OSV results include a reviewed publisher supplement for Guava, whose settings-plugin copy and shared-extension test graphs now resolve to 33.7.2. Host contracts don't certify an installed Manager or Desktop.
 
 * **Instagram:** The Before you sign in notice and the README's sign-in advice stick to what's known. They used to call a Root Mount install the lowest-risk path and say an older account is treated better, which nobody outside Meta can show. Now they say a re-signed Instagram can't pass Google's Play Store check whatever the patches do, that a Root Mount install keeps the sign-in you already have, that updating over the top with the same key keeps Instagram's data, and that a spare account keeps yours out of it. The notice is updated in all five translations.

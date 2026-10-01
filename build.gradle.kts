@@ -16,8 +16,13 @@ plugins {
 // resolves before this file exists.
 val reviewedBouncyCastle = libs.versions.bouncycastle.get()
 val reviewedGuava = libs.versions.guava.get()
+val reviewedNetty = libs.versions.netty.get()
 allprojects {
     configurations.configureEach {
+        // Only AGP's two host test-tool graphs bring Netty here. Don't change a future
+        // payload or native transport dependency just because it shares the group.
+        val isUtp = name == "_internal-unified-test-platform-core" ||
+                name == "_internal-unified-test-platform-android-test-plugin-host-emulator-control"
         resolutionStrategy.eachDependency {
             if (requested.group == "org.bouncycastle") {
                 useVersion(reviewedBouncyCastle)
@@ -27,6 +32,10 @@ allprojects {
                 // Include tool-created test graphs in modules without a direct Guava request.
                 useVersion(reviewedGuava)
                 because("The resolved dependency audit must use the reviewed Guava release.")
+            }
+            if (isUtp && requested.group == "io.netty" && requested.version?.startsWith("4.1.") == true) {
+                useVersion(reviewedNetty)
+                because("AGP host test tools must use the reviewed Netty 4.1 fixes.")
             }
         }
     }
