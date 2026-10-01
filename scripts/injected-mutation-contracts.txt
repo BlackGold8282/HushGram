@@ -166,11 +166,11 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # a string, so the shape leaves it out). offer() and withhold() are in several builders, so
 # shared-call. The menu's handler of a tapped option asks save() when the option is Download, after
 # comparing the option, so the call isn't first and the rule is once-call.
-shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(Z)Z in static (*)V holding android_purge_26_q3_ClipsDownloadUtil_shouldShowProducerDownloadControls
-shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(Z)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_showRedesignBottomSheet_2
-shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(Z)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_addNonAuthorSpecificRows
-shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->withhold(Z)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_showRedesignBottomSheet_2
-shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->withhold(Z)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_addNonAuthorSpecificRows
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(I)Z in static (*)V holding android_purge_26_q3_ClipsDownloadUtil_shouldShowProducerDownloadControls
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(I)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_showRedesignBottomSheet_2
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->offer(I)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_addNonAuthorSpecificRows
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->withhold(I)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_showRedesignBottomSheet_2
+shared-call Lapp/hushgram/extension/instagram/download/ReelDownload;->withhold(I)Z holding android_purge_26_q3_ClipsOrganicMediaItemViewMoreOptionsController_addNonAuthorSpecificRows
 once-call Lapp/hushgram/extension/instagram/download/ReelDownload;->save(Ljava/lang/Object;Landroid/app/Activity;)Z holding android_purge_26_q3_ClipsOrganicMoreOptionsHelper_handleOptionSelected
 # The reduced reel menu, a short list of options that never had Download, hands its list to addTo()
 # where it returns. It returns once on 449, so one call, and addTo() is called nowhere else.
@@ -219,11 +219,11 @@ start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowDirectStart(
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowDirectStart(Ljava/lang/Object;Ljava/lang/String;)Z in instance (Ljava/lang/String;Z)V holding retry play_after_recovery
 start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
-once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(Z)Z in instance ()Z holding VideoAutoplayChecker zero_rating_or_data_saver
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(I)Z in instance ()Z holding VideoAutoplayChecker zero_rating_or_data_saver
 # The Reels tap hands its resume-or-pause decision to resumeOnTap() just before it branches to the
 # "clips_pause" path, so the call isn't first. Two other methods load "clips_pause"; the tap is the
 # one carrying its togglePause marker.
-once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeOnTap(ZLjava/lang/Object;)Z in instance (Landroid/view/View;*)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause clips_pause
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeOnTap(ILjava/lang/Object;)Z in instance (Landroid/view/View;*)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause clips_pause
 # The story player's resume hands the flag it starts a story on to resumeHeldStory() between reading
 # it and branching on it. No rule can pick the resume. It holds no string, and every field it touches
 # is its own class's Redex name. Its class's strings would pick the class ("reel_video_player" and

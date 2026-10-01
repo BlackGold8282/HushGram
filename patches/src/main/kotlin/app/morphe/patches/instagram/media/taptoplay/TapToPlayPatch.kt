@@ -43,7 +43,7 @@ internal const val ALLOW_START = "$TAP_TO_PLAY->allowStart(Ljava/lang/Object;Lja
 internal const val ALLOW_DIRECT_START = "$TAP_TO_PLAY->allowDirectStart(Ljava/lang/Object;Ljava/lang/String;)Z"
 internal const val PAUSED = "$TAP_TO_PLAY->paused(Ljava/lang/Object;Ljava/lang/String;)V"
 internal const val REBOUND = "$TAP_TO_PLAY->rebound(Ljava/lang/Object;)V"
-internal const val AUTOPLAY_ALLOWED = "$TAP_TO_PLAY->autoplayAllowed(Z)Z"
+internal const val AUTOPLAY_ALLOWED = "$TAP_TO_PLAY->autoplayAllowed(I)Z"
 internal const val PLAY_BUTTON_TAPPED = "$TAP_TO_PLAY->playButtonTapped(Ljava/lang/Object;)V"
 internal const val TOUCH = "$EXTENSION_PACKAGE/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V"
 
@@ -153,7 +153,9 @@ internal fun BytecodePatchContext.holdStartsWithoutATap() {
     mutable(hooks.prepare).addInstructions(0, "invoke-static/range { p0 .. p0 }, $REBOUND")
     mutable(hooks.checker).apply {
         // The call goes in at each return's own label, so a branch straight to a return passes
-        // through it too.
+        // through it too. The hook takes the answer as an int: ART lets a boolean method return a
+        // register it types as int or byte (an and-int/lit8 before the return is enough), and a
+        // boolean parameter would fail verification on that when the class loads.
         implementation!!.instructions.withIndex()
             .filter { it.value.opcode == Opcode.RETURN }
             .map { it.index to (it.value as OneRegisterInstruction).registerA }

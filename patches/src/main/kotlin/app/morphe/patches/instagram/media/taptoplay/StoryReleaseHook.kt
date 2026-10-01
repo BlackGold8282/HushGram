@@ -25,7 +25,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 
-internal const val RESUME_HELD_STORY = "$TAP_TO_PLAY->resumeHeldStory(ZLjava/lang/Object;)Z"
+internal const val RESUME_HELD_STORY = "$TAP_TO_PLAY->resumeHeldStory(ILjava/lang/Object;)Z"
 
 /** The extension class holding the story player's stub, apart from the start gate. */
 internal const val STORY_PLAYER_READER = "$EXTENSION_PACKAGE/media/StoryPlayerReader;"

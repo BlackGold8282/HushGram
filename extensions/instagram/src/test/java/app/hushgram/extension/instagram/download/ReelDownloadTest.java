@@ -61,6 +61,21 @@ public class ReelDownloadTest {
         assertEquals(options(Option.PLAYBACK_CONTROLS, Option.REPORT), reduced);
     }
 
+    /** The patch hands Instagram's answers over as ints, since a boolean method may return one. Non-zero is yes. */
+    @Test
+    public void thePatchsIntEntriesReadNonZeroAsYes() {
+        assertTrue(ReelDownload.offer(0));
+        assertTrue(ReelDownload.offer(2));
+        assertFalse(ReelDownload.withhold(1));
+        Settings.DOWNLOAD_REELS.save(false);
+        assertFalse("with the switch off, 0 became a yes", ReelDownload.offer(0));
+        assertTrue("with the switch off, 1 lost Instagram's yes", ReelDownload.offer(1));
+        assertTrue("2 is a yes too", ReelDownload.offer(2));
+        assertFalse(ReelDownload.withhold(0));
+        assertTrue("with the switch off, Instagram's flag lost its hold", ReelDownload.withhold(1));
+        assertTrue(ReelDownload.withhold(2));
+    }
+
     /** Instagram's option names, as the reduced reel menu's list holds them. */
     private enum Option { SHOP_SIMILAR, SAVE, UNSAVE, PLAYBACK_CONTROLS, DOWNLOAD, WHY_AM_I_SEEING_THIS, REPORT }
 

@@ -47,9 +47,22 @@ public final class ReelDownload {
     /** The source a reel save's lines carry in the diagnostic report. */
     private static final String SOURCE = "ReelDownload";
 
+    /**
+     * The entry the patch calls, handed Instagram's answer as an int, non-zero for yes, so the hook
+     * doesn't depend on Instagram's code leaving that register typed as a boolean.
+     */
+    public static boolean offer(int eligible) {
+        return offer(eligible != 0);
+    }
+
     /** Instagram's answer [eligible] to whether this reel has a Download row, or yes with the switch on. Never throws. */
     public static boolean offer(boolean eligible) {
         return eligible || on();
+    }
+
+    /** The entry the patch calls, handed Instagram's flag as an int, non-zero for yes, as {@link #offer(int)} is. */
+    public static boolean withhold(int held) {
+        return withhold(held != 0);
     }
 
     /** Instagram's flag [held] that keeps the Download row out, or no with the switch on. Never throws. */

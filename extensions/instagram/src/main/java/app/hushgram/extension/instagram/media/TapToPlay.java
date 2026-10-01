@@ -183,6 +183,15 @@ public final class TapToPlay {
     }
 
     /**
+     * The entry the patch calls, handed the autoplay check's answer as an int, non-zero for yes: a
+     * boolean method may return a register the verifier types as int, and a boolean parameter
+     * wouldn't take it.
+     */
+    public static boolean autoplayAllowed(int answer) {
+        return autoplayAllowed(answer != 0);
+    }
+
+    /**
      * The hook at the return of Instagram's VideoAutoplayChecker, the check behind "Use less
      * mobile data". While the switch is on it answers no, so the feed draws its play button on a
      * video instead of starting it. Nothing is stored, so turning the switch off gives Instagram's
@@ -231,6 +240,14 @@ public final class TapToPlay {
     }
 
     /**
+     * The entry the patch calls, handed the Reels tap's decision as an int, non-zero for resume,
+     * so the hook doesn't depend on Instagram's code leaving that register typed as a boolean.
+     */
+    public static boolean resumeOnTap(int resume, @Nullable Object navigator) {
+        return resumeOnTap(resume != 0, navigator);
+    }
+
+    /**
      * The hook in Instagram's Reels tap, at the branch where it has decided between resuming the
      * reel and pausing it, with that decision and the tap's navigator. Instagram resumes only a reel
      * you paused yourself, so a tap on a reel this patch held took the pause path, found nothing
@@ -265,6 +282,14 @@ public final class TapToPlay {
             HookStatus.threw(FamilyNames.TAP_TO_PLAY, "Reels tap", failure);
             return resume;
         }
+    }
+
+    /**
+     * The entry the patch calls, handed the story player's resume flag as an int, non-zero for yes,
+     * so the hook doesn't depend on Instagram's code leaving that register typed as a boolean.
+     */
+    public static boolean resumeHeldStory(int resume, @Nullable Object storyPlayer) {
+        return resumeHeldStory(resume != 0, storyPlayer);
     }
 
     /**

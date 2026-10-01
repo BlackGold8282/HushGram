@@ -41,8 +41,8 @@ internal const val DOWNLOAD = "$OPTION->DOWNLOAD:$OPTION"
 private const val FRAGMENT_ACTIVITY = "Landroidx/fragment/app/FragmentActivity;"
 
 private const val REEL_DOWNLOAD = "$EXTENSION_PACKAGE/download/ReelDownload;"
-internal const val OFFER = "$REEL_DOWNLOAD->offer(Z)Z"
-internal const val WITHHOLD = "$REEL_DOWNLOAD->withhold(Z)Z"
+internal const val OFFER = "$REEL_DOWNLOAD->offer(I)Z"
+internal const val WITHHOLD = "$REEL_DOWNLOAD->withhold(I)Z"
 internal const val SAVE = "$REEL_DOWNLOAD->save(Ljava/lang/Object;Landroid/app/Activity;)Z"
 internal const val ADD_TO = "$REEL_DOWNLOAD->addTo(Ljava/util/List;Ljava/lang/Object;)V"
 

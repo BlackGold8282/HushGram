@@ -31,7 +31,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
-internal const val RESUME_ON_TAP = "$TAP_TO_PLAY->resumeOnTap(ZLjava/lang/Object;)Z"
+internal const val RESUME_ON_TAP = "$TAP_TO_PLAY->resumeOnTap(ILjava/lang/Object;)Z"
 
 /** The extension class holding the stubs, apart from the start gate Instagram's player calls. */
 internal const val REEL_STATE_READER = "$EXTENSION_PACKAGE/media/ReelStateReader;"
@@ -149,10 +149,10 @@ internal fun BytecodePatchContext.hookReelTap(found: ReelTap) {
 /**
  * The Reels tap, the one method carrying the [TOGGLE_PAUSE] marker, and the ClipsVideoPlayerController
  * whose pause carries [PAUSE_CURRENT_PLAYER]. The tap must branch to its [CLIPS_PAUSE] path on one
- * register that holds only a boolean before it, since the hook hands that register over as one,
- * and reach the controller through one Function0 field of its own; the controller's pause
- * must get its player from one field, for the holder its no-argument accessor also returns; and that
- * player must be an interface with one method returning the state enum.
+ * register that holds only a boolean before it, since the extension reads that register as the
+ * tap's yes or no, and reach the controller through one Function0 field of its own; the
+ * controller's pause must get its player from one field, for the holder its no-argument accessor
+ * also returns; and that player must be an interface with one method returning the state enum.
  */
 internal fun BytecodePatchContext.findReelTap(): ReelTap {
     fun refuse(detail: String): Nothing = throw PatchException("$PATCH: the Reels tap: $detail")

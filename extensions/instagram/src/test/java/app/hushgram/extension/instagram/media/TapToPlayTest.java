@@ -569,6 +569,44 @@ public class TapToPlayTest {
         assertFalse(TapToPlay.autoplayAllowed(false));
     }
 
+    /** The patch hands the check's answer over as an int, since a boolean method may return one. Non-zero is yes. */
+    @Test
+    public void theAutoplayChecksIntEntryReadsNonZeroAsYes() {
+        assertFalse("a yes handed over as 1 stayed", TapToPlay.autoplayAllowed(1));
+        assertFalse(TapToPlay.autoplayAllowed(2));
+        assertFalse(TapToPlay.autoplayAllowed(0));
+        Settings.TAP_TO_PLAY.save(false);
+        assertTrue("with the switch off, 1 lost Instagram's yes", TapToPlay.autoplayAllowed(1));
+        assertTrue("2 is a yes too", TapToPlay.autoplayAllowed(2));
+        assertFalse(TapToPlay.autoplayAllowed(0));
+    }
+
+    /** The Reels tap's decision comes over as an int too, non-zero for resume. */
+    @Test
+    public void theReelTapsIntEntryReadsNonZeroAsResume() {
+        TapToPlay.reelStates = asked -> State.PLAYING;
+        assertFalse("a playing reel's pause, handed over as 0", TapToPlay.resumeOnTap(0, new Object()));
+        assertTrue("Instagram's resume, handed over as 1", TapToPlay.resumeOnTap(1, new Object()));
+        assertTrue("2 is a resume too", TapToPlay.resumeOnTap(2, new Object()));
+        TapToPlay.reelStates = asked -> State.PREPARED;
+        assertTrue("a held reel's tap, handed over as 0, still starts it", TapToPlay.resumeOnTap(0, new Object()));
+    }
+
+    /** The story player's resume flag comes over as an int too, non-zero for resume. */
+    @Test
+    public void theStoryReleasesIntEntryReadsNonZeroAsResume() {
+        Object groot = new Object();
+        TapToPlay.storyPlayers = asked -> groot;
+        assertFalse("Instagram's advance, with no tap", TapToPlay.allowDirectStart(groot, "autoplay"));
+        long now = SystemClock.uptimeMillis();
+        holdEnded(now, 90);
+        assertFalse("a quick tap's release, handed over as 0", TapToPlay.resumeHeldStory(0, new Object()));
+        assertTrue("Instagram's resume, handed over as 1", TapToPlay.resumeHeldStory(1, new Object()));
+        assertTrue("2 is a resume too", TapToPlay.resumeHeldStory(2, new Object()));
+        holdEnded(now, aHold());
+        assertTrue("a hold's release on the held story, handed over as 0, starts it", TapToPlay.resumeHeldStory(0, new Object()));
+    }
+
     @Test
     public void debugLoggingSaysEachDecisionThenSumsThemUp() {
         BaseSettings.DEBUG.save(true);
