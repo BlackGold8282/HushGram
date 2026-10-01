@@ -167,6 +167,13 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # Restore trust on re-signed builds puts its call first in the package signer reader, which its
 # fingerprint picks by the SigningInfo and PackageInfo calls it makes. The reader holds no string,
 # so no rule can pick it.
+# Start on x86 devices asks protectCode() in front of each call Instagram makes to its code
+# protection step, RuntimeInternals.mprotectExecCode(). One caller is the idle task runner, an
+# instance method taking nothing whose other arms hold "IgProfiloSessionManager"; the call picks it
+# out from any other method holding that. The other caller, a lambda's step, holds no string, so no
+# rule can pick it, and protectCode() is called there too, so the runner's rule is shared-call.
+# TranslatedStartTest checks every call on each declared build.
+shared-call Lapp/hushgram/extension/instagram/misc/TranslatedStart;->protectCode()I in instance ()V calling static Lcom/facebook/common/dextricks/RuntimeInternals;->mprotectExecCode()V holding IgProfiloSessionManager
 # Hide Reels in the feed passes the item the home feed item class's parse helper returns through
 # the extension. The helper is the class's one static method reading from JSON, found through the
 # parser holding "media_or_ad" and "clips_netego", and it holds no string itself, so no rule can

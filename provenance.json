@@ -111,6 +111,18 @@
     },
     {
       "paths": [
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/TranslatedStart.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/TranslatedStartTest.java",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/translatedstart/TranslatedStartPatch.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "57d9c2f86d7ecb7ad13afab60ce705fbd97f8d42",
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's Start on x86 devices, packages moved from app.morphe.extension.facebook to app.hushgram.extension.instagram. The ABI check came over as it was. Instagram has no list of start-up tasks to skip, so where Facebook's hook added MprotectCode to that list, HushGram's asks before each call Instagram makes to RuntimeInternals.mprotectExecCode() and jumps over the call on a translated device, and logs through HushGram's logger once. The tests were ported with it. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
         "scripts/advisory-exceptions.txt",
         "scripts/build-release-receipt.ps1",
         "scripts/common.ps1",

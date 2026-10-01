@@ -121,4 +121,8 @@ public final class SettingsStatus {
     public static boolean defaultPlaybackQuality() {
         return false;
     }
+
+    public static boolean translatedStart() {
+        return false;
+    }
 }

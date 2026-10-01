@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(384);
+        Map<String, String> table = new HashMap<>(386);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -448,10 +448,12 @@ public final class L10nTranslations {
                 "der Fix f\u00fcr neu signierte Builds");
         table.put("the removed advertising ID permissions",
                 "die entfernten Berechtigungen f\u00fcr die Werbe-ID");
+        table.put("the start-up fix for x86 devices",
+                "der Startfix f\u00fcr x86-Ger\u00e4te");
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(384);
+        Map<String, String> table = new HashMap<>(386);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -853,10 +855,12 @@ public final class L10nTranslations {
                 "el arreglo para la nueva firma");
         table.put("the removed advertising ID permissions",
                 "los permisos del ID de publicidad eliminados");
+        table.put("the start-up fix for x86 devices",
+                "el arreglo de inicio para dispositivos x86");
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(384);
+        Map<String, String> table = new HashMap<>(386);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1258,10 +1262,12 @@ public final class L10nTranslations {
                 "perbaikan build yang ditandatangani ulang");
         table.put("the removed advertising ID permissions",
                 "izin ID iklan yang dihapus");
+        table.put("the start-up fix for x86 devices",
+                "perbaikan saat mulai untuk perangkat x86");
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(384);
+        Map<String, String> table = new HashMap<>(386);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1663,10 +1669,12 @@ public final class L10nTranslations {
                 "a corre\u00e7\u00e3o para vers\u00e3o reassinada");
         table.put("the removed advertising ID permissions",
                 "as permiss\u00f5es do ID de publicidade removidas");
+        table.put("the start-up fix for x86 devices",
+                "a corre\u00e7\u00e3o de inicializa\u00e7\u00e3o para dispositivos x86");
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(384);
+        Map<String, String> table = new HashMap<>(386);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2068,5 +2076,7 @@ public final class L10nTranslations {
                 "yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("the removed advertising ID permissions",
                 "kald\u0131r\u0131lan reklam kimli\u011fi izinleri");
+        table.put("the start-up fix for x86 devices",
+                "x86 cihazlar i\u00e7in a\u00e7\u0131l\u0131\u015f d\u00fczeltmesi");
     }
 }
