@@ -158,7 +158,15 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # the extension. The helper is the class's one static method reading from JSON, found through the
 # parser holding "media_or_ad" and "clips_netego", and it holds no string itself, so no rule can
 # pick it. Hide suggested posts passes the same item through its own filter at the same returns,
-# beside Hide Reels in the feed's when both are in, so no rule can pick it either.
+# beside Hide Reels in the feed's when both are in, so no rule can pick it either. Hide Meta AI's
+# filter goes in at the same returns too.
+#
+# Hide Meta AI answers each read of Meta AI's search flags through searchFlag(), right after the
+# read. The messages inbox's setup, the invoke() holding "direct_inbox" and "hatch_channel_enabled",
+# reads the "ask Meta AI" bar's flag once. The Search tab's flag and the ring's are read in gates
+# holding no string, and DirectSearchInboxFragment.onCreateView reads the bar's flag twice, so no
+# rule picks those; HideMetaAiHookTest checks all five reads on the fixture.
+shared-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->searchFlag(Z)Z in instance ()Ljava/lang/Object; holding direct_inbox hatch_channel_enabled
 #
 # Download any reel lets the Download row into each builder of the reel's more menu: the download
 # check's answer goes through offer() in the legacy builder and both redesigned ones, and the flag

@@ -109,6 +109,17 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_THREADS_POSTS =
             new BooleanSetting("hushgram_hide_threads_posts", TRUE);
 
+    /**
+     * Meta AI in the search bars: the Search tab's ("Search with Meta AI") and the one at the top of
+     * your messages ("Search or ask Meta AI").
+     */
+    public static final BooleanSetting HIDE_META_AI_SEARCH =
+            new BooleanSetting("hushgram_hide_meta_ai_search", TRUE);
+
+    /** Meta AI's units in the home feed: Vibes videos, Meta AI chats and Imagine pictures. */
+    public static final BooleanSetting HIDE_META_AI_POSTS =
+            new BooleanSetting("hushgram_hide_meta_ai_posts", TRUE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);

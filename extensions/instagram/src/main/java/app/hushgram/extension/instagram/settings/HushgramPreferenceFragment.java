@@ -191,6 +191,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("The posts, accounts and communities from Threads that Instagram mixes into your feed.")));
         }
 
+        if (build.contains(PatchFamily.META_AI)) {
+            PreferenceCategory metaAi = category(screen, L10n.t("Meta AI"));
+            metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_SEARCH, L10n.t("Hide Meta AI in search"),
+                    L10n.t("The Search tab and the top of your messages get a plain search bar, without Meta AI. "
+                            + "Restart Instagram after changing it.")));
+            metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_POSTS, L10n.t("Hide Meta AI posts"),
+                    L10n.t("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.")));
+        }
+
         List<Preference> reels = new ArrayList<>();
         if (build.contains(PatchFamily.FEED_REELS)) {
             reels.add(toggle(context, Settings.HIDE_FEED_REELS, L10n.t("Hide Reels in the feed"),

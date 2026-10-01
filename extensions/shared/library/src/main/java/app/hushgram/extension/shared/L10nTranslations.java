@@ -46,10 +46,11 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(352);
+        Map<String, String> table = new HashMap<>(362);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
+        fillDe3(table);
         return table;
     }
 
@@ -185,6 +186,10 @@ public final class L10nTranslations {
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
+        table.put("Hide Meta AI in search",
+                "Meta AI in der Suche ausblenden");
+        table.put("Hide Meta AI posts",
+                "Meta-AI-Beitr\u00e4ge ausblenden");
         table.put("Hide Reels in the feed",
                 "Reels im Feed ausblenden");
         table.put("Hide Threads posts",
@@ -249,6 +254,10 @@ public final class L10nTranslations {
                 "Link abgelaufen. \u00d6ffne den Inhalt neu und versuche es noch einmal");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Sperre ein Reel auf 2x (Rand gedr\u00fcckt halten, dann nach unten wischen), dann laufen auch die n\u00e4chsten Reels mit 2x. Wische die Sperre weg oder halte den Rand und lass los, um zur normalen Geschwindigkeit zur\u00fcckzukehren.");
+        table.put("Meta AI",
+                "Meta AI");
+        table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
+                "Videos, Chats und Bilder von dir aus Meta AI, die Instagram in deinen Home-Feed setzt.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "Die meisten gemeldeten Sperrungen bei gepatchtem Instagram beginnen mit der Anmeldung. Nutze ein Konto, das du schon l\u00e4nger hast, schlie\u00dfe jede Pr\u00fcfung von Telefonnummer oder Ausweis ab, die Instagram verlangt, und l\u00f6sche danach nicht die Daten von Instagram. Auf einem gerooteten Handy bleibst du mit einer Root-Mount-Installation angemeldet.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -289,6 +298,9 @@ public final class L10nTranslations {
                 "Geteilte Links bereinigen");
         table.put("Save",
                 "Speichern");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Speichern abgebrochen");
         table.put("Save folder",
@@ -297,9 +309,6 @@ public final class L10nTranslations {
                 "Vollst\u00e4ndigen Bericht speichern");
         table.put("Save the full report in Download/Morphe.",
                 "Vollst\u00e4ndigen Bericht unter Download/Morphe speichern.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Save videos other apps can open",
                 "Videos speichern, die andere Apps \u00f6ffnen k\u00f6nnen");
         table.put("Saved to %1$s",
@@ -350,6 +359,8 @@ public final class L10nTranslations {
                 "Zum Wiedereinschalten tippen.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Der Folgen-Button neben dem Namen der Person, die das Reel gepostet hat. Auf ihrem Profil gibt es ihn weiterhin.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI. Restart Instagram after changing it.",
+                "Der Tab Suche und der Bereich oben in deinen Nachrichten bekommen eine normale Suchleiste ohne Meta AI. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Die Blasen von Freunden, die etwas mit Gef\u00e4llt mir markiert oder kommentiert haben, der Kommentar unter einem Reel und die Reihe der Freunde, die es gesehen haben. Die Kommentare sind weiterhin nur einen Tipp entfernt.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -410,15 +421,19 @@ public final class L10nTranslations {
                 "Du hast HushGram pausiert.");
         table.put("the re-signed build fix",
                 "der Fix f\u00fcr neu signierte Builds");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "die entfernten Berechtigungen f\u00fcr die Werbe-ID");
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(352);
+        Map<String, String> table = new HashMap<>(362);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
+        fillEs3(table);
         return table;
     }
 
@@ -554,6 +569,10 @@ public final class L10nTranslations {
                 "Informe completo guardado en %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
+        table.put("Hide Meta AI in search",
+                "Ocultar Meta AI en la b\u00fasqueda");
+        table.put("Hide Meta AI posts",
+                "Ocultar publicaciones de Meta AI");
         table.put("Hide Reels in the feed",
                 "Ocultar reels en el feed");
         table.put("Hide Threads posts",
@@ -618,6 +637,10 @@ public final class L10nTranslations {
                 "El enlace expir\u00f3. Vuelve a abrir el contenido e int\u00e9ntalo de nuevo");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Bloquea un reel a 2x (mant\u00e9n pulsado el borde y desliza hacia abajo) y los siguientes reels tambi\u00e9n se reproducen a 2x. Desliza el bloqueo para quitarlo, o mant\u00e9n pulsado el borde y suelta, para volver a la velocidad normal.");
+        table.put("Meta AI",
+                "Meta AI");
+        table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
+                "Los videos, chats e im\u00e1genes tuyas de Meta AI que Instagram pone en tu feed de inicio.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "La mayor\u00eda de las suspensiones que se reportan con Instagram parcheado empiezan al iniciar sesi\u00f3n. Usa una cuenta que tengas desde hace tiempo, completa cualquier verificaci\u00f3n de tel\u00e9fono o de identidad que te pida Instagram y no borres los datos de Instagram despu\u00e9s. En un tel\u00e9fono con root, una instalaci\u00f3n Root Mount mantiene tu sesi\u00f3n iniciada.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -658,6 +681,9 @@ public final class L10nTranslations {
                 "Limpiar enlaces compartidos");
         table.put("Save",
                 "Guardar");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Se cancel\u00f3 el guardado");
         table.put("Save folder",
@@ -666,9 +692,6 @@ public final class L10nTranslations {
                 "Guardar informe completo");
         table.put("Save the full report in Download/Morphe.",
                 "Guarda el informe completo en Download/Morphe.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Save videos other apps can open",
                 "Guardar videos que otras apps puedan abrir");
         table.put("Saved to %1$s",
@@ -719,6 +742,8 @@ public final class L10nTranslations {
                 "Toca para volver a activarlo.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "El bot\u00f3n Seguir junto al autor de un reel. Su perfil lo sigue teniendo.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI. Restart Instagram after changing it.",
+                "La pesta\u00f1a Buscar y la parte de arriba de tus mensajes tienen una barra de b\u00fasqueda normal, sin Meta AI. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Las burbujas de amigos que dieron me gusta o comentaron, el comentario que aparece bajo un reel y la fila de amigos que lo vieron. Los comentarios siguen a un toque.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -779,15 +804,19 @@ public final class L10nTranslations {
                 "Pausaste HushGram.");
         table.put("the re-signed build fix",
                 "el arreglo para la nueva firma");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "los permisos del ID de publicidad eliminados");
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(352);
+        Map<String, String> table = new HashMap<>(362);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
+        fillIn3(table);
         return table;
     }
 
@@ -923,6 +952,10 @@ public final class L10nTranslations {
                 "Laporan lengkap disimpan ke %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
+        table.put("Hide Meta AI in search",
+                "Sembunyikan Meta AI di pencarian");
+        table.put("Hide Meta AI posts",
+                "Sembunyikan postingan Meta AI");
         table.put("Hide Reels in the feed",
                 "Sembunyikan Reels di feed");
         table.put("Hide Threads posts",
@@ -987,6 +1020,10 @@ public final class L10nTranslations {
                 "Tautan kedaluwarsa. Buka ulang kontennya lalu coba lagi");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Kunci reel di 2x (tahan tepinya, lalu geser ke bawah) dan reels berikutnya juga diputar di 2x. Geser kuncinya untuk melepasnya, atau tahan tepinya lalu lepaskan, untuk kembali ke kecepatan normal.");
+        table.put("Meta AI",
+                "Meta AI");
+        table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
+                "Video, chat, dan gambar dirimu dari Meta AI yang dimasukkan Instagram ke feed beranda kamu.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "Sebagian besar penangguhan akun yang dilaporkan pada Instagram yang ditambal bermula saat masuk. Gunakan akun yang sudah lama Anda miliki, selesaikan pemeriksaan nomor telepon atau identitas yang diminta Instagram, dan jangan hapus data Instagram setelahnya. Di ponsel yang sudah di-root, pemasangan Root Mount membuat Anda tetap masuk.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1027,6 +1064,9 @@ public final class L10nTranslations {
                 "Bersihkan tautan berbagi");
         table.put("Save",
                 "Simpan");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Penyimpanan dibatalkan");
         table.put("Save folder",
@@ -1035,9 +1075,6 @@ public final class L10nTranslations {
                 "Simpan laporan lengkap");
         table.put("Save the full report in Download/Morphe.",
                 "Simpan laporan lengkap di Download/Morphe.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Save videos other apps can open",
                 "Simpan video yang bisa dibuka aplikasi lain");
         table.put("Saved to %1$s",
@@ -1088,6 +1125,8 @@ public final class L10nTranslations {
                 "Ketuk untuk mengaktifkan HushGram lagi.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Tombol Ikuti di samping pembuat reel. Profilnya tetap punya tombol itu.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI. Restart Instagram after changing it.",
+                "Tab Cari dan bagian atas pesan kamu mendapat bilah pencarian biasa, tanpa Meta AI. Mulai ulang Instagram setelah mengubahnya.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Gelembung teman yang menyukai atau berkomentar, komentar yang tampil di bawah reel, dan deretan teman yang melihatnya. Komentar tetap bisa dibuka dengan sekali ketuk.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -1148,15 +1187,19 @@ public final class L10nTranslations {
                 "Anda menjeda HushGram.");
         table.put("the re-signed build fix",
                 "perbaikan build yang ditandatangani ulang");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "izin ID iklan yang dihapus");
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(352);
+        Map<String, String> table = new HashMap<>(362);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
+        fillPt_rBR3(table);
         return table;
     }
 
@@ -1292,6 +1335,10 @@ public final class L10nTranslations {
                 "Relat\u00f3rio completo salvo em %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, com os avisos dos projetos em que o HushGram se baseia");
+        table.put("Hide Meta AI in search",
+                "Ocultar a Meta AI na pesquisa");
+        table.put("Hide Meta AI posts",
+                "Ocultar posts da Meta AI");
         table.put("Hide Reels in the feed",
                 "Ocultar reels no feed");
         table.put("Hide Threads posts",
@@ -1356,6 +1403,10 @@ public final class L10nTranslations {
                 "Link expirado. Reabra o item e tente novamente");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Trave um reel em 2x (segure a borda e deslize para baixo) e os pr\u00f3ximos reels tamb\u00e9m tocam em 2x. Deslize a trava para tir\u00e1-la, ou segure a borda e solte, para voltar \u00e0 velocidade normal.");
+        table.put("Meta AI",
+                "Meta AI");
+        table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
+                "Os v\u00eddeos, chats e imagens suas da Meta AI que o Instagram coloca no seu feed inicial.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "A maioria das suspens\u00f5es relatadas com o Instagram com patches come\u00e7a no login. Use uma conta que voc\u00ea j\u00e1 tem h\u00e1 algum tempo, conclua qualquer verifica\u00e7\u00e3o de telefone ou de identidade que o Instagram pedir e n\u00e3o apague os dados do Instagram depois. Em um celular com root, uma instala\u00e7\u00e3o Root Mount mant\u00e9m voc\u00ea conectado.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1396,6 +1447,9 @@ public final class L10nTranslations {
                 "Limpar links compartilhados");
         table.put("Save",
                 "Salvar");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Salvamento cancelado");
         table.put("Save folder",
@@ -1404,9 +1458,6 @@ public final class L10nTranslations {
                 "Salvar relat\u00f3rio completo");
         table.put("Save the full report in Download/Morphe.",
                 "Salve o relat\u00f3rio completo em Download/Morphe.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Save videos other apps can open",
                 "Salvar v\u00eddeos que outros apps conseguem abrir");
         table.put("Saved to %1$s",
@@ -1457,6 +1508,8 @@ public final class L10nTranslations {
                 "Toque para reativar.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "O bot\u00e3o Seguir ao lado de quem postou o reel. O perfil da pessoa continua com ele.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI. Restart Instagram after changing it.",
+                "A aba Pesquisar e o topo das suas mensagens ficam com uma barra de pesquisa comum, sem a Meta AI. Reinicie o Instagram depois de mudar.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Os bal\u00f5es de amigos que curtiram ou comentaram, o coment\u00e1rio mostrado embaixo do reel e a fileira de amigos que o viram. Os coment\u00e1rios continuam a um toque.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -1517,15 +1570,19 @@ public final class L10nTranslations {
                 "Voc\u00ea pausou o HushGram.");
         table.put("the re-signed build fix",
                 "a corre\u00e7\u00e3o para vers\u00e3o reassinada");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "as permiss\u00f5es do ID de publicidade removidas");
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(352);
+        Map<String, String> table = new HashMap<>(362);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
+        fillTr3(table);
         return table;
     }
 
@@ -1661,6 +1718,10 @@ public final class L10nTranslations {
                 "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
+        table.put("Hide Meta AI in search",
+                "Aramada Meta AI'\u0131 gizle");
+        table.put("Hide Meta AI posts",
+                "Meta AI g\u00f6nderilerini gizle");
         table.put("Hide Reels in the feed",
                 "Ak\u0131\u015ftaki reelleri gizle");
         table.put("Hide Threads posts",
@@ -1725,6 +1786,10 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131n\u0131n s\u00fcresi doldu. \u00d6\u011feyi yeniden a\u00e7\u0131p tekrar dene");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Bir reel'i 2x'te kilitle (kenar\u0131n\u0131 bas\u0131l\u0131 tut, sonra a\u015fa\u011f\u0131 kayd\u0131r), sonraki reels'ler de 2x oynar. Normal h\u0131za d\u00f6nmek i\u00e7in kilidi kayd\u0131r\u0131p kald\u0131r ya da kenar\u0131 bas\u0131l\u0131 tutup b\u0131rak.");
+        table.put("Meta AI",
+                "Meta AI");
+        table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
+                "Instagram'\u0131n ana ak\u0131\u015f\u0131na koydu\u011fu Meta AI videolar\u0131, sohbetleri ve senin g\u00f6rsellerin.");
         table.put("Most suspensions reported with patched Instagram start at the sign-in. Use an account you've had for a while, finish any phone or ID check Instagram asks for, and don't clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.",
                 "Yamal\u0131 Instagram ile bildirilen hesap ask\u0131ya almalar\u0131n\u0131n \u00e7o\u011fu giri\u015fte ba\u015flar. Bir s\u00fcredir kulland\u0131\u011f\u0131n bir hesap kullan, Instagram'\u0131n istedi\u011fi telefon veya kimlik do\u011frulamas\u0131n\u0131 tamamla ve sonras\u0131nda Instagram'\u0131n verilerini silme. Root'lu bir telefonda Root Mount kurulumu oturumunu a\u00e7\u0131k tutar.");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1765,6 +1830,9 @@ public final class L10nTranslations {
                 "Payla\u015f\u0131m ba\u011flant\u0131lar\u0131n\u0131 temizle");
         table.put("Save",
                 "Kaydet");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Save cancelled",
                 "Kaydetme iptal edildi");
         table.put("Save folder",
@@ -1773,9 +1841,6 @@ public final class L10nTranslations {
                 "Tam raporu kaydet");
         table.put("Save the full report in Download/Morphe.",
                 "Tam raporu Download/Morphe konumuna kaydeder.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Save videos other apps can open",
                 "Videolar\u0131 di\u011fer uygulamalar\u0131n a\u00e7abilece\u011fi bi\u00e7imde kaydet");
         table.put("Saved to %1$s",
@@ -1826,6 +1891,8 @@ public final class L10nTranslations {
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Bir reelin sahibinin yan\u0131ndaki Takip Et d\u00fc\u011fmesi. Profilinde h\u00e2l\u00e2 var.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI. Restart Instagram after changing it.",
+                "Ara sekmesi ve mesajlar\u0131n\u0131n \u00fcst\u00fc, Meta AI olmadan sade bir arama \u00e7ubu\u011fu al\u0131r. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Be\u011fenen ya da yorum yapan arkada\u015flar\u0131n baloncuklar\u0131, reelin alt\u0131nda g\u00f6sterilen yorum ve onu g\u00f6ren arkada\u015flar\u0131n s\u0131ras\u0131. Yorumlar h\u00e2l\u00e2 bir dokunu\u015f uzakta.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -1886,6 +1953,9 @@ public final class L10nTranslations {
                 "HushGram'u duraklatt\u0131n.");
         table.put("the re-signed build fix",
                 "yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("the removed advertising ID permissions",
                 "kald\u0131r\u0131lan reklam kimli\u011fi izinleri");
     }

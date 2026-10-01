@@ -66,6 +66,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean metaAi() {
+        return false;
+    }
+
     public static boolean reelDeclutter() {
         return false;
     }

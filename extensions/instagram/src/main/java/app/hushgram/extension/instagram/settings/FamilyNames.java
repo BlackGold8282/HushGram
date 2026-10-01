@@ -28,6 +28,7 @@ public final class FamilyNames {
     public static final String STORY_SEEN = "View stories anonymously";
     public static final String FEED_REELS = "Hide Reels in the feed";
     public static final String FEED_SUGGESTIONS = "Hide suggested posts";
+    public static final String META_AI = "Hide Meta AI";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";
