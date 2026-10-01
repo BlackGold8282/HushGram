@@ -531,9 +531,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     /**
-     * How to sign in with the least risk to the account, under the status card until a tap hides
-     * it for good. Most reported suspensions of patched Instagram start at the sign-in, and this
-     * screen opens before it.
+     * What's known about the account and a patched Instagram, under the status card until a tap
+     * hides it for good: Google's check fails on a re-signed build whatever the patches do, and
+     * what keeps the sign-in. It ranks no install or account as safer, since nobody outside Meta
+     * knows what gets an account suspended.
      */
     private static Preference signInNotice(Context context, PreferenceScreen screen) {
         Row notice = new Row(context);
@@ -541,9 +542,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         notice.setKey(SIGN_IN_NOTICE_KEY);
         notice.setIcon(SettingsIcons.icon(context, SettingsIcons.ABOUT, ScreenColors.DEFAULT.heading));
         notice.setTitle(L10n.t("Before you sign in"));
-        notice.setSummary(L10n.t("Most suspensions reported with patched Instagram start at the sign-in. Use an "
-                + "account you've had for a while, finish any phone or ID check Instagram asks for, and don't "
-                + "clear Instagram's data afterward. On a rooted phone, a Root Mount install keeps you signed in.")
+        notice.setSummary(L10n.t("Nobody outside Meta knows what gets an account suspended. A re-signed Instagram "
+                + "can't pass Google's check that it's the Play Store app, and no patch changes that. If you'd rather "
+                + "not risk your account, try a spare one first. Installing updates over the top with the same key "
+                + "keeps Instagram's data and your sign-in, and on a rooted phone a Root Mount install keeps the "
+                + "sign-in you already have.")
                 + " " + L10n.t("Tap to hide this."));
         notice.actsAtOnce = true;
         notice.setOnPreferenceClickListener(row -> {

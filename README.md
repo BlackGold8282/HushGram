@@ -42,12 +42,13 @@ Instagram ships a new version every week and renames most of its code each time.
 ## Before you sign in
 
 > [!WARNING]
-> How you first sign in matters more than anything else for keeping your account. Almost every reported suspension happens when someone logs a brand-new or long-idle account into a freshly patched build for the first time. Instagram asks Google's Play Integrity service and your phone's hardware to vouch that the app is the unmodified one from the Play Store, and a re-signed build can't pass that. Those checks run at sign-in, so the sign-in is the moment that counts. Here's how to lower the risk.
+> Nobody outside Meta knows what gets an account suspended, and HushGram can't make a patched Instagram pass for the Play Store one. Here's what is known, and what each install choice actually does.
 >
-> - **Use an account you've had and actually used for a while.** A seasoned account is treated far better than a new or dormant one. If you'd rather not put the account you care about on the line, sign in with a spare one first and see how it goes.
-> - **If your phone is rooted, use Morphe Manager's Root Mount install.** It layers HushGram over the Play Store Instagram instead of replacing it, so you stay logged in and never do a fresh login on the patched app. That's the lowest-risk path.
-> - **Without root, your first login happens on the patched app, and that's the careful moment.** Uninstalling the Play Store Instagram (install step 4) signs you out, so you'll log back in on HushGram. Do it on a seasoned account, on your normal home network, and if Instagram asks you to confirm your phone number or that you're a real person, go ahead and complete it.
-> - **Afterward, leave Instagram's storage and data alone.** Clearing them forces another fresh login down the same risky path. When a new Instagram version comes out, patch it and install over the top with the same key, which keeps you logged in.
+> - **Instagram can tell the app was re-signed.** Instagram asks Google's Play Integrity service and your phone's hardware whether the app is the unmodified one from the Play Store. Google and the phone give that answer, not the app, so a re-signed build gets a no that no patch can change. Instagram's code ties these checks to signing in. What Meta does with the answer isn't public.
+> - **Reports aren't proof.** People whose accounts were suspended on patched Instagram often describe a new or long-idle account signing in on a fresh install. That's what they saw, not a measured cause, and suspension waves have hit unpatched accounts too. If you'd rather not put the account you care about on the line, try HushGram with a spare one first.
+> - **A Root Mount install keeps the sign-in you have.** On a rooted phone, Morphe Manager's Root Mount layers HushGram over the Play Store Instagram instead of replacing it, so its data carries over and you don't sign in again. Whether that changes how Meta treats the account isn't known.
+> - **Without root, you'll sign in on the patched app.** Uninstalling the Play Store Instagram (install step 4) signs you out and removes its data. Instagram may ask you to confirm your phone number or identity when you sign in, and HushGram doesn't change that step.
+> - **Keep your signing key, and leave Instagram's data alone.** When a new Instagram version comes out, patch it and install over the top with the same key. Android keeps the app's data that way, so you stay signed in. A different key means uninstalling first, and clearing Instagram's storage signs you out as well.
 
 ## Keep your signing key
 
@@ -185,13 +186,13 @@ Instagram changed the part that patch looks for. Leave that patch out to get a w
 
 ## Your Instagram account
 
-**Can Meta tell?** Assume yes. A patched Instagram is signed with your key, not Meta's, and `Restore trust on re-signed builds` exists so the parts of the app that read that signature keep working. More to the point, Instagram asks Google's Play Integrity service and your phone's hardware to confirm the app is the unmodified one from the Play Store, and a re-signed build can't pass that. Those checks run when you sign in. With `Disable analytics` on, Instagram's usage events and crash reports stop reaching Meta as well, and Meta could notice that too.
+**Can Meta tell?** Assume yes. A patched Instagram is signed with your key, not Meta's, and `Restore trust on re-signed builds` exists so the parts of the app that read that signature keep working. More to the point, Instagram asks Google's Play Integrity service and your phone's hardware to confirm the app is the unmodified one from the Play Store, and a re-signed build can't pass that. Instagram's code ties those checks to signing in. With `Disable analytics` on, Instagram's usage events and crash reports stop reaching Meta as well, and Meta could notice that too.
 
 **What stays the same?** Your feed, stories and reels still come from Meta's servers, and HushGram decides on your phone which of them to show. It doesn't post, like, follow or message for you, and it doesn't change how you sign in.
 
 **Could my account be suspended?** Nobody can promise it won't be. Meta's [Terms of Use](https://help.instagram.com/581066165581870) don't allow modified versions of its apps, and Meta can disable accounts that break them. If you'd rather not risk the account you care about, try HushGram with a spare account first.
 
-**Lower the odds.** The single biggest thing you control is how you first sign in, so read [Before you sign in](#before-you-sign-in) up top. Short version: use a seasoned account, prefer a Root Mount install if your phone is rooted, complete any phone or identity check Instagram shows you, and don't clear the app's data afterward.
+**Can I lower the odds?** Nobody can say what does, since Meta doesn't say what it acts on. [Before you sign in](#before-you-sign-in) up top lists what's known. A spare account keeps the one you care about out of it. Updating over the top with the same key, or a Root Mount install on a rooted phone, keeps the sign-in you have instead of starting a new one.
 
 ## Getting help
 
