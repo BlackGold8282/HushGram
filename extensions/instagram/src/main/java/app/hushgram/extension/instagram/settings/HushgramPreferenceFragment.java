@@ -194,8 +194,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (build.contains(PatchFamily.META_AI)) {
             PreferenceCategory metaAi = category(screen, L10n.t("Meta AI"));
             metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_SEARCH, L10n.t("Hide Meta AI in search"),
-                    L10n.t("The Search tab and the top of your messages get a plain search bar, without Meta AI. "
-                            + "Restart Instagram after changing it.")));
+                    L10n.t("The Search tab and the top of your messages get a plain search bar, without Meta AI, "
+                            + "and search results lose their Ask a follow-up bar. Restart Instagram after changing it.")));
             metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_POSTS, L10n.t("Hide Meta AI posts"),
                     L10n.t("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.")));
         }

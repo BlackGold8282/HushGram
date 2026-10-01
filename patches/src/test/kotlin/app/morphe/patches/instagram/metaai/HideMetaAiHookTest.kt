@@ -26,11 +26,16 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction51l
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -41,7 +46,7 @@ class HideMetaAiHookTest {
     /** Both hooks the patch writes are in the MetaAi the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(SEARCH_FLAG, META_AI_FILTER)) {
+        for (hook in listOf(SEARCH_FLAG, META_AI_FILTER, FOLLOW_UP_BAR)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -103,6 +108,69 @@ class HideMetaAiHookTest {
 
         assertEquals(setOf(SEARCH, INBOX, RING), reads.map { it.type }.toSet())
         assertEquals(3, reads.size)
+    }
+
+    /** The bar's stub check answers through the extension; the pills' stub inside the bar is left alone. */
+    @Test
+    fun theFollowUpBarsStubCheckAnswersThroughTheExtension() {
+        val context = PatchContexts.of(listOf(barSetup(RESULTS)))
+
+        context.dropFollowUpBar(context.findFollowUpBarCheck())
+
+        assertDroppedAfterTheCheck(RESULTS, context.mutableClassDefBy(RESULTS).methods.single { it.name == "A06" })
+    }
+
+    @Test
+    fun twoBarSetupsFailThePatch() {
+        val context = PatchContexts.of(listOf(barSetup(RESULTS), barSetup("Lfixture/OtherResults;")))
+        assertThrows(PatchException::class.java) { context.findFollowUpBarCheck() }
+    }
+
+    @Test
+    fun aBarSetupWithoutTheCheckFailsThePatch() {
+        val context = PatchContexts.of(listOf(barSetup(RESULTS, checked = 1)))
+        assertThrows(PatchException::class.java) { context.findFollowUpBarCheck() }
+    }
+
+    /** A check of one view before inflating another is an update the patch hasn't seen. */
+    @Test
+    fun aCheckOfAnotherViewFailsThePatch() {
+        val context = PatchContexts.of(listOf(barSetup(RESULTS, checkedId = 6)))
+        assertThrows(PatchException::class.java) { context.findFollowUpBarCheck() }
+    }
+
+    @Test
+    fun theExtensionsOwnBarSetupIsLeftAlone() {
+        val context = PatchContexts.of(listOf(barSetup("Lapp/hushgram/extension/instagram/metaai/Probe;"), barSetup(RESULTS)))
+        assertEquals(RESULTS, context.findFollowUpBarCheck().type)
+    }
+
+    /** In each declared build the bar setup is found and its stub check answers through the extension. */
+    @Test
+    fun eachDeclaredBuildDropsTheFollowUpBar() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        var checked = 0
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val holders = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    for (classDef in dex.classes) {
+                        if (classDef.methods.any { it.holdsAll(FOLLOW_UP_SETUP) }) holders += ImmutableClassDef.of(classDef)
+                    }
+                }
+                val context = PatchContexts.of(holders)
+
+                val check = context.findFollowUpBarCheck()
+                context.dropFollowUpBar(check)
+
+                val method = context.mutableClassDefBy(check.type).methods.single {
+                    it.name == check.name && it.parameterTypes.map(CharSequence::toString) == check.parameters
+                }
+                assertDroppedAfterTheCheck("${bundle.name} ${check.type}->${check.name}", method)
+                checked++
+            }
+        }
+        assertTrue("no fixture of a declared build", checked > 0)
     }
 
     @Test
@@ -178,7 +246,34 @@ class HideMetaAiHookTest {
         }
     }
 
+    private fun Method.holdsAll(strings: List<String>): Boolean {
+        val held = implementation?.instructions
+            ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string } ?: return false
+        return held.containsAll(strings)
+    }
+
+    /**
+     * The stub check's move-result is followed by the extension call on the same register, its
+     * move-result into it, and the null test; the method has exactly one call to the extension.
+     */
+    private fun assertDroppedAfterTheCheck(what: String, method: Method) {
+        val code = method.instructions()
+        val hooks = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == FOLLOW_UP_BAR }
+        assertEquals("$what: hooks", 1, hooks.size)
+        val hook = hooks.single()
+        val find = code[hook - 2]
+        assertEquals("$what: the check", "Landroid/view/View;->findViewById(I)Landroid/view/View;", (find as ReferenceInstruction).reference.toString())
+        val register = (code[hook - 1] as OneRegisterInstruction).registerA
+        assertEquals("$what: the check's result", Opcode.MOVE_RESULT_OBJECT, code[hook - 1].opcode)
+        assertEquals("$what: the call", Opcode.INVOKE_STATIC_RANGE, code[hook].opcode)
+        assertEquals("$what: the answer", Opcode.MOVE_RESULT_OBJECT, code[hook + 1].opcode)
+        assertEquals("$what: the register", register, (code[hook + 1] as OneRegisterInstruction).registerA)
+        assertEquals("$what: the test", Opcode.IF_EQZ, code[hook + 2].opcode)
+        assertEquals("$what: the tested register", register, (code[hook + 2] as OneRegisterInstruction).registerA)
+    }
+
     private companion object {
+        const val RESULTS = "Lfixture/SearchResultsBar;"
         const val SEARCH = "Lfixture/SearchGate;"
         const val INBOX = "Lfixture/InboxScreen;"
         const val RING = "Lfixture/InboxRingGate;"
@@ -212,6 +307,53 @@ class HideMetaAiHookTest {
                 ImmutableInstruction11x(Opcode.RETURN, 0),
             ),
         )
+
+        /**
+         * Shaped like 449's search results bottom bar setup: its two strings, a findViewById of the
+         * bar's stub whose answer is tested for null, a static lookup of the same id handing the stub
+         * to inflate(), and then the pills' stub, found inside the bar and cast, inflated too.
+         * [checked] is the register the null test reads and [checkedId] the id register the check
+         * passes; the lookup always passes v7.
+         */
+        fun barSetup(type: String, checked: Int = 0, checkedId: Int = 7): ClassDef {
+            val view = "Landroid/view/View;"
+            val stub = "Landroid/view/ViewStub;"
+            val findView = ImmutableMethodReference(view, "findViewById", listOf("I"), view)
+            val inflate = ImmutableMethodReference(stub, "inflate", emptyList(), view)
+            val code = listOf(
+                ImmutableInstruction21c(Opcode.CONST_STRING, 2, ImmutableStringReference("keyboardHeightChangeDetector")),
+                ImmutableInstruction21c(Opcode.CONST_STRING, 2, ImmutableStringReference("bottomSearchSuggestionPillsHelper")),
+                ImmutableInstruction31i(Opcode.CONST, 7, 0x7f0b22bd),
+                ImmutableInstruction31i(Opcode.CONST, 6, 0x7f0b22be),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 3, checkedId, 0, 0, 0, findView),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction21t(Opcode.IF_EQZ, checked, 23),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_STATIC, 2, 3, 7, 0, 0, 0,
+                    ImmutableMethodReference("Lfixture/Views;", "A0C", listOf(view, "I"), stub),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 0, 0, 0, 0, 0, inflate),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction31i(Opcode.CONST, 5, 0x7f0b06a7),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 0, 5, 0, 0, 0, findView),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                ImmutableInstruction21c(Opcode.CHECK_CAST, 1, ImmutableTypeReference(stub)),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, inflate),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                ImmutableInstruction10x(Opcode.RETURN_VOID),
+            )
+            return ImmutableClassDef(
+                type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+                listOf(
+                    ImmutableMethod(
+                        type, "A06", listOf(ImmutableMethodParameter("Lkotlin/jvm/functions/Function1;", null, null)), "V",
+                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                        ImmutableMethodImplementation(10, code, null, null),
+                    ),
+                ),
+            )
+        }
 
         fun holder(type: String, code: List<Instruction>): ClassDef {
             val flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value

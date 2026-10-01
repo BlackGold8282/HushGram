@@ -4,6 +4,8 @@
  */
 package app.hushgram.extension.instagram.metaai;
 
+import android.view.View;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -25,6 +27,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * two more the bar at the top of your messages: its "Search or ask Meta AI" hint, and the Meta AI
  * ring at its end. The patch passes every read of them through {@link #searchFlag}, which answers no
  * while its switch is on, the answer an account without Meta AI gets.
+ *
+ * <p>A keyword search's results end in an "Ask a follow-up…" bar with topic pills above it. Its flag
+ * also gives the results page its header (Back and the query), so it stays on, and the bar's stub
+ * goes through {@link #followUpBar} as the page sets the bar up instead.
  *
  * <p>The home feed's Meta AI units go through {@link #filter} at the feed's parse helper, the way
  * Hide suggested posts' do.
@@ -65,6 +71,25 @@ public final class MetaAi {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.META_AI, "search flag", failure);
             return true;
+        }
+    }
+
+    /**
+     * Injected where the search results page checks that its "Ask a follow-up…" bar's stub is in
+     * the page, with that stub. Answers null, which Instagram takes as a page without the bar, while
+     * Hide Meta AI in search is on, and the stub otherwise, or when anything goes wrong. Never
+     * throws.
+     */
+    public static View followUpBar(View stub) {
+        if (stub == null) return null;
+        try {
+            HookStatus.invoked(FamilyNames.META_AI);
+            if (!Utils.settingsReady() || !Settings.HIDE_META_AI_SEARCH.get()) return stub;
+            Logger.printDebug(() -> "Meta AI: left out the Ask a follow-up bar");
+            return null;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.META_AI, "follow-up bar", failure);
+            return stub;
         }
     }
 

@@ -111,7 +111,7 @@ public class Settings extends BaseSettings {
 
     /**
      * Meta AI in the search bars: the Search tab's ("Search with Meta AI") and the one at the top of
-     * your messages ("Search or ask Meta AI").
+     * your messages ("Search or ask Meta AI"), and the "Ask a follow-up…" bar under search results.
      */
     public static final BooleanSetting HIDE_META_AI_SEARCH =
             new BooleanSetting("hushgram_hide_meta_ai_search", TRUE);

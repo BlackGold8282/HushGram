@@ -9,10 +9,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.view.View;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.List;
 
@@ -61,6 +64,26 @@ public class MetaAiTest {
             assertTrue(MetaAi.searchFlag(1));
             assertTrue(MetaAi.searchFlag(0xff));
             assertFalse(MetaAi.searchFlag(0));
+        } finally {
+            Settings.HIDE_META_AI_SEARCH.save(true);
+        }
+    }
+
+    /** The search switch also leaves the results page's Ask a follow-up bar out, and only that switch. */
+    @Test
+    public void theFollowUpBarFollowsTheSearchSwitch() {
+        View stub = new View(RuntimeEnvironment.getApplication());
+        assertNull(MetaAi.followUpBar(stub));
+        assertNull(MetaAi.followUpBar(null));
+        Settings.HIDE_META_AI_POSTS.save(false);
+        try {
+            assertNull(MetaAi.followUpBar(stub));
+        } finally {
+            Settings.HIDE_META_AI_POSTS.save(true);
+        }
+        Settings.HIDE_META_AI_SEARCH.save(false);
+        try {
+            assertSame(stub, MetaAi.followUpBar(stub));
         } finally {
             Settings.HIDE_META_AI_SEARCH.save(true);
         }
