@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(428);
+        Map<String, String> table = new HashMap<>(434);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -248,6 +248,8 @@ public final class L10nTranslations {
                 "HushGram-Einstellungen lie\u00dfen sich nicht \u00f6ffnen");
         table.put("HushGram turns back on when Instagram restarts.",
                 "HushGram ist wieder aktiv, sobald Instagram neu startet.");
+        table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
+                "Instagram l\u00e4sst unter der Tableiste manchmal leeren Platz f\u00fcr eine Navigationsleiste, die gar nicht da ist, wenn dein Handy die Navigationsleiste ausblendet oder Instagram in einem Pop-up-Fenster l\u00e4uft. Damit verschwindet dieser Platz. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "Instagram kann die Werbe-ID deines Telefons nicht lesen und den Werbediensten von Android nicht mitteilen, welche Anzeigen du gesehen oder angetippt hast. Die Berechtigungen daf\u00fcr fehlen in diesem Build.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
@@ -274,6 +276,8 @@ public final class L10nTranslations {
                 "Reel-Geschwindigkeit beibehalten");
         table.put("Larger",
                 "Gr\u00f6\u00dfer");
+        table.put("Layout",
+                "Layout");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Blendet \u201eNeue Gruppe\u201c im Teilen-Men\u00fc aus, ebenso die Schaltfl\u00e4che, die an die ausgew\u00e4hlten Personen als Gruppe sendet. \u201eEinzeln senden\u201c bleibt, und eine Gruppe kannst du weiterhin in deinen Nachrichten erstellen.");
         table.put("Licenses",
@@ -294,13 +298,13 @@ public final class L10nTranslations {
                 "Viel kleiner");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "Nicht gespeichert: Das ist kein Foto oder Video von Instagram");
         table.put("Not saved: the file is over 512 MB",
                 "Nicht gespeichert: Die Datei ist \u00fcber 512 MB gro\u00df");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("OK",
                 "OK");
         table.put("Open links in external browser",
@@ -329,6 +333,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "Hinweis auf abgelaufene Version entfernen");
+        table.put("Remove the empty space at the bottom",
+                "Leeren Platz unten entfernen");
         table.put("Resume long videos",
                 "Lange Videos fortsetzen");
         table.put("Retry",
@@ -415,15 +421,15 @@ public final class L10nTranslations {
                 "Der Tab Suche und der Bereich oben in deinen Nachrichten bekommen eine normale Suchleiste ohne Meta AI, Suchergebnisse verlieren ihre Leiste f\u00fcr Folgefragen, und die obere Leiste der Startseite verliert die Meta-AI-Schaltfl\u00e4chen. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Die Blasen von Freunden, die etwas mit Gef\u00e4llt mir markiert oder kommentiert haben, der Kommentar unter einem Reel und die Reihe der Freunde, die es gesehen haben. Die Kommentare sind weiterhin nur einen Tipp entfernt.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Der Diagnosebericht lie\u00df sich noch nicht speichern. Versuche es gleich noch einmal.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "Der Diagnosebericht lie\u00df sich nicht speichern. Versuche es noch einmal.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s, um HushGram wieder einzuschalten.");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Die Beitr\u00e4ge und Reels unter der Suchleiste im Tab Suche. Die Suche, deine letzten Suchen und die Suchergebnisse bleiben.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -495,7 +501,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(428);
+        Map<String, String> table = new HashMap<>(434);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -697,6 +703,8 @@ public final class L10nTranslations {
                 "No se pudo abrir la configuraci\u00f3n de HushGram");
         table.put("HushGram turns back on when Instagram restarts.",
                 "HushGram vuelve a activarse cuando Instagram se reinicie.");
+        table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
+                "Instagram puede dejar espacio vac\u00edo debajo de la barra de pesta\u00f1as para una barra de navegaci\u00f3n que no est\u00e1, cuando tu tel\u00e9fono oculta la barra de navegaci\u00f3n o Instagram est\u00e1 en una ventana emergente. Esto quita ese espacio. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "Instagram no puede leer el ID de publicidad de tu tel\u00e9fono ni decir a los servicios de publicidad de Android qu\u00e9 anuncios viste o tocaste. Los permisos para ello ya no est\u00e1n en esta versi\u00f3n.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
@@ -723,6 +731,8 @@ public final class L10nTranslations {
                 "Mantener la velocidad del reel");
         table.put("Larger",
                 "M\u00e1s grande");
+        table.put("Layout",
+                "Dise\u00f1o");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Quita Nuevo grupo del men\u00fa para compartir y el bot\u00f3n que env\u00eda a las personas elegidas como grupo. Enviar por separado se queda, y puedes seguir creando un grupo desde tus mensajes.");
         table.put("Licenses",
@@ -743,13 +753,13 @@ public final class L10nTranslations {
                 "Mucho m\u00e1s peque\u00f1o");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "No se guard\u00f3: no es una foto ni un video de Instagram");
         table.put("Not saved: the file is over 512 MB",
                 "No se guard\u00f3: el archivo supera los 512 MB");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("OK",
                 "Aceptar");
         table.put("Open links in external browser",
@@ -778,6 +788,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "Quitar el aviso de versi\u00f3n caducada");
+        table.put("Remove the empty space at the bottom",
+                "Quitar el espacio vac\u00edo de abajo");
         table.put("Resume long videos",
                 "Reanudar videos largos");
         table.put("Retry",
@@ -864,15 +876,15 @@ public final class L10nTranslations {
                 "La pesta\u00f1a Buscar y la parte de arriba de tus mensajes tienen una barra de b\u00fasqueda normal, sin Meta AI, los resultados de b\u00fasqueda pierden su barra de preguntas de seguimiento y la barra superior de Inicio pierde los botones de Meta AI. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Las burbujas de amigos que dieron me gusta o comentaron, el comentario que aparece bajo un reel y la fila de amigos que lo vieron. Los comentarios siguen a un toque.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Todav\u00eda no se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo en un momento.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "No se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s para volver a activar HushGram.");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Las publicaciones y reels debajo de la barra de la pesta\u00f1a Buscar. La b\u00fasqueda, tus b\u00fasquedas recientes y los resultados se quedan.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -944,7 +956,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(428);
+        Map<String, String> table = new HashMap<>(434);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1146,6 +1158,8 @@ public final class L10nTranslations {
                 "Pengaturan HushGram tidak dapat dibuka");
         table.put("HushGram turns back on when Instagram restarts.",
                 "HushGram aktif lagi saat Instagram dimulai ulang.");
+        table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
+                "Instagram bisa menyisakan ruang kosong di bawah bilah tab untuk bilah navigasi yang tidak ada, saat ponsel Anda menyembunyikan bilah navigasinya atau Instagram berada di jendela pop-up. Ini menghapus ruang tersebut. Mulai ulang Instagram setelah mengubahnya.");
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "Instagram tidak dapat membaca ID iklan ponselmu atau memberi tahu layanan iklan Android iklan mana yang kamu lihat atau ketuk. Izin untuk itu sudah dihapus dari build ini.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
@@ -1172,6 +1186,8 @@ public final class L10nTranslations {
                 "Pertahankan kecepatan reel");
         table.put("Larger",
                 "Lebih besar");
+        table.put("Layout",
+                "Tata letak");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Menghapus Grup baru dari lembar bagikan, juga tombol yang mengirim ke orang-orang yang kamu pilih sebagai grup. Kirim terpisah tetap ada, dan kamu tetap bisa membuat grup dari pesanmu.");
         table.put("Licenses",
@@ -1192,13 +1208,13 @@ public final class L10nTranslations {
                 "Jauh lebih kecil");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "Tidak disimpan: itu bukan foto atau video Instagram");
         table.put("Not saved: the file is over 512 MB",
                 "Tidak disimpan: file lebih dari 512 MB");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("OK",
                 "Oke");
         table.put("Open links in external browser",
@@ -1227,6 +1243,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "Hapus popup build kedaluwarsa");
+        table.put("Remove the empty space at the bottom",
+                "Hapus ruang kosong di bagian bawah");
         table.put("Resume long videos",
                 "Lanjutkan video panjang");
         table.put("Retry",
@@ -1313,15 +1331,15 @@ public final class L10nTranslations {
                 "Tab Cari dan bagian atas pesan kamu mendapat bilah pencarian biasa, tanpa Meta AI, hasil pencarian kehilangan bilah pertanyaan lanjutannya, dan bilah atas Beranda kehilangan tombol Meta AI. Mulai ulang Instagram setelah mengubahnya.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Gelembung teman yang menyukai atau berkomentar, komentar yang tampil di bawah reel, dan deretan teman yang melihatnya. Komentar tetap bisa dibuka dengan sekali ketuk.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "Laporan diagnostik tidak dapat disimpan. Coba lagi.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushGram lagi.");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Postingan dan reel di bawah bilah tab Cari. Pencarian, pencarian terbaru kamu, dan hasil pencarian tetap ada.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -1393,7 +1411,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(428);
+        Map<String, String> table = new HashMap<>(434);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1595,6 +1613,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel abrir as configura\u00e7\u00f5es do HushGram");
         table.put("HushGram turns back on when Instagram restarts.",
                 "O HushGram ser\u00e1 reativado quando o Instagram for reiniciado.");
+        table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
+                "O Instagram pode deixar um espa\u00e7o vazio embaixo da barra de abas para uma barra de navega\u00e7\u00e3o que n\u00e3o existe, quando o celular esconde a barra de navega\u00e7\u00e3o ou o Instagram est\u00e1 numa janela pop-up. Isso tira esse espa\u00e7o. Reinicie o Instagram depois de mudar.");
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "O Instagram n\u00e3o consegue ler o ID de publicidade do seu celular nem informar aos servi\u00e7os de an\u00fancios do Android quais an\u00fancios voc\u00ea viu ou tocou. As permiss\u00f5es para isso foram removidas desta vers\u00e3o.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
@@ -1621,6 +1641,8 @@ public final class L10nTranslations {
                 "Manter a velocidade do reel");
         table.put("Larger",
                 "Maior");
+        table.put("Layout",
+                "Layout");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Tira Novo grupo do menu de compartilhamento e o bot\u00e3o que envia para as pessoas escolhidas como grupo. Enviar separadamente continua, e voc\u00ea ainda pode criar um grupo nas suas mensagens.");
         table.put("Licenses",
@@ -1641,13 +1663,13 @@ public final class L10nTranslations {
                 "Bem menor");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "N\u00e3o salvo: isso n\u00e3o \u00e9 uma foto nem um v\u00eddeo do Instagram");
         table.put("Not saved: the file is over 512 MB",
                 "N\u00e3o foi salvo: o arquivo tem mais de 512 MB");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("OK",
                 "OK");
         table.put("Open links in external browser",
@@ -1676,6 +1698,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "Remover aviso de vers\u00e3o expirada");
+        table.put("Remove the empty space at the bottom",
+                "Remover o espa\u00e7o vazio embaixo");
         table.put("Resume long videos",
                 "Retomar v\u00eddeos longos");
         table.put("Retry",
@@ -1762,15 +1786,15 @@ public final class L10nTranslations {
                 "A aba Pesquisar e o topo das suas mensagens ficam com uma barra de pesquisa comum, sem a Meta AI, os resultados da pesquisa perdem a barra de perguntas de acompanhamento e a barra superior do In\u00edcio perde os bot\u00f5es da Meta AI. Reinicie o Instagram depois de mudar.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Os bal\u00f5es de amigos que curtiram ou comentaram, o coment\u00e1rio mostrado embaixo do reel e a fileira de amigos que o viram. Os coment\u00e1rios continuam a um toque.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "O relat\u00f3rio de diagn\u00f3stico ainda n\u00e3o p\u00f4de ser salvo. Tente de novo em instantes.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "N\u00e3o foi poss\u00edvel salvar o relat\u00f3rio de diagn\u00f3stico. Tente de novo.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushGram.");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Os posts e reels embaixo da barra da aba Pesquisar. A pesquisa, suas pesquisas recentes e os resultados continuam.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -1842,7 +1866,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(428);
+        Map<String, String> table = new HashMap<>(434);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2044,6 +2068,8 @@ public final class L10nTranslations {
                 "HushGram ayarlar\u0131 a\u00e7\u0131lamad\u0131");
         table.put("HushGram turns back on when Instagram restarts.",
                 "HushGram, Instagram yeniden ba\u015flad\u0131\u011f\u0131nda tekrar a\u00e7\u0131l\u0131r.");
+        table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
+                "Telefonun gezinme \u00e7ubu\u011funu gizledi\u011finde veya Instagram a\u00e7\u0131l\u0131r pencerede oldu\u011funda, Instagram sekme \u00e7ubu\u011funun alt\u0131nda olmayan bir gezinme \u00e7ubu\u011fu i\u00e7in bo\u015f yer b\u0131rakabilir. Bu, o alan\u0131 kald\u0131r\u0131r. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "Instagram telefonunun reklam kimli\u011fini okuyamaz ve Android'in reklam hizmetlerine hangi reklamlar\u0131 g\u00f6rd\u00fc\u011f\u00fcn\u00fc veya dokundu\u011funu bildiremez. Bunlar i\u00e7in gereken izinler bu s\u00fcr\u00fcmden kald\u0131r\u0131ld\u0131.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
@@ -2070,6 +2096,8 @@ public final class L10nTranslations {
                 "Reel h\u0131z\u0131n\u0131 koru");
         table.put("Larger",
                 "Daha b\u00fcy\u00fck");
+        table.put("Layout",
+                "D\u00fczen");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Payla\u015f\u0131m men\u00fcs\u00fcnden Yeni grup d\u00fc\u011fmesini ve se\u00e7ti\u011fin ki\u015filere grup olarak g\u00f6nderen d\u00fc\u011fmeyi kald\u0131r\u0131r. Ayr\u0131 ayr\u0131 g\u00f6nder kal\u0131r ve mesajlar\u0131ndan yine grup olu\u015fturabilirsin.");
         table.put("Licenses",
@@ -2090,13 +2118,13 @@ public final class L10nTranslations {
                 "\u00c7ok daha k\u00fc\u00e7\u00fck");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Not saved: that isn't an Instagram photo or video",
                 "Kaydedilmedi: Bu bir Instagram foto\u011fraf\u0131 veya videosu de\u011fil");
         table.put("Not saved: the file is over 512 MB",
                 "Kaydedilmedi: Dosya 512 MB'tan b\u00fcy\u00fck");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("OK",
                 "Tamam");
         table.put("Open links in external browser",
@@ -2125,6 +2153,8 @@ public final class L10nTranslations {
                 "Reels");
         table.put("Remove build expired popup",
                 "S\u00fcresi dolan s\u00fcr\u00fcm uyar\u0131s\u0131n\u0131 kald\u0131r");
+        table.put("Remove the empty space at the bottom",
+                "Alttaki bo\u015f alan\u0131 kald\u0131r");
         table.put("Resume long videos",
                 "Uzun videolara kald\u0131\u011f\u0131n yerden devam et");
         table.put("Retry",
@@ -2211,15 +2241,15 @@ public final class L10nTranslations {
                 "Ara sekmesi ve mesajlar\u0131n\u0131n \u00fcst\u00fc, Meta AI olmadan sade bir arama \u00e7ubu\u011fu al\u0131r, arama sonu\u00e7lar\u0131 takip sorusu \u00e7ubu\u011funu kaybeder ve Ana Sayfa'n\u0131n \u00fcst \u00e7ubu\u011fu Meta AI d\u00fc\u011fmelerini kaybeder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Be\u011fenen ya da yorum yapan arkada\u015flar\u0131n baloncuklar\u0131, reelin alt\u0131nda g\u00f6sterilen yorum ve onu g\u00f6ren arkada\u015flar\u0131n s\u0131ras\u0131. Yorumlar h\u00e2l\u00e2 bir dokunu\u015f uzakta.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Tan\u0131lama raporu hen\u00fcz kaydedilemedi. Birazdan tekrar dene.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "Tan\u0131lama raporu kaydedilemedi. Tekrar dene.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. HushGram'u yeniden a\u00e7mak i\u00e7in onu %2$s i\u00e7inden sil.");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Ara sekmesinin \u00e7ubu\u011fu alt\u0131ndaki g\u00f6nderiler ve reels videolar\u0131. Arama, son aramalar\u0131n ve arama sonu\u00e7lar\u0131 kal\u0131r.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",

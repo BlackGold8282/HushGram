@@ -177,6 +177,15 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_REPOST_BUTTON =
             new BooleanSetting("hushgram_hide_repost_button", TRUE);
 
+    /**
+     * The space Instagram leaves under its tab bar for a navigation bar the phone says isn't there:
+     * when the phone reports no bottom inset, Instagram's guess from the system's navigation bar
+     * height becomes 0 ({@link app.hushgram.extension.instagram.misc.BottomSpace}). Read each time
+     * Instagram lays out its window's insets.
+     */
+    public static final BooleanSetting REMOVE_BOTTOM_SPACE =
+            new BooleanSetting("hushgram_remove_bottom_space", TRUE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);

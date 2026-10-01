@@ -331,6 +331,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
 
+        if (build.contains(PatchFamily.BOTTOM_SPACE)) {
+            PreferenceCategory layout = category(screen, L10n.t("Layout"));
+            layout.addPreference(toggle(context, Settings.REMOVE_BOTTOM_SPACE, L10n.t("Remove the empty space at the bottom"),
+                    L10n.t("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when "
+                            + "your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room "
+                            + "away. Restart Instagram after changing it.")));
+        }
+
         // Any download patch brings this section, so each one that saves joins this condition.
         if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.STORY_DOWNLOAD)
                 || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {

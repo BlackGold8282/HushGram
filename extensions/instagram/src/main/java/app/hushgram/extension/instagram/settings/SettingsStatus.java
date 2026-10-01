@@ -86,6 +86,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean bottomSpace() {
+        return false;
+    }
+
     public static boolean followingFeed() {
         return false;
     }
