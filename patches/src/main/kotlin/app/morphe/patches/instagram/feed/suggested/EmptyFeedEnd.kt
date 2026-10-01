@@ -9,10 +9,12 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -24,6 +26,15 @@ internal const val FEED_ENDED = "$EXTENSION_PACKAGE/feed/FeedSuggestions;->feedE
 /** The log tag of the home feed adapter's model builder, and the key of the loading row it adds. */
 internal const val BUILD_MODELS = "MainfeedAdapter.buildModels"
 internal const val SHIMMER_KEY = "shimmer"
+
+internal const val MORE_AFTER_FOLLOWING = "$EXTENSION_PACKAGE/feed/FeedSuggestions;->moreAfterFollowing(I)I"
+internal const val END_CARD_RULE = "$EXTENSION_PACKAGE/feed/FeedSuggestions;->endCardRule(I)I"
+
+/**
+ * The paging source of Following's pages, which the load more row's show check compares the
+ * latest page's source against. The pages past Following's end card come from another source.
+ */
+internal const val FOLLOWING_FEED = "homecoming_following"
 
 /**
  * The home feed adapter and the flag it reads to tell an empty feed that's finished (no next page)
@@ -91,6 +102,68 @@ internal fun BytecodePatchContext.endEmptiedFeed(end: FeedEnd) {
     }
     if (hooked == 0) refuse("${end.adapter} never reads ${end.flag.name}")
 }
+
+/**
+ * Lets the load more row's end card rule hide the row under an end of feed card with no posts
+ * above it once Hide suggested posts has emptied what came after. The row's show check is the one
+ * instance method answering a boolean that holds [FOLLOWING_FEED]. It applies the rule only when the
+ * latest page came from Following ([END_CARD_RULE] answers its comparison) and there's no next page
+ * ([MORE_AFTER_FOLLOWING] answers that question, the one its class's isLoading() asks too).
+ * Everything past the card is a suggested post, paged from another source, so with Hide suggested
+ * posts on the pages came in empty while a next page was still promised, and the row kept its
+ * spinner under the card for good.
+ */
+internal fun BytecodePatchContext.endFollowingAtItsCard() {
+    val found = mutableListOf<Pair<String, Method>>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            if (!AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+                method.holds(FOLLOWING_FEED)
+            ) {
+                found += classDef.type to method
+            }
+        }
+    }
+    val (type, shows) = found.singleOrNull()
+        ?: refuse("expected one instance boolean method holding $FOLLOWING_FEED, found ${found.size}")
+    val loading = classDefBy(type).methods.singleOrNull { it.name == "isLoading" && it.returnType == "Z" && it.parameterTypes.isEmpty() }
+        ?: refuse("$type has no isLoading()")
+    val asked = (loading.ownQuestions(type) intersect shows.ownQuestions(type)).singleOrNull()
+        ?: refuse("$type->isLoading and ${shows.name} don't share one question")
+    val method = mutableClassDefBy(type).methods.single { it.name == shows.name && it.parameterTypes.isEmpty() }
+    val code = method.implementation!!.instructions.toList()
+    val where = "$type->${shows.name}"
+    val named = code.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == FOLLOWING_FEED }
+    val compared = (named + 1 until code.size).firstOrNull { code[it].calls(STRING_EQUALS) }
+        ?: refuse("$where doesn't compare its feed's source with $FOLLOWING_FEED")
+    val more = code.indices.filter { code[it].calls("$type->$asked()Z") }.singleOrNull()
+        ?: refuse("$where doesn't ask $asked once")
+    if (more < compared) refuse("$where asks $asked before comparing its feed's source")
+    // The later call first, so the earlier index still holds.
+    for ((at, hook) in listOf(more to MORE_AFTER_FOLLOWING, compared to END_CARD_RULE)) {
+        val answer = code.getOrNull(at + 1) as? OneRegisterInstruction
+        if (answer == null || code[at + 1].opcode != Opcode.MOVE_RESULT) refuse("$where drops the answer at $at")
+        method.addInstructions(
+            at + 2,
+            """
+                invoke-static/range { v${answer.registerA} .. v${answer.registerA} }, $hook
+                move-result v${answer.registerA}
+            """,
+        )
+    }
+}
+
+private const val STRING_EQUALS = "Ljava/lang/String;->equals(Ljava/lang/Object;)Z"
+
+/** The names of the boolean methods without parameters this method calls on [type]. */
+private fun Method.ownQuestions(type: String): Set<String> = implementation?.instructions?.toList().orEmpty().mapNotNull {
+    ((it as? ReferenceInstruction)?.reference as? MethodReference)
+        ?.takeIf { called -> called.definingClass == type && called.returnType == "Z" && called.parameterTypes.isEmpty() }?.name
+}.toSet()
+
+private fun Instruction.calls(reference: String) =
+    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == reference
 
 private fun Method.holds(string: String): Boolean = implementation?.instructions?.any {
     ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == string

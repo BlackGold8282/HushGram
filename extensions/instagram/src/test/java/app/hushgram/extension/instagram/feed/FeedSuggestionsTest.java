@@ -163,6 +163,32 @@ public class FeedSuggestionsTest {
         assertEquals(1, FeedSuggestions.feedEnded(1));
     }
 
+    /**
+     * Past Following's end card a promised next page stands until a suggested post's been taken
+     * out, and then only while Hide suggested posts is on.
+     */
+    @Test
+    public void theEndCardRuleAppliesOnceSuggestionsAreTakenOut() {
+        FeedSuggestions.tookOut = false;
+        assertEquals(1, FeedSuggestions.moreAfterFollowing(1));
+        assertEquals(0, FeedSuggestions.moreAfterFollowing(0));
+        assertEquals(0, FeedSuggestions.endCardRule(0));
+        assertEquals(1, FeedSuggestions.endCardRule(1));
+
+        FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY));
+        assertEquals(0, FeedSuggestions.moreAfterFollowing(1));
+        assertEquals(0, FeedSuggestions.moreAfterFollowing(0));
+        assertEquals(1, FeedSuggestions.endCardRule(0));
+        assertEquals(1, FeedSuggestions.endCardRule(1));
+        Settings.HIDE_SUGGESTED_POSTS.save(false);
+        try {
+            assertEquals("suggested posts are back", 1, FeedSuggestions.moreAfterFollowing(1));
+            assertEquals("suggested posts are back", 0, FeedSuggestions.endCardRule(0));
+        } finally {
+            Settings.HIDE_SUGGESTED_POSTS.save(true);
+        }
+    }
+
     /** The diagnostic report counts the suggestions seen and the ones taken out, by kind. */
     @Test
     public void theReportCountsTheSuggestions() {

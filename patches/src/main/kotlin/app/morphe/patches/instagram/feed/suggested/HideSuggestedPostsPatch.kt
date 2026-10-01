@@ -48,6 +48,7 @@ val hideSuggestedPostsPatch = bytecodePatch(
     execute {
         filterSuggestedFeedItems()
         endEmptiedFeed(findFeedEnd())
+        endFollowingAtItsCard()
         enableStatus("feedSuggestions")
     }
 }

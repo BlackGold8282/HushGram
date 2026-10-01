@@ -87,6 +87,46 @@ public final class FeedSuggestions {
     }
 
     /**
+     * Injected where the home feed's load more row asks whether its feed's pages come from
+     * Following. Only then does Instagram hide the row under an end of feed card with no posts
+     * above it, once there's no next page. Past that card the pages are suggested posts, paged from
+     * another source, so the rule stopped applying just when it was needed. Answers 1 once
+     * {@link #filter} has taken items out and Hide suggested posts is on, and [following] otherwise.
+     * The rule still needs the card in the feed and no post in it, so a feed with posts keeps its
+     * row. Never throws.
+     */
+    public static int endCardRule(int following) {
+        if (following != 0 || !suggestionsGone()) return following;
+        Logger.printDebug(() -> "Feed suggestions: load more row checked as Following's");
+        return 1;
+    }
+
+    /**
+     * Injected where that rule asks whether there's a next page. Answers 0 (no next page) once
+     * {@link #filter} has taken items out and Hide suggested posts is on, and [hasMore] otherwise.
+     *
+     * <p>Everything past the end card is a suggested post, which {@link #filter} takes out, so the
+     * pages come in empty while a next page is still promised, and the row kept its spinner under
+     * the card for good. With no next page the row goes. Never throws.
+     */
+    public static int moreAfterFollowing(int hasMore) {
+        if (hasMore == 0 || !suggestionsGone()) return hasMore;
+        Logger.printDebug(() -> "Feed suggestions: no next page past the end card");
+        return 0;
+    }
+
+    /** Whether {@link #filter} has taken items out and Hide suggested posts is on. */
+    private static boolean suggestionsGone() {
+        if (!tookOut) return false;
+        try {
+            return Utils.settingsReady() && Settings.HIDE_SUGGESTED_POSTS.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.FEED_SUGGESTIONS, "end card", failure);
+            return false;
+        }
+    }
+
+    /**
      * Injected at the return of Instagram's feed item parse helper. Answers null for a unit of
      * suggested accounts, a suggested post or a Threads unit while its switch is on, and [item]
      * itself otherwise, or when anything goes wrong. Never throws.

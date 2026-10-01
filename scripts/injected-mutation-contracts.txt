@@ -219,6 +219,12 @@ once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->filter(Ljava/lang/Ob
 # builder beside it, so it has no rule. Left out of the builder, a Home emptied of suggestions keeps
 # its loading placeholder for good.
 shared-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->feedEnded(I)I in instance (ILjava/lang/Integer;)V holding MainfeedAdapter.buildModels shimmer
+# It also answers the load more row's end card rule, in the row's show check (the one instance
+# method answering a boolean that holds Following's paging source): whether the feed pages as
+# Following's through endCardRule(), and whether there's a next page through moreAfterFollowing().
+# Left out, Following's end card keeps a spinner under it for good.
+once-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->endCardRule(I)I in instance ()Z holding homecoming_following
+once-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->moreAfterFollowing(I)I in instance ()Z holding homecoming_following
 #
 # Hide Meta AI answers each read of Meta AI's search flags through searchFlag(), right after the
 # read. The messages inbox's setup, the invoke() holding "direct_inbox" and "hatch_channel_enabled",

@@ -39,12 +39,47 @@ class EmptyFeedEndTest {
     private val feed = "Lfixture/Feed;"
     private val ended = "$feed->ended:Z"
 
+    private val following = "Lfixture/FeedState;"
+
     @Test
-    fun theHookIsInTheExtension() {
+    fun theHooksAreInTheExtension() {
         val declared = ExtensionDex.classDef(FEED_ENDED.substringBefore("->")).methods
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
-        assertTrue("$FEED_ENDED is not in the extension: $declared", FEED_ENDED.substringAfter("->") in declared)
+        for (hook in listOf(FEED_ENDED, END_CARD_RULE, MORE_AFTER_FOLLOWING)) assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
+    }
+
+    /**
+     * The row's show check asks the extension whether its feed pages as Following's right after
+     * comparing the source, and about a next page right after asking the question isLoading()
+     * shares with it. Nothing else it asks goes past the extension.
+     */
+    @Test
+    fun theEndCardRulesQuestionsGoPastTheExtension() {
+        val context = PatchContexts.of(listOf(followingState(), feedNames()))
+
+        context.endFollowingAtItsCard()
+
+        val shows = context.classDefBy(following).methods.single { it.name == "shows" }.implementation!!.instructions.toList()
+        for ((question, hook) in listOf("Ljava/lang/String;->equals(Ljava/lang/Object;)Z" to END_CARD_RULE,
+            "$following->hasMore()Z" to MORE_AFTER_FOLLOWING)) {
+            val asked = shows.indexOfFirst { it.calls(question) }
+            val answer = (shows[asked + 1] as OneRegisterInstruction).registerA
+            val call = shows[asked + 2]
+            assertTrue("$hook right after the answer", call.calls(hook))
+            assertEquals("the answer", answer, (call as RegisterRangeInstruction).startRegister)
+            assertEquals(Opcode.MOVE_RESULT, shows[asked + 3].opcode)
+            assertEquals(answer, (shows[asked + 3] as OneRegisterInstruction).registerA)
+            assertEquals("$hook once", 1, shows.count { it.calls(hook) })
+        }
+        val loading = context.classDefBy(following).methods.single { it.name == "isLoading" }.implementation!!.instructions
+        assertTrue("isLoading is left", loading.none { it.calls(MORE_AFTER_FOLLOWING) })
+    }
+
+    @Test
+    fun anIsLoadingSharingNoQuestionFailsThePatch() {
+        val context = PatchContexts.of(listOf(followingState(shared = false), feedNames()))
+        assertThrows(PatchException::class.java) { context.endFollowingAtItsCard() }
     }
 
     /**
@@ -101,7 +136,7 @@ class EmptyFeedEndTest {
                 val classes = mutableListOf<ClassDef>()
                 FixtureDex.forEach(bundle) { dex ->
                     for (classDef in dex.classes) {
-                        if (classDef.methods.any { it.holds(BUILD_MODELS) }) classes += ImmutableClassDef.of(classDef)
+                        if (classDef.methods.any { it.holds(BUILD_MODELS) || it.holds(FOLLOWING_FEED) }) classes += ImmutableClassDef.of(classDef)
                     }
                 }
                 val context = PatchContexts.of(classes.distinctBy { it.type })
@@ -117,6 +152,24 @@ class EmptyFeedEndTest {
                 for ((code, at) in reads) {
                     assertTrue("${bundle.name}: right after the read", code[at + 1].calls(FEED_ENDED))
                     assertEquals(Opcode.MOVE_RESULT, code[at + 2].opcode)
+                }
+
+                context.endFollowingAtItsCard()
+                for (hook in listOf(END_CARD_RULE, MORE_AFTER_FOLLOWING)) {
+                    val asked = classes.map { it.type }.distinct().flatMap { type ->
+                        context.classDefBy(type).methods.flatMap { method ->
+                            val code = method.implementation?.instructions?.toList().orEmpty()
+                            code.indices.filter { code[it].calls(hook) }.map { Triple(method, code, it) }
+                        }
+                    }
+                    assertEquals("${bundle.name}: $hook asked once", 1, asked.size)
+                    val (shows, code, at) = asked.single()
+                    assertTrue("${bundle.name}: in the show check", shows.holds(FOLLOWING_FEED))
+                    assertEquals(Opcode.MOVE_RESULT, code[at - 1].opcode)
+                    val question = (code[at - 2] as ReferenceInstruction).reference as MethodReference
+                    val expected = if (hook == END_CARD_RULE) "Ljava/lang/String;" else shows.definingClass
+                    assertEquals("${bundle.name}: what $hook answers", expected, question.definingClass)
+                    assertEquals(Opcode.MOVE_RESULT, code[at + 1].opcode)
                 }
                 checked++
             }
@@ -166,10 +219,49 @@ class EmptyFeedEndTest {
         """),
     ))
 
-    private fun method(type: String, name: String, returnType: String, registers: Int, body: String): Method {
+    /**
+     * The load more row's state: its show check holds the Following feed's name and asks whether
+     * there's a next page and whether paging failed, and isLoading() asks whether it's busy and
+     * (unless [shared] is false) whether there's a next page.
+     */
+    private fun followingState(shared: Boolean = true) = classDef(following, listOf(
+        method(following, "shows", "Z", registers = 2, body = """
+            const-string v0, "$FOLLOWING_FEED"
+            invoke-virtual { v0, v0 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :done
+            invoke-virtual { v1 }, $following->hasMore()Z
+            move-result v0
+            if-nez v0, :done
+            invoke-virtual { v1 }, $following->failed()Z
+            move-result v0
+            :done
+            return v0
+        """),
+        method(following, "isLoading", "Z", registers = 2, body = """
+            invoke-virtual { v1 }, $following->busy()Z
+            move-result v0
+            ${if (shared) "invoke-virtual { v1 }, $following->hasMore()Z\nmove-result v0" else ""}
+            return v0
+        """),
+        method(following, "hasMore", "Z", registers = 2, body = "const/4 v0, 0x1\nreturn v0"),
+        method(following, "failed", "Z", registers = 2, body = "const/4 v0, 0x0\nreturn v0"),
+        method(following, "busy", "Z", registers = 2, body = "const/4 v0, 0x0\nreturn v0"),
+    ))
+
+    /** A static table of feed names holding the Following feed's too, which isn't the show check. */
+    private fun feedNames() = classDef("Lfixture/FeedNames;", listOf(
+        method("Lfixture/FeedNames;", "name", "Ljava/lang/String;", registers = 1, static = true, body = """
+            const-string v0, "$FOLLOWING_FEED"
+            return-object v0
+        """),
+    ))
+
+    private fun method(type: String, name: String, returnType: String, registers: Int, body: String, static: Boolean = false): Method {
         val mutable = MutableMethod(
             ImmutableMethod(
-                type, name, emptyList<ImmutableMethodParameter>(), returnType, AccessFlags.PUBLIC.value, null, null,
+                type, name, emptyList<ImmutableMethodParameter>(), returnType,
+                AccessFlags.PUBLIC.value or (if (static) AccessFlags.STATIC.value else 0), null, null,
                 ImmutableMethodImplementation(registers, emptyList(), null, null),
             ),
         )
