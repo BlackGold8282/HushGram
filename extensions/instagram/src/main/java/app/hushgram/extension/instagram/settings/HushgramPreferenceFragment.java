@@ -262,6 +262,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
 
         List<Preference> stories = new ArrayList<>();
+        if (build.contains(PatchFamily.STORIES_TRAY)) {
+            stories.add(toggle(context, Settings.HIDE_SUGGESTED_STORIES, L10n.t("Hide suggested stories"),
+                    L10n.t("Stories in the row at the top of Home from accounts you don't follow, and the accounts "
+                            + "Instagram suggests there. Stories from accounts you follow stay.")));
+            stories.add(toggle(context, Settings.HIDE_STORIES_TRAY, L10n.t("Hide the Stories tray"),
+                    L10n.t("Takes the whole row of stories off the top of Home, Your story included. Stories still "
+                            + "open from a profile or a message.")));
+        }
         if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
             stories.add(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
                     L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.")));

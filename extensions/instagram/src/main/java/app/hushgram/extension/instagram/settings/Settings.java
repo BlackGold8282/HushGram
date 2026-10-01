@@ -109,6 +109,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_THREADS_POSTS =
             new BooleanSetting("hushgram_hide_threads_posts", TRUE);
 
+    /** Stories in the tray at the top of Home from accounts you don't follow, and accounts it suggests. */
+    public static final BooleanSetting HIDE_SUGGESTED_STORIES =
+            new BooleanSetting("hushgram_hide_suggested_stories", TRUE);
+
+    /** The whole row of stories at the top of Home, Your story included. Off until you turn it on. */
+    public static final BooleanSetting HIDE_STORIES_TRAY =
+            new BooleanSetting("hushgram_hide_stories_tray", FALSE);
+
     /**
      * Home opening on the Following feed, with Instagram's For you and Following picker at its top,
      * while you haven't picked a feed there. Instagram remembers a pick from then on.

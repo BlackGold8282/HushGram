@@ -201,6 +201,14 @@ shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in (
 shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in instance (Z)V holding feed_title_with_chevron logo_with_chevron
 shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in (L*;I)Ljava/lang/Object; holding FeedPickerStateManager feedPickerStateManager
 #
+# Hide suggested stories asks hideTray() first thing in Home's story tray row build, the one method
+# holding "MainFeedStoryTrayBinderGroup.buildRowViewTypes", and nowhere else. It passes each item
+# the stories tray response's parser reads through filter() once, in the one unsafeParseFromJson
+# holding "tray", "story_ranking_token" and "remaining_reel_ids_to_fetch".
+start-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->hideTray()Z in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V holding MainFeedStoryTrayBinderGroup.buildRowViewTypes
+once-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->hideTray()Z in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V holding MainFeedStoryTrayBinderGroup.buildRowViewTypes
+once-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->filter(Ljava/lang/Object;)Ljava/lang/Object; in instance (*)Ljava/lang/Object; holding tray story_ranking_token remaining_reel_ids_to_fetch
+#
 # Download any reel lets the Download row into each builder of the reel's more menu: the download
 # check's answer goes through offer() in the legacy builder and both redesigned ones, and the flag
 # that holds the row back goes through withhold() in the two redesigned ones. Each builder is the one

@@ -81,11 +81,11 @@ internal fun BytecodePatchContext.filterParsedFeedItems(patch: String, filter: S
 }
 
 /**
- * The extension finds the item's kind by reading each of its enum fields and comparing the
+ * The extension finds an item's kind by reading each of its enum fields and comparing the
  * constant's name with [kinds]. That holds only while one of the item's enum types names them all,
  * and none of the others names any; fail here when an update changes it.
  */
-private fun BytecodePatchContext.requireOneKindField(patch: String, itemType: String, kinds: List<String>) {
+internal fun BytecodePatchContext.requireOneKindField(patch: String, itemType: String, kinds: List<String>) {
     val enumFields = classDefBy(itemType).fields
         .filter { !AccessFlags.STATIC.isSet(it.accessFlags) }
         .mapNotNull { field -> classDefByOrNull(field.type)?.takeIf { it.superclass == "Ljava/lang/Enum;" } }
