@@ -14,7 +14,7 @@ HushGram is a Morphe patch bundle for Instagram on Android. It hides the ads, ke
 
 It's the Instagram member of a small family. [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) does the same job for Facebook, and HushGram is built on its foundation: the same settings screen, pause switch, diagnostics and checks.
 
-There's no release yet. Version 0.0.2 is the current build, and until a release is published you build the bundle yourself (see [Building from source](#building-from-source)).
+The latest release is [v0.0.2](https://github.com/SysAdminDoc/HushGram/releases/tag/v0.0.2), with 21 patches. It's the first one. Add it to Morphe Manager with [this link](https://morphe.software/add-source?github=SysAdminDoc%2FHushGram).
 
 This project has no connection to Meta or to the Morphe project. Neither endorses it, and neither wrote it.
 
@@ -30,7 +30,7 @@ Every feature has its own switch, and one Pause switch turns them all off at onc
 ## Install
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.32.0 or newer.
-2. Build the bundle (below) and copy the `.mpp` file to your phone. In Morphe Manager, add it as a patch source from your phone's storage.
+2. Add HushGram as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushGram (or build the bundle yourself, below, and add the `.mpp` file from your phone's storage).
 3. Get Instagram 449.0.0.52.84 from [APKMirror](https://www.apkmirror.com/apk/instagram/instagram-instagram/). Take the variant labelled (arm64-v8a) (640dpi) (Android 9.0+), build 385511871. That's the one these patches are checked against. APKMirror carries other arm64-v8a builds of the same version, and Morphe Manager warns about those because they haven't been checked yet.
 4. Uninstall the Instagram you got from the Play Store. The patched app is signed with your own key, so Android won't install it over Meta's. Uninstalling signs you out, so have your password (and your two-factor codes) ready.
 5. In Morphe Manager, pick the Instagram file, keep the default patch selection or change it, and patch.
