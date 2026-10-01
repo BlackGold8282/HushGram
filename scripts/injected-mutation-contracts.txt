@@ -50,10 +50,16 @@ shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->endpoint(Ljava/la
 # Don't send reel watch history asks the extension first thing in both record methods of the batch
 # Instagram posts to clips/write_seen_state/. The one recording a reel reached, an instance method
 # taking two strings, is the only method of that shape holding the purge flag name below on 449.
-# The other, recording watch progress, holds no string, so no rule can pick it; the extension's
-# holdBack() is called from both, so the rule is shared-call.
+# The other, recording watch progress, holds no string, so its rules pick it by its class's: the
+# batch's request builder holds the path and the name of the error it logs, which the patch finds
+# the batch by and no other class holds, and the progress record is the batch's one instance method
+# taking a string and a long. The extension's holdBack() is called from both, so each pair's second
+# rule is shared-call; the reached record holds neither string, so it doesn't count against the
+# progress record's rules.
 start-call Lapp/hushgram/extension/instagram/reels/ReelWatchHistory;->holdBack()Z in instance (Ljava/lang/String;Ljava/lang/String;)V holding android_purge_26_q2_IgAppCheckImpl_getCurrentAppType
 shared-call Lapp/hushgram/extension/instagram/reels/ReelWatchHistory;->holdBack()Z in instance (Ljava/lang/String;Ljava/lang/String;)V holding android_purge_26_q2_IgAppCheckImpl_getCurrentAppType
+start-call Lapp/hushgram/extension/instagram/reels/ReelWatchHistory;->holdBack()Z in instance (Ljava/lang/String;J)V class-holding clips/write_seen_state/ PendingClipsSeenState#progressImpressionsEncodeFailure
+shared-call Lapp/hushgram/extension/instagram/reels/ReelWatchHistory;->holdBack()Z in instance (Ljava/lang/String;J)V class-holding clips/write_seen_state/ PendingClipsSeenState#progressImpressionsEncodeFailure
 #
 # Clean up Reels asks the extension first thing in each part of the Reels viewer it hides, each the
 # one method holding its marker on 449: the Follow button's render, the render of each creation or
@@ -210,8 +216,12 @@ once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(Z)
 # one carrying its togglePause marker.
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeOnTap(ZLjava/lang/Object;)Z in instance (Landroid/view/View;*)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause clips_pause
 # The story player's resume hands the flag it starts a story on to resumeHeldStory() between reading
-# it and branching on it. The resume holds no string and every field it touches is its own class's
-# Redex name, so no rule can pick it; TapToPlayHookTest checks it on each declared build.
+# it and branching on it. No rule can pick the resume. It holds no string, and every field it touches
+# is its own class's Redex name. Its class's strings would pick the class ("reel_video_player" and
+# "already bound" are held together only by it and a string table on 449), but another method of the
+# class, a stub of two instructions, has the resume's shape (a string and a flag in, nothing back),
+# so class-holding can't say which one is the resume either. TapToPlayHookTest checks it on each
+# declared build.
 start-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 once-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 # The feed's Litho play button tells playButtonTapped() right after its click hands the video to
@@ -247,9 +257,13 @@ once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->seeking(Ljava
 once-call Lapp/hushgram/extension/instagram/media/QualityChoice;->firstChoice(Ljava/lang/Object;)V in instance (*)V holding initializeCachedInitSegments CachedSegmentManager
 #
 # View stories anonymously asks the extension first thing in PendingReelSeenStateStore's send, the
-# one method that posts the stories you watched to media/seen/. The send holds no string, so no rule
-# can pick it (its class holds pending_reel_seen_states_, the method doesn't). StorySeenHookTest
-# checks on the 449 fixture that the guard lands there once and nowhere else in the store.
+# one method that posts the stories you watched to media/seen/. The send holds no string, but its
+# class does: the store's read from disk holds the file name and the trace section the patch finds
+# the store by, and no other class holds either on 449. Of the store's methods the send is the one
+# instance method taking one object and answering nothing (its constructor takes two). Left out,
+# every story you watch is reported; twice or elsewhere, it isn't the guard the patch wrote.
+start-call Lapp/hushgram/extension/instagram/stories/StorySeen;->holdBack()Z in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->holdBack()Z in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
 #
 # Turn off double tap to like asks the extension first thing in the feed's double-tap like, the one
 # method every kind of post's gesture delegate hands a double tap to, and returns there before the
@@ -270,9 +284,17 @@ once-call Lapp/hushgram/extension/instagram/reels/DoubleTapLike;->likeAction(Lja
 # isn't the ask the patch wrote.
 start-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object; in static (*)V holding feed_viewpager_view_not_found
 shared-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object; in static (*)V holding feed_viewpager_view_not_found
-# The tab list builder's return and the home tab's return of Reels hold no string a rule could pick
-# them by, and the home tab calls ReelsTab.tab as well, so the switch's rule is shared-call.
-# HideReelsTabHookTest checks on the 449 fixture that each of the three lands once, where it should.
+# The tab list builder hands its list to tabs() where it returns, once on 449, and tabs() is called
+# nowhere else, so the rule is once-call. The builder holds no string, and the one its class holds is
+# "default", which 233 other classes hold too. Among all of them the builder is the one instance
+# method taking a session and a flag and answering a list, so the shape carries the rule, and a
+# second such method in any of them fails it rather than passing.
+once-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tabs(Ljava/util/List;)Ljava/util/List; in instance (Lcom/instagram/common/session/UserSession;Z)Ljava/util/List; class-holding default
+# No rule can pick the home tab's return of Reels, in the builder's class. Another class holding
+# "default" has a static method of its shape too (a session in, one of Instagram's renamed classes
+# back), and the tab constants it reads are Redex names. The home tab calls ReelsTab.tab as well, so
+# the switch's rule is shared-call. HideReelsTabHookTest checks on the 449 fixture that each of the
+# three lands once, where it should.
 #
 # Keep the reel speed hands the extension each speed first thing in the Reels player controller's
 # setPlaybackSpeed, the one method holding its marker. The hold handler, the one method holding
