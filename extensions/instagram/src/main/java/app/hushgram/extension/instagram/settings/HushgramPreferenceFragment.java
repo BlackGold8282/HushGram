@@ -309,6 +309,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
 
+        if (build.contains(PatchFamily.SHARE_SHEET)) {
+            PreferenceCategory sharing = category(screen, L10n.t("Sharing"));
+            sharing.addPreference(toggle(context, Settings.HIDE_SHARE_SHEET_GROUP, L10n.t("Hide group buttons"),
+                    L10n.t("Leaves New group out of the share sheet, and the button that sends to the people you "
+                            + "picked as a group. Send separately stays, and you can still start a group from your messages.")));
+        }
+
         // Any download patch brings this section, so each one that saves joins this condition.
         if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.STORY_DOWNLOAD)
                 || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {

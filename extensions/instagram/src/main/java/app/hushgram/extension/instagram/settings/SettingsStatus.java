@@ -74,6 +74,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean shareSheet() {
+        return false;
+    }
+
     public static boolean followingFeed() {
         return false;
     }

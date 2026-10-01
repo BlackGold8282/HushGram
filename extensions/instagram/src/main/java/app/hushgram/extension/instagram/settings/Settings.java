@@ -143,6 +143,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_EXPLORE_GRID =
             new BooleanSetting("hushgram_hide_explore_grid", TRUE);
 
+    /**
+     * The New group button beside the share sheet's search bar, whichever form Instagram gives it,
+     * and the button that sends to the people you picked there as a group.
+     */
+    public static final BooleanSetting HIDE_SHARE_SHEET_GROUP =
+            new BooleanSetting("hushgram_hide_share_sheet_group", TRUE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);
