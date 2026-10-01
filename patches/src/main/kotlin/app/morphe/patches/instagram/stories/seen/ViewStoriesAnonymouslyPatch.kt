@@ -36,7 +36,7 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "View stories anonymously",
     description = "Keeps you off the viewer list of the stories you watch, because Instagram isn't told which " +
-        "ones you've seen. Replying or reacting still shows you, and stories you've watched can show as new again.",
+        "ones you've seen. Replying or reacting still shows you, and stories you've watched keep showing as new.",
     default = false,
 ) {
     category("Privacy")

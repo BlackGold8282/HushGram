@@ -221,8 +221,8 @@ public final class L10nTranslations {
                 "Instagram ist dreimal hintereinander innerhalb einer Minute nach dem Start abgest\u00fcrzt oder h\u00e4ngen geblieben, deshalb hat sich HushGram selbst pausiert.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram erf\u00e4hrt nicht, welche Reels du angesehen hast und wie weit. Damit sortiert es deine Reels, und sonst sieht das niemand. Bereits gesehene Reels k\u00f6nnen wieder auftauchen.");
-        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
-                "Instagram erf\u00e4hrt nicht, welche Stories du ansiehst, deshalb stehst du nicht in ihren Zuschauerlisten. Wenn du antwortest oder reagierst, sieht man dich trotzdem, und Stories, die du schon angesehen hast, k\u00f6nnen wieder als neu erscheinen.");
+        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
+                "Instagram erf\u00e4hrt nicht, welche Stories du ansiehst, deshalb stehst du nicht in ihren Zuschauerlisten. Wenn du antwortest oder reagierst, sieht man dich trotzdem, und Stories, die du schon angesehen hast, erscheinen weiter als neu.");
         table.put("Instagram picks the quality as each video plays, from your connection.",
                 "Instagram w\u00e4hlt die Qualit\u00e4t beim Abspielen jedes Videos passend zu deiner Verbindung.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
@@ -576,8 +576,8 @@ public final class L10nTranslations {
                 "Tres veces seguidas, Instagram fall\u00f3 o se congel\u00f3 durante el primer minuto tras iniciarse, as\u00ed que HushGram se paus\u00f3 solo.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram no sabe qu\u00e9 reels viste ni hasta d\u00f3nde llegaste. Con eso ordena tus Reels, y nadie m\u00e1s lo ve. Los reels que ya viste pueden volver a aparecer.");
-        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
-                "Instagram no sabe qu\u00e9 historias ves, as\u00ed que no apareces en sus listas de espectadores. Si respondes o reaccionas, se te sigue viendo, y las historias que ya viste pueden volver a aparecer como nuevas.");
+        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
+                "Instagram no sabe qu\u00e9 historias ves, as\u00ed que no apareces en sus listas de espectadores. Si respondes o reaccionas, se te sigue viendo, y las historias que ya viste siguen apareciendo como nuevas.");
         table.put("Instagram picks the quality as each video plays, from your connection.",
                 "Instagram elige la calidad mientras se reproduce cada video, seg\u00fan tu conexi\u00f3n.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
@@ -931,8 +931,8 @@ public final class L10nTranslations {
                 "Instagram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushGram menjeda dirinya sendiri.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram tidak diberi tahu reel mana yang Anda tonton atau sampai mana. Instagram memakainya untuk mengurutkan Reels Anda, dan tidak ada orang lain yang melihatnya. Reel yang sudah Anda tonton bisa muncul lagi.");
-        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
-                "Instagram tidak diberi tahu cerita mana yang kamu tonton, jadi kamu tidak masuk daftar penontonnya. Membalas atau memberi reaksi tetap menunjukkan dirimu, dan cerita yang sudah kamu tonton bisa tampil sebagai cerita baru lagi.");
+        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
+                "Instagram tidak diberi tahu cerita mana yang kamu tonton, jadi kamu tidak masuk daftar penontonnya. Membalas atau memberi reaksi tetap menunjukkan dirimu, dan cerita yang sudah kamu tonton tetap tampil sebagai cerita baru.");
         table.put("Instagram picks the quality as each video plays, from your connection.",
                 "Instagram memilih kualitas saat setiap video diputar, sesuai koneksi Anda.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
@@ -1286,8 +1286,8 @@ public final class L10nTranslations {
                 "O Instagram fechou com erro ou travou no primeiro minuto ap\u00f3s iniciar, tr\u00eas vezes seguidas, ent\u00e3o o HushGram foi pausado automaticamente.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "O Instagram n\u00e3o fica sabendo quais reels voc\u00ea assistiu nem at\u00e9 onde. Ele usa isso para ordenar seus Reels, e ningu\u00e9m mais v\u00ea. Reels que voc\u00ea j\u00e1 assistiu podem voltar a aparecer.");
-        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
-                "O Instagram n\u00e3o fica sabendo quais Stories voc\u00ea assiste, ent\u00e3o voc\u00ea fica fora das listas de quem viu. Responder ou reagir ainda mostra voc\u00ea, e Stories que voc\u00ea j\u00e1 viu podem voltar a aparecer como novos.");
+        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
+                "O Instagram n\u00e3o fica sabendo quais Stories voc\u00ea assiste, ent\u00e3o voc\u00ea fica fora das listas de quem viu. Responder ou reagir ainda mostra voc\u00ea, e Stories que voc\u00ea j\u00e1 viu continuam aparecendo como novos.");
         table.put("Instagram picks the quality as each video plays, from your connection.",
                 "O Instagram escolhe a qualidade enquanto cada v\u00eddeo \u00e9 reproduzido, de acordo com sua conex\u00e3o.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
@@ -1641,8 +1641,8 @@ public final class L10nTranslations {
                 "Instagram a\u00e7\u0131ld\u0131ktan sonraki bir dakika i\u00e7inde \u00fcst \u00fcste \u00fc\u00e7 kez \u00e7\u00f6kt\u00fc veya dondu, bu y\u00fczden HushGram kendini duraklatt\u0131.");
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram hangi reelleri izledi\u011fini ve ne kadar\u0131n\u0131 izledi\u011fini \u00f6\u011frenmez. Reels ak\u0131\u015f\u0131n\u0131 buna g\u00f6re s\u0131ralar ve bunu ba\u015fka kimse g\u00f6rmez. \u0130zledi\u011fin reeller yeniden kar\u015f\u0131na \u00e7\u0131kabilir.");
-        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched can show as new again.",
-                "Instagram hangi hikayeleri izledi\u011fini \u00f6\u011frenmez, bu y\u00fczden izleyici listelerinde yer almazs\u0131n. Yan\u0131t vermek veya tepki b\u0131rakmak yine de seni g\u00f6sterir. \u0130zledi\u011fin hikayeler yeniden yeni gibi g\u00f6r\u00fcnebilir.");
+        table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
+                "Instagram hangi hikayeleri izledi\u011fini \u00f6\u011frenmez, bu y\u00fczden izleyici listelerinde yer almazs\u0131n. Yan\u0131t vermek veya tepki b\u0131rakmak yine de seni g\u00f6sterir. \u0130zledi\u011fin hikayeler yeni gibi g\u00f6r\u00fcnmeye devam eder.");
         table.put("Instagram picks the quality as each video plays, from your connection.",
                 "Instagram, her video oynat\u0131l\u0131rken kaliteyi ba\u011flant\u0131na g\u00f6re se\u00e7er.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",

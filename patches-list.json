@@ -783,7 +783,7 @@
     },
     {
       "name": "View stories anonymously",
-      "description": "Keeps you off the viewer list of the stories you watch, because Instagram isn't told which ones you've seen. Replying or reacting still shows you, and stories you've watched can show as new again.",
+      "description": "Keeps you off the viewer list of the stories you watch, because Instagram isn't told which ones you've seen. Replying or reacting still shows you, and stories you've watched keep showing as new.",
       "category": "Privacy",
       "use": false,
       "dependencies": [
