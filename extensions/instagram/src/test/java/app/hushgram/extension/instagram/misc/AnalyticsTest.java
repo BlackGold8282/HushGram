@@ -58,6 +58,31 @@ public class AnalyticsTest {
         assertEquals(EVENTS, Analytics.endpoint(EVENTS));
     }
 
+    /**
+     * On, Falco's event stream stays off, so every event takes the batch upload the switch refuses.
+     * Off, the logger's own answer goes through, and an event it never meant to stream stays off it.
+     */
+    @Test
+    public void theEventStreamFollowsTheSwitch() {
+        Settings.DISABLE_ANALYTICS.save(true);
+        assertEquals(0, Analytics.streamEvents(1));
+        assertEquals(0, Analytics.streamEvents(0));
+
+        Settings.DISABLE_ANALYTICS.save(false);
+        assertEquals(1, Analytics.streamEvents(1));
+        assertEquals(0, Analytics.streamEvents(0));
+    }
+
+    /** Before the settings are ready the stream stays off, even with the switch off: the event is batched instead. */
+    @Test
+    public void beforeTheSettingsAreReadyTheStreamStaysOff() {
+        Settings.DISABLE_ANALYTICS.save(false);
+        int[] answer = new int[1];
+        SettingsContextRule.withoutContext(() -> answer[0] = Analytics.streamEvents(1));
+
+        assertEquals(0, answer[0]);
+    }
+
     private static final String REPORTS = "https://b-www.facebook.com/mobile/reliability_event_log_upload/";
 
     /** Lacrima's report address follows the switch once the settings are ready, keeping its path. */

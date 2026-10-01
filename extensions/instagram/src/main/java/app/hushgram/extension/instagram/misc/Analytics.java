@@ -31,6 +31,9 @@ public final class Analytics {
     /** How many different addresses and outcomes the debug log names, per process. */
     static final int LOGGED_ADDRESSES = 16;
 
+    /** What the debug log calls Falco's event stream. */
+    static final String STREAM = "Falco's event stream";
+
     private static final String SOURCE = "Analytics";
     private static final Set<String> LOGGED = new HashSet<>();
 
@@ -84,6 +87,34 @@ public final class Analytics {
             return url;
         }
         return endpoint(url);
+    }
+
+    /**
+     * Injected where Instagram's logger reads its switch for Falco's event stream, for each event,
+     * handed [on], the logger's own answer (0 or 1). Answers 0 while the switch is on, so the event
+     * takes the batch upload {@link #endpoint} refuses and the stream, a request stream to the
+     * gateway host the server picks, never starts. Before the settings are ready it answers 0 too,
+     * as the switch's default would have it: a batched event still goes out with the switch off.
+     * Otherwise [on] as it came. Never throws.
+     */
+    public static int streamEvents(int on) {
+        HookStatus.invoked(FamilyNames.DISABLE_ANALYTICS);
+        try {
+            if (on == 0) return 0;
+            if (!Utils.settingsReady()) {
+                log(STREAM, "kept off, before the settings were ready");
+                return 0;
+            }
+            if (!Settings.DISABLE_ANALYTICS.get()) {
+                log(STREAM, "left on, the switch is off");
+                return on;
+            }
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "event stream", t);
+            return on;
+        }
+        log(STREAM, "kept off");
+        return 0;
     }
 
     /** Logs [url], without its query, and [what] happened to it, once per process. */

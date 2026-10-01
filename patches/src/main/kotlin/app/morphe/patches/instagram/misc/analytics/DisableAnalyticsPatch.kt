@@ -22,6 +22,9 @@ private const val ENDPOINT = "$EXTENSION_PACKAGE/misc/Analytics;->endpoint(Ljava
 /** Lacrima's addresses, which it uses a few milliseconds before HushGram's settings are ready. */
 private const val REPORT_ENDPOINT = "$EXTENSION_PACKAGE/misc/Analytics;->reportEndpoint(Ljava/lang/String;)Ljava/lang/String;"
 
+/** The logger's switch for Falco's event stream. It takes an int, as no hook may take a boolean. */
+internal const val STREAM_EVENTS = "$EXTENSION_PACKAGE/misc/Analytics;->streamEvents(I)I"
+
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = "Disable analytics",
@@ -37,7 +40,7 @@ val disableAnalyticsPatch = bytecodePatch(
     execute {
         requireStatusMethod("disableAnalytics")
 
-        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt", "reports", "pings")) { target ->
+        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt", "reports", "pings", "stream")) { target ->
             when (target) {
                 // Instagram's own logging_client_events and pigeon_nest addresses, built from a host.
                 "builder" -> AnalyticsEndpointFingerprint.matchAllOrNull().orEmpty().let { matches ->
@@ -60,6 +63,8 @@ val disableAnalyticsPatch = bytecodePatch(
                         else -> null
                     }
                 }
+                // Falco's event stream, which skips the batch upload the addresses above go to.
+                "stream" -> keepEventsOffTheStream(STREAM_EVENTS)
                 // Lacrima's startup and debug pings, as a constant in each sender.
                 "pings" -> if (filterEveryStringLoad(ERROR_PING_ENDPOINT, REPORT_ENDPOINT) > 0) {
                     null
