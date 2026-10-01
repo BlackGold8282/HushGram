@@ -4,7 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
-* **Instagram:** New patch, `Keep the reel speed`. Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play at 2x too. Sliding the lock off, or holding the edge and letting go, takes them back to normal speed, and so does restarting Instagram. Ads start at normal speed. Its switch is under Reels.
+* **Instagram:** New patch, `Keep the reel speed`. Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play at 2x too. Sliding the lock off (hold the locked reel's edge again, slide down and let go), or holding the edge and letting go, takes them back to normal speed, and so does restarting Instagram. Ads start at normal speed. Its switch is under Reels.
 * **Tooling:** The patched-build check can now pin a hook whose method holds no string of its own, by the strings its class holds. That covers the story seen send, the reel watch progress record and the Reels tab list, so a build missing one of those hooks fails the check instead of only the fixture test.
 * **Tooling:** The build moves to Gradle 9.8.0 and Guava 33.7.2. That Guava release fixes a flaw in how it reads serialized data (GHSA-xxph-c9ww-hj94), and every Guava the build used before, its own pin and the older ones the patcher and the test tools asked for, was in the affected range. Nobody was exposed: Guava only runs while the patches are built and tested, and the HushGram bundle doesn't ship it.
 
