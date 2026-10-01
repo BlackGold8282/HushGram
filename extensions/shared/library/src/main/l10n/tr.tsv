@@ -193,3 +193,6 @@ Takes the whole row of stories off the top of Home, Your story included. Stories
 Download feed photos	Akıştaki fotoğrafları indir
 The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.	Aynı İndir seçeneği bir fotoğraf gönderisinde ve fotoğraf gösteren bir kaydırmalı gönderide de çıkar. Instagram'daki en büyük boyutu kaydeder.
 the start-up fix for x86 devices	x86 cihazlar için açılış düzeltmesi
+Developer	Geliştirici
+Developer options on a long press of Home	Ana Sayfa'ya uzun basınca geliştirici seçenekleri
+Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.	Instagram'ın kendi geliştirici seçeneklerini açar. Orada sunucu bayrakları görülebilir ve değiştirilebilir. Yanlış bir bayrak, sen orada sıfırlayana kadar Instagram'ın bazı bölümlerini bozabilir.

@@ -125,4 +125,8 @@ public final class SettingsStatus {
     public static boolean translatedStart() {
         return false;
     }
+
+    public static boolean developerOptions() {
+        return false;
+    }
 }

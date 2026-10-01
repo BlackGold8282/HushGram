@@ -193,3 +193,6 @@ Takes the whole row of stories off the top of Home, Your story included. Stories
 Download feed photos	Unduh foto feed
 The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.	Opsi Unduh yang sama di postingan foto, dan di carousel yang sedang menampilkan foto. Menyimpan ukuran terbesar yang dimiliki Instagram.
 the start-up fix for x86 devices	perbaikan saat mulai untuk perangkat x86
+Developer	Pengembang
+Developer options on a long press of Home	Opsi pengembang saat Beranda ditekan lama
+Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.	Membuka opsi pengembang milik Instagram sendiri, tempat flag servernya bisa dilihat dan diubah. Flag yang salah bisa merusak sebagian Instagram sampai kamu mengaturnya ulang di sana.

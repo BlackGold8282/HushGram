@@ -193,3 +193,6 @@ Takes the whole row of stories off the top of Home, Your story included. Stories
 Download feed photos	Descargar fotos del feed
 The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.	La misma opción Descargar en una publicación con foto y en un carrusel que muestra una foto. Guarda el tamaño más grande que tenga Instagram.
 the start-up fix for x86 devices	el arreglo de inicio para dispositivos x86
+Developer	Desarrollador
+Developer options on a long press of Home	Opciones de desarrollador al mantener pulsado Inicio
+Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.	Abre las opciones de desarrollador propias de Instagram, donde se pueden ver y cambiar sus indicadores del servidor. Un indicador incorrecto puede romper partes de Instagram hasta que lo restablezcas ahí.

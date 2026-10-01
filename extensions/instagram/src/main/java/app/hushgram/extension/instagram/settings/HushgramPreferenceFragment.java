@@ -340,6 +340,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "doesn't update on its own, so this keeps it usable.")));
         }
 
+        if (build.contains(PatchFamily.DEVELOPER_OPTIONS)) {
+            PreferenceCategory developer = category(screen, L10n.t("Developer"));
+            developer.addPreference(toggle(context, Settings.OPEN_DEVELOPER_OPTIONS,
+                    L10n.t("Developer options on a long press of Home"),
+                    L10n.t("Opens Instagram's own developer options, where its server flags can be looked at and "
+                            + "changed. A wrong flag can break parts of Instagram until you reset it there.")));
+        }
+
         if (build.contains(PatchFamily.RESTORE_TRUST) || build.contains(PatchFamily.REMOVE_AD_ID)) {
             PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
             if (build.contains(PatchFamily.RESTORE_TRUST)) {
