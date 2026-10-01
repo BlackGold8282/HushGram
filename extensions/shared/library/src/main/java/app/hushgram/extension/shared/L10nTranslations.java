@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(368);
+        Map<String, String> table = new HashMap<>(372);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -214,6 +214,8 @@ public final class L10nTranslations {
                 "Den Reels-Tab ausblenden");
         table.put("Highest",
                 "H\u00f6chste");
+        table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
+                "Die Startseite \u00f6ffnet sich mit Beitr\u00e4gen von Konten, denen du folgst. Tippe oben auf \u201eGefolgt\u201c, um zu \u201eF\u00fcr dich\u201c zu wechseln, und die Startseite merkt sich deine Wahl. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Fortschritt beim Speichern eines Fotos oder Videos, mit einem Button zum Abbrechen");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -296,11 +298,11 @@ public final class L10nTranslations {
                 "Hinweis auf abgelaufene Version entfernen");
         table.put("Resume long videos",
                 "Lange Videos fortsetzen");
-        table.put("Retry",
-                "Erneut versuchen");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Retry",
+                "Erneut versuchen");
         table.put("Sanitize sharing links",
                 "Geteilte Links bereinigen");
         table.put("Save",
@@ -345,6 +347,8 @@ public final class L10nTranslations {
                 "Quellcode und Issues");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Gesponserte Beitr\u00e4ge, Reels und Stories. Instagram erf\u00e4hrt, dass keine Werbung eingef\u00fcgt wurde, also bleibt keine L\u00fccke.");
+        table.put("Start Home on Following",
+                "Startseite mit \u201eGefolgt\u201c \u00f6ffnen");
         table.put("Stays in while paused",
                 "Bleibt w\u00e4hrend der Pause aktiv");
         table.put("Stop Story auto-advance",
@@ -417,13 +421,13 @@ public final class L10nTranslations {
                 "Videos laufen in der niedrigsten Qualit\u00e4t, die Instagram f\u00fcr sie anbietet.");
         table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
                 "Videos, Reels und Stories laufen in der Qualit\u00e4t unten, ab dem n\u00e4chsten Video, das du \u00f6ffnest.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Videos, Reels und Stories warten, bis du tippst. Videos im Feed zeigen eine Wiedergabetaste, wie wenn du weniger mobile Daten nutzt.");
         table.put("View stories anonymously",
                 "Stories anonym ansehen");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Weblinks \u00f6ffnen sich in deinem Standardbrowser, ohne Instagrams Klick-Tracker. Seiten von Instagram und anderen Meta-Diensten sowie Werbung \u00f6ffnen sich weiterhin in der App.");
         table.put("You paused HushGram.",
@@ -435,7 +439,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(368);
+        Map<String, String> table = new HashMap<>(372);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -603,6 +607,8 @@ public final class L10nTranslations {
                 "Ocultar la pesta\u00f1a de Reels");
         table.put("Highest",
                 "La m\u00e1s alta");
+        table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
+                "Inicio se abre con publicaciones de las cuentas que sigues. Toca Seguidos arriba para cambiar a Para ti, e Inicio recuerda lo que elegiste. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "El progreso de la foto o el video que est\u00e1s guardando, con un bot\u00f3n para cancelar");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -685,11 +691,11 @@ public final class L10nTranslations {
                 "Quitar el aviso de versi\u00f3n caducada");
         table.put("Resume long videos",
                 "Reanudar videos largos");
-        table.put("Retry",
-                "Reintentar");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Retry",
+                "Reintentar");
         table.put("Sanitize sharing links",
                 "Limpiar enlaces compartidos");
         table.put("Save",
@@ -734,6 +740,8 @@ public final class L10nTranslations {
                 "C\u00f3digo fuente e incidencias");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Publicaciones, reels e historias patrocinados. A Instagram se le dice que no se insert\u00f3 ning\u00fan anuncio, as\u00ed que no queda ning\u00fan hueco.");
+        table.put("Start Home on Following",
+                "Abrir Inicio en Seguidos");
         table.put("Stays in while paused",
                 "Se mantiene durante la pausa");
         table.put("Stop Story auto-advance",
@@ -806,13 +814,13 @@ public final class L10nTranslations {
                 "Los videos se reproducen en la calidad m\u00e1s baja que Instagram ofrece para cada uno.");
         table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
                 "Los videos, reels e historias se reproducen en la calidad de abajo, a partir del pr\u00f3ximo que abras.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Los videos, reels e historias esperan a que toques. Los videos del feed muestran un bot\u00f3n de reproducir, como cuando usas menos datos m\u00f3viles.");
         table.put("View stories anonymously",
                 "Ver historias de forma an\u00f3nima");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Los enlaces web se abren en tu navegador predeterminado, sin el rastreador de clics de Instagram. Las p\u00e1ginas de Instagram y de otros servicios de Meta, y los anuncios, se siguen abriendo en la app.");
         table.put("You paused HushGram.",
@@ -824,7 +832,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(368);
+        Map<String, String> table = new HashMap<>(372);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -992,6 +1000,8 @@ public final class L10nTranslations {
                 "Sembunyikan tab Reels");
         table.put("Highest",
                 "Tertinggi");
+        table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
+                "Beranda terbuka dengan postingan dari akun yang kamu ikuti. Ketuk Mengikuti di bagian atas untuk beralih ke Untuk Anda, dan Beranda mengingat pilihanmu. Mulai ulang Instagram setelah mengubahnya.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -1074,11 +1084,11 @@ public final class L10nTranslations {
                 "Hapus popup build kedaluwarsa");
         table.put("Resume long videos",
                 "Lanjutkan video panjang");
-        table.put("Retry",
-                "Coba lagi");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Retry",
+                "Coba lagi");
         table.put("Sanitize sharing links",
                 "Bersihkan tautan berbagi");
         table.put("Save",
@@ -1123,6 +1133,8 @@ public final class L10nTranslations {
                 "Kode sumber dan laporan masalah");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Postingan, reel, dan story bersponsor. Instagram diberi tahu bahwa tidak ada iklan yang dimasukkan, jadi tidak ada celah yang tersisa.");
+        table.put("Start Home on Following",
+                "Buka Beranda di Mengikuti");
         table.put("Stays in while paused",
                 "Tetap aktif saat dijeda");
         table.put("Stop Story auto-advance",
@@ -1195,13 +1207,13 @@ public final class L10nTranslations {
                 "Video diputar dengan kualitas terendah yang ditawarkan Instagram untuk masing-masing.");
         table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
                 "Video, reels, dan cerita diputar dengan kualitas di bawah, mulai dari yang berikutnya Anda buka.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Video, reels, dan cerita menunggu ketukan Anda. Video di feed menampilkan tombol putar, seperti saat Anda menghemat data seluler.");
         table.put("View stories anonymously",
                 "Lihat cerita secara anonim");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Tautan web terbuka di browser default kamu, tanpa pelacak klik Instagram. Halaman Instagram dan layanan Meta lainnya, serta iklan, tetap terbuka di aplikasi.");
         table.put("You paused HushGram.",
@@ -1213,7 +1225,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(368);
+        Map<String, String> table = new HashMap<>(372);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1381,6 +1393,8 @@ public final class L10nTranslations {
                 "Ocultar a aba Reels");
         table.put("Highest",
                 "A mais alta");
+        table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
+                "O In\u00edcio abre com posts das contas que voc\u00ea segue. Toque em Seguindo no topo para mudar para Para voc\u00ea, e o In\u00edcio lembra da sua escolha. Reinicie o Instagram depois de mudar.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Indica o progresso do salvamento de uma foto ou v\u00eddeo, com um bot\u00e3o para cancel\u00e1-lo");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -1463,11 +1477,11 @@ public final class L10nTranslations {
                 "Remover aviso de vers\u00e3o expirada");
         table.put("Resume long videos",
                 "Retomar v\u00eddeos longos");
-        table.put("Retry",
-                "Tentar novamente");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Retry",
+                "Tentar novamente");
         table.put("Sanitize sharing links",
                 "Limpar links compartilhados");
         table.put("Save",
@@ -1512,6 +1526,8 @@ public final class L10nTranslations {
                 "C\u00f3digo-fonte e relatos de problemas");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Posts, reels e stories patrocinados. O Instagram fica sabendo que nenhum an\u00fancio entrou, ent\u00e3o n\u00e3o sobra nenhum espa\u00e7o vazio.");
+        table.put("Start Home on Following",
+                "Abrir o In\u00edcio em Seguindo");
         table.put("Stays in while paused",
                 "O que continua ativo na pausa");
         table.put("Stop Story auto-advance",
@@ -1584,13 +1600,13 @@ public final class L10nTranslations {
                 "Os v\u00eddeos s\u00e3o reproduzidos na menor qualidade que o Instagram oferece para cada um.");
         table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
                 "V\u00eddeos, reels e stories s\u00e3o reproduzidos na qualidade abaixo, a partir do pr\u00f3ximo que voc\u00ea abrir.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "V\u00eddeos, reels e stories esperam o seu toque. Os v\u00eddeos do feed mostram um bot\u00e3o de reproduzir, como quando voc\u00ea usa menos dados m\u00f3veis.");
         table.put("View stories anonymously",
                 "Ver Stories anonimamente");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Links da web abrem no seu navegador padr\u00e3o, sem o rastreador de cliques do Instagram. P\u00e1ginas do Instagram e de outros servi\u00e7os da Meta, e an\u00fancios, continuam abrindo no app.");
         table.put("You paused HushGram.",
@@ -1602,7 +1618,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(368);
+        Map<String, String> table = new HashMap<>(372);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1770,6 +1786,8 @@ public final class L10nTranslations {
                 "Reels sekmesini gizle");
         table.put("Highest",
                 "En y\u00fcksek");
+        table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
+                "Ana Sayfa, takip etti\u011fin hesaplar\u0131n g\u00f6nderileriyle a\u00e7\u0131l\u0131r. Senin i\u00e7in'e ge\u00e7mek i\u00e7in \u00fcstteki Takip Edilenler'e dokun, Ana Sayfa se\u00e7imini hat\u0131rlar. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
                 "Kaydetti\u011fin foto\u011fraf veya videonun ilerleme durumu ve iptal etmek i\u00e7in bir d\u00fc\u011fme");
         table.put("HushGram %1$s on Instagram %2$s",
@@ -1852,11 +1870,11 @@ public final class L10nTranslations {
                 "S\u00fcresi dolan s\u00fcr\u00fcm uyar\u0131s\u0131n\u0131 kald\u0131r");
         table.put("Resume long videos",
                 "Uzun videolara kald\u0131\u011f\u0131n yerden devam et");
-        table.put("Retry",
-                "Yeniden dene");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Retry",
+                "Yeniden dene");
         table.put("Sanitize sharing links",
                 "Payla\u015f\u0131m ba\u011flant\u0131lar\u0131n\u0131 temizle");
         table.put("Save",
@@ -1901,6 +1919,8 @@ public final class L10nTranslations {
                 "Kaynak kodu ve sorunlar");
         table.put("Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.",
                 "Sponsorlu g\u00f6nderiler, reels ve hik\u00e2yeler. Instagram'a hi\u00e7 reklam eklenmedi\u011fi s\u00f6ylenir, b\u00f6ylece bo\u015fluk kalmaz.");
+        table.put("Start Home on Following",
+                "Ana Sayfa'y\u0131 Takip Edilenler ile a\u00e7");
         table.put("Stays in while paused",
                 "Duraklat\u0131lsa da devrede kal\u0131r");
         table.put("Stop Story auto-advance",
@@ -1973,13 +1993,13 @@ public final class L10nTranslations {
                 "Videolar, Instagram'\u0131n her biri i\u00e7in sundu\u011fu en d\u00fc\u015f\u00fck kalitede oynat\u0131l\u0131r.");
         table.put("Videos, reels and stories play at the quality below, starting with the next one you open.",
                 "Videolar, reels ve hikayeler, a\u00e7aca\u011f\u0131n bir sonrakinden itibaren a\u015fa\u011f\u0131daki kalitede oynat\u0131l\u0131r.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Videolar, reels ve hikayeler dokunman\u0131 bekler. Ak\u0131\u015ftaki videolar, daha az mobil veri kulland\u0131\u011f\u0131ndaki gibi bir oynat d\u00fc\u011fmesi g\u00f6sterir.");
         table.put("View stories anonymously",
                 "Hikayeleri anonim olarak izle");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
                 "Web ba\u011flant\u0131lar\u0131, Instagram'\u0131n t\u0131klama izleyicisi olmadan varsay\u0131lan taray\u0131c\u0131nda a\u00e7\u0131l\u0131r. Instagram ve di\u011fer Meta sayfalar\u0131 ile reklamlar uygulamada a\u00e7\u0131lmaya devam eder.");
         table.put("You paused HushGram.",

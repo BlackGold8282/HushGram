@@ -180,8 +180,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : privacy) section.addPreference(row);
         }
 
-        if (build.contains(PatchFamily.FEED_SUGGESTIONS)) {
-            PreferenceCategory feed = category(screen, L10n.t("Feed"));
+        boolean suggestions = build.contains(PatchFamily.FEED_SUGGESTIONS);
+        boolean following = build.contains(PatchFamily.FOLLOWING_FEED);
+        PreferenceCategory feed = suggestions || following ? category(screen, L10n.t("Feed")) : null;
+        if (following) {
+            feed.addPreference(toggle(context, Settings.START_ON_FOLLOWING, L10n.t("Start Home on Following"),
+                    L10n.t("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, "
+                            + "and Home remembers your pick. Restart Instagram after changing it.")));
+        }
+        if (suggestions) {
             feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_ACCOUNTS, L10n.t("Hide suggested accounts"),
                     L10n.t("The rows of accounts, shops and hashtags Instagram suggests you follow.")));
             feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_POSTS, L10n.t("Hide suggested posts"),

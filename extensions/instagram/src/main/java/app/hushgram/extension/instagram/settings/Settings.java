@@ -110,6 +110,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_threads_posts", TRUE);
 
     /**
+     * Home opening on the Following feed, with Instagram's For you and Following picker at its top,
+     * while you haven't picked a feed there. Instagram remembers a pick from then on.
+     */
+    public static final BooleanSetting START_ON_FOLLOWING =
+            new BooleanSetting("hushgram_start_on_following", TRUE);
+
+    /**
      * Meta AI in the search bars: the Search tab's ("Search with Meta AI") and the one at the top of
      * your messages ("Search or ask Meta AI"), and the "Ask a follow-up…" bar under search results.
      */

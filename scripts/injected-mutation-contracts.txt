@@ -185,6 +185,22 @@ once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->followUpBar(Landroid
 # through other requests and never pass it.
 once-call Lapp/hushgram/extension/instagram/explore/ExploreGrid;->hide(Ljava/util/List;)Z in instance (*)Ljava/lang/Object; holding sectional_items session_paging_token
 #
+# Start Home on Following passes every read of the two flags behind Instagram's For you and
+# Following picker through flag(), and the saved feed's getter passes the name it read through
+# saved() once. The getter is the one instance method taking nothing and answering a String in the
+# class whose constructor names "last_selected_feed_type", and it reads the remembered feed flag
+# once. Home's onCreate, the one holding "MainFeedFragment.onCreate", and the feed request's
+# parameter builder, holding "pagination_source" and "homecoming_all", read it once each. Home's
+# title setup, holding "feed_title_with_chevron" and "logo_with_chevron", and the picker's list
+# build, holding "FeedPickerStateManager", read the For you flag once each.
+# StartOnFollowingHookTest checks all fifteen reads on the fixture.
+once-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->saved(Ljava/lang/String;)Ljava/lang/String; in instance ()Ljava/lang/String; class-holding last_selected_feed_type
+shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in instance ()Ljava/lang/String; class-holding last_selected_feed_type
+shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in instance (Landroid/os/Bundle;)V holding MainFeedFragment.onCreate launched_in_tab
+shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in (Landroid/content/Context;L*;L*;Lcom/instagram/common/session/UserSession;L*;L*;)V holding pagination_source homecoming_all
+shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in instance (Z)V holding feed_title_with_chevron logo_with_chevron
+shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in (L*;I)Ljava/lang/Object; holding FeedPickerStateManager feedPickerStateManager
+#
 # Download any reel lets the Download row into each builder of the reel's more menu: the download
 # check's answer goes through offer() in the legacy builder and both redesigned ones, and the flag
 # that holds the row back goes through withhold() in the two redesigned ones. Each builder is the one
