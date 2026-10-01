@@ -13,6 +13,9 @@ import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.flags.FlagRead
+import app.morphe.patches.instagram.misc.flags.answerFlagReads
+import app.morphe.patches.instagram.misc.flags.findFlagReads
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -24,7 +27,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -62,9 +64,6 @@ internal val SEARCH_FLAGS = listOf(0x81068600111f6bL, 0x8104190006113aL, 0x81041
 /** Meta AI's feed item kinds: Vibes videos, Meta AI chats and Imagine pictures of you. */
 internal val META_AI_UNITS = listOf("VIBES_IN_FEED_UNIT", "HATCH_IMMERSIVE_IN_FEED_UNIT", "MEMU_IN_FEED_UNIT")
 
-/** How far after a flag's id its read may come: 449 puts at most a cast between them. */
-private const val READ_WITHIN = 4
-
 @Suppress("unused")
 val hideMetaAiPatch = bytecodePatch(
     name = "Hide Meta AI",
@@ -92,76 +91,14 @@ val hideMetaAiPatch = bytecodePatch(
     }
 }
 
-/** A read of one of [SEARCH_FLAGS]: the method, and the index and register of its move-result. */
-internal class FlagRead(
-    val flag: Long,
-    val type: String,
-    val name: String,
-    val parameters: List<String>,
-    val returnType: String,
-    val moveResult: Int,
-    val register: Int,
-)
-
 /**
- * Every place the app loads one of [SEARCH_FLAGS] and reads it as a boolean: the id goes straight
- * into a call taking it last and answering a boolean, whose move-result follows. Fails when a flag
- * is never read, or is loaded for any other use, since that's an update this patch hasn't seen.
+ * Every place the app loads one of [SEARCH_FLAGS] and reads it as a boolean (see [findFlagReads]).
+ * Fails when a flag is never read, or is loaded for any other use.
  */
-internal fun BytecodePatchContext.findSearchFlagReads(): List<FlagRead> {
-    val reads = mutableListOf<FlagRead>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
-        classDef.methods.forEach { method ->
-            val code = method.implementation?.instructions?.toList() ?: return@forEach
-            code.forEachIndexed { index, instruction ->
-                if (instruction.opcode != Opcode.CONST_WIDE) return@forEachIndexed
-                val flag = (instruction as WideLiteralInstruction).wideLiteral
-                if (flag !in SEARCH_FLAGS) return@forEachIndexed
-                val where = "${classDef.type}->${method.name} loads ${flag.toString(16)}"
-                val id = (instruction as OneRegisterInstruction).registerA
-                val callAt = (index + 1..minOf(index + READ_WITHIN, code.lastIndex))
-                    .firstOrNull { code[it].methodReference() != null }
-                    ?: refuse("$where with no call after it")
-                val call = code[callAt].methodReference()!!
-                val passed = code[callAt].arguments()
-                if (passed.takeLast(2) != listOf(id, id + 1) || call.parameterTypes.lastOrNull()?.toString() != "J") {
-                    refuse("$where and then calls ${call.definingClass}->${call.name} without it last")
-                }
-                if (call.returnType != "Z") refuse("$where for ${call.definingClass}->${call.name}, which answers ${call.returnType}")
-                val result = code.getOrNull(callAt + 1)
-                if (result?.opcode != Opcode.MOVE_RESULT) refuse("$where and drops the answer")
-                reads += FlagRead(
-                    flag, classDef.type, method.name, method.parameterTypes.map(CharSequence::toString), method.returnType,
-                    callAt + 1, (result as OneRegisterInstruction).registerA,
-                )
-            }
-        }
-    }
-    val unread = SEARCH_FLAGS.filter { flag -> reads.none { it.flag == flag } }
-    if (unread.isNotEmpty()) refuse("nothing reads ${unread.joinToString { it.toString(16) }}")
-    return reads
-}
+internal fun BytecodePatchContext.findSearchFlagReads(): List<FlagRead> = findFlagReads(PATCH, SEARCH_FLAGS)
 
 /** Passes each read's answer through MetaAi.searchFlag, right after its move-result. */
-internal fun BytecodePatchContext.answerSearchFlagReads(reads: List<FlagRead>) {
-    reads.groupBy { Triple(it.type, it.name, it.parameters) }.forEach { (_, inMethod) ->
-        val first = inMethod.first()
-        val method = mutableClassDefBy(first.type).methods.single {
-            it.name == first.name && it.returnType == first.returnType &&
-                it.parameterTypes.map(CharSequence::toString) == first.parameters
-        }
-        inMethod.sortedByDescending { it.moveResult }.forEach { read ->
-            method.addInstructions(
-                read.moveResult + 1,
-                """
-                    invoke-static/range { v${read.register} .. v${read.register} }, $SEARCH_FLAG
-                    move-result v${read.register}
-                """,
-            )
-        }
-    }
-}
+internal fun BytecodePatchContext.answerSearchFlagReads(reads: List<FlagRead>) = answerFlagReads(reads, SEARCH_FLAG)
 
 /** A value one of the hooks passes through: the method, and the index and register of the instruction that last sets it. */
 internal class HookSite(

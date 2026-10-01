@@ -135,6 +135,7 @@
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/buildexpiry/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/adid/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/sharelinks/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/flags/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/reels/**",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/reels/**",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/feed/**",
