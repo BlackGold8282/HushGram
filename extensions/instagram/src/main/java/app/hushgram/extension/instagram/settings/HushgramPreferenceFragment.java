@@ -233,8 +233,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge "
                             + "and a state-controlled media label stay.")));
             reels.add(toggle(context, Settings.HIDE_REEL_SOCIAL_FOOTER, L10n.t("Hide friends' activity and comment previews"),
-                    L10n.t("The bubbles of friends who liked or commented, the comment shown under a reel and the "
-                            + "row of friends who saw it. Comments are still a tap away.")));
+                    L10n.t("The bubbles of friends who liked or commented, the Followed by and Liked by lines with "
+                            + "their faces, the comment shown under a reel and the row of friends who saw it. Comments "
+                            + "are still a tap away.")));
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
             reels.add(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY, L10n.t("Don't send reel watch history"),

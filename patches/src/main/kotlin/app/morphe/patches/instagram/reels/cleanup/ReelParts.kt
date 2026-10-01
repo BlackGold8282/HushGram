@@ -54,3 +54,24 @@ internal val SOCIAL_PARTS = listOf(
 )
 
 internal val REEL_PARTS = FOLLOW_PARTS + CHIP_PARTS + SOCIAL_PARTS
+
+internal const val HIDE_SOCIAL_CONTEXT = "$DECLUTTER->hideSocialContext(Ljava/lang/Object;)Z"
+
+/**
+ * The use case that works out a reel's floating bubbles (friends' likes, comments and notes). When
+ * there are none to show it answers a state of its own, and the reel then builds no bubbles at all,
+ * wherever they'd have gone.
+ */
+internal const val FLOATING_BUBBLES = "FloatingBubblesUseCase_getUiState"
+
+/**
+ * Instagram's check for leaving out a reel's social context line, the faces with Liked by or
+ * Followed by beside them. The line under the author and the one at a reel's end are only shown
+ * once this answers no. It's handed the line, whose type is an enum naming what it says.
+ */
+internal const val SOCIAL_CONTEXT_CHECK = "MediaSocialContextViewUtil_shouldHideSocialContextForClips"
+
+/** Types the social context's enum has to name, so the check is known to be handed that line. */
+internal val SOCIAL_CONTEXT_TYPES = listOf("FOLLOWED_BY", "LIKED_BY")
+
+internal val CLEANUP_MARKERS = REEL_PARTS.map { it.marker } + FLOATING_BUBBLES + SOCIAL_CONTEXT_CHECK

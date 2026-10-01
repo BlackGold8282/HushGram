@@ -104,7 +104,9 @@ shared-call Lapp/hushgram/extension/instagram/reels/ReelWatchHistory;->holdBack(
 # promotion pill, and for friends' activity the check for putting bubbles above the author and the
 # renders of the comment preview and the row of friends who saw the reel. hideFollowButton() is
 # called from its render alone, so once-call. The pills share hideChips() and friends' activity
-# shares hideSocialFooter(), so those are shared-call.
+# shares hideSocialFooter(), so those are shared-call. Friends' activity also asks hideSocialFooter()
+# first in the floating bubbles use case, and hideSocialContext(Object) first in the check for leaving
+# out a reel's Liked by or Followed by line, its only caller (it reads the line's type before that).
 start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideFollowButton()Z holding android_purge_26_q3_ClipsFollowButtonComponent_render
 once-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideFollowButton()Z holding android_purge_26_q3_ClipsFollowButtonComponent_render
 start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideChips()Z holding android_purge_26_q3_ClipsBaselAttributionPillComponent_render
@@ -139,6 +141,10 @@ start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFoo
 shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFooter()Z holding android_purge_26_q3_ClipsInlineCommentSocialContextComponent_render
 start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFooter()Z holding android_purge_26_q3_ClipsFriendlyViewerComponent_render
 shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFooter()Z holding android_purge_26_q3_ClipsFriendlyViewerComponent_render
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFooter()Z holding android_purge_26_q3_FloatingBubblesUseCase_getUiState
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFooter()Z holding android_purge_26_q3_FloatingBubblesUseCase_getUiState
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialContext(Ljava/lang/Object;)Z holding android_purge_26_q3_MediaSocialContextViewUtil_shouldHideSocialContextForClips
+once-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialContext(Ljava/lang/Object;)Z holding android_purge_26_q3_MediaSocialContextViewUtil_shouldHideSocialContextForClips
 #
 # Sanitize sharing links passes the link each of Instagram's two share link parsers reads through
 # the extension, once, before the parser stores it: the permalink parser for a post or reel and the
