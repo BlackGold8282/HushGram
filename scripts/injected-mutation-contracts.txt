@@ -166,7 +166,7 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # reads the "ask Meta AI" bar's flag once. The Search tab's flag and the ring's are read in gates
 # holding no string, and DirectSearchInboxFragment.onCreateView reads the bar's flag twice, so no
 # rule picks those; HideMetaAiHookTest checks all five reads on the fixture.
-shared-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->searchFlag(Z)Z in instance ()Ljava/lang/Object; holding direct_inbox hatch_channel_enabled
+shared-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->searchFlag(I)Z in instance ()Ljava/lang/Object; holding direct_inbox hatch_channel_enabled
 #
 # Download any reel lets the Download row into each builder of the reel's more menu: the download
 # check's answer goes through offer() in the legacy builder and both redesigned ones, and the flag

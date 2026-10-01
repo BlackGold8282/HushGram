@@ -27,7 +27,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val PATCH = "Hide Meta AI"
 private const val META_AI = "$EXTENSION_PACKAGE/metaai/MetaAi;"
-internal const val SEARCH_FLAG = "$META_AI->searchFlag(Z)Z"
+internal const val SEARCH_FLAG = "$META_AI->searchFlag(I)Z"
 internal const val META_AI_FILTER = "$META_AI->filter(Ljava/lang/Object;)Ljava/lang/Object;"
 
 /**

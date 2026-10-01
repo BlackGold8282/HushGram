@@ -45,10 +45,12 @@ public class MetaAiTest {
         }
     }
 
+    /** Instagram's answer comes in as an int, and any value but zero is yes. */
     @Test
     public void aSearchFlagAnswersOffWhileTheSwitchIsOn() {
-        assertFalse(MetaAi.searchFlag(true));
-        assertFalse(MetaAi.searchFlag(false));
+        assertFalse(MetaAi.searchFlag(1));
+        assertFalse(MetaAi.searchFlag(0));
+        assertFalse(MetaAi.searchFlag(-1));
     }
 
     /** With the switch off Instagram's own answer stands, either way. */
@@ -56,8 +58,9 @@ public class MetaAiTest {
     public void withTheSwitchOffInstagramDecides() {
         Settings.HIDE_META_AI_SEARCH.save(false);
         try {
-            assertTrue(MetaAi.searchFlag(true));
-            assertFalse(MetaAi.searchFlag(false));
+            assertTrue(MetaAi.searchFlag(1));
+            assertTrue(MetaAi.searchFlag(0xff));
+            assertFalse(MetaAi.searchFlag(0));
         } finally {
             Settings.HIDE_META_AI_SEARCH.save(true);
         }
@@ -88,7 +91,7 @@ public class MetaAiTest {
         try {
             Item memu = new Item(Kind.MEMU_IN_FEED_UNIT);
             assertSame(memu, MetaAi.filter(memu));
-            assertFalse(MetaAi.searchFlag(true));
+            assertFalse(MetaAi.searchFlag(1));
         } finally {
             Settings.HIDE_META_AI_POSTS.save(true);
         }

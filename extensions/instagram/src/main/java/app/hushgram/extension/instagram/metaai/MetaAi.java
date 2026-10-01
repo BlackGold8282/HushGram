@@ -47,12 +47,13 @@ public final class MetaAi {
     }
 
     /**
-     * Injected right after each read of one of Meta AI's search flags. Answers false while Hide
-     * Meta AI in search is on, and [enabled] otherwise, or when anything goes wrong. Never throws,
-     * and never waits for the settings: before they're ready Instagram's answer stands.
+     * Injected right after each read of one of Meta AI's search flags, with Instagram's answer as an
+     * int (non-zero is yes). Answers false while Hide Meta AI in search is on, and Instagram's answer
+     * otherwise, or when anything goes wrong. Never throws, and never waits for the settings: before
+     * they're ready Instagram's answer stands.
      */
-    public static boolean searchFlag(boolean enabled) {
-        if (!enabled) return false;
+    public static boolean searchFlag(int enabled) {
+        if (enabled == 0) return false;
         try {
             HookStatus.invoked(FamilyNames.META_AI);
             if (!Utils.settingsReady() || !Settings.HIDE_META_AI_SEARCH.get()) return true;
@@ -63,7 +64,7 @@ public final class MetaAi {
             return false;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.META_AI, "search flag", failure);
-            return enabled;
+            return true;
         }
     }
 
