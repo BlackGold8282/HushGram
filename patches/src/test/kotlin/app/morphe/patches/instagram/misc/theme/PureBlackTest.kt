@@ -30,30 +30,50 @@ class PureBlackTest {
     private val palette = "Lfixture/Palette;"
     private val extension = "Lapp/hushgram/extension/instagram/settings/Colors;"
 
-    /** Prism's black and Meta AI's night background go pure black; another color, or either at another value, stays. */
+    /**
+     * A background Prism's black fills goes to the stock pure black; the light theme's text, a gray
+     * sheet and another color stay.
+     */
     @Test
-    fun theColorTableGetsPureBlack() {
-        val colors = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+    fun theStylesGetPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
             """
                 <resources>
-                    <color name="igds_prism_black">#ff0c1014</color>
-                    <color name="meta_ai_fullscreen_primary_background">#FF0C1014</color>
-                    <color name="igds_prism_gray_1500">#ff191c1f</color>
-                    <color name="sticker_tray_refresh_text">#ff0c1014</color>
+                    <style name="IgdsPrismGrayOverridesDark" parent="IgdsPrismSemanticColorsDark">
+                        <item name="igds_color_primary_background">@color/igds_prism_black</item>
+                        <item name="status_bar_background">@color/igds_prism_black</item>
+                        <item name="igds_color_elevated_background">@color/igds_prism_gray_1500</item>
+                    </style>
+                    <style name="IgdsPrismSemanticColorsLight">
+                        <item name="igds_color_primary_text">@color/igds_prism_black</item>
+                        <item name="igds_color_media_background">@color/igds_prism_black</item>
+                    </style>
+                    <style name="IgdsSemanticColorsLight">
+                        <item name="igds_color_primary_background">@color/bds_white</item>
+                        <item name="igds_color_form_field_background_focussed_color">@color/igds_prism_black</item>
+                    </style>
                 </resources>
             """.trimIndent().byteInputStream(),
         )
 
-        assertEquals(PRISM_BLACK_COLORS, blackenColors(colors))
+        assertEquals(listOf("IgdsPrismGrayOverridesDark", "IgdsPrismSemanticColorsLight"), blackenStyles(styles))
 
-        val values = colors.getElementsByTagName("color").let { list ->
-            (0 until list.length).associate { (list.item(it) as Element).let { e -> e.getAttribute("name") to e.textContent } }
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { list.item(it) as Element }.map { it.getAttribute("name") to it.textContent }
         }
-        assertEquals("#ff000000", values["igds_prism_black"])
-        assertEquals("#ff000000", values["meta_ai_fullscreen_primary_background"])
-        assertEquals("#ff191c1f", values["igds_prism_gray_1500"])
-        assertEquals("a sticker's text isn't the theme", "#ff0c1014", values["sticker_tray_refresh_text"])
-        assertEquals("a second pass finds nothing", emptyList<String>(), blackenColors(colors))
+        assertEquals(
+            listOf(
+                "igds_color_primary_background" to PURE_BLACK_COLOR,
+                "status_bar_background" to PURE_BLACK_COLOR,
+                "igds_color_elevated_background" to "@color/igds_prism_gray_1500",
+                "igds_color_primary_text" to PRISM_BLACK_COLOR,
+                "igds_color_media_background" to PURE_BLACK_COLOR,
+                "igds_color_primary_background" to "@color/bds_white",
+                "igds_color_form_field_background_focussed_color" to PRISM_BLACK_COLOR,
+            ),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenStyles(styles))
     }
 
     /** Both literal forms go pure black on their own registers; other colors and the extension's own stay. */

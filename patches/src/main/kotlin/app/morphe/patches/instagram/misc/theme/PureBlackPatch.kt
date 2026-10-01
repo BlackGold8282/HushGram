@@ -24,6 +24,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+import java.io.File
 
 private const val PATCH = "Pure black dark mode"
 
@@ -34,27 +35,46 @@ private const val PATCH = "Pure black dark mode"
 internal const val PRISM_BLACK = 0xff0c1014L
 internal const val PURE_BLACK = 0xff000000L
 
-/** The color resources set to [PRISM_BLACK]: Prism's black, and Meta AI's full-screen background at night. */
-internal val PRISM_BLACK_COLORS = listOf("igds_prism_black", "meta_ai_fullscreen_primary_background")
+/**
+ * The theme attributes Instagram's styles point at [PRISM_BLACK_COLOR] for a background: the
+ * screen, the status bar, media, Reels' tab bar and two banners.
+ */
+internal val BLACK_BACKGROUNDS = setOf(
+    "igds_color_primary_background", "status_bar_background", "igds_color_media_background",
+    "igds_color_clips_tab_bar_background", "igds_color_clips_up_next_banner_background", "igds_color_cta_banner_background",
+)
+
+internal const val PRISM_BLACK_COLOR = "@color/igds_prism_black"
+
+/**
+ * A stock color that's #ff000000 already. Setting igds_prism_black itself would have the patcher
+ * re-encode the color table, and that breaks the color state lists Instagram shares between two
+ * entries (on 449 three of them named files the patched APK didn't have).
+ */
+internal const val PURE_BLACK_COLOR = "@color/bds_black"
+
+/** The dark theme's two palettes. The patch fails unless both change. */
+internal val DARK_PALETTES = listOf("IgdsPrismGrayOverridesDark", "IgdsPrismSemanticColorsExperimentDark")
 
 /** The Compose palette Instagram's newer screens draw from, a kept name. */
 internal const val COMPOSE_PALETTE = "Lcom/instagram/compose/core/theme/BasePrismColors;"
 
 /**
- * Sets each of [PRISM_BLACK_COLORS] in one decoded colors.xml that holds [PRISM_BLACK] to
- * [PURE_BLACK], and answers which ones it set.
+ * Points each of [BLACK_BACKGROUNDS] that a style in one decoded styles.xml sets to
+ * [PRISM_BLACK_COLOR] at [PURE_BLACK_COLOR] instead, and answers the styles it changed.
  */
-internal fun blackenColors(colors: Document): List<String> {
-    val list = colors.getElementsByTagName("color")
-    val set = mutableListOf<String>()
-    for (element in (0 until list.length).map { list.item(it) as Element }) {
-        val name = element.getAttribute("name")
-        if (name !in PRISM_BLACK_COLORS) continue
-        if (element.textContent.trim().lowercase() != "#%08x".format(PRISM_BLACK)) continue
-        element.textContent = "#%08x".format(PURE_BLACK)
-        set += name
+internal fun blackenStyles(styles: Document): List<String> {
+    val list = styles.getElementsByTagName("style")
+    val changed = mutableListOf<String>()
+    for (style in (0 until list.length).map { list.item(it) as Element }) {
+        val items = style.getElementsByTagName("item")
+        val black = (0 until items.length).map { items.item(it) as Element }.filter { item ->
+            item.getAttribute("name").substringAfter(':') in BLACK_BACKGROUNDS && item.textContent.trim() == PRISM_BLACK_COLOR
+        }
+        black.forEach { it.textContent = PURE_BLACK_COLOR }
+        if (black.isNotEmpty()) changed += style.getAttribute("name")
     }
-    return set
+    return changed
 }
 
 /**
@@ -103,18 +123,26 @@ internal fun BytecodePatchContext.blackenLiterals(): List<String> {
 }
 
 /**
- * A resource patch, for the color table the View screens and the status bar read: the dark themes
- * point their background at [PRISM_BLACK_COLORS]' first. Manager decodes Instagram's resources for
- * Remove the advertising ID already, so this costs no second decode when both are picked.
+ * A resource patch, for the themes the View screens and the status bar read. Manager decodes
+ * Instagram's resources for Remove the advertising ID already, so this costs no second decode when
+ * both are picked. Only the styles files that name [PRISM_BLACK_COLOR] are opened: document()
+ * writes its file back, and the patcher re-encodes every file written.
  */
-private val pureBlackColorsPatch = resourcePatch {
+private val pureBlackStylesPatch = resourcePatch {
     execute {
         val values = get("res").listFiles { file -> file.isDirectory && file.name.startsWith("values") }.orEmpty()
-        val set = values.filter { java.io.File(it, "colors.xml").isFile }.flatMap { directory ->
-            document("res/${directory.name}/colors.xml").use(::blackenColors)
+        val colors = File(get("res"), "values/colors.xml")
+        // 449 stores it as an RGB color, which decodes without the alpha.
+        if (!colors.isFile || !Regex("""<color name="bds_black">#(ff)?000000</color>""", RegexOption.IGNORE_CASE)
+                .containsMatchIn(colors.readText())
+        ) {
+            throw PatchException("$PATCH: $PURE_BLACK_COLOR is no longer #%08x".format(PURE_BLACK))
         }
-        if (PRISM_BLACK_COLORS.first() !in set) {
-            throw PatchException("$PATCH: no colors.xml sets ${PRISM_BLACK_COLORS.first()} to #%08x".format(PRISM_BLACK))
+        val changed = values.filter { File(it, "styles.xml").let { file -> file.isFile && PRISM_BLACK_COLOR in file.readText() } }
+            .flatMap { directory -> document("res/${directory.name}/styles.xml").use(::blackenStyles) }
+        val missing = DARK_PALETTES - changed.toSet()
+        if (missing.isNotEmpty()) {
+            throw PatchException("$PATCH: ${missing.joinToString()} no longer set a background to $PRISM_BLACK_COLOR")
         }
     }
 }
@@ -132,7 +160,7 @@ val pureBlackPatch = bytecodePatch(
     default = false,
 ) {
     category("Interface")
-    dependsOn(settingsPatch, instagramExtensionPatch, pureBlackColorsPatch)
+    dependsOn(settingsPatch, instagramExtensionPatch, pureBlackStylesPatch)
     compatibleWith(*AppCompatibilities.instagram())
 
     execute {
