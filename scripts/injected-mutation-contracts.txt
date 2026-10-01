@@ -14,6 +14,9 @@
 # patch's own fingerprint finds the method by. A string with a space in it is written with \s for
 # each space, and a backslash as \\. A string written as a field reference (Lclass;->name:type) is
 # held by a method that reads or writes that field, for a method that loads no string of its own.
+# For a method that holds neither, any of the five may say class-holding in place of holding: the
+# strings are then its class's, held by its methods between them, and the method is the one of the
+# shape in such a class. A * inside a class name stays in that name, so (L*;)V takes one object.
 #
 # One guard per hot method. A guard the patch puts first in a method gets a start-call rule, which
 # holds it first there and in no other method holding the same strings, and a once-call rule, which

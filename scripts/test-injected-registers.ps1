@@ -72,7 +72,15 @@
     two link parsers is left out of the post parser, made twice there, made in a static method
     holding the parser's names as well, and a second parser answers the rule, a build each, each
     failing the post parser's shared-call rule for its own reason while the story parser's call
-    counts against none of them.
+    counts against none of them. View stories anonymously's guard in the send of Instagram's store
+    of stories you've seen, a method holding no string that a class-holding rule picks by what the
+    store's other methods hold and by its shape, is left out, sent only to a method of the send's
+    shape in a cache whose methods hold part of that, or sent to the store's read from disk as
+    well; the cache's methods hold all of it between them in one build, and the store gets a
+    second send in another. Each is a build, and each fails that rule for its own reason. The
+    store's constructor takes two objects, so the good build passes only while a * in a class name
+    stays in that name. The contract file may hold no other class-holding rule, and HushGram's may
+    use the keyword only while the fixture's does.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
     fail with findings of its own category only, so a check that fires for the wrong reason fails
@@ -764,6 +772,25 @@ try {
         Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $($pair[0]): once in $($pair[1])")) `
             "The good build's link filter call was not reported once in $($pair[1]).`n$($good.Output -join "`n")"
     }
+    # View stories anonymously puts its guard first in the send of Instagram's store of stories
+    # you've seen, which holds no string, so its rule picks the send by what the store's methods hold
+    # between them, and by its shape. The store's constructor takes two objects, so the send is the
+    # one method of that shape only while a * in a class name stays in that name. The contract file's
+    # one class-holding rule is that guard, so a rule this suite builds no bad fixtures for can't pass
+    # on a count nobody checks.
+    $seenHook = 'Lapp/hushgram/extension/fixture/stories/StorySeen;->holdBack()Z'
+    $seenSend = 'Lfixture/SeenStore;->send(Lfixture/SeenBatch;)V'
+    $seenStrings = '"pending_reel_seen_states_" and "PendingReelSeenStateStore.deserializeFromDisk"'
+    $seenOne = "with the shape instance (L*;)V in a class holding $seenStrings"
+    $seenMany = "with the shape instance (L*;)V sit in a class holding $seenStrings"
+    $seenRule = "start-call $seenHook in instance (L*;)V class-holding pending_reel_seen_states_ " +
+        'PendingReelSeenStateStore.deserializeFromDisk'
+    $classRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '\sclass-holding\s' } |
+        ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
+    Assert-True ($classRules.Count -eq 1 -and $classRules[0] -ceq $seenRule) `
+        "The contract file's class-holding rules are not the story seen guard this suite builds bad fixtures for:`n$($classRules -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $seenRule`: first in $seenSend")) `
+        "The good build's story seen guard was not reported first in the store's send.`n$($good.Output -join "`n")"
 
     # HushGram's own contract file, which names Instagram's code: it parses, each rule kind it uses is
     # one the fixture's rules exercise, and its no-call rules are the fixture's, the five shortcut
@@ -776,6 +803,11 @@ try {
     $unexercised = @($realKinds | Where-Object { $_ -notin $fixtureKinds })
     Assert-True ($realKinds.Count -ne 0 -and $unexercised.Count -eq 0) `
         "HushGram's contract file uses rule kinds the fixture doesn't exercise: $($unexercised -join ', ')"
+    # Picking a method by its class's strings works the same for every kind, and the fixture's
+    # class-holding rule exercises it, so HushGram's file may use it only while that rule is there.
+    $classHolding = { param($Path) @(Get-Content -LiteralPath $Path | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\sclass-holding\s' }).Count }
+    Assert-True ((& $classHolding $realContracts) -eq 0 -or (& $classHolding $contracts) -ne 0) `
+        "HushGram's contract file picks methods by their class's strings, which the fixture doesn't exercise."
     $realNoCalls = @(Get-Content -LiteralPath $realContracts | Where-Object { $_ -match '^\s*no-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' } | Sort-Object)
     $fixtureNoCalls = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*no-call\s' } |
@@ -919,6 +951,11 @@ try {
         'bad-shared-hook-twice' = 'contract'
         'bad-shared-hook-also-elsewhere' = 'contract'
         'bad-shared-two-parsers' = 'contract'
+        'bad-seen-hook-missing' = 'contract'
+        'bad-seen-hook-decoy' = 'contract'
+        'bad-seen-hook-also-elsewhere' = 'contract'
+        'bad-seen-two-stores' = 'contract'
+        'bad-seen-two-sends' = 'contract'
         'bad-finder-stub-not-filled' = 'contract'
         'bad-finder-stub-extension-call' = 'contract'
         'bad-finder-stub-call-after-return' = 'contract'
@@ -1070,6 +1107,27 @@ try {
         $fails = @((Get-Findings $badResults[$case.Key]).Fails)
         Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
             "$($case.Key) did not fail with its own link filter finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
+    # Each story seen build fails on the class-holding rule alone, for its own reason: no guard, one
+    # only in the cache's method of the send's shape, one in the store's read from disk as well (a
+    # method holding the strings itself, which a start-call rule keeps its hook out of), the cache
+    # holding both strings between its methods, or a second send.
+    $seenCacheSend = 'Lfixture/SeenCache;->send(Lfixture/SeenBatch;)V'
+    $seenFails = [ordered]@{
+        'bad-seen-hook-missing' = "[diff] FAIL: contract: $seenHook is not called in $seenSend, the one method $seenOne"
+        'bad-seen-hook-decoy' = "[diff] FAIL: contract: $seenHook is not called in $seenSend, the one method $seenOne; " +
+            "the host methods that call it: $seenCacheSend"
+        'bad-seen-hook-also-elsewhere' = "[diff] FAIL: contract: $seenHook is called in Lfixture/SeenStore;->load()V as well " +
+            "as in $seenSend, the one method $seenOne"
+        'bad-seen-two-stores' = "[diff] FAIL: contract: 2 methods $seenMany, and exactly one must, so the rule can't say " +
+            "which one calls ${seenHook}: $seenCacheSend, $seenSend"
+        'bad-seen-two-sends' = "[diff] FAIL: contract: 2 methods $seenMany, and exactly one must, so the rule can't say " +
+            "which one calls ${seenHook}: $seenSend, Lfixture/SeenStore;->sendAgain(Lfixture/SeenBatch;)V"
+    }
+    foreach ($case in $seenFails.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+            "$($case.Key) did not fail with its own story seen finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
     }
     # And against a clean build whose flush makes no executor call, the good build's stand-in has
     # nothing it took the place of.
@@ -1235,7 +1293,11 @@ try {
             "once-call $swapHook after $watchExecute holding sizeBefore",
             "once-call $swapHook in instance ()V",
             "once-call $swapHook in sometimes ()V holding sizeBefore",
-            "once-call $swapHook in instance holding sizeBefore")) {
+            "once-call $swapHook in instance holding sizeBefore",
+            "start-call $seenHook in instance (L*;)V class-holding",
+            "start-call $seenHook in instance (L*;)V class-holding pending_reel_seen_states_ pending_reel_seen_states_",
+            "start-call $seenHook in instance (L*;)V class_holding pending_reel_seen_states_",
+            "start-call $seenHook in instance (L*;)V classholding pending_reel_seen_states_")) {
         [System.IO.File]::WriteAllText($badContract, "# a comment line first`n$line`n")
         $unreadableFirstCall = Invoke-DexDiff -Clean $cleanApk -Patched (Join-Path $caseRoot 'good.apk') `
             -Allowlist $emptyAllowlist -Name 'bad-first-call-contract' -Contracts $badContract

@@ -104,8 +104,13 @@ import java.util.Set;
  * a rule picking its method by the fields it reads: Instagram's short feed menu keeps only the
  * options on a list made by a method holding no string, and Download any video passes that list
  * through the extension. Beside it sits a method of the same shape reading one of the two options.
- * The rules all these builds are held to are written beside them as contracts.txt, since HushGram's
- * own contract file names Instagram's code.
+ * And Instagram's store of stories you've seen, whose send holds no string at all: a class-holding
+ * rule picks it by the file name and the trace section the store's read from disk holds, and by its
+ * shape, one object in and nothing back, which the store's constructor taking two objects would
+ * match too if a * ran on past the end of a class name. Beside the store sits a cache with a method
+ * of the send's shape, whose methods hold the file name alone and, in one build, the trace section
+ * as well. The rules all these builds are held to are written beside them as contracts.txt, since
+ * HushGram's own contract file names Instagram's code.
  *
  *   java -cp &lt;cli jar&gt; BadDexFixture.java &lt;outDir&gt;
  */
@@ -259,11 +264,33 @@ public class BadDexFixture {
             Arrays.asList("story_item_to_share_url", "XDTStoryItemThirdPartySharingUrlResponse");
 
     /**
+     * Instagram's store of stories you've seen (PendingReelSeenStateStore), a class Redex renames:
+     * the batch its send posts, the store classes and the session its constructor takes, and the
+     * extension call View stories anonymously puts first in the send.
+     */
+    private static final String SEEN_STORE = "Lfixture/SeenStore;";
+    private static final String SEEN_BATCH = "Lfixture/SeenBatch;";
+    private static final String SEEN_STORES = "Lfixture/SeenStores;";
+    private static final String USER_SESSION = "Lcom/instagram/common/session/UserSession;";
+    private static final ImmutableMethodReference POST_BATCH = method(SEEN_BATCH, "post", "V");
+    private static final String STORY_SEEN = "Lapp/hushgram/extension/fixture/stories/StorySeen;";
+    private static final ImmutableMethodReference SEEN_HOLD_BACK = method(STORY_SEEN, "holdBack", "Z");
+    /** A cache of seen stories beside the store, a class Instagram doesn't have. */
+    private static final String SEEN_CACHE = "Lfixture/SeenCache;";
+    /**
+     * The file name and the trace section of the store's read from disk, which the store's
+     * class-holding rule picks the send by: the send itself holds no string.
+     */
+    private static final List<String> SEEN_STORE_NAMES =
+            Arrays.asList("pending_reel_seen_states_", "PendingReelSeenStateStore.deserializeFromDisk");
+
+    /**
      * The rules the fixture's builds are held to, written beside the dex files as contracts.txt.
      * They're Hushfacebook's rules, which each kind was written for, under the fixture's extension
-     * prefix, and two shared-call rules for the link parsers. HushGram's own rules, in
-     * injected-mutation-contracts.txt, name Instagram's classes and strings, which the fixture
-     * doesn't have, so test-injected-registers.ps1 checks that file separately.
+     * prefix, two shared-call rules for the link parsers and a class-holding start-call rule for
+     * the story seen store's send. HushGram's own rules, in injected-mutation-contracts.txt, name
+     * Instagram's classes and strings, which the fixture doesn't have, so
+     * test-injected-registers.ps1 checks that file separately.
      */
     private static final List<String> CONTRACTS = Arrays.asList(
             "# Written by BadDexFixture.java for test-injected-registers.ps1.",
@@ -295,7 +322,8 @@ public class BadDexFixture {
             "next-call Lapp/hushgram/extension/fixture/settings/SettingsEntry;->setLogoTouchListener(Landroid/view/View;Landroid/view/View$OnTouchListener;)V after Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V in static (Landroid/content/Context;Lcom/facebook/navigation/navbar/legacy/search/WordmarkNavigationBar;)V holding WordmarkNavigationBar#createWordmarkView WordmarkNavigationBar.initContents",
             "sole-call Lapp/hushgram/extension/fixture/reels/ReelWatchHistory;->send(Ljava/util/concurrent/Executor;Ljava/lang/Runnable;)V replacing Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V in instance ()V holding FbShortsSeenStateMutation video_ids",
             "shared-call Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding permalink XDTPermalinkResponse",
-            "shared-call Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding story_item_to_share_url XDTStoryItemThirdPartySharingUrlResponse");
+            "shared-call Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding story_item_to_share_url XDTStoryItemThirdPartySharingUrlResponse",
+            "start-call Lapp/hushgram/extension/fixture/stories/StorySeen;->holdBack()Z in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk");
 
     /**
      * One of the ShortcutManager calls the settings patch sends to SettingsEntry: its name, what it
@@ -1435,6 +1463,76 @@ public class BadDexFixture {
                         "Ljava/util/List;", true, body(2, op(Opcode.RETURN_OBJECT, 0)), "Ljava/util/List;", OBJECT)));
     }
 
+    /**
+     * An instance method of [owner] returning nothing, this in v1: it makes [guard], loads [names]
+     * into v0, and with [posts] takes a batch, in v2, and posts it.
+     */
+    private static Method seenMethod(String owner, String name, List<String> names, List<Instruction> guard, boolean posts) {
+        List<Instruction> instructions = new ArrayList<>(guard);
+        for (String held : names) {
+            instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(held)));
+        }
+        if (posts) instructions.add(new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 2, 0, 0, 0, 0, POST_BATCH));
+        instructions.add(op(Opcode.RETURN_VOID));
+        ImmutableMethodImplementation code = new ImmutableMethodImplementation(posts ? 3 : 2, instructions, null, null);
+        return posts ? define(owner, name, "V", false, code, SEEN_BATCH) : define(owner, name, "V", false, code);
+    }
+
+    /** View stories anonymously's guard, as the patch writes it: asked, and a return when it answers true. */
+    private static List<Instruction> seenGuard() {
+        return Arrays.asList(
+                invoke(SEEN_HOLD_BACK),              // 0
+                op(Opcode.MOVE_RESULT, 0),           // 3
+                ifEqz(0, 3),                         // 4 -> 7
+                op(Opcode.RETURN_VOID));             // 6
+    }
+
+    /**
+     * Instagram's store of stories you've seen. Its send, an instance method taking the batch, holds
+     * no string and posts the batch, with [sendGuard] first. Its read from disk holds the file name
+     * and the trace section the store's class-holding rule picks the send by, with [loadGuard]
+     * first. Its constructor takes two classes, the store classes and the session, so a shape whose
+     * * ran on past the end of a class name would pick the constructor too. With [secondSend] a
+     * second method of the send's shape posts the batch, so the rule can't say which one is the send.
+     */
+    private static ClassDef seenStore(List<Instruction> sendGuard, List<Instruction> loadGuard, boolean secondSend) {
+        List<Method> methods = new ArrayList<>();
+        methods.add(new ImmutableMethod(SEEN_STORE, "<init>", Arrays.asList(new ImmutableMethodParameter(SEEN_STORES, null, null),
+                new ImmutableMethodParameter(USER_SESSION, null, null)), "V",
+                AccessFlags.PUBLIC.getValue() | AccessFlags.CONSTRUCTOR.getValue(), null, null, body(3,
+                        new ImmutableInstruction35c(Opcode.INVOKE_DIRECT, 1, 0, 0, 0, 0, 0, method(OBJECT, "<init>", "V")),
+                        op(Opcode.RETURN_VOID))));
+        methods.add(seenMethod(SEEN_STORE, "load", SEEN_STORE_NAMES, loadGuard, false));
+        methods.add(seenMethod(SEEN_STORE, "send", Collections.<String>emptyList(), sendGuard, true));
+        if (secondSend) {
+            methods.add(seenMethod(SEEN_STORE, "sendAgain", Collections.<String>emptyList(), Collections.<Instruction>emptyList(), true));
+        }
+        return new ImmutableClassDef(SEEN_STORE, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null, methods);
+    }
+
+    /**
+     * A cache of seen stories beside the store, which Instagram doesn't have, holding part of what
+     * the store's rule picks the send by: a method holding the store's file name alone, and a
+     * method of the send's shape that posts the batch, with [sendGuard] first. With [traced] a
+     * third method holds the store's trace section, so the cache's methods hold both between them.
+     */
+    private static ClassDef seenCache(List<Instruction> sendGuard, boolean traced) {
+        List<Method> methods = new ArrayList<>();
+        methods.add(seenMethod(SEEN_CACHE, "restore", SEEN_STORE_NAMES.subList(0, 1), Collections.<Instruction>emptyList(), false));
+        if (traced) {
+            methods.add(seenMethod(SEEN_CACHE, "trace", SEEN_STORE_NAMES.subList(1, 2), Collections.<Instruction>emptyList(), false));
+        }
+        methods.add(seenMethod(SEEN_CACHE, "send", Collections.<String>emptyList(), sendGuard, true));
+        return new ImmutableClassDef(SEEN_CACHE, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null, methods);
+    }
+
+    /** The extension's guard, static: it answers false. */
+    private static ClassDef storySeen() {
+        return new ImmutableClassDef(STORY_SEEN, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
+                OBJECT, null, null, null, null, Collections.singletonList(define(STORY_SEEN, "holdBack", "Z", true,
+                        body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)))));
+    }
+
     /** [classes] with the top bar replaced by [topBar]. */
     private static List<ClassDef> withTopBar(List<ClassDef> classes, ClassDef topBar) {
         List<ClassDef> replaced = new ArrayList<>(classes);
@@ -1608,7 +1706,9 @@ public class BadDexFixture {
                 reelLikeHelper(likeHook(), Collections.<Instruction>emptyList()),
                 attachmentTap(tapHook(), Collections.<Instruction>emptyList()), doubleTapLike(),
                 speedToast(toastHook(3), Collections.<Instruction>emptyList()), reelSpeed(),
-                linkParsers(1, 1, false, false), linkFilter(), menuOptions(1, false), videoDownload());
+                linkParsers(1, 1, false, false), linkFilter(), menuOptions(1, false), videoDownload(),
+                seenStore(seenGuard(), Collections.<Instruction>emptyList(), false),
+                seenCache(Collections.<Instruction>emptyList(), false), storySeen());
     }
 
     /** The clean host, Facebook's classes as they ship, with the batcher's flush making [handOver]. */
@@ -1625,7 +1725,9 @@ public class BadDexFixture {
                 reelLikeHelper(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 attachmentTap(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 speedToast(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
-                linkParsers(0, 0, false, false), menuOptions(0, false));
+                linkParsers(0, 0, false, false), menuOptions(0, false),
+                seenStore(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList(), false),
+                seenCache(Collections.<Instruction>emptyList(), false));
     }
 
     /**
@@ -2249,6 +2351,23 @@ public class BadDexFixture {
         // contract: a second instance method holding the post parser's names, so the rule can't
         // say which one the call belongs in, although the call is where it was.
         dexes.put("bad-shared-two-parsers", replaced(good(), linkParsers(1, 1, false, true)));
+
+        // contract: the story seen store's send left without its guard, so every story you watch is
+        // reported.
+        List<Instruction> unguarded = Collections.<Instruction>emptyList();
+        dexes.put("bad-seen-hook-missing", replaced(good(), seenStore(unguarded, unguarded, false)));
+        // contract: the guard in the cache's method of the send's shape, whose class holds the
+        // store's file name alone, and the send left as Instagram makes it.
+        dexes.put("bad-seen-hook-decoy", replaced(good(), seenStore(unguarded, unguarded, false), seenCache(seenGuard(), false)));
+        // contract: the guard in the send and in the store's read from disk too, the sibling holding
+        // what the rule picks the send by.
+        dexes.put("bad-seen-hook-also-elsewhere", replaced(good(), seenStore(seenGuard(), seenGuard(), false)));
+        // contract: the cache's methods holding the file name and the trace section between them, so
+        // two classes answer the rule and it can't say which one's send the guard belongs in.
+        dexes.put("bad-seen-two-stores", replaced(good(), seenCache(unguarded, true)));
+        // contract: a second method of the send's shape in the store, so the rule can't say which
+        // one is the send, although the guard is where it was.
+        dexes.put("bad-seen-two-sends", replaced(good(), seenStore(seenGuard(), unguarded, true)));
 
         // contract: each start-call hook put first in a method that holds the rule's first string
         // but isn't the one the patch hooks. A rule naming only that string counted any method

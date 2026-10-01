@@ -94,8 +94,11 @@ import java.util.TreeSet;
  * left in Instagram's code. A start-call, next-call, sole-call, once-call or shared-call rule names
  * its method by the strings it loads, and a shape where strings alone don't tell it apart, and
  * exactly one of the app's methods may answer that: on Facebook 580 five methods held one string a
- * rule named, so a rule naming it alone passed a hook in any of them. The device verifier stays the
- * authority; these catch the known shapes without a phone.
+ * rule named, so a rule naming it alone passed a hook in any of them. A method that loads no string
+ * at all, such as the send of Instagram's store of stories you've seen, is named by the strings its
+ * class's methods load between them and its shape among them (class-holding), and exactly one may
+ * answer that too. The device verifier stays the authority; these catch the known shapes without a
+ * phone.
  *
  *   java -cp &lt;cli jar&gt; DexDiff.java &lt;cleanApk&gt; &lt;patchedApk&gt; &lt;reportFile&gt;
  *       &lt;removalAllowlist&gt; [&lt;contracts&gt; [&lt;signedBase&gt;]]
@@ -161,7 +164,8 @@ public class DexDiff {
      *       &lt;string&gt; [&lt;string&gt; ...]": exactly one method outside the bundle's own code
      *       loads every one of the strings, a space in one written as \s and a backslash as \\, and has the shape, a
      *       descriptor such as {@code (Landroidx/fragment/app/FragmentActivity;*)V} where * stands
-     *       for any run of characters. A string written as a field reference, such as
+     *       for any run of characters, or inside a class name for any run within that name, so
+     *       {@code (L*;)V} takes one object and nothing else. A string written as a field reference, such as
      *       {@code Lcom/example/Kind;->REPORT:Lcom/example/Kind;}, is held by a method that reads or
      *       writes that field, for a method that loads no string of its own. That method calls the method reference, with nothing before
      *       the call but plain instructions (no other call, branch, switch, return or throw), and
@@ -197,6 +201,16 @@ public class DexDiff {
      *       that don't load them may call it too. For a filter the patches put in more than one of
      *       the app's methods, each picked by a rule of its own, such as the one every link parser
      *       passes its link through: once-call would count the other parsers' calls against it.
+     *   <li>Any of those five with "class-holding" in place of "holding": the strings are held by
+     *       the method's class, its methods loading every one of them between them (a field
+     *       reference by one reading or writing it), and the method is the one with the shape
+     *       among the methods with code of every such class outside the bundle's own code. Exactly
+     *       one may answer, and the kind's own checks follow as written. Where start-call and
+     *       shared-call look for the hook in other methods loading the strings, they look in the
+     *       methods that load them all themselves, so a sibling that loads none may make the same
+     *       call. For a hook in a method that loads no string at all, as the patches put in the
+     *       send of Instagram's store of stories you've seen and in both record methods of its
+     *       batch of watched reels.
      * </ul>
      */
     /** A string as a rule line writes it: a backslash as two, then a space as \s. */
@@ -236,19 +250,21 @@ public class DexDiff {
         final String after;
         /** For a sole-call rule, the call the callee stands in for; null for the others. */
         final String replaced;
-        /** start-call, next-call, sole-call, once-call and shared-call: the strings its method loads, every one of them. */
+        /** start-call, next-call, sole-call, once-call and shared-call: the strings its method (or its class) loads, every one of them. */
         final List<String> strings;
         /** The same rules: whether its method is static, or null when the rule doesn't say. */
         final Boolean isStatic;
         /** The same rules: its method's descriptor, "*" for any run of characters, or null. */
         final String shape;
+        /** The same rules: whether its strings are its method's class's, between all its methods, rather than its own. */
+        final boolean byClass;
 
         Contract(String kind, String callee, String target) {
-            this(kind, callee, target, null, null, List.of(), null, null);
+            this(kind, callee, target, null, null, List.of(), null, null, false);
         }
 
         Contract(String kind, String callee, String target, String after, String replaced, List<String> strings,
-                Boolean isStatic, String shape) {
+                Boolean isStatic, String shape, boolean byClass) {
             this.kind = kind;
             this.callee = callee;
             this.target = target;
@@ -257,6 +273,7 @@ public class DexDiff {
             this.strings = strings;
             this.isStatic = isStatic;
             this.shape = shape;
+            this.byClass = byClass;
         }
 
         /** Whether this rule picks its method by strings and a shape: start-call, next-call, sole-call, once-call and shared-call. */
@@ -277,7 +294,7 @@ public class DexDiff {
             }
             List<String> written = new ArrayList<>();
             for (String s : strings) written.add(escape(s));
-            return b.append(" holding ").append(String.join(" ", written)).toString();
+            return b.append(byClass ? " class-holding " : " holding ").append(String.join(" ", written)).toString();
         }
 
         /** Whether [m] has this rule's shape: its static flag and its descriptor. */
@@ -287,14 +304,31 @@ public class DexDiff {
             StringBuilder descriptor = new StringBuilder("(");
             for (CharSequence p : m.getParameterTypes()) descriptor.append(p);
             descriptor.append(')').append(m.getReturnType());
-            String[] pieces = shape.split("\\*", -1);
-            StringBuilder pattern = new StringBuilder();
-            for (int k = 0; k < pieces.length; k++) {
-                if (k > 0) pattern.append(".*");
-                pattern.append(java.util.regex.Pattern.quote(pieces[k]));
-            }
-            return descriptor.toString().matches(pattern.toString());
+            return descriptor.toString().matches(shapePattern(shape));
         }
+    }
+
+    /**
+     * [shape] as a regular expression. A * inside a class name, after its L and before its ;, stands
+     * for any run of characters but a ;, so it stays in that one name: (L*;)V takes one object. A *
+     * anywhere else stands for any run at all. Outside a class name a descriptor's only letters are
+     * the primitives and the L that starts one, so an L there always starts a name.
+     */
+    static String shapePattern(String shape) {
+        StringBuilder pattern = new StringBuilder();
+        StringBuilder literal = new StringBuilder();
+        boolean inName = false;
+        for (char c : shape.toCharArray()) {
+            if (c == '*') {
+                pattern.append(java.util.regex.Pattern.quote(literal.toString())).append(inName ? "[^;]*" : ".*");
+                literal.setLength(0);
+                continue;
+            }
+            literal.append(c);
+            if (inName) inName = c != ';';
+            else inName = c == 'L';
+        }
+        return pattern.append(java.util.regex.Pattern.quote(literal.toString())).toString();
     }
 
     /** How each rule that picks its method by strings and a shape is written, for the message a bad line gets. */
@@ -308,7 +342,8 @@ public class DexDiff {
     /**
      * A start-call, next-call, sole-call, once-call or shared-call line: its method reference, the next-call's
      * "after &lt;method reference&gt;" or the sole-call's "replacing &lt;method reference&gt;", then "[in
-     * [static|instance] &lt;shape&gt;] holding &lt;string&gt; [&lt;string&gt; ...]". Null when it isn't one.
+     * [static|instance] &lt;shape&gt;] holding &lt;string&gt; [&lt;string&gt; ...]", with "class-holding" in
+     * place of "holding" for strings its method's class holds. Null when it isn't one.
      */
     private static Contract readPicked(String[] parts) {
         String kind = parts[0];
@@ -334,12 +369,13 @@ public class DexDiff {
             if (at >= parts.length || !parts[at].startsWith("(") || parts[at].indexOf(')') < 1) return null;
             shape = parts[at++];
         }
-        if (at >= parts.length || !parts[at].equals("holding")) return null;
+        if (at >= parts.length || !(parts[at].equals("holding") || parts[at].equals("class-holding"))) return null;
+        boolean byClass = parts[at].equals("class-holding");
         // The line is split on spaces, so a string holding one writes it as \s, and a backslash as \\.
         List<String> strings = new ArrayList<>();
         for (String s : Arrays.asList(parts).subList(at + 1, parts.length)) strings.add(unescape(s));
         if (strings.isEmpty() || new TreeSet<>(strings).size() != strings.size()) return null;
-        return new Contract(kind, parts[1], String.join(" ", strings), after, replaced, strings, isStatic, shape);
+        return new Contract(kind, parts[1], String.join(" ", strings), after, replaced, strings, isStatic, shape, byClass);
     }
 
     private static List<Contract> readContracts(File file) throws Exception {
@@ -357,7 +393,7 @@ public class DexDiff {
                 Contract picked = readPicked(parts);
                 if (picked == null) {
                     throw new IllegalArgumentException("Invalid contract line " + lineNumber + ": expected " + form
-                            + " [in [static|instance] <(parameters)return>] holding <string> [<string> ...]");
+                            + " [in [static|instance] <(parameters)return>] holding or class-holding <string> [<string> ...]");
                 }
                 contracts.add(picked);
                 continue;
@@ -382,7 +418,7 @@ public class DexDiff {
                         + " or start-call <method reference>, next-call <method reference> after <method reference>,"
                         + " sole-call <method reference> replacing <method reference>,"
                         + " once-call <method reference> or shared-call <method reference>, each then"
-                        + " [in [static|instance] <(parameters)return>] holding <string> [<string> ...]");
+                        + " [in [static|instance] <(parameters)return>] holding or class-holding <string> [<string> ...]");
             }
             String kind = firstCallTyped ? TYPED_FIRST_CALL : firstCallOutside ? OUTSIDE_FIRST_CALL : parts[0];
             contracts.add(new Contract(kind, parts[1], parts[3]));
@@ -1262,10 +1298,12 @@ public class DexDiff {
         Map<String, String> outsideFirstCallTargets = new HashMap<>();
         // start-call, next-call, sole-call, once-call and shared-call: for each rule, every method outside the
         // bundle's own code that loads all of its strings, with whether that method has the rule's shape. The
-        // rules' own strings are the only ones collected, so a method is read once.
+        // rules' own strings are the only ones collected, so a method is read once. A class-holding rule
+        // takes the methods of each class whose methods load them between them, once the class is read.
         List<Contract> pickRules = new ArrayList<>();
         Map<Contract, List<Holder>> holders = new LinkedHashMap<>();
         Set<String> pickStrings = new HashSet<>();
+        boolean classPicks = false;
         // And every method outside the bundle's own code that calls such a rule's method, to say
         // where a hook went when it isn't in the method its rule picks, or went there as well.
         Map<String, List<String>> hookCallers = new HashMap<>();
@@ -1289,12 +1327,15 @@ public class DexDiff {
                 holders.put(contract, new ArrayList<>());
                 pickStrings.addAll(contract.strings);
                 hookCallers.put(contract.callee, new ArrayList<>());
+                classPicks |= contract.byClass;
             }
         }
         MultiDexContainer<? extends DexFile> container =
                 DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
         for (String entry : container.getDexEntryNames()) {
             for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
+                boolean picksHere = !pickRules.isEmpty() && !cd.getType().startsWith(OWN);
+                List<ClassMethod> classMethods = picksHere && classPicks ? new ArrayList<>() : null;
                 for (Method m : cd.getMethods()) {
                     String s = sig(cd, m);
                     List<String> left = wanted.contains(s) ? unchecked.get(s) : null;
@@ -1308,8 +1349,9 @@ public class DexDiff {
                     String leaving = outsideFirstCallTargets.get(s);
                     if (leaving != null) firstCalls.put(s, firstCallOutside(m, leaving));
                     if (!typeNamedClasses.isEmpty()) recordTypeNamed(cd, m, typeNamedClasses);
-                    if (!pickRules.isEmpty() && !cd.getType().startsWith(OWN)) {
-                        recordHolders(s, m, pickRules, pickStrings, holders);
+                    if (picksHere) {
+                        Set<String> held = recordHolders(s, m, pickRules, pickStrings, holders);
+                        if (classMethods != null) classMethods.add(new ClassMethod(s, m, held));
                     }
                     if ((callSites.isEmpty() && noCallSites.isEmpty() && hookCallers.isEmpty())
                             || m.getImplementation() == null) continue;
@@ -1325,6 +1367,7 @@ public class DexDiff {
                         if (callers != null && !cd.getType().startsWith(OWN) && !callers.contains(s)) callers.add(s);
                     }
                 }
+                if (classMethods != null) recordClassHolders(classMethods, pickRules, holders);
             }
         }
         List<String> contractFindings = new ArrayList<>();
@@ -1425,8 +1468,10 @@ public class DexDiff {
 
     /**
      * A method outside the bundle's own code that loads every string of a start-call, next-call,
-     * sole-call, once-call or shared-call rule: its signature, whether it has the rule's shape, and the method
-     * itself, which the rule reads again once it knows which one it picked.
+     * sole-call, once-call or shared-call rule, or for a class-holding rule a method with code of a
+     * class whose methods load them between them that has the rule's shape or loads them all itself:
+     * its signature, whether it has the rule's shape, and the method itself, which the rule reads
+     * again once it knows which one it picked.
      */
     private static final class Holder {
         final String method;
@@ -1440,10 +1485,26 @@ public class DexDiff {
         }
     }
 
-    /** Adds [m] to each rule whose strings it loads, every one of them, a field reference by reading or writing the field. */
-    private static void recordHolders(String s, Method m, List<Contract> rules, Set<String> wanted,
+    /** One method of a class being read: its signature, the method, and what recordHolders found it loads. */
+    private static final class ClassMethod {
+        final String sig;
+        final Method m;
+        final Set<String> held;
+
+        ClassMethod(String sig, Method m, Set<String> held) {
+            this.sig = sig;
+            this.m = m;
+            this.held = held;
+        }
+    }
+
+    /**
+     * Adds [m] to each holding rule whose strings it loads, every one of them, a field reference by
+     * reading or writing the field. Answers what it loads of [wanted], or null for none.
+     */
+    private static Set<String> recordHolders(String s, Method m, List<Contract> rules, Set<String> wanted,
             Map<Contract, List<Holder>> holders) {
-        if (m.getImplementation() == null) return;
+        if (m.getImplementation() == null) return null;
         Set<String> held = null;
         for (Instruction i : m.getImplementation().getInstructions()) {
             if (!(i instanceof ReferenceInstruction)) continue;
@@ -1454,9 +1515,33 @@ public class DexDiff {
             if (held == null) held = new HashSet<>();
             held.add(loaded);
         }
-        if (held == null) return;
+        if (held == null) return null;
         for (Contract rule : rules) {
-            if (held.containsAll(rule.strings)) holders.get(rule).add(new Holder(s, rule.hasShape(m), m));
+            if (!rule.byClass && held.containsAll(rule.strings)) holders.get(rule).add(new Holder(s, rule.hasShape(m), m));
+        }
+        return held;
+    }
+
+    /**
+     * For each class-holding rule whose strings [methods], one class's, load between them: adds every
+     * one of them with code that has the rule's shape, which the rule picks its method among, or
+     * loads every string itself, which a start-call or shared-call rule looks for its hook in as a
+     * holding rule does.
+     */
+    private static void recordClassHolders(List<ClassMethod> methods, List<Contract> rules,
+            Map<Contract, List<Holder>> holders) {
+        Set<String> together = new HashSet<>();
+        for (ClassMethod method : methods) if (method.held != null) together.addAll(method.held);
+        if (together.isEmpty()) return;
+        for (Contract rule : rules) {
+            if (!rule.byClass || !together.containsAll(rule.strings)) continue;
+            for (ClassMethod method : methods) {
+                if (method.m.getImplementation() == null) continue;
+                boolean shaped = rule.hasShape(method.m);
+                if (shaped || (method.held != null && method.held.containsAll(rule.strings))) {
+                    holders.get(rule).add(new Holder(method.sig, shaped, method.m));
+                }
+            }
         }
     }
 
@@ -1468,12 +1553,13 @@ public class DexDiff {
      * calls it and that it's the method's one call there; once-call that no other host method calls
      * it and that it's the method's one call there; next-call that as well, right after the call it pairs
      * with and on the same register; sole-call that it's the method's one call, that the call it
-     * stands in for is gone, and that it reads what that call read in [clean].
+     * stands in for is gone, and that it reads what that call read in [clean]. A class-holding rule
+     * is asked the same once its method is picked.
      */
     private static void checkPicked(Contract contract, List<Holder> holders, List<String> callers, File clean,
             List<String> findings) throws Exception {
         String rule = "contract " + contract.rule();
-        String held = describePicked(contract);
+        String held = describePicked(contract, false);
         List<String> shaped = new ArrayList<>();
         Holder only = null;
         for (Holder holder : holders) {
@@ -1485,7 +1571,7 @@ public class DexDiff {
             // None, and the method moved or lost a string; several, and the rule can't tell the
             // right one from the others, so a hook in any of them would pass.
             System.out.println("[diff] " + rule + ": " + shaped.size() + " methods answer it" + named(shaped));
-            findings.add("contract: " + shaped.size() + " methods hold " + held + ", and exactly one"
+            findings.add("contract: " + shaped.size() + " methods " + describePicked(contract, true) + ", and exactly one"
                     + " must, so the rule can't say which one calls " + contract.callee + named(shaped));
             return;
         }
@@ -1493,8 +1579,10 @@ public class DexDiff {
         List<Integer> sites = callSites(body, contract.callee);
         // Where else the hook went. A start-call or shared-call rule looks among the methods holding
         // its strings, since Hushfacebook's two tray rules sent the same call to two adapters and
-        // HushGram's two link parsers pass their links through the same filter. A next-call,
-        // sole-call or once-call hook belongs to one method, so a second call anywhere is one too many.
+        // HushGram's two link parsers pass their links through the same filter; a class-holding one
+        // among those that hold them all themselves, so the one guard Instagram's batch of watched
+        // reels puts in each of its record methods passes. A next-call, sole-call or once-call hook
+        // belongs to one method, so a second call anywhere is one too many.
         List<String> elsewhere = new ArrayList<>();
         if (contract.kind.equals("start-call") || contract.kind.equals("shared-call")) {
             for (Holder holder : holders) {
@@ -1508,12 +1596,12 @@ public class DexDiff {
             System.out.println("[diff] " + rule + ": not called in " + only.method
                     + (callers.isEmpty() ? "" : "; called in " + String.join(", ", callers)));
             findings.add("contract: " + contract.callee + " is not called in " + only.method
-                    + ", the one method holding " + held
+                    + ", the one method " + held
                     + (callers.isEmpty() ? "" : "; the host methods that call it: " + String.join(", ", callers)));
         } else if (!elsewhere.isEmpty()) {
             System.out.println("[diff] " + rule + ": called in " + only.method + " and in " + String.join(", ", elsewhere));
             findings.add("contract: " + contract.callee + " is called in " + String.join(", ", elsewhere)
-                    + " as well as in " + only.method + ", the one method holding " + held);
+                    + " as well as in " + only.method + ", the one method " + held);
         } else if (contract.kind.equals("start-call")) {
             if (callOf(only.m, contract.callee) != FIRST) {
                 System.out.println("[diff] " + rule + ": not first in " + only.method);
@@ -1644,14 +1732,20 @@ public class DexDiff {
         return called ? LATER : NOT_CALLED;
     }
 
-    /** A picking rule's strings as a finding names them, and its shape when it has one. */
-    private static String describePicked(Contract rule) {
+    /**
+     * What a picking rule picks its method by, as a finding says it after "the one method" or, with
+     * [many], after "2 methods": holding its strings, then its shape when it has one, or for a
+     * class-holding rule its shape, then in a class holding its strings.
+     */
+    private static String describePicked(Contract rule, boolean many) {
         List<String> quoted = new ArrayList<>();
         for (String s : rule.strings) quoted.add("\"" + s + "\"");
         String strings = quoted.size() == 1 ? quoted.get(0)
                 : String.join(", ", quoted.subList(0, quoted.size() - 1)) + " and " + quoted.get(quoted.size() - 1);
-        if (rule.shape == null) return strings;
-        return strings + " with the shape " + (rule.isStatic == null ? "" : rule.isStatic ? "static " : "instance ") + rule.shape;
+        String shape = rule.shape == null ? null
+                : "with the shape " + (rule.isStatic == null ? "" : rule.isStatic ? "static " : "instance ") + rule.shape;
+        if (rule.byClass) return (shape == null ? "" : shape + " ") + (many ? "sit in" : "in") + " a class holding " + strings;
+        return (many ? "hold " : "holding ") + strings + (shape == null ? "" : " " + shape);
     }
 
     /** ": " and the first eight of [methods], or nothing for none. */
