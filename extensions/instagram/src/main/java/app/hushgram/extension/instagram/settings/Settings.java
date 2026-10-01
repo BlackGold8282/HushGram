@@ -204,6 +204,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_download_videos", TRUE);
 
     /**
+     * The same Download for a photo: someone else's photo post, and a carousel on a photo page,
+     * saved at the largest size Instagram lists. Off to start.
+     */
+    public static final BooleanSetting DOWNLOAD_PHOTOS =
+            new BooleanSetting("hushgram_download_photos", FALSE);
+
+    /**
      * Videos, reels and stories start only after a tap: a player's start goes ahead when a tap has
      * just ended, and Instagram's own autoplay check answers no
      * ({@link app.hushgram.extension.instagram.media.TapToPlay}). Nothing Instagram stores is

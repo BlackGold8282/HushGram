@@ -15,6 +15,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMuta
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
 import app.morphe.patches.instagram.download.MEDIA
+import app.morphe.patches.instagram.download.imageBridges
 import app.morphe.patches.instagram.download.mediaBridges
 import app.morphe.patches.instagram.download.pandoGetter
 import app.morphe.patches.instagram.download.reel.DOWNLOAD
@@ -98,6 +99,9 @@ private const val CAROUSEL_FIELD = "carousel_media"
  * page is on screen, and the menu holds that state, so the extension reads the page there and
  * offers, and saves, the page when it's a video.
  *
+ * With its second switch on, a post or carousel page without a video gets the same row, and a tap
+ * saves its picture at the largest size, through the picture bridges Download stories uses.
+ *
  * Most of the feed now opens a short menu instead ("Why you're seeing this", Interested, Not
  * interested, Report, under an "About this reel" summary on a reel). It shows only the rows whose
  * option is on a fixed list, in that list's order, so it dropped the Download row. The list goes
@@ -110,7 +114,8 @@ private const val CAROUSEL_FIELD = "carousel_media"
 val downloadVideoPatch = bytecodePatch(
     name = "Download any video",
     description = "Adds Download to the menu of a post in your feed with a video, and of a carousel showing a video. " +
-        "Videos save at the Download quality you set, without Instagram's watermark.",
+        "Videos save at the Download quality you set, without Instagram's watermark. " +
+        "A second switch does the same for photo posts.",
     default = false,
 ) {
     category("Downloads")
@@ -221,6 +226,7 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         throw PatchException("$PATCH: ${kept.definingClass}->${kept.name} returns its list in v$it, out of an invoke's reach")
     }
     val writeBridges = mediaBridges(PATCH)
+    val writeImageBridges = imageBridges(PATCH)
 
     // Last return first, so the indices before it stay where they were.
     for (index in returns.reversed()) {
@@ -296,6 +302,7 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
     bridges.methods.remove(rowStub)
     bridges.methods.add(downloadRow(rowStub, others))
     writeBridges()
+    writeImageBridges()
 }
 
 /**

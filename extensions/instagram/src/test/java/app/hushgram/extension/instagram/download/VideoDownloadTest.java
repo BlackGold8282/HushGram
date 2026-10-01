@@ -80,6 +80,37 @@ public class VideoDownloadTest {
         assertEquals(null, ShadowToast.getTextOfLatestToast());
     }
 
+    /**
+     * A video saves as a video with its switch on and never as a photo, since its cover is a
+     * picture too. A picture without a video saves only with the photo switch on.
+     */
+    @Test
+    public void eachSwitchSavesItsOwnKind() {
+        assertEquals(VideoDownload.Save.VIDEO, VideoDownload.what(true, false, true, false));
+        assertEquals(VideoDownload.Save.VIDEO, VideoDownload.what(true, true, true, true));
+        assertEquals("a video's cover", VideoDownload.Save.NONE, VideoDownload.what(true, true, false, true));
+        assertEquals(VideoDownload.Save.PHOTO, VideoDownload.what(false, true, false, true));
+        assertEquals(VideoDownload.Save.PHOTO, VideoDownload.what(false, true, true, true));
+        assertEquals("photo switch off", VideoDownload.Save.NONE, VideoDownload.what(false, true, true, false));
+        assertEquals("nothing to save", VideoDownload.Save.NONE, VideoDownload.what(false, false, true, true));
+    }
+
+    /** The photo switch starts off; with it on, a post with nothing to save still gets no row or tap. */
+    @Test
+    public void thePhotoSwitchStartsOff() {
+        assertFalse(Settings.DOWNLOAD_PHOTOS.get());
+        Settings.DOWNLOAD_PHOTOS.save(true);
+        try {
+            ArrayList<Object> rows = new ArrayList<>();
+            VideoDownload.offer(new Object(), rows);
+            assertTrue(rows.isEmpty());
+            assertFalse(VideoDownload.save(new Object(), null, null));
+            assertEquals(VideoDownload.Save.NONE, VideoDownload.what(new Object()));
+        } finally {
+            Settings.DOWNLOAD_PHOTOS.save(false);
+        }
+    }
+
     /** A carousel's page is the one at the index its feed state keeps, and none past either end. */
     @Test
     public void aCarouselPageIsTheOneOnScreen() {

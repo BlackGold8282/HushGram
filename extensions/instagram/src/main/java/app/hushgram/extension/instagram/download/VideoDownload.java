@@ -18,9 +18,10 @@ import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.diagnostics.DiagnosticCategory;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.BooleanSetting;
 
 /**
- * Download in the menu of a feed post with a video.
+ * Download in the menu of a feed post with a video, and with its second switch, of a photo post.
  *
  * <p>Instagram's feed menu has a Download row of its own, but only on your own posts, and a tap
  * fetches a copy with a watermark. The patch adds the same row to anyone else's post and changes
@@ -36,6 +37,8 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *   <li>The menu's handler asks {@link #save} first when Download is tapped, which saves the video
  *       from the addresses its Media already holds, through {@link MediaSave}. A post without a
  *       video goes to Instagram's own download.
+ *   <li>With the photo switch on, a post or carousel page without a video gets the same row, and a
+ *       tap saves its picture at the largest size, the way {@link StoryDownload} saves a photo story.
  * </ul>
  *
  * <p>Every hook fails open: until the settings are ready, while HushGram is paused, with the switch
@@ -50,14 +53,15 @@ public final class VideoDownload {
 
     /**
      * Adds the Download row to [rows], the list the feed menu's builder [menu] fills for someone
-     * else's post, when the switch is on and the post, or the carousel page on screen, has a video.
-     * Never throws.
+     * else's post, when the post, or the carousel page on screen, has something a tap would save:
+     * a video with the video switch on, or a picture and no video with the photo switch on. Never
+     * throws.
      */
     public static void offer(Object menu, ArrayList<?> rows) {
         try {
             HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
-            if (menu == null || rows == null || !on()) return;
-            if (!hasVideo(shown(InstagramMedia.feedMenuMedia(menu), InstagramMedia.feedMenuItemState(menu)))) return;
+            if (menu == null || rows == null || !videos() && !photos()) return;
+            if (what(shown(InstagramMedia.feedMenuMedia(menu), InstagramMedia.feedMenuItemState(menu))) == Save.NONE) return;
             InstagramMedia.addDownloadRow(menu, rows);
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed menu", t);
@@ -74,7 +78,7 @@ public final class VideoDownload {
     public static List<?> allow(List<?> options, Object download) {
         try {
             HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
-            if (options == null || download == null || !on() || options.contains(download)) return options;
+            if (options == null || download == null || !videos() && !photos() || options.contains(download)) return options;
             List<Object> allowed = new ArrayList<>(options.size() + 1);
             allowed.add(download);
             allowed.addAll(options);
@@ -87,25 +91,37 @@ public final class VideoDownload {
 
     /**
      * Saves the post [media], or the carousel page on screen that [itemState], the post's feed
-     * state, names, when its Download row is tapped with the switch on and that has a video, and
-     * answers whether it did, in which case Instagram's own download is skipped. Anything without
-     * a video, your own photo for one, goes to Instagram's own download. [activity] is the one the
-     * menu belongs to. A save that can't start says so. Never throws.
+     * state, names, when its Download row is tapped: its video with the video switch on, or with
+     * the photo switch on its picture when it has no video. Answers whether it did, in which case
+     * Instagram's own download is skipped. Anything else, your own photo with the photo switch off
+     * for one, goes to Instagram's own download. [activity] is the one the menu belongs to. A save
+     * that can't start says so. Never throws.
      */
     public static boolean save(Object media, Object itemState, Activity activity) {
         try {
-            if (!on()) return false;
+            if (!videos() && !photos()) return false;
             Object shown = shown(media, itemState);
-            if (!hasVideo(shown)) return false;
+            Save what = what(shown);
+            if (what == Save.NONE) return false;
             Context context = activity != null ? activity : Utils.getContext();
-            List<MediaSave.Rendition> renditions = ReelDownload.renditions(shown);
-            String manifest = InstagramMedia.dashManifest(shown);
-            final int files = renditions.size();
-            final boolean dash = manifest != null;
-            final boolean page = shown != media;
-            Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "feed video download tapped" + (page ? " on a carousel page" : "")
-                    + ": " + files + " file(s)" + (dash ? " and a manifest" : ", no manifest"));
-            if (!MediaSave.saveVideo(context, renditions, manifest, details(shown, media))) {
+            PostDetails details = details(shown, media);
+            final String on = shown != media ? " on a carousel page" : "";
+            boolean started;
+            if (what == Save.VIDEO) {
+                List<MediaSave.Rendition> renditions = ReelDownload.renditions(shown);
+                String manifest = InstagramMedia.dashManifest(shown);
+                final int files = renditions.size();
+                final boolean dash = manifest != null;
+                Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "feed video download tapped" + on
+                        + ": " + files + " file(s)" + (dash ? " and a manifest" : ", no manifest"));
+                started = MediaSave.saveVideo(context, renditions, manifest, details);
+            } else {
+                List<MediaSave.Rendition> pictures = StoryDownload.pictures(shown);
+                final int sizes = pictures.size();
+                Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "feed photo download tapped" + on + ": " + sizes + " size(s)");
+                started = MediaSave.savePhoto(context, pictures, details);
+            }
+            if (!started) {
                 Context application = context.getApplicationContext();
                 Feedback.show(application, L10n.t(application, "Download failed"), true);
             }
@@ -153,9 +169,37 @@ public final class VideoDownload {
         return media != null && (!ReelDownload.renditions(media).isEmpty() || InstagramMedia.dashManifest(media) != null);
     }
 
-    private static boolean on() {
+    /** What a tap on Download saves of [media]. */
+    enum Save { VIDEO, PHOTO, NONE }
+
+    /** What a tap on Download saves of [media], a post or a carousel page, with the switches as they are. */
+    static Save what(Object media) {
+        if (media == null) return Save.NONE;
+        boolean video = hasVideo(media);
+        return what(video, !video && !StoryDownload.pictures(media).isEmpty(), videos(), photos());
+    }
+
+    /**
+     * What a tap saves of a post with a video [video] or a picture [picture], with the video
+     * switch [videos] and the photo switch [photos]. Every video has a picture too, its cover, so a
+     * post with a video never saves as a photo.
+     */
+    static Save what(boolean video, boolean picture, boolean videos, boolean photos) {
+        if (video) return videos ? Save.VIDEO : Save.NONE;
+        return picture && photos ? Save.PHOTO : Save.NONE;
+    }
+
+    private static boolean videos() {
+        return on(Settings.DOWNLOAD_VIDEOS);
+    }
+
+    private static boolean photos() {
+        return on(Settings.DOWNLOAD_PHOTOS);
+    }
+
+    private static boolean on(BooleanSetting setting) {
         try {
-            return Utils.settingsReady() && Settings.DOWNLOAD_VIDEOS.get();
+            return Utils.settingsReady() && setting.get();
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed menu switch", t);
             return false;

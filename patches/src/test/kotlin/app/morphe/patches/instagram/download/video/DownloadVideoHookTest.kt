@@ -12,8 +12,11 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.download.IMAGE_INFO
+import app.morphe.patches.instagram.download.IMAGE_URL
 import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
 import app.morphe.patches.instagram.download.MEDIA
+import app.morphe.patches.instagram.download.PANDO_IMAGE_INFO
 import app.morphe.patches.instagram.download.PANDO_VIDEO_VERSION
 import app.morphe.patches.instagram.download.USER
 import app.morphe.patches.instagram.download.VIDEO_VERSION
@@ -145,6 +148,18 @@ class DownloadVideoHookTest {
         assertEquals("$MEDIA->A8k()Ljava/util/List;", pages[1].referenceText())
     }
 
+    /** A photo post's picture is read through the same bridges Download stories writes. */
+    @Test
+    fun thePictureBridgesAreWritten() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryVideo()
+
+        assertEquals("$MEDIA->A3F()$IMAGE_INFO", context.method(INSTAGRAM_MEDIA, "imageVersions").code()[1].referenceText())
+        assertEquals("$IMAGE_INFO->Bd1()Ljava/util/List;", context.method(INSTAGRAM_MEDIA, "imageCandidates").code()[1].referenceText())
+        assertEquals("$IMAGE_URL->getWidth()I", context.method(INSTAGRAM_MEDIA, "candidateWidth").code()[1].referenceText())
+    }
+
     /**
      * A tap on Download asks save() first, with the post, the post's feed state and the menu's
      * activity; any other option goes on.
@@ -265,12 +280,12 @@ class DownloadVideoHookTest {
     /**
      * In each declared build, the feed menu's class is found by its kept name, its builder calls
      * offer() once, where a jump from before the download check lands after the Download row, the
-     * handler asks save() first, and the post, row and video bridges are written.
+     * handler asks save() first, and the post, row, video and picture bridges are written.
      */
     @Test
     fun eachDeclaredBuildOffersDownloadOnEveryVideo() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
-        val types = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION, MEDIA_EXT)
+        val types = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION, IMAGE_INFO, PANDO_IMAGE_INFO, IMAGE_URL, MEDIA_EXT)
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
@@ -340,6 +355,7 @@ class DownloadVideoHookTest {
 
     private val videoBridges = setOf(
         "videoVersions", "dashManifest", "mediaId", "owner", "takenAt", "username", "versionUrl", "versionWidth", "versionHeight",
+        "imageVersions", "imageCandidates", "candidateUrl", "candidateWidth", "candidateHeight",
     )
 
     private fun assertUntouched(context: BytecodePatchContext) {
@@ -461,6 +477,7 @@ class DownloadVideoHookTest {
             "A3Q" to ("user" to USER),
             "A6v" to ("taken_at" to "Ljava/lang/Long;"),
             "A8k" to ("carousel_media" to "Ljava/util/List;"),
+            "A3F" to ("image_versions2" to IMAGE_INFO),
         ).map { (name, field) -> getter(MEDIA, name, field.first, field.second) } +
             method(MEDIA, "getId", emptyList(), "Ljava/lang/String;", 1, static = false, body = """
                 const/4 v0, 0x0
@@ -468,6 +485,7 @@ class DownloadVideoHookTest {
             """)
         val versionGetters = listOf("getUrl" to ("url" to "Ljava/lang/String;"), "DvO" to ("width" to "Ljava/lang/Integer;"),
             "CK7" to ("height" to "Ljava/lang/Integer;"))
+        val imageGetters = listOf("Bd1" to ("candidates" to "Ljava/util/List;"))
         // The short menu's list of the options it keeps: made once, answered as it is on one arm and
         // made read-only on the other, where a jump goes to the return.
         val shortList = { listName: String ->
@@ -529,17 +547,22 @@ class DownloadVideoHookTest {
             menu, builder, eligible, shortMenus, mediaExt, classDef(pager, calls),
             classDef(MEDIA, mediaGetters),
             classDef(USER, listOf(getter(USER, "A89", "username", "Ljava/lang/String;"))),
-            ImmutableClassDef(
-                VIDEO_VERSION, AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value,
-                "Ljava/lang/Object;", null, null, null, null,
-                versionGetters.map { (name, field) ->
-                    ImmutableMethod(VIDEO_VERSION, name, emptyList(), field.second, AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null)
-                },
-            ),
+            anInterface(VIDEO_VERSION, versionGetters.map { it.first to it.second.second }),
             classDef(PANDO_VIDEO_VERSION, versionGetters.map { (name, field) -> getter(PANDO_VIDEO_VERSION, name, field.first, field.second) }),
+            anInterface(IMAGE_INFO, imageGetters.map { it.first to it.second.second }),
+            classDef(PANDO_IMAGE_INFO, imageGetters.map { (name, field) -> getter(PANDO_IMAGE_INFO, name, field.first, field.second) }),
+            anInterface(IMAGE_URL, listOf("getUrl" to "Ljava/lang/String;", "getWidth" to "I", "getHeight" to "I")),
             ExtensionDex.classDef(INSTAGRAM_MEDIA),
         )
     }
+
+    private fun anInterface(type: String, methods: List<Pair<String, String>>): ClassDef = ImmutableClassDef(
+        type, AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value,
+        "Ljava/lang/Object;", null, null, null, null,
+        methods.map { (name, returns) ->
+            ImmutableMethod(type, name, emptyList(), returns, AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null)
+        },
+    )
 
     private fun getter(owner: String, name: String, field: String, returns: String) =
         method(owner, name, emptyList(), returns, 2, static = false, body = """
