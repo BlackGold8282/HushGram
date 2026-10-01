@@ -253,8 +253,9 @@ public final class TapToPlay {
      * you paused yourself, so a tap on a reel this patch held took the pause path, found nothing
      * playing and did nothing, however often you tapped. While the switch is on, a tap on a reel that's
      * prepared or paused ({@link #RESUMABLE}) resumes it, the way it resumes one you paused, and that
-     * start comes inside the tap's window. That includes a reel Instagram stopped for a tap on one of
-     * its stickers, which its own tap leaves stopped. A playing reel still pauses, and a reel with no
+     * start comes inside the tap's window. A reel Instagram stopped for a tap on one of its stickers
+     * needs none of this: Instagram's own tap away from the sticker starts it again
+     * ("start_reason_sticker_tap_away"). A playing reel still pauses, and a reel with no
      * player or one still loading does what Instagram decided. Off, paused, before the settings are
      * ready, or when anything here throws, the tap does what Instagram decided.
      */
