@@ -89,6 +89,21 @@ public class MetaAiTest {
         }
     }
 
+    /** Home's Meta AI button is left out with the search switch; every other name comes back as it was. */
+    @Test
+    public void onlyHomesMetaAiButtonIsLeftOut() {
+        assertNull(MetaAi.homeButton("meta_ai"));
+        for (String name : new String[] {"direct", "news", "menu", "hatch", "", null}) {
+            assertSame(name, name, MetaAi.homeButton(name));
+        }
+        Settings.HIDE_META_AI_SEARCH.save(false);
+        try {
+            assertSame("meta_ai", "meta_ai", MetaAi.homeButton("meta_ai"));
+        } finally {
+            Settings.HIDE_META_AI_SEARCH.save(true);
+        }
+    }
+
     @Test
     public void everyMetaAiUnitIsTakenOut() {
         for (String name : MetaAi.FEED_UNITS) {

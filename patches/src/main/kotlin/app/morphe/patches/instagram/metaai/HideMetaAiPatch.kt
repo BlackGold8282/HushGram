@@ -33,6 +33,13 @@ private const val META_AI = "$EXTENSION_PACKAGE/metaai/MetaAi;"
 internal const val SEARCH_FLAG = "$META_AI->searchFlag(I)Z"
 internal const val META_AI_FILTER = "$META_AI->filter(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val FOLLOW_UP_BAR = "$META_AI->followUpBar(Landroid/view/View;)Landroid/view/View;"
+internal const val HOME_BUTTON = "$META_AI->homeButton(Ljava/lang/String;)Ljava/lang/String;"
+
+/** Home's top bar setup holds both on 449, and its Meta AI button is the second one's case. */
+internal val HOME_BAR_SETUP = listOf("MainFeedActionBarDelegate:configureActionBar", "meta_ai")
+private const val ITERATOR_NEXT = "Ljava/util/Iterator;->next()Ljava/lang/Object;"
+private const val STRING_LENGTH = "Ljava/lang/String;->length()I"
+private const val STRING_EQUALS = "Ljava/lang/String;->equals(Ljava/lang/Object;)Z"
 
 /** Two strings only the search results page's bottom bar setup holds on 449. */
 internal val FOLLOW_UP_SETUP = listOf("keyboardHeightChangeDetector", "bottomSearchSuggestionPillsHelper")
@@ -44,11 +51,13 @@ private const val VIEW_STUB = "Landroid/view/ViewStub;"
 private const val CHECK_WITHIN = 6
 
 /**
- * The server flags that decide whether a search bar offers Meta AI on Instagram 449: the Search
- * tab's, which also covers its results and Meta AI's answers there, the messages inbox's "ask Meta
- * AI" bar, and the Meta AI ring at the end of the inbox's bar.
+ * The server flags the search switch answers off on Instagram 449. Three decide whether a search bar
+ * offers Meta AI: the Search tab's, which also covers its results and Meta AI's answers there, the
+ * messages inbox's "ask Meta AI" bar, and the Meta AI ring at the end of the inbox's bar. The fourth
+ * puts a Meta AI chats ("hatch") button in Home's top bar when the server's list has no messages
+ * button, and the same item in the bar's settings list.
  */
-internal val SEARCH_FLAGS = listOf(0x81068600111f6bL, 0x8104190006113aL, 0x810417001b1130L)
+internal val SEARCH_FLAGS = listOf(0x81068600111f6bL, 0x8104190006113aL, 0x810417001b1130L, 0x8116ad0001713eL)
 
 /** Meta AI's feed item kinds: Vibes videos, Meta AI chats and Imagine pictures of you. */
 internal val META_AI_UNITS = listOf("VIBES_IN_FEED_UNIT", "HATCH_IMMERSIVE_IN_FEED_UNIT", "MEMU_IN_FEED_UNIT")
@@ -60,8 +69,9 @@ private const val READ_WITHIN = 4
 val hideMetaAiPatch = bytecodePatch(
     name = "Hide Meta AI",
     description = "Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they " +
-        "search the plain way, drops the Ask a follow-up bar under search results, and removes Meta AI's posts " +
-        "from your home feed. Each has its own switch, and the search one shows once Instagram restarts.",
+        "search the plain way, drops the Ask a follow-up bar under search results and Meta AI's buttons in Home's " +
+        "top bar, and removes Meta AI's posts from your home feed. Each has its own switch, and the search one " +
+        "shows once Instagram restarts.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)
@@ -73,9 +83,11 @@ val hideMetaAiPatch = bytecodePatch(
         requireStatusMethod("metaAi")
         val reads = findSearchFlagReads()
         val followUp = findFollowUpBarCheck()
+        val homeButtons = findHomeButtonNames()
         filterParsedFeedItems(PATCH, META_AI_FILTER, META_AI_UNITS)
         answerSearchFlagReads(reads)
         dropFollowUpBar(followUp)
+        dropHomeButton(homeButtons)
         enableStatus("metaAi")
     }
 }
@@ -151,8 +163,8 @@ internal fun BytecodePatchContext.answerSearchFlagReads(reads: List<FlagRead>) {
     }
 }
 
-/** Where the search results page checks its bottom bar's stub is there: the method, and the index and register of the check's move-result. */
-internal class StubCheck(
+/** A value one of the hooks passes through: the method, and the index and register of the instruction that last sets it. */
+internal class HookSite(
     val type: String,
     val name: String,
     val parameters: List<String>,
@@ -169,15 +181,12 @@ internal class StubCheck(
  * checks for that. The pills inside the bar come from a second stub, found inside the bar through a
  * findViewById and a cast, which is never inflated once the bar isn't.
  */
-internal fun BytecodePatchContext.findFollowUpBarCheck(): StubCheck {
+internal fun BytecodePatchContext.findFollowUpBarCheck(): HookSite {
     val setups = mutableListOf<Pair<ClassDef, Method>>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
         classDef.methods.forEach { method ->
-            val strings = method.implementation?.instructions
-                ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
-                ?: return@forEach
-            if (strings.containsAll(FOLLOW_UP_SETUP)) setups += classDef to method
+            if (method.strings().containsAll(FOLLOW_UP_SETUP)) setups += classDef to method
         }
     }
     val (classDef, method) = setups.singleOrNull()
@@ -203,26 +212,80 @@ internal fun BytecodePatchContext.findFollowUpBarCheck(): StubCheck {
     if (test.opcode != Opcode.IF_EQZ || (test as OneRegisterInstruction).registerA != register) {
         refuse("$where doesn't test the stub for null")
     }
-    return StubCheck(
+    return HookSite(
         classDef.type, method.name, method.parameterTypes.map(CharSequence::toString), method.returnType,
         find + 1, register,
     )
 }
 
 /** Passes the stub check's answer through MetaAi.followUpBar, right after its move-result. */
-internal fun BytecodePatchContext.dropFollowUpBar(check: StubCheck) {
-    val method = mutableClassDefBy(check.type).methods.single {
-        it.name == check.name && it.returnType == check.returnType &&
-            it.parameterTypes.map(CharSequence::toString) == check.parameters
+internal fun BytecodePatchContext.dropFollowUpBar(check: HookSite) = passThrough(check, FOLLOW_UP_BAR)
+
+/**
+ * Where Home's top bar setup (the one method holding [HOME_BAR_SETUP]) takes each button name from
+ * the server's list: an Iterator.next() cast to String, tested for null and then for an empty name,
+ * the name the "meta_ai" case compares. A null there is skipped like an empty name, so the bar is
+ * built without that button. Another loop in the method, over the names the bar ended up with, casts
+ * them without the null test.
+ */
+internal fun BytecodePatchContext.findHomeButtonNames(): HookSite {
+    val setups = mutableListOf<Pair<ClassDef, Method>>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            if (method.strings().containsAll(HOME_BAR_SETUP)) setups += classDef to method
+        }
+    }
+    val (classDef, method) = setups.singleOrNull()
+        ?: refuse("${setups.size} methods hold ${HOME_BAR_SETUP.joinToString(" and ")}, not one")
+    val where = "${classDef.type}->${method.name}"
+    val code = method.implementation!!.instructions.toList()
+    val casts = code.indices.filter { index ->
+        if (code[index].opcode != Opcode.CHECK_CAST || index < 2) return@filter false
+        val register = (code[index] as OneRegisterInstruction).registerA
+        val test = code.getOrNull(index + 1)
+        code[index - 2].methodReference()?.toString() == ITERATOR_NEXT &&
+            code[index - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
+            (code[index - 1] as OneRegisterInstruction).registerA == register &&
+            ((code[index] as ReferenceInstruction).reference.toString() == "Ljava/lang/String;") &&
+            test?.opcode == Opcode.IF_EQZ && (test as OneRegisterInstruction).registerA == register &&
+            code.getOrNull(index + 2)?.methodReference()?.toString() == STRING_LENGTH &&
+            code[index + 2].arguments() == listOf(register)
+    }
+    val cast = casts.singleOrNull() ?: refuse("$where takes ${casts.size} button names from a list, not one")
+    val register = (code[cast] as OneRegisterInstruction).registerA
+    val comparedToMetaAi = code.indices.any { index ->
+        val name = ((code[index] as? ReferenceInstruction)?.reference as? StringReference)?.string
+        name == "meta_ai" && code.getOrNull(index + 1)?.methodReference()?.toString() == STRING_EQUALS &&
+            code[index + 1].arguments() == listOf(register, (code[index] as OneRegisterInstruction).registerA)
+    }
+    if (!comparedToMetaAi) refuse("$where never compares the name it takes with \"meta_ai\"")
+    return HookSite(
+        classDef.type, method.name, method.parameterTypes.map(CharSequence::toString), method.returnType,
+        cast, register,
+    )
+}
+
+/** Passes each of Home's button names through MetaAi.homeButton, right after its cast. */
+internal fun BytecodePatchContext.dropHomeButton(names: HookSite) = passThrough(names, HOME_BUTTON)
+
+/** Puts [hook] on [site]'s register right after the instruction that sets it, and the answer back in it. */
+private fun BytecodePatchContext.passThrough(site: HookSite, hook: String) {
+    val method = mutableClassDefBy(site.type).methods.single {
+        it.name == site.name && it.returnType == site.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == site.parameters
     }
     method.addInstructions(
-        check.moveResult + 1,
+        site.moveResult + 1,
         """
-            invoke-static/range { v${check.register} .. v${check.register} }, $FOLLOW_UP_BAR
-            move-result-object v${check.register}
+            invoke-static/range { v${site.register} .. v${site.register} }, $hook
+            move-result-object v${site.register}
         """,
     )
 }
+
+private fun Method.strings(): Set<String> = implementation?.instructions
+    ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }?.toSet() ?: emptySet()
 
 private fun Instruction.methodReference(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
 

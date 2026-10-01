@@ -46,7 +46,7 @@ class HideMetaAiHookTest {
     /** Both hooks the patch writes are in the MetaAi the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(SEARCH_FLAG, META_AI_FILTER, FOLLOW_UP_BAR)) {
+        for (hook in listOf(SEARCH_FLAG, META_AI_FILTER, FOLLOW_UP_BAR, HOME_BUTTON)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -58,21 +58,21 @@ class HideMetaAiHookTest {
     @Test
     fun everyReadOfASearchFlagAnswersThroughTheExtension() {
         val context = PatchContexts.of(
-            listOf(gate(SEARCH, SEARCH_FLAGS[0]), wrapped(INBOX, SEARCH_FLAGS[1]), gate(RING, SEARCH_FLAGS[2])),
+            listOf(gate(SEARCH, SEARCH_FLAGS[0]), wrapped(INBOX, SEARCH_FLAGS[1]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3])),
         )
 
         val reads = context.findSearchFlagReads()
         context.answerSearchFlagReads(reads)
 
-        assertEquals(3, reads.size)
-        for (type in listOf(SEARCH, INBOX, RING)) {
+        assertEquals(4, reads.size)
+        for (type in listOf(SEARCH, INBOX, RING, HOME)) {
             assertAnsweredAfterEveryRead(type, context.mutableClassDefBy(type).methods.single { it.name == "A00" })
         }
     }
 
     @Test
     fun aFlagNobodyReadsFailsThePatch() {
-        val context = PatchContexts.of(listOf(gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2])))
+        val context = PatchContexts.of(listOf(gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3])))
         assertThrows(PatchException::class.java) { context.findSearchFlagReads() }
     }
 
@@ -81,7 +81,7 @@ class HideMetaAiHookTest {
     fun aFlagReadAsSomethingElseFailsThePatch() {
         val context = PatchContexts.of(
             listOf(
-                gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2]),
+                gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3]),
                 gate(INBOX, SEARCH_FLAGS[1], returns = "J", result = Opcode.MOVE_RESULT_WIDE),
             ),
         )
@@ -91,7 +91,10 @@ class HideMetaAiHookTest {
     @Test
     fun aFlagReadWithItsAnswerDroppedFailsThePatch() {
         val context = PatchContexts.of(
-            listOf(gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2]), gate(INBOX, SEARCH_FLAGS[1], result = null)),
+            listOf(
+                gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3]),
+                gate(INBOX, SEARCH_FLAGS[1], result = null),
+            ),
         )
         assertThrows(PatchException::class.java) { context.findSearchFlagReads() }
     }
@@ -101,13 +104,13 @@ class HideMetaAiHookTest {
     fun theExtensionIsLeftAlone() {
         val own = gate("Lapp/hushgram/extension/instagram/metaai/Probe;", SEARCH_FLAGS[0])
         val context = PatchContexts.of(
-            listOf(own, gate(SEARCH, SEARCH_FLAGS[0]), wrapped(INBOX, SEARCH_FLAGS[1]), gate(RING, SEARCH_FLAGS[2])),
+            listOf(own, gate(SEARCH, SEARCH_FLAGS[0]), wrapped(INBOX, SEARCH_FLAGS[1]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3])),
         )
 
         val reads = context.findSearchFlagReads()
 
-        assertEquals(setOf(SEARCH, INBOX, RING), reads.map { it.type }.toSet())
-        assertEquals(3, reads.size)
+        assertEquals(setOf(SEARCH, INBOX, RING, HOME), reads.map { it.type }.toSet())
+        assertEquals(4, reads.size)
     }
 
     /** The bar's stub check answers through the extension; the pills' stub inside the bar is left alone. */
@@ -173,6 +176,62 @@ class HideMetaAiHookTest {
         assertTrue("no fixture of a declared build", checked > 0)
     }
 
+    /** Each button name the bar takes from the server's list answers through the extension; the later loop is left alone. */
+    @Test
+    fun homesButtonNamesAnswerThroughTheExtension() {
+        val context = PatchContexts.of(listOf(homeBar(HOME_BAR)))
+
+        context.dropHomeButton(context.findHomeButtonNames())
+
+        assertNamesPassedThrough(HOME_BAR, context.mutableClassDefBy(HOME_BAR).methods.single { it.name == "AdW" })
+    }
+
+    @Test
+    fun twoHomeBarsFailThePatch() {
+        val context = PatchContexts.of(listOf(homeBar(HOME_BAR), homeBar("Lfixture/OtherHomeBar;")))
+        assertThrows(PatchException::class.java) { context.findHomeButtonNames() }
+    }
+
+    /** A "meta_ai" compared with some other register means the loop isn't the one the patch knows. */
+    @Test
+    fun aHomeBarComparingAnotherNameFailsThePatch() {
+        val context = PatchContexts.of(listOf(homeBar(HOME_BAR, compared = 0)))
+        assertThrows(PatchException::class.java) { context.findHomeButtonNames() }
+    }
+
+    @Test
+    fun aHomeBarWithoutTheNullTestFailsThePatch() {
+        val context = PatchContexts.of(listOf(homeBar(HOME_BAR, tested = 0)))
+        assertThrows(PatchException::class.java) { context.findHomeButtonNames() }
+    }
+
+    @Test
+    fun eachDeclaredBuildDropsHomesMetaAiButton() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        var checked = 0
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val holders = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    for (classDef in dex.classes) {
+                        if (classDef.methods.any { it.holdsAll(HOME_BAR_SETUP) }) holders += ImmutableClassDef.of(classDef)
+                    }
+                }
+                val context = PatchContexts.of(holders)
+
+                val names = context.findHomeButtonNames()
+                context.dropHomeButton(names)
+
+                val method = context.mutableClassDefBy(names.type).methods.single {
+                    it.name == names.name && it.parameterTypes.map(CharSequence::toString) == names.parameters
+                }
+                assertNamesPassedThrough("${bundle.name} ${names.type}->${names.name}", method)
+                checked++
+            }
+        }
+        assertTrue("no fixture of a declared build", checked > 0)
+    }
+
     @Test
     fun theFeedParseHelperAnswersThroughTheMetaAiFilter() {
         val context = PatchContexts.of(FeedItemStandIns.classes(listOf("MEDIA", "AD", "CLIPS_NETEGO") + META_AI_UNITS))
@@ -193,7 +252,7 @@ class HideMetaAiHookTest {
 
     /**
      * In each declared build every flag is read, every read is a boolean whose answer is kept, and
-     * after the patch each answer goes through the extension. On 449 that's five reads.
+     * after the patch each answer goes through the extension. On 449 that's seven reads.
      */
     @Test
     fun eachDeclaredBuildAnswersEveryReadOfEveryFlag() {
@@ -213,7 +272,7 @@ class HideMetaAiHookTest {
                 context.answerSearchFlagReads(reads)
 
                 assertEquals("${bundle.name}: flags read", SEARCH_FLAGS.toSet(), reads.map { it.flag }.toSet())
-                if (version == "449.0.0.52.84") assertEquals("${bundle.name}: reads", 5, reads.size)
+                if (version == "449.0.0.52.84") assertEquals("${bundle.name}: reads", 7, reads.size)
                 for (read in reads) {
                     val method = context.mutableClassDefBy(read.type).methods.single {
                         it.name == read.name && it.parameterTypes.map(CharSequence::toString) == read.parameters
@@ -272,11 +331,28 @@ class HideMetaAiHookTest {
         assertEquals("$what: the tested register", register, (code[hook + 2] as OneRegisterInstruction).registerA)
     }
 
+    /** The name's cast is followed by the extension call on its register, the answer back in it, and the null test; one call in all. */
+    private fun assertNamesPassedThrough(what: String, method: Method) {
+        val code = method.instructions()
+        val hooks = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == HOME_BUTTON }
+        assertEquals("$what: hooks", 1, hooks.size)
+        val hook = hooks.single()
+        assertEquals("$what: the cast", Opcode.CHECK_CAST, code[hook - 1].opcode)
+        val register = (code[hook - 1] as OneRegisterInstruction).registerA
+        assertEquals("$what: the call", Opcode.INVOKE_STATIC_RANGE, code[hook].opcode)
+        assertEquals("$what: the answer", Opcode.MOVE_RESULT_OBJECT, code[hook + 1].opcode)
+        assertEquals("$what: the register", register, (code[hook + 1] as OneRegisterInstruction).registerA)
+        assertEquals("$what: the test", Opcode.IF_EQZ, code[hook + 2].opcode)
+        assertEquals("$what: the tested register", register, (code[hook + 2] as OneRegisterInstruction).registerA)
+    }
+
     private companion object {
+        const val HOME_BAR = "Lfixture/MainFeedActionBar;"
         const val RESULTS = "Lfixture/SearchResultsBar;"
         const val SEARCH = "Lfixture/SearchGate;"
         const val INBOX = "Lfixture/InboxScreen;"
         const val RING = "Lfixture/InboxRingGate;"
+        const val HOME = "Lfixture/HomeBarGate;"
         const val CONFIG = "Lfixture/MobileConfig;"
         const val SESSION = "Lfixture/UserSession;"
 
@@ -350,6 +426,52 @@ class HideMetaAiHookTest {
                         type, "A06", listOf(ImmutableMethodParameter("Lkotlin/jvm/functions/Function1;", null, null)), "V",
                         AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
                         ImmutableMethodImplementation(10, code, null, null),
+                    ),
+                ),
+            )
+        }
+
+        /**
+         * Shaped like 449's Home top bar setup: its strings, a name taken from the server's list
+         * (next(), cast, a null test, then length()), the "meta_ai" case comparing that name, and a
+         * later loop over names cast without a null test. [tested] is the register the null test
+         * reads and [compared] the one compared with "meta_ai"; the name is in v9.
+         */
+        fun homeBar(type: String, tested: Int = 9, compared: Int = 9): ClassDef {
+            val next = ImmutableMethodReference("Ljava/util/Iterator;", "next", emptyList(), "Ljava/lang/Object;")
+            val string = ImmutableTypeReference("Ljava/lang/String;")
+            val code = listOf(
+                ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference("MainFeedActionBarDelegate:configureActionBar")),
+                ImmutableInstruction35c(Opcode.INVOKE_INTERFACE, 1, 1, 0, 0, 0, 0, next),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 9),
+                ImmutableInstruction21c(Opcode.CHECK_CAST, 9, string),
+                ImmutableInstruction21t(Opcode.IF_EQZ, tested, 22),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_VIRTUAL, 1, 9, 0, 0, 0, 0, ImmutableMethodReference("Ljava/lang/String;", "length", emptyList(), "I"),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                ImmutableInstruction21c(Opcode.CONST_STRING, 8, ImmutableStringReference("meta_ai")),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_VIRTUAL, 2, compared, 8, 0, 0, 0,
+                    ImmutableMethodReference("Ljava/lang/String;", "equals", listOf("Ljava/lang/Object;"), "Z"),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                ImmutableInstruction35c(Opcode.INVOKE_INTERFACE, 1, 1, 0, 0, 0, 0, next),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction21c(Opcode.CHECK_CAST, 0, string),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0, ImmutableMethodReference("Lfixture/Bar;", "A00", listOf("Ljava/lang/String;"), "Z"),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                ImmutableInstruction10x(Opcode.RETURN_VOID),
+            )
+            return ImmutableClassDef(
+                type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+                listOf(
+                    ImmutableMethod(
+                        type, "AdW", listOf(ImmutableMethodParameter("Lfixture/ActionBar;", null, null)), "V",
+                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                        ImmutableMethodImplementation(12, code, null, null),
                     ),
                 ),
             )

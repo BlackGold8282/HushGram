@@ -265,7 +265,7 @@
     },
     {
       "name": "Hide Meta AI",
-      "description": "Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they search the plain way, drops the Ask a follow-up bar under search results, and removes Meta AI's posts from your home feed. Each has its own switch, and the search one shows once Instagram restarts.",
+      "description": "Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they search the plain way, drops the Ask a follow-up bar under search results and Meta AI's buttons in Home's top bar, and removes Meta AI's posts from your home feed. Each has its own switch, and the search one shows once Instagram restarts.",
       "category": "Interface",
       "use": true,
       "dependencies": [

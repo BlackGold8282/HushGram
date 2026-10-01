@@ -32,6 +32,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * also gives the results page its header (Back and the query), so it stays on, and the bar's stub
  * goes through {@link #followUpBar} as the page sets the bar up instead.
  *
+ * <p>Home's top bar is built from a list of button names the server sends. Meta AI's ("meta_ai")
+ * goes through {@link #homeButton}, and a fourth flag, which adds a Meta AI chats button when the
+ * list has no messages button, goes through {@link #searchFlag} with the others.
+ *
  * <p>The home feed's Meta AI units go through {@link #filter} at the feed's parse helper, the way
  * Hide suggested posts' do.
  */
@@ -44,6 +48,9 @@ public final class MetaAi {
     static final Set<String> FEED_UNITS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "VIBES_IN_FEED_UNIT", "HATCH_IMMERSIVE_IN_FEED_UNIT", "MEMU_IN_FEED_UNIT")));
 
+    /** The name Home's top bar list gives Meta AI's button on 449. */
+    static final String HOME_BUTTON = "meta_ai";
+
     /** The diagnostic counter route for the feed units. */
     static final String ROUTE = "Meta AI in the feed";
 
@@ -54,7 +61,7 @@ public final class MetaAi {
 
     /**
      * Injected right after each read of one of Meta AI's search flags, with Instagram's answer as an
-     * int (non-zero is yes). Answers false while Hide Meta AI in search is on, and Instagram's answer
+     * int (non-zero is yes). Answers false while its switch is on, and Instagram's answer
      * otherwise, or when anything goes wrong. Never throws, and never waits for the settings: before
      * they're ready Instagram's answer stands.
      */
@@ -77,8 +84,7 @@ public final class MetaAi {
     /**
      * Injected where the search results page checks that its "Ask a follow-up…" bar's stub is in
      * the page, with that stub. Answers null, which Instagram takes as a page without the bar, while
-     * Hide Meta AI in search is on, and the stub otherwise, or when anything goes wrong. Never
-     * throws.
+     * the search switch is on, and the stub otherwise, or when anything goes wrong. Never throws.
      */
     public static View followUpBar(View stub) {
         if (stub == null) return null;
@@ -90,6 +96,24 @@ public final class MetaAi {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.META_AI, "follow-up bar", failure);
             return stub;
+        }
+    }
+
+    /**
+     * Injected where Home's top bar takes each button name from the server's list. Answers null for
+     * Meta AI's button ("meta_ai"), which the bar skips like an empty name, while the search switch
+     * is on, and the name otherwise, or when anything goes wrong. Never throws.
+     */
+    public static String homeButton(String name) {
+        if (!HOME_BUTTON.equals(name)) return name;
+        try {
+            HookStatus.invoked(FamilyNames.META_AI);
+            if (!Utils.settingsReady() || !Settings.HIDE_META_AI_SEARCH.get()) return name;
+            Logger.printDebug(() -> "Meta AI: left Home's Meta AI button out");
+            return null;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.META_AI, "home button", failure);
+            return name;
         }
     }
 

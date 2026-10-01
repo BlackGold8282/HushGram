@@ -165,8 +165,16 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # read. The messages inbox's setup, the invoke() holding "direct_inbox" and "hatch_channel_enabled",
 # reads the "ask Meta AI" bar's flag once. The Search tab's flag and the ring's are read in gates
 # holding no string, and DirectSearchInboxFragment.onCreateView reads the bar's flag twice, so no
-# rule picks those; HideMetaAiHookTest checks all five reads on the fixture.
+# rule picks those; HideMetaAiHookTest checks all seven reads on the fixture. The Meta AI chats
+# button's flag is read once by Home's top bar setup, the method taking the action bar that holds
+# "MainFeedActionBarDelegate:configureActionBar", and once by the bar's item list's constructor, the
+# one taking a Context that holds "homecoming_opt_out_replace" and "reels_second_opt_in".
 shared-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->searchFlag(I)Z in instance ()Ljava/lang/Object; holding direct_inbox hatch_channel_enabled
+shared-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->searchFlag(I)Z in instance (L*;)V holding MainFeedActionBarDelegate:configureActionBar meta_ai
+shared-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->searchFlag(I)Z in instance (Landroid/content/Context;L*;L*;)V holding homecoming_opt_out_replace reels_second_opt_in
+# Home's top bar setup also passes each button name it takes from the server's list through
+# homeButton(), once, right after the name's cast.
+once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->homeButton(Ljava/lang/String;)Ljava/lang/String; in instance (L*;)V holding MainFeedActionBarDelegate:configureActionBar meta_ai
 # It also passes the search results page's check for its "Ask a follow-up…" bar's stub through
 # followUpBar(), once, in the bar setup taking a Function1, the one method holding
 # "keyboardHeightChangeDetector" and "bottomSearchSuggestionPillsHelper".

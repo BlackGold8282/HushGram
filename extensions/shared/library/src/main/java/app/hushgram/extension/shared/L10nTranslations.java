@@ -188,8 +188,8 @@ public final class L10nTranslations {
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
-        table.put("Hide Meta AI in search",
-                "Meta AI in der Suche ausblenden");
+        table.put("Hide Meta AI in search and Home's bar",
+                "Meta AI in der Suche und oben auf der Startseite ausblenden");
         table.put("Hide Meta AI posts",
                 "Meta-AI-Beitr\u00e4ge ausblenden");
         table.put("Hide Reels in the feed",
@@ -363,8 +363,8 @@ public final class L10nTranslations {
                 "Zum Wiedereinschalten tippen.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Der Folgen-Button neben dem Namen der Person, die das Reel gepostet hat. Auf ihrem Profil gibt es ihn weiterhin.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, and search results lose their Ask a follow-up bar. Restart Instagram after changing it.",
-                "Der Tab Suche und der Bereich oben in deinen Nachrichten bekommen eine normale Suchleiste ohne Meta AI, und Suchergebnisse verlieren ihre Leiste f\u00fcr Folgefragen. Starte Instagram nach einer \u00c4nderung neu.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
+                "Der Tab Suche und der Bereich oben in deinen Nachrichten bekommen eine normale Suchleiste ohne Meta AI, Suchergebnisse verlieren ihre Leiste f\u00fcr Folgefragen, und die obere Leiste der Startseite verliert die Meta-AI-Schaltfl\u00e4chen. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Die Blasen von Freunden, die etwas mit Gef\u00e4llt mir markiert oder kommentiert haben, der Kommentar unter einem Reel und die Reihe der Freunde, die es gesehen haben. Die Kommentare sind weiterhin nur einen Tipp entfernt.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -577,8 +577,8 @@ public final class L10nTranslations {
                 "Informe completo guardado en %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
-        table.put("Hide Meta AI in search",
-                "Ocultar Meta AI en la b\u00fasqueda");
+        table.put("Hide Meta AI in search and Home's bar",
+                "Ocultar Meta AI en la b\u00fasqueda y en la barra de Inicio");
         table.put("Hide Meta AI posts",
                 "Ocultar publicaciones de Meta AI");
         table.put("Hide Reels in the feed",
@@ -752,8 +752,8 @@ public final class L10nTranslations {
                 "Toca para volver a activarlo.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "El bot\u00f3n Seguir junto al autor de un reel. Su perfil lo sigue teniendo.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, and search results lose their Ask a follow-up bar. Restart Instagram after changing it.",
-                "La pesta\u00f1a Buscar y la parte de arriba de tus mensajes tienen una barra de b\u00fasqueda normal, sin Meta AI, y los resultados de b\u00fasqueda pierden su barra de preguntas de seguimiento. Reinicia Instagram despu\u00e9s de cambiarlo.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
+                "La pesta\u00f1a Buscar y la parte de arriba de tus mensajes tienen una barra de b\u00fasqueda normal, sin Meta AI, los resultados de b\u00fasqueda pierden su barra de preguntas de seguimiento y la barra superior de Inicio pierde los botones de Meta AI. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Las burbujas de amigos que dieron me gusta o comentaron, el comentario que aparece bajo un reel y la fila de amigos que lo vieron. Los comentarios siguen a un toque.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -966,8 +966,8 @@ public final class L10nTranslations {
                 "Laporan lengkap disimpan ke %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
-        table.put("Hide Meta AI in search",
-                "Sembunyikan Meta AI di pencarian");
+        table.put("Hide Meta AI in search and Home's bar",
+                "Sembunyikan Meta AI di pencarian dan bilah Beranda");
         table.put("Hide Meta AI posts",
                 "Sembunyikan postingan Meta AI");
         table.put("Hide Reels in the feed",
@@ -1141,8 +1141,8 @@ public final class L10nTranslations {
                 "Ketuk untuk mengaktifkan HushGram lagi.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Tombol Ikuti di samping pembuat reel. Profilnya tetap punya tombol itu.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, and search results lose their Ask a follow-up bar. Restart Instagram after changing it.",
-                "Tab Cari dan bagian atas pesan kamu mendapat bilah pencarian biasa, tanpa Meta AI, dan hasil pencarian kehilangan bilah pertanyaan lanjutannya. Mulai ulang Instagram setelah mengubahnya.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
+                "Tab Cari dan bagian atas pesan kamu mendapat bilah pencarian biasa, tanpa Meta AI, hasil pencarian kehilangan bilah pertanyaan lanjutannya, dan bilah atas Beranda kehilangan tombol Meta AI. Mulai ulang Instagram setelah mengubahnya.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Gelembung teman yang menyukai atau berkomentar, komentar yang tampil di bawah reel, dan deretan teman yang melihatnya. Komentar tetap bisa dibuka dengan sekali ketuk.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -1355,8 +1355,8 @@ public final class L10nTranslations {
                 "Relat\u00f3rio completo salvo em %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, com os avisos dos projetos em que o HushGram se baseia");
-        table.put("Hide Meta AI in search",
-                "Ocultar a Meta AI na pesquisa");
+        table.put("Hide Meta AI in search and Home's bar",
+                "Ocultar a Meta AI na pesquisa e na barra do In\u00edcio");
         table.put("Hide Meta AI posts",
                 "Ocultar posts da Meta AI");
         table.put("Hide Reels in the feed",
@@ -1530,8 +1530,8 @@ public final class L10nTranslations {
                 "Toque para reativar.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "O bot\u00e3o Seguir ao lado de quem postou o reel. O perfil da pessoa continua com ele.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, and search results lose their Ask a follow-up bar. Restart Instagram after changing it.",
-                "A aba Pesquisar e o topo das suas mensagens ficam com uma barra de pesquisa comum, sem a Meta AI, e os resultados da pesquisa perdem a barra de perguntas de acompanhamento. Reinicie o Instagram depois de mudar.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
+                "A aba Pesquisar e o topo das suas mensagens ficam com uma barra de pesquisa comum, sem a Meta AI, os resultados da pesquisa perdem a barra de perguntas de acompanhamento e a barra superior do In\u00edcio perde os bot\u00f5es da Meta AI. Reinicie o Instagram depois de mudar.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Os bal\u00f5es de amigos que curtiram ou comentaram, o coment\u00e1rio mostrado embaixo do reel e a fileira de amigos que o viram. Os coment\u00e1rios continuam a um toque.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
@@ -1744,8 +1744,8 @@ public final class L10nTranslations {
                 "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
-        table.put("Hide Meta AI in search",
-                "Aramada Meta AI'\u0131 gizle");
+        table.put("Hide Meta AI in search and Home's bar",
+                "Aramada ve Ana Sayfa \u00e7ubu\u011funda Meta AI'\u0131 gizle");
         table.put("Hide Meta AI posts",
                 "Meta AI g\u00f6nderilerini gizle");
         table.put("Hide Reels in the feed",
@@ -1919,8 +1919,8 @@ public final class L10nTranslations {
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Bir reelin sahibinin yan\u0131ndaki Takip Et d\u00fc\u011fmesi. Profilinde h\u00e2l\u00e2 var.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, and search results lose their Ask a follow-up bar. Restart Instagram after changing it.",
-                "Ara sekmesi ve mesajlar\u0131n\u0131n \u00fcst\u00fc, Meta AI olmadan sade bir arama \u00e7ubu\u011fu al\u0131r ve arama sonu\u00e7lar\u0131 takip sorusu \u00e7ubu\u011funu kaybeder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
+        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
+                "Ara sekmesi ve mesajlar\u0131n\u0131n \u00fcst\u00fc, Meta AI olmadan sade bir arama \u00e7ubu\u011fu al\u0131r, arama sonu\u00e7lar\u0131 takip sorusu \u00e7ubu\u011funu kaybeder ve Ana Sayfa'n\u0131n \u00fcst \u00e7ubu\u011fu Meta AI d\u00fc\u011fmelerini kaybeder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("The bubbles of friends who liked or commented, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Be\u011fenen ya da yorum yapan arkada\u015flar\u0131n baloncuklar\u0131, reelin alt\u0131nda g\u00f6sterilen yorum ve onu g\u00f6ren arkada\u015flar\u0131n s\u0131ras\u0131. Yorumlar h\u00e2l\u00e2 bir dokunu\u015f uzakta.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
