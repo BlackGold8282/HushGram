@@ -237,6 +237,13 @@ once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->followUpBar(Landroid
 # through other requests and never pass it.
 once-call Lapp/hushgram/extension/instagram/explore/ExploreGrid;->hide(Ljava/util/List;)Z in instance (*)Ljava/lang/Object; holding sectional_items session_paging_token
 #
+# It also hides the load more row on the emptied grid. The Explore fragment's onCreate notes the
+# row state it hands its grid adapter, once, and LoadMoreButton's bind (the instance method taking
+# the state and a callback that holds the button's index names) passes its row check through the
+# extension, once. Every list's button binds there, so the extension answers only for a noted state.
+once-call Lapp/hushgram/extension/instagram/explore/ExploreGrid;->track(Ljava/lang/Object;)V in instance (Landroid/os/Bundle;)V holding ExploreFragment.setupGrid loadMoreInterface
+once-call Lapp/hushgram/extension/instagram/explore/ExploreGrid;->loadMoreRow(Ljava/lang/Object;Z)Z in instance (L*;L*;)V holding INDEX_NO_ITEMS INDEX_LOAD_MORE
+#
 # Start Home on Following passes every read of the two flags behind Instagram's For you and
 # Following picker through flag(), and the saved feed's getter passes the name it read through
 # saved() once. The getter is the one instance method taking nothing and answering a String in the

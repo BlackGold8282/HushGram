@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.instagram.explore
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -15,16 +16,31 @@ import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
 private const val PATCH = "Hide the Explore grid"
 internal const val HIDE_GRID = "$EXTENSION_PACKAGE/explore/ExploreGrid;->hide(Ljava/util/List;)Z"
+internal const val TRACK_STATE = "$EXTENSION_PACKAGE/explore/ExploreGrid;->track(Ljava/lang/Object;)V"
+internal const val LOAD_MORE_ROW = "$EXTENSION_PACKAGE/explore/ExploreGrid;->loadMoreRow(Ljava/lang/Object;Z)Z"
+
+/** The load more row's view and the method that picks what it draws, both kept names. */
+internal const val LOAD_MORE_BUTTON = "Lcom/instagram/ui/widget/loadmore/LoadMoreButton;"
+internal const val SET_VIEW_TYPE = "setViewType"
+
+/** A log tag one of the Explore fragment's own methods holds. */
+internal const val EXPLORE_FRAGMENT_TAG = "ExploreFragment.setupAutoplay"
 
 /** The keys of the topical Explore page the parser reads: its sections, and whether there's more. */
 internal const val SECTIONS = "sectional_items"
@@ -56,6 +72,8 @@ val hideExploreGridPatch = bytecodePatch(
     execute {
         requireStatusMethod("exploreGrid")
         emptyExplorePages(findExploreParser())
+        val row = findLoadMoreRow()
+        hideLoadMoreRow(row, findExploreAdapter(findExploreFragment(), row))
         enableStatus("exploreGrid")
     }
 }
@@ -128,8 +146,8 @@ internal fun BytecodePatchContext.findExploreParser(): ExploreParser {
 /**
  * At the parser's return, asks [HIDE_GRID] with the page's sections, and on a yes gives the page an
  * empty section list and turns off its "more" flags, so nothing loads more on its own. The cursor
- * stays: without one Instagram leaves Explore on its loading placeholder for good, and with it the
- * empty page shows a load more button whose page comes back empty too. The hook sits on the
+ * stays: without one Instagram leaves Explore on its loading placeholder for good. With it the
+ * empty page would show a load more row, which [hideLoadMoreRow] hides. The hook sits on the
  * return's own label, since the parser's loop branches straight to it.
  */
 internal fun BytecodePatchContext.emptyExplorePages(parser: ExploreParser) {
@@ -157,6 +175,125 @@ internal fun BytecodePatchContext.emptyExplorePages(parser: ExploreParser) {
         """,
     )
 }
+
+/**
+ * The load more row's state interface, and its check: the static on the row's state picker that
+ * answers whether a list shows the row at all. [LOAD_MORE_BUTTON]'s [SET_VIEW_TYPE] takes the state
+ * first and hands it to the picker class's state static. The check shows the row on a list with no
+ * items whatever else the state says, which is the "+" left on an emptied Explore page.
+ */
+internal class LoadMoreRow(val state: String, val check: MethodReference)
+
+internal fun BytecodePatchContext.findLoadMoreRow(): LoadMoreRow {
+    val setViewType = classDefByOrNull(LOAD_MORE_BUTTON)?.methods?.singleOrNull {
+        it.name == SET_VIEW_TYPE && it.parameterTypes.size == 2
+    } ?: refuse("$LOAD_MORE_BUTTON has no two-argument $SET_VIEW_TYPE")
+    val state = setViewType.parameterTypes.first().toString()
+    val pickers = setViewType.implementation!!.instructions.filter { it.opcode == Opcode.INVOKE_STATIC }
+        .map { (it as ReferenceInstruction).reference as MethodReference }
+        .filter { it.returnType == "Ljava/lang/Integer;" && it.parameterTypes.map(CharSequence::toString) == listOf(state) }
+    val picker = pickers.singleOrNull()?.definingClass
+        ?: refuse("$SET_VIEW_TYPE picks its state through ${pickers.size} statics, expected one")
+    val checks = classDefBy(picker).methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf(state)
+    }
+    val check = checks.singleOrNull() ?: refuse("$picker has ${checks.size} boolean statics taking $state, expected one")
+    val asks = check.implementation!!.instructions.filter { it.opcode == Opcode.INVOKE_INTERFACE }
+        .map { ((it as ReferenceInstruction).reference as MethodReference).name }
+    if ("isLoading" !in asks) refuse("$picker->${check.name} doesn't ask isLoading")
+    return LoadMoreRow(state, ImmutableMethodReference(picker, check.name, check.parameterTypes, check.returnType))
+}
+
+/** The Explore fragment: the one class with a method holding [EXPLORE_FRAGMENT_TAG]. */
+internal fun BytecodePatchContext.findExploreFragment(): String {
+    val found = mutableSetOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        if (classDef.methods.any { EXPLORE_FRAGMENT_TAG in it.strings() }) found += classDef.type
+    }
+    return found.singleOrNull() ?: refuse("expected one class holding $EXPLORE_FRAGMENT_TAG, found ${found.size}")
+}
+
+/**
+ * Where the Explore fragment builds its grid adapter: the one type the fragment builds with the row
+ * state whose own code asks the row check, the fragment's method and the index of that constructor
+ * call. The adapter's type also draws other grids (a location's page among them), so what marks
+ * Explore's row is the state the fragment hands this adapter.
+ */
+internal class ExploreAdapter(val fragment: String, val method: String, val parameters: List<String>, val built: Int, val type: String)
+
+internal fun BytecodePatchContext.findExploreAdapter(fragment: String, row: LoadMoreRow): ExploreAdapter {
+    fun asks(type: String) = classDefByOrNull(type)?.methods?.any { method ->
+        method.implementation?.instructions?.any { it.calls(row.check) } == true
+    } == true
+    val sites = classDefBy(fragment).methods.flatMap { method ->
+        method.implementation?.instructions?.withIndex()?.filter { (_, instruction) ->
+            instruction.opcode in CONSTRUCTOR_CALLS && ((instruction as ReferenceInstruction).reference as MethodReference).let {
+                it.name == "<init>" && row.state in it.parameterTypes.map(CharSequence::toString) && asks(it.definingClass)
+            }
+        }?.map { (index, instruction) -> Triple(method, index, ((instruction as ReferenceInstruction).reference as MethodReference).definingClass) }
+            .orEmpty()
+    }
+    val (method, index, type) = sites.singleOrNull()
+        ?: refuse("$fragment builds ${sites.size} adapters that take ${row.state} and ask the row check, expected one")
+    return ExploreAdapter(fragment, method.name, method.parameterTypes.map(CharSequence::toString), index, type)
+}
+
+/**
+ * Hides the load more row on the emptied Explore grid and leaves every other list's row alone.
+ * Right after the fragment builds its adapter, [TRACK_STATE] notes the row state it hands over.
+ * When [LOAD_MORE_BUTTON] binds, it asks the row check and hides itself on a no, and that answer
+ * goes through [LOAD_MORE_ROW] with the state, which says no for Explore's while the switch is on.
+ * The row stays in the adapter: an Explore grid with nothing in it at all shows Instagram's loading
+ * placeholder for good, and so does telling Explore there's no next page.
+ */
+internal fun BytecodePatchContext.hideLoadMoreRow(row: LoadMoreRow, adapter: ExploreAdapter) {
+    val fragmentMethod = mutableClassDefBy(adapter.fragment).methods.single {
+        it.name == adapter.method && it.parameterTypes.map(CharSequence::toString) == adapter.parameters
+    }
+    val construct = fragmentMethod.implementation!!.instructions.elementAt(adapter.built)
+    val parameters = ((construct as ReferenceInstruction).reference as MethodReference).parameterTypes.map(CharSequence::toString)
+    // After the new instance, each argument takes one register, or two for a long or a double.
+    val offset = 1 + parameters.takeWhile { it != row.state }.map { if (it == "J" || it == "D") 2 else 1 }.sum()
+    val state = when (construct) {
+        is RegisterRangeInstruction -> construct.startRegister + offset
+        is FiveRegisterInstruction ->
+            listOf(construct.registerC, construct.registerD, construct.registerE, construct.registerF, construct.registerG)[offset]
+        else -> refuse("${adapter.fragment}->${adapter.method} builds its adapter some other way")
+    }
+    fragmentMethod.addInstructions(adapter.built + 1, "invoke-static/range { v$state .. v$state }, $TRACK_STATE")
+
+    var hooked = 0
+    mutableClassDefBy(LOAD_MORE_BUTTON).methods.forEach { method ->
+        val where = "$LOAD_MORE_BUTTON->${method.name}"
+        val code = method.implementation?.instructions?.toList() ?: return@forEach
+        // From the last site back, so an insert never moves a site still to come.
+        code.indices.filter { code[it].calls(row.check) }.reversed().forEach { call ->
+            val asked = when (val instruction = code[call]) {
+                is RegisterRangeInstruction -> instruction.startRegister
+                else -> (instruction as FiveRegisterInstruction).registerC
+            }
+            val result = code.getOrNull(call + 1)
+            if (result?.opcode != Opcode.MOVE_RESULT) refuse("$where drops the row check's answer")
+            val show = (result as OneRegisterInstruction).registerA
+            if (asked > 15 || show > 15) refuse("$where keeps the state or the answer out of reach of invoke-static")
+            method.addInstructions(
+                call + 2,
+                """
+                    invoke-static { v$asked, v$show }, $LOAD_MORE_ROW
+                    move-result v$show
+                """,
+            )
+            hooked++
+        }
+    }
+    if (hooked != 1) refuse("$LOAD_MORE_BUTTON asks the row check $hooked times, expected once")
+}
+
+private val CONSTRUCTOR_CALLS = setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
+
+private fun Instruction.calls(method: MethodReference) =
+    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == method.toString()
 
 private fun Method.strings(): Set<String> = implementation?.instructions
     ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
