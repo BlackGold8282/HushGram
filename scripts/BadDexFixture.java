@@ -118,7 +118,11 @@ import java.util.Set;
  * shape, one object in and nothing back, which the store's constructor taking two objects would
  * match too if a * ran on past the end of a class name. Beside the store sits a cache with a method
  * of the send's shape, whose methods hold the file name alone and, in one build, the trace section
- * as well. The rules all these builds are held to are written beside them as contracts.txt, since
+ * as well. And Instagram's tab bar builder, whose home tab asks a static session check before it
+ * returns a tab, which Hide the Reels tab passes through the extension. A fallback beside it holds
+ * the same string and has the same shape but asks nothing, so a rule picks the home tab by the
+ * static call it makes (calling static), a call whose class and name are Redex's written with a *.
+ * The rules all these builds are held to are written beside them as contracts.txt, since
  * HushGram's own contract file names Instagram's code.
  *
  *   java -cp &lt;cli jar&gt; BadDexFixture.java &lt;outDir&gt;
@@ -294,10 +298,30 @@ public class BadDexFixture {
             Arrays.asList("pending_reel_seen_states_", "PendingReelSeenStateStore.deserializeFromDisk");
 
     /**
+     * Instagram's tab bar builder, a class Redex renames, and the tab it answers: its home tab
+     * asks a static session check, then hands the tab it returns to the extension's ReelsTab.tab,
+     * as Hide the Reels tab does. A flag reader beside the check is asked through an instance.
+     */
+    private static final String TAB_BUILDER = "Lfixture/TabBuilder;";
+    private static final String TAB = "Lfixture/Tab;";
+    private static final ImmutableMethodReference TAB_GATE =
+            method("Lfixture/TabGate;", "enabled", "Z", USER_SESSION);
+    private static final String SESSION_FLAGS = "Lfixture/SessionFlags;";
+    private static final ImmutableMethodReference SESSION_FLAG =
+            method(SESSION_FLAGS, "enabled", "Z", USER_SESSION);
+    private static final String REELS_TAB = "Lapp/hushgram/extension/fixture/reels/ReelsTab;";
+    private static final ImmutableMethodReference TAB_TO_OPEN = method(REELS_TAB, "tab", OBJECT, OBJECT);
+    /** How the home tab asks about the session: the static check, the flag reader's instance call, or not at all. */
+    private static final int STATIC_CHECK = 0;
+    private static final int INSTANCE_CHECK = 1;
+    private static final int NO_CHECK = 2;
+
+    /**
      * The rules the fixture's builds are held to, written beside the dex files as contracts.txt.
      * They're Hushfacebook's rules, which each kind was written for, under the fixture's extension
-     * prefix, two shared-call rules for the link parsers and a class-holding start-call rule for
-     * the story seen store's send. HushGram's own rules, in injected-mutation-contracts.txt, name
+     * prefix, two shared-call rules for the link parsers, a class-holding start-call rule for
+     * the story seen store's send and a once-call rule picking the home tab by the call it makes.
+     * HushGram's own rules, in injected-mutation-contracts.txt, name
      * Instagram's classes and strings, which the fixture doesn't have, so
      * test-injected-registers.ps1 checks that file separately.
      */
@@ -332,7 +356,8 @@ public class BadDexFixture {
             "sole-call Lapp/hushgram/extension/fixture/reels/ReelWatchHistory;->send(Ljava/util/concurrent/Executor;Ljava/lang/Runnable;)V replacing Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V in instance ()V holding FbShortsSeenStateMutation video_ids",
             "shared-call Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding permalink XDTPermalinkResponse",
             "shared-call Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding story_item_to_share_url XDTStoryItemThirdPartySharingUrlResponse",
-            "start-call Lapp/hushgram/extension/fixture/stories/StorySeen;->holdBack()Z in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk");
+            "start-call Lapp/hushgram/extension/fixture/stories/StorySeen;->holdBack()Z in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk",
+            "once-call Lapp/hushgram/extension/fixture/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object; in static (Lcom/instagram/common/session/UserSession;)Lfixture/*; calling static L*;->*(Lcom/instagram/common/session/UserSession;)Z holding default");
 
     /**
      * One of the ShortcutManager calls the settings patch sends to SettingsEntry: its name, what it
@@ -1542,6 +1567,50 @@ public class BadDexFixture {
                         body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)))));
     }
 
+    /**
+     * A static method of the tab bar builder taking the session, in v1, and answering a tab: it
+     * holds "default", asks about the session as [check] says, then reads [tab] and, [hooked],
+     * passes it through the extension's ReelsTab.tab before it returns it.
+     */
+    private static Method tabMethod(String name, String tab, int check, boolean hooked) {
+        List<Instruction> instructions = new ArrayList<>();
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference("default")));
+        if (check == STATIC_CHECK) instructions.add(invoke(TAB_GATE, 1));
+        if (check == INSTANCE_CHECK) {
+            instructions.add(new ImmutableInstruction21c(Opcode.SGET_OBJECT, 0,
+                    new ImmutableFieldReference(SESSION_FLAGS, "INSTANCE", SESSION_FLAGS)));
+            instructions.add(new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 0, 1, 0, 0, 0, SESSION_FLAG));
+        }
+        if (check != NO_CHECK) instructions.add(op(Opcode.MOVE_RESULT, 0));
+        instructions.add(new ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, new ImmutableFieldReference(TAB, tab, TAB)));
+        if (hooked) {
+            instructions.add(invoke(TAB_TO_OPEN, 0));
+            instructions.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+            instructions.add(new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(TAB)));
+        }
+        instructions.add(op(Opcode.RETURN_OBJECT, 0));
+        return define(TAB_BUILDER, name, TAB, true, new ImmutableMethodImplementation(2, instructions, null, null), USER_SESSION);
+    }
+
+    /**
+     * Instagram's tab bar builder. Its home tab asks the session as [check] says and answers the
+     * Reels tab, through ReelsTab.tab when [homeHooked]. Its fallback, which Instagram doesn't
+     * have, holds the same string and has the same shape but asks nothing, and answers the feed
+     * tab, through ReelsTab.tab when [fallbackHooked]. Only the static check tells the two apart.
+     */
+    private static ClassDef tabBuilder(int check, boolean homeHooked, boolean fallbackHooked) {
+        return new ImmutableClassDef(TAB_BUILDER, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Arrays.asList(tabMethod("home", "REELS", check, homeHooked),
+                        tabMethod("fallback", "FEED", NO_CHECK, fallbackHooked)));
+    }
+
+    /** The extension's ReelsTab.tab, static: it answers the tab it was given. */
+    private static ClassDef reelsTab() {
+        return new ImmutableClassDef(REELS_TAB, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
+                OBJECT, null, null, null, null, Collections.singletonList(define(REELS_TAB, "tab", OBJECT, true,
+                        body(1, op(Opcode.RETURN_OBJECT, 0)), OBJECT)));
+    }
+
     /** [classes] with the top bar replaced by [topBar]. */
     private static List<ClassDef> withTopBar(List<ClassDef> classes, ClassDef topBar) {
         List<ClassDef> replaced = new ArrayList<>(classes);
@@ -1717,7 +1786,8 @@ public class BadDexFixture {
                 speedToast(toastHook(3), Collections.<Instruction>emptyList()), reelSpeed(),
                 linkParsers(1, 1, false, false), linkFilter(), menuOptions(1, false), videoDownload(),
                 seenStore(seenGuard(), Collections.<Instruction>emptyList(), false),
-                seenCache(Collections.<Instruction>emptyList(), false), storySeen());
+                seenCache(Collections.<Instruction>emptyList(), false), storySeen(),
+                tabBuilder(STATIC_CHECK, true, false), reelsTab());
     }
 
     /** The clean host, Facebook's classes as they ship, with the batcher's flush making [handOver]. */
@@ -1736,7 +1806,7 @@ public class BadDexFixture {
                 speedToast(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 linkParsers(0, 0, false, false), menuOptions(0, false),
                 seenStore(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList(), false),
-                seenCache(Collections.<Instruction>emptyList(), false));
+                seenCache(Collections.<Instruction>emptyList(), false), tabBuilder(STATIC_CHECK, false, false));
     }
 
     /**
@@ -2377,6 +2447,19 @@ public class BadDexFixture {
         // contract: a second method of the send's shape in the store, so the rule can't say which
         // one is the send, although the guard is where it was.
         dexes.put("bad-seen-two-sends", replaced(good(), seenStore(seenGuard(), unguarded, true)));
+
+        // contract: the home tab left without its call to ReelsTab.tab, so a start can still open
+        // the Reels tab.
+        dexes.put("bad-home-tab-hook-missing", replaced(good(), tabBuilder(STATIC_CHECK, false, false)));
+        // contract: the call in the fallback, the home tab's twin of the same shape and string that
+        // asks nothing, and the home tab left as Instagram makes it.
+        dexes.put("bad-home-tab-hook-decoy", replaced(good(), tabBuilder(STATIC_CHECK, false, true)));
+        // contract: the home tab's session check gone, so no method makes the call the rule asks
+        // for, although the hook is where it was.
+        dexes.put("bad-home-tab-check-gone", replaced(good(), tabBuilder(NO_CHECK, true, false)));
+        // contract: the home tab asking the flag reader's instance instead, a call matching the
+        // rule's method reference that isn't static, so it doesn't count and no method answers.
+        dexes.put("bad-home-tab-check-instance", replaced(good(), tabBuilder(INSTANCE_CHECK, true, false)));
 
         // contract: each start-call hook put first in a method that holds the rule's first string
         // but isn't the one the patch hooks. A rule naming only that string counted any method

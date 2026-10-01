@@ -80,7 +80,14 @@
     second send in another. Each is a build, and each fails that rule for its own reason. The
     store's constructor takes two objects, so the good build passes only while a * in a class name
     stays in that name. The contract file may hold no other class-holding rule, and HushGram's may
-    use the keyword only while the fixture's does.
+    use the keyword only while the fixture's does. Hide the Reels tab's call in the home tab of
+    Instagram's tab bar builder, which a fallback of the same shape and string sits beside, is picked
+    by the static session check the home tab makes (calling static, a method reference with a * in
+    its class and its name). The call is left out, or put only in the fallback with the home tab
+    left alone; the home tab's check is gone in one build and asked through an instance in another,
+    so no method answers. Each is a build, and each fails that once-call rule for its own reason.
+    The contract file may hold no other rule with calling, and HushGram's may use it only while the
+    fixture's does.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
     fail with findings of its own category only, so a check that fires for the wrong reason fails
@@ -739,10 +746,11 @@ try {
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
         "contract $watchRule`: in place of it on v2, v1 in $watchFlush")) `
         "The good build's watch-history hook was not reported in place of the executor call.`n$($good.Output -join "`n")"
-    # The feed guard asks the extension once in the runnable that swaps an edge into the feed, and
-    # Download any video's call once in the short feed menu's list, picked by the fields it reads.
-    # The contract file's two once-call rules are those, so a rule this suite builds no bad fixtures
-    # for can't pass on a count nobody checks.
+    # The feed guard asks the extension once in the runnable that swaps an edge into the feed,
+    # Download any video's call once in the short feed menu's list, picked by the fields it reads,
+    # and Hide the Reels tab's once in the home tab, picked by the call it makes. The contract file's
+    # three once-call rules are those, so a rule this suite builds no bad fixtures for can't pass on
+    # a count nobody checks.
     $swapHook = 'Lapp/hushgram/extension/fixture/feed/FeedFilter;->hideSwappedEdge(Ljava/lang/Object;Ljava/lang/Object;)Z'
     $swapRun = 'Lfixture/EdgeSwap;->run()V'
     $swapHeld = '"sizeBefore" and "sizeAfter" with the shape instance ()V'
@@ -753,8 +761,13 @@ try {
     $allowKept = 'Lfixture/MenuOptions;->kept(Z)Ljava/util/List;'
     $allowHeld = '"Lfixture/MenuOption;->WHY:Lfixture/MenuOption;" and "Lfixture/MenuOption;->REPORT:Lfixture/MenuOption;" with the shape static (Z)Ljava/util/List;'
     $allowRule = "once-call $allowHook in static (Z)Ljava/util/List; holding Lfixture/MenuOption;->WHY:Lfixture/MenuOption; Lfixture/MenuOption;->REPORT:Lfixture/MenuOption;"
-    Assert-True ($onceCallRules.Count -eq 2 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule) `
-        "The contract file's once-call rules are not the swap guard and the menu list this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
+    $tabHook = 'Lapp/hushgram/extension/fixture/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object;'
+    $tabShape = '(Lcom/instagram/common/session/UserSession;)Lfixture/*;'
+    $tabCall = 'L*;->*(Lcom/instagram/common/session/UserSession;)Z'
+    $tabRule = "once-call $tabHook in static $tabShape calling static $tabCall holding default"
+    Assert-True ($onceCallRules.Count -eq 3 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
+        $onceCallRules[2] -ceq $tabRule) `
+        "The contract file's once-call rules are not the swap guard, the menu list and the home tab this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
         "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $allowRule`: once in $allowKept")) `
@@ -796,6 +809,20 @@ try {
         "The contract file's class-holding rules are not the story seen guard this suite builds bad fixtures for:`n$($classRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $seenRule`: first in $seenSend")) `
         "The good build's story seen guard was not reported first in the store's send.`n$($good.Output -join "`n")"
+    # Hide the Reels tab passes the tab the home tab of Instagram's tab bar builder returns through
+    # the extension. A fallback beside it holds the same string and has the same shape, so the rule
+    # picks the home tab by the static session check it makes, written with a * in the check's class
+    # and name. The contract file's one rule with calling is that call, so a rule this suite builds
+    # no bad fixtures for can't pass on a count nobody checks.
+    $tabHome = 'Lfixture/TabBuilder;->home(Lcom/instagram/common/session/UserSession;)Lfixture/Tab;'
+    $tabFallback = 'Lfixture/TabBuilder;->fallback(Lcom/instagram/common/session/UserSession;)Lfixture/Tab;'
+    $tabHeld = """default"" with the shape static $tabShape and a static call to $tabCall"
+    $callingRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\scalling\s' } |
+        ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
+    Assert-True ($callingRules.Count -eq 1 -and $callingRules[0] -ceq $tabRule) `
+        "The contract file's rules with calling are not the home tab this suite builds bad fixtures for:`n$($callingRules -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $tabRule`: once in $tabHome")) `
+        "The good build's home tab call was not reported once in the home tab, picked by its static check.`n$($good.Output -join "`n")"
 
     # HushGram's own contract file, which names Instagram's code: it parses, each rule kind it uses is
     # one the fixture's rules exercise, and its no-call rules are the fixture's, the five shortcut
@@ -813,6 +840,11 @@ try {
     $classHolding = { param($Path) @(Get-Content -LiteralPath $Path | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\sclass-holding\s' }).Count }
     Assert-True ((& $classHolding $realContracts) -eq 0 -or (& $classHolding $contracts) -ne 0) `
         "HushGram's contract file picks methods by their class's strings, which the fixture doesn't exercise."
+    # Picking a method by a call it makes works the same for every kind too, and the fixture's home
+    # tab rule exercises it, so HushGram's file may say calling only while that rule is there.
+    $calling = { param($Path) @(Get-Content -LiteralPath $Path | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\scalling\s' }).Count }
+    Assert-True ((& $calling $realContracts) -eq 0 -or (& $calling $contracts) -ne 0) `
+        "HushGram's contract file picks methods by a call they make, which the fixture doesn't exercise."
     $realNoCalls = @(Get-Content -LiteralPath $realContracts | Where-Object { $_ -match '^\s*no-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' } | Sort-Object)
     $fixtureNoCalls = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*no-call\s' } |
@@ -961,6 +993,10 @@ try {
         'bad-seen-hook-also-elsewhere' = 'contract'
         'bad-seen-two-stores' = 'contract'
         'bad-seen-two-sends' = 'contract'
+        'bad-home-tab-hook-missing' = 'contract'
+        'bad-home-tab-hook-decoy' = 'contract'
+        'bad-home-tab-check-gone' = 'contract'
+        'bad-home-tab-check-instance' = 'contract'
         'bad-finder-stub-not-filled' = 'contract'
         'bad-finder-stub-extension-call' = 'contract'
         'bad-finder-stub-call-after-return' = 'contract'
@@ -1134,6 +1170,23 @@ try {
         Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
             "$($case.Key) did not fail with its own story seen finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
     }
+    # Each home tab build fails on the once-call rule alone: no call, one only in the fallback, or
+    # no method left making the static check, whether it's gone or asked through an instance. The
+    # last two read alike but catch different things: without calling the first would see two
+    # methods answer, and without static the second would pass.
+    $tabNone = "[diff] FAIL: contract: 0 methods hold $tabHeld, and exactly one must, so the rule can't say which one calls $tabHook"
+    $tabFails = [ordered]@{
+        'bad-home-tab-hook-missing' = "[diff] FAIL: contract: $tabHook is not called in $tabHome, the one method holding $tabHeld"
+        'bad-home-tab-hook-decoy' = "[diff] FAIL: contract: $tabHook is not called in $tabHome, the one method holding " +
+            "$tabHeld; the host methods that call it: $tabFallback"
+        'bad-home-tab-check-gone' = $tabNone
+        'bad-home-tab-check-instance' = $tabNone
+    }
+    foreach ($case in $tabFails.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+            "$($case.Key) did not fail with its own home tab finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
     # And against a clean build whose flush makes no executor call, the good build's stand-in has
     # nothing it took the place of.
     $noHandOverClean = New-DexApk -Name 'clean-no-hand-over' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'clean-no-hand-over') })
@@ -1302,7 +1355,15 @@ try {
             "start-call $seenHook in instance (L*;)V class-holding",
             "start-call $seenHook in instance (L*;)V class-holding pending_reel_seen_states_ pending_reel_seen_states_",
             "start-call $seenHook in instance (L*;)V class_holding pending_reel_seen_states_",
-            "start-call $seenHook in instance (L*;)V classholding pending_reel_seen_states_")) {
+            "start-call $seenHook in instance (L*;)V classholding pending_reel_seen_states_",
+            "once-call $tabHook in static $tabShape calling holding default",
+            "once-call $tabHook in static $tabShape calling static holding default",
+            "once-call $tabHook in static $tabShape calling static",
+            "once-call $tabHook in static $tabShape calling static $tabCall",
+            "once-call $tabHook in static $tabShape calling static L*;.*(Lcom/instagram/common/session/UserSession;)Z holding default",
+            "once-call $tabHook in static $tabShape calling static L*;->*Z holding default",
+            "once-call $tabHook in static $tabShape calling sometimes $tabCall holding default",
+            "once-call $tabHook calling static $tabCall in static $tabShape holding default")) {
         [System.IO.File]::WriteAllText($badContract, "# a comment line first`n$line`n")
         $unreadableFirstCall = Invoke-DexDiff -Clean $cleanApk -Patched (Join-Path $caseRoot 'good.apk') `
             -Allowlist $emptyAllowlist -Name 'bad-first-call-contract' -Contracts $badContract

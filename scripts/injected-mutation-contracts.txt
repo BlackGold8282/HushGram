@@ -3,12 +3,12 @@
 #   first-call <method reference> on <class>
 #   first-call <method reference> on-type-named <GraphQL type>
 #   first-call <method reference> outside <package prefix>
-#   start-call <method reference> [in [static|instance] <(parameters)return, * for any run>] holding <string> [<string> ...]
+#   start-call <method reference> [in [static|instance] <(parameters)return, * for any run>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
 #   no-call <method reference> outside <package prefix>
-#   next-call <method reference> after <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
-#   sole-call <method reference> replacing <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
-#   once-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
-#   shared-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+#   next-call <method reference> after <method reference> [in [static|instance] <shape>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
+#   sole-call <method reference> replacing <method reference> [in [static|instance] <shape>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
+#   once-call <method reference> [in [static|instance] <shape>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
+#   shared-call <method reference> [in [static|instance] <shape>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
 # A start-call, next-call, sole-call, once-call or shared-call rule picks its method by every string
 # it names and its shape, and exactly one of Instagram's methods may answer that; name as much as the
 # patch's own fingerprint finds the method by. A string with a space in it is written with \s for
@@ -17,6 +17,10 @@
 # For a method that holds neither, any of the five may say class-holding in place of holding: the
 # strings are then its class's, held by its methods between them, and the method is the one of the
 # shape in such a class. A * inside a class name stays in that name, so (L*;)V takes one object.
+# Where a sibling has the same strings and shape, calling adds a call the method makes: it has the
+# shape only when one of its invokes names a method reference matching the one written, with * as in
+# a shape (and any run in the method's name). static counts an invoke-static alone, instance any
+# other invoke, and neither word any invoke.
 #
 # One guard per hot method. A guard the patch puts first in a method gets a start-call rule, which
 # holds it first there and in no other method holding the same strings, and a once-call rule, which
@@ -274,19 +278,22 @@ once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->allowDirectStart(L
 start-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->rebound(Ljava/lang/Object;)V in instance (Landroid/view/ViewGroup;*)V holding IgGrootPlayer.prepare
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoplayAllowed(I)Z in instance ()Z holding VideoAutoplayChecker zero_rating_or_data_saver
+start-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
+once-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 # The Reels tap hands its resume-or-pause decision to resumeOnTap() just before it branches to the
 # "clips_pause" path, so the call isn't first. Two other methods load "clips_pause"; the tap is the
 # one carrying its togglePause marker.
 once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeOnTap(ILjava/lang/Object;)Z in instance (Landroid/view/View;*)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause clips_pause
 # The story player's resume hands the flag it starts a story on to resumeHeldStory() between reading
-# it and branching on it. No rule can pick the resume. It holds no string, and every field it touches
-# is its own class's Redex name. Its class's strings would pick the class ("reel_video_player" and
-# "already bound" are held together only by it and a string table on 449), but another method of the
-# class, a stub of two instructions, has the resume's shape (a string and a flag in, nothing back),
-# so class-holding can't say which one is the resume either. TapToPlayHookTest checks it on each
-# declared build.
-start-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
-once-call Lapp/hushgram/extension/instagram/media/TapClock;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
+# it and branching on it. The resume holds no string, and every field it touches is its own class's
+# Redex name, so the rule picks it by its class's strings: "reel_video_player" and "already bound"
+# are held together only by the player and a string table on 449. A stub of two instructions in the
+# player has the resume's shape too (a string and a flag in, nothing back). Of the two only the
+# resume reads the clock, so the rule asks for that call as well. resumeHeldStory() is called from
+# the resume and nowhere else, so once-call. Left out, letting go of a press never starts a story Tap
+# to play held; twice or elsewhere, it isn't the hook the patch wrote. TapToPlayHookTest checks it on
+# each declared build too.
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeHeldStory(ILjava/lang/Object;)Z in instance (Ljava/lang/String;Z)V calling Ljava/lang/System;->currentTimeMillis()J class-holding reel_video_player already\sbound
 # The feed's Litho play button tells playButtonTapped() right after its click hands the video to
 # Instagram. The click is one arm of a lambda class's invoke, which holds no string of its own, so
 # the rule holds the call to one site in the whole APK, in an invoke.
@@ -353,11 +360,20 @@ shared-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tab(Ljava/lang/Ob
 # method taking a session and a flag and answering a list, so the shape carries the rule, and a
 # second such method in any of them fails it rather than passing.
 once-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tabs(Ljava/util/List;)Ljava/util/List; in instance (Lcom/instagram/common/session/UserSession;Z)Ljava/util/List; class-holding default
-# No rule can pick the home tab's return of Reels, in the builder's class. Another class holding
-# "default" has a static method of its shape too (a session in, one of Instagram's renamed classes
-# back), and the tab constants it reads are Redex names. The home tab calls ReelsTab.tab as well, so
-# the switch's rule is shared-call. HideReelsTabHookTest checks on the 449 fixture that each of the
-# three lands once, where it should.
+# The home tab, a static method in the builder's class, asks Instagram's static session check and
+# then returns a tab, and the patch sends the Reels one through ReelsTab.tab. The class holds only
+# "default", so the shape and a call carry this rule too. Among the classes holding "default", four
+# static methods take a session, answer an object and call a method that takes a session and answers
+# a flag on 449: the home tab, the builder's static list (it answers a List), ClipsViewerSource's own
+# (it answers a ClipsViewerSource, a name Redex keeps) and one in another renamed class, whose session
+# check is an invoke-virtual. So the rule asks for a renamed class back (every one lives in LX/) and
+# for a static call taking a session and answering a flag, and the home tab is the one left. The tab
+# constants, the class it answers and the check's own class are Redex names, so the rule names none
+# of them. The tab switch calls ReelsTab.tab as well, so this rule is shared-call like the switch's.
+# Left out, an account that opens on Reels still starts there; twice or elsewhere, it isn't the ask
+# the patch wrote. HideReelsTabHookTest checks on the 449 fixture that each of the three lands once,
+# where it should.
+shared-call Lapp/hushgram/extension/instagram/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object; in static (Lcom/instagram/common/session/UserSession;)LX/*; calling static L*;->*(Lcom/instagram/common/session/UserSession;)Z class-holding default
 #
 # Keep the reel speed hands the extension each speed first thing in the Reels player controller's
 # setPlaybackSpeed, the one method holding its marker. The hold handler, the one method holding

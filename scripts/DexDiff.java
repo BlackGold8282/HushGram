@@ -106,8 +106,9 @@ import java.util.TreeSet;
  * rule named, so a rule naming it alone passed a hook in any of them. A method that loads no string
  * at all, such as the send of Instagram's store of stories you've seen, is named by the strings its
  * class's methods load between them and its shape among them (class-holding), and exactly one may
- * answer that too. The device verifier stays the authority; these catch the known shapes without a
- * phone.
+ * answer that too. Where a sibling shares the method's shape, the rule can add a call the method
+ * makes (calling): the story player's resume reads the clock and the stub beside it doesn't. The
+ * device verifier stays the authority; these catch the known shapes without a phone.
  *
  *   java -cp &lt;cli jar&gt; DexDiff.java &lt;cleanApk&gt; &lt;patchedApk&gt; &lt;reportFile&gt;
  *       &lt;removalAllowlist&gt; [&lt;contracts&gt; [&lt;signedBase&gt;]]
@@ -220,6 +221,15 @@ public class DexDiff {
      *       call. For a hook in a method that loads no string at all, as the patches put in the
      *       send of Instagram's store of stories you've seen and in both record methods of its
      *       batch of watched reels.
+     *   <li>Any of those five with "calling [static|instance] &lt;method reference&gt;" after the
+     *       shape, or in its place, and before "holding" or "class-holding": a method has the
+     *       rule's shape only when it also makes a call whose method reference matches that one,
+     *       a * in it standing for any run of characters, or inside a class name for any run
+     *       within that name, as in a shape. "static" counts only an invoke-static, "instance"
+     *       only any other invoke, and neither word any invoke. Everything else about the rule
+     *       stays as written. For a method that shares its strings and its shape with a sibling
+     *       that doesn't make the call, as the story player's resume does with a stub beside it,
+     *       and the home tab's static method with a few others taking a session.
      * </ul>
      */
     /** A string as a rule line writes it: a backslash as two, then a space as \s. */
@@ -267,13 +277,19 @@ public class DexDiff {
         final String shape;
         /** The same rules: whether its strings are its method's class's, between all its methods, rather than its own. */
         final boolean byClass;
+        /** The same rules: a call its method makes, a method reference with "*" as in a shape, or null. */
+        final String call;
+        /** The same rules: whether that call is an invoke-static, or null when the rule doesn't say. */
+        final Boolean callStatic;
+        /** [call] as a regular expression, or null. */
+        private final java.util.regex.Pattern callMatch;
 
         Contract(String kind, String callee, String target) {
-            this(kind, callee, target, null, null, List.of(), null, null, false);
+            this(kind, callee, target, null, null, List.of(), null, null, false, null, null);
         }
 
         Contract(String kind, String callee, String target, String after, String replaced, List<String> strings,
-                Boolean isStatic, String shape, boolean byClass) {
+                Boolean isStatic, String shape, boolean byClass, String call, Boolean callStatic) {
             this.kind = kind;
             this.callee = callee;
             this.target = target;
@@ -283,6 +299,9 @@ public class DexDiff {
             this.isStatic = isStatic;
             this.shape = shape;
             this.byClass = byClass;
+            this.call = call;
+            this.callStatic = callStatic;
+            this.callMatch = call == null ? null : java.util.regex.Pattern.compile(callPattern(call));
         }
 
         /** Whether this rule picks its method by strings and a shape: start-call, next-call, sole-call, once-call and shared-call. */
@@ -301,19 +320,40 @@ public class DexDiff {
                 if (isStatic != null) b.append(isStatic ? "static " : "instance ");
                 b.append(shape);
             }
+            if (call != null) {
+                b.append(" calling ");
+                if (callStatic != null) b.append(callStatic ? "static " : "instance ");
+                b.append(call);
+            }
             List<String> written = new ArrayList<>();
             for (String s : strings) written.add(escape(s));
             return b.append(byClass ? " class-holding " : " holding ").append(String.join(" ", written)).toString();
         }
 
-        /** Whether [m] has this rule's shape: its static flag and its descriptor. */
+        /** Whether [m] has this rule's shape: its static flag, its descriptor and the call it makes. */
         boolean hasShape(Method m) {
             if (isStatic != null && AccessFlags.STATIC.isSet(m.getAccessFlags()) != isStatic) return false;
-            if (shape == null) return true;
-            StringBuilder descriptor = new StringBuilder("(");
-            for (CharSequence p : m.getParameterTypes()) descriptor.append(p);
-            descriptor.append(')').append(m.getReturnType());
-            return descriptor.toString().matches(shapePattern(shape));
+            if (shape != null) {
+                StringBuilder descriptor = new StringBuilder("(");
+                for (CharSequence p : m.getParameterTypes()) descriptor.append(p);
+                descriptor.append(')').append(m.getReturnType());
+                if (!descriptor.toString().matches(shapePattern(shape))) return false;
+            }
+            return call == null || makesCall(m);
+        }
+
+        /** Whether [m] makes an invoke of the kind [callStatic] asks for whose method reference matches [call]. */
+        private boolean makesCall(Method m) {
+            if (m.getImplementation() == null) return false;
+            for (Instruction i : m.getImplementation().getInstructions()) {
+                if (!i.getOpcode().name.startsWith("invoke") || !(i instanceof ReferenceInstruction)) continue;
+                Reference r = ((ReferenceInstruction) i).getReference();
+                if (!(r instanceof MethodReference)) continue;
+                boolean staticCall = i.getOpcode() == Opcode.INVOKE_STATIC || i.getOpcode() == Opcode.INVOKE_STATIC_RANGE;
+                if (callStatic != null && staticCall != callStatic) continue;
+                if (callMatch.matcher(r.toString()).matches()) return true;
+            }
+            return false;
         }
     }
 
@@ -340,6 +380,33 @@ public class DexDiff {
         return pattern.append(java.util.regex.Pattern.quote(literal.toString())).toString();
     }
 
+    /**
+     * A calling clause's method reference, Lclass;->name(parameters)return, as a regular expression.
+     * Its class and its descriptor read as a shape does, so a * inside a class name stays in that
+     * name. A * in its method name stands for any run, which can't leave the name: a method
+     * reference has one ( and the descriptor after it is matched as written.
+     */
+    static String callPattern(String reference) {
+        int arrow = reference.indexOf("->");
+        int open = reference.indexOf('(', arrow);
+        String[] pieces = reference.substring(arrow + 2, open).split("\\*", -1);
+        StringBuilder name = new StringBuilder();
+        for (int k = 0; k < pieces.length; k++) {
+            if (k > 0) name.append(".*");
+            name.append(java.util.regex.Pattern.quote(pieces[k]));
+        }
+        return shapePattern(reference.substring(0, arrow)) + java.util.regex.Pattern.quote("->") + name
+                + shapePattern(reference.substring(open));
+    }
+
+    /** Whether [written] reads as a method reference a calling clause can name: a class, ->, a name, then (parameters)return. */
+    private static boolean isCallReference(String written) {
+        int arrow = written.indexOf("->");
+        int open = arrow < 1 ? -1 : written.indexOf('(', arrow + 2);
+        int close = open < 0 ? -1 : written.indexOf(')', open);
+        return open > arrow + 2 && close > open && close < written.length() - 1;
+    }
+
     /** How each rule that picks its method by strings and a shape is written, for the message a bad line gets. */
     private static final Map<String, String> PICKED_FORMS = Map.of(
             "start-call", "start-call <method reference>",
@@ -351,8 +418,9 @@ public class DexDiff {
     /**
      * A start-call, next-call, sole-call, once-call or shared-call line: its method reference, the next-call's
      * "after &lt;method reference&gt;" or the sole-call's "replacing &lt;method reference&gt;", then "[in
-     * [static|instance] &lt;shape&gt;] holding &lt;string&gt; [&lt;string&gt; ...]", with "class-holding" in
-     * place of "holding" for strings its method's class holds. Null when it isn't one.
+     * [static|instance] &lt;shape&gt;] [calling [static|instance] &lt;method reference&gt;] holding
+     * &lt;string&gt; [&lt;string&gt; ...]", with "class-holding" in place of "holding" for strings its
+     * method's class holds. Null when it isn't one.
      */
     private static Contract readPicked(String[] parts) {
         String kind = parts[0];
@@ -378,13 +446,25 @@ public class DexDiff {
             if (at >= parts.length || !parts[at].startsWith("(") || parts[at].indexOf(')') < 1) return null;
             shape = parts[at++];
         }
+        String call = null;
+        Boolean callStatic = null;
+        if (at < parts.length && parts[at].equals("calling")) {
+            at++;
+            if (at < parts.length && (parts[at].equals("static") || parts[at].equals("instance"))) {
+                callStatic = parts[at].equals("static");
+                at++;
+            }
+            if (at >= parts.length || !isCallReference(parts[at])) return null;
+            call = parts[at++];
+        }
         if (at >= parts.length || !(parts[at].equals("holding") || parts[at].equals("class-holding"))) return null;
         boolean byClass = parts[at].equals("class-holding");
         // The line is split on spaces, so a string holding one writes it as \s, and a backslash as \\.
         List<String> strings = new ArrayList<>();
         for (String s : Arrays.asList(parts).subList(at + 1, parts.length)) strings.add(unescape(s));
         if (strings.isEmpty() || new TreeSet<>(strings).size() != strings.size()) return null;
-        return new Contract(kind, parts[1], String.join(" ", strings), after, replaced, strings, isStatic, shape, byClass);
+        return new Contract(kind, parts[1], String.join(" ", strings), after, replaced, strings, isStatic, shape, byClass,
+                call, callStatic);
     }
 
     private static List<Contract> readContracts(File file) throws Exception {
@@ -402,7 +482,8 @@ public class DexDiff {
                 Contract picked = readPicked(parts);
                 if (picked == null) {
                     throw new IllegalArgumentException("Invalid contract line " + lineNumber + ": expected " + form
-                            + " [in [static|instance] <(parameters)return>] holding or class-holding <string> [<string> ...]");
+                            + " [in [static|instance] <(parameters)return>] [calling [static|instance] <method reference>]"
+                            + " holding or class-holding <string> [<string> ...]");
                 }
                 contracts.add(picked);
                 continue;
@@ -427,7 +508,8 @@ public class DexDiff {
                         + " or start-call <method reference>, next-call <method reference> after <method reference>,"
                         + " sole-call <method reference> replacing <method reference>,"
                         + " once-call <method reference> or shared-call <method reference>, each then"
-                        + " [in [static|instance] <(parameters)return>] holding or class-holding <string> [<string> ...]");
+                        + " [in [static|instance] <(parameters)return>] [calling [static|instance] <method reference>]"
+                        + " holding or class-holding <string> [<string> ...]");
             }
             String kind = firstCallTyped ? TYPED_FIRST_CALL : firstCallOutside ? OUTSIDE_FIRST_CALL : parts[0];
             contracts.add(new Contract(kind, parts[1], parts[3]));
@@ -1577,8 +1659,8 @@ public class DexDiff {
             only = holder;
         }
         if (shaped.size() != 1) {
-            // None, and the method moved or lost a string; several, and the rule can't tell the
-            // right one from the others, so a hook in any of them would pass.
+            // None, and the method moved, lost a string or no longer makes the rule's call; several,
+            // and the rule can't tell the right one from the others, so a hook in any of them would pass.
             System.out.println("[diff] " + rule + ": " + shaped.size() + " methods answer it" + named(shaped));
             findings.add("contract: " + shaped.size() + " methods " + describePicked(contract, true) + ", and exactly one"
                     + " must, so the rule can't say which one calls " + contract.callee + named(shaped));
@@ -1743,8 +1825,9 @@ public class DexDiff {
 
     /**
      * What a picking rule picks its method by, as a finding says it after "the one method" or, with
-     * [many], after "2 methods": holding its strings, then its shape when it has one, or for a
-     * class-holding rule its shape, then in a class holding its strings.
+     * [many], after "2 methods": holding its strings, then its shape and the call it makes when it
+     * names them, or for a class-holding rule its shape and its call, then in a class holding its
+     * strings.
      */
     private static String describePicked(Contract rule, boolean many) {
         List<String> quoted = new ArrayList<>();
@@ -1753,8 +1836,11 @@ public class DexDiff {
                 : String.join(", ", quoted.subList(0, quoted.size() - 1)) + " and " + quoted.get(quoted.size() - 1);
         String shape = rule.shape == null ? null
                 : "with the shape " + (rule.isStatic == null ? "" : rule.isStatic ? "static " : "instance ") + rule.shape;
-        if (rule.byClass) return (shape == null ? "" : shape + " ") + (many ? "sit in" : "in") + " a class holding " + strings;
-        return (many ? "hold " : "holding ") + strings + (shape == null ? "" : " " + shape);
+        String call = rule.call == null ? null
+                : (rule.callStatic == null ? "a call to " : rule.callStatic ? "a static call to " : "an instance call to ") + rule.call;
+        String how = call == null ? shape : shape == null ? "with " + call : shape + " and " + call;
+        if (rule.byClass) return (how == null ? "" : how + " ") + (many ? "sit in" : "in") + " a class holding " + strings;
+        return (many ? "hold " : "holding ") + strings + (how == null ? "" : " " + how);
     }
 
     /** ": " and the first eight of [methods], or nothing for none. */
