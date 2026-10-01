@@ -95,7 +95,7 @@ final class SettingsScreenRow {
         title.setText(L10n.t(context, "HushGram settings"));
         title.setTextColor(colors.title);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        title.setSingleLine(true);
+        // Wraps rather than running off the row at a large text size or in a long translation.
         row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         ImageView chevron = new ImageView(context);
