@@ -70,7 +70,8 @@ public enum PatchFamily {
     PLAYBACK_QUALITY(FamilyNames.PLAYBACK_QUALITY, "defaultPlaybackQuality", null,
             Settings.DEFAULT_PLAYBACK_QUALITY),
     TRANSLATED_START(FamilyNames.TRANSLATED_START, "translatedStart", "the start-up fix for x86 devices"),
-    DEVELOPER_OPTIONS(FamilyNames.DEVELOPER_OPTIONS, "developerOptions", null, Settings.OPEN_DEVELOPER_OPTIONS);
+    DEVELOPER_OPTIONS(FamilyNames.DEVELOPER_OPTIONS, "developerOptions", null, Settings.OPEN_DEVELOPER_OPTIONS),
+    PURE_BLACK(FamilyNames.PURE_BLACK, "pureBlack", "the pure black dark mode");
 
     /** The name Morphe Manager lists the patch under. */
     public final String patchName;

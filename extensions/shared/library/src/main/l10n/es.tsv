@@ -196,3 +196,6 @@ the start-up fix for x86 devices	el arreglo de inicio para dispositivos x86
 Developer	Desarrollador
 Developer options on a long press of Home	Opciones de desarrollador al mantener pulsado Inicio
 Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.	Abre las opciones de desarrollador propias de Instagram, donde se pueden ver y cambiar sus indicadores del servidor. Un indicador incorrecto puede romper partes de Instagram hasta que lo restablezcas ahí.
+Pure black dark mode	Modo oscuro negro puro
+Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.	El modo oscuro de Instagram usa negro puro en lugar de su gris casi negro. Los menús, las hojas y los botones conservan sus propios grises.
+the pure black dark mode	el modo oscuro negro puro

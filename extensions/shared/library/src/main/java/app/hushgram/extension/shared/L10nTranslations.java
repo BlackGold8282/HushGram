@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(392);
+        Map<String, String> table = new HashMap<>(398);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -256,6 +256,8 @@ public final class L10nTranslations {
                 "Instagram w\u00e4hlt die Qualit\u00e4t beim Abspielen jedes Videos passend zu deiner Verbindung.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram zeigt den Bildschirm nicht mehr an, der meldet, dass diese Version zu alt ist. Ein gepatchter Build aktualisiert sich nicht von selbst, so bleibt er nutzbar.");
+        table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
+                "Der Dunkelmodus von Instagram nutzt reines Schwarz statt seines fast schwarzen Graus. Men\u00fcs, Bl\u00e4tter und Schaltfl\u00e4chen behalten ihre eigenen Graut\u00f6ne.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
                 "Die eigenen Signaturpr\u00fcfungen von Instagram sehen die Originalzertifikate und bestehen deshalb auch mit diesem neu signierten Build.");
         table.put("Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.",
@@ -296,13 +298,15 @@ public final class L10nTranslations {
                 "Hinweise wie Edits, Vorlage verwenden, Meta AI und Ray-Ban Meta Brillen. Ein Live-Abzeichen und ein Hinweis auf staatlich kontrollierte Medien bleiben.");
         table.put("Playback",
                 "Wiedergabe");
-        table.put("Playback quality",
-                "Wiedergabequalit\u00e4t");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Playback quality",
+                "Wiedergabequalit\u00e4t");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Beitr\u00e4ge und Reels von Konten, denen du nicht folgst, markiert mit \u201eVorschl\u00e4ge f\u00fcr dich\u201c. Beitr\u00e4ge von Konten, denen du folgst, bleiben.");
+        table.put("Pure black dark mode",
+                "Rein schwarzer Dunkelmodus");
         table.put("Re-signed build fix",
                 "Fix f\u00fcr neu signierte Builds");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -417,13 +421,13 @@ public final class L10nTranslations {
                 "Doppeltippen zum Liken ausschalten");
         table.put("Up to %1$s",
                 "Bis %1$s");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Updates",
                 "Updates");
         table.put("Version",
                 "Version");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Version %1$s f\u00fcr Instagram %2$s");
         table.put("Video file name",
@@ -450,6 +454,8 @@ public final class L10nTranslations {
                 "Weblinks \u00f6ffnen sich in deinem Standardbrowser, ohne Instagrams Klick-Tracker. Seiten von Instagram und anderen Meta-Diensten sowie Werbung \u00f6ffnen sich weiterhin in der App.");
         table.put("You paused HushGram.",
                 "Du hast HushGram pausiert.");
+        table.put("the pure black dark mode",
+                "der rein schwarze Dunkelmodus");
         table.put("the re-signed build fix",
                 "der Fix f\u00fcr neu signierte Builds");
         table.put("the removed advertising ID permissions",
@@ -459,7 +465,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(392);
+        Map<String, String> table = new HashMap<>(398);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -669,6 +675,8 @@ public final class L10nTranslations {
                 "Instagram elige la calidad mientras se reproduce cada video, seg\u00fan tu conexi\u00f3n.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram deja de mostrar la pantalla que dice que esta versi\u00f3n es demasiado antigua. Una versi\u00f3n parcheada no se actualiza sola, as\u00ed que esto la mantiene usable.");
+        table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
+                "El modo oscuro de Instagram usa negro puro en lugar de su gris casi negro. Los men\u00fas, las hojas y los botones conservan sus propios grises.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
                 "Las propias comprobaciones de firma de Instagram ven sus certificados originales, as\u00ed que siguen pasando en esta versi\u00f3n con nueva firma.");
         table.put("Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.",
@@ -709,13 +717,15 @@ public final class L10nTranslations {
                 "Etiquetas como Edits, Usar plantilla, Meta AI y las gafas Ray-Ban Meta. Una insignia de directo y la etiqueta de medio controlado por el Estado se quedan.");
         table.put("Playback",
                 "Reproducci\u00f3n");
-        table.put("Playback quality",
-                "Calidad de reproducci\u00f3n");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Playback quality",
+                "Calidad de reproducci\u00f3n");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Publicaciones y reels de cuentas que no sigues, marcados como Sugerencias para ti. Las publicaciones de las cuentas que sigues se quedan.");
+        table.put("Pure black dark mode",
+                "Modo oscuro negro puro");
         table.put("Re-signed build fix",
                 "Arreglo para la nueva firma");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -830,13 +840,13 @@ public final class L10nTranslations {
                 "Desactivar tocar dos veces para dar Me gusta");
         table.put("Up to %1$s",
                 "Hasta %1$s");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Updates",
                 "Actualizaciones");
         table.put("Version",
                 "Versi\u00f3n");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Versi\u00f3n %1$s para Instagram %2$s");
         table.put("Video file name",
@@ -863,6 +873,8 @@ public final class L10nTranslations {
                 "Los enlaces web se abren en tu navegador predeterminado, sin el rastreador de clics de Instagram. Las p\u00e1ginas de Instagram y de otros servicios de Meta, y los anuncios, se siguen abriendo en la app.");
         table.put("You paused HushGram.",
                 "Pausaste HushGram.");
+        table.put("the pure black dark mode",
+                "el modo oscuro negro puro");
         table.put("the re-signed build fix",
                 "el arreglo para la nueva firma");
         table.put("the removed advertising ID permissions",
@@ -872,7 +884,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(392);
+        Map<String, String> table = new HashMap<>(398);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1082,6 +1094,8 @@ public final class L10nTranslations {
                 "Instagram memilih kualitas saat setiap video diputar, sesuai koneksi Anda.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram berhenti menampilkan layar yang menyatakan versi ini terlalu lama. Build yang ditambal tidak memperbarui dirinya sendiri, jadi ini membuatnya tetap bisa dipakai.");
+        table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
+                "Mode gelap Instagram memakai hitam pekat, bukan abu-abu yang hampir hitam. Menu, lembar, dan tombol tetap memakai abu-abunya sendiri.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
                 "Pemeriksaan tanda tangan milik Instagram sendiri melihat sertifikat aslinya, jadi tetap lolos pada build yang ditandatangani ulang ini.");
         table.put("Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.",
@@ -1122,13 +1136,15 @@ public final class L10nTranslations {
                 "Label seperti Edits, Gunakan template, Meta AI, dan kacamata Ray-Ban Meta. Lencana siaran langsung dan label media yang dikendalikan negara tetap ada.");
         table.put("Playback",
                 "Pemutaran");
-        table.put("Playback quality",
-                "Kualitas pemutaran");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Playback quality",
+                "Kualitas pemutaran");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Postingan dan reel dari akun yang tidak kamu ikuti, bertanda Disarankan untuk kamu. Postingan dari akun yang kamu ikuti tetap ada.");
+        table.put("Pure black dark mode",
+                "Mode gelap hitam pekat");
         table.put("Re-signed build fix",
                 "Perbaikan build yang ditandatangani ulang");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1243,13 +1259,13 @@ public final class L10nTranslations {
                 "Matikan ketuk dua kali untuk menyukai");
         table.put("Up to %1$s",
                 "Hingga %1$s");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Updates",
                 "Pembaruan");
         table.put("Version",
                 "Versi");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Versi %1$s untuk Instagram %2$s");
         table.put("Video file name",
@@ -1276,6 +1292,8 @@ public final class L10nTranslations {
                 "Tautan web terbuka di browser default kamu, tanpa pelacak klik Instagram. Halaman Instagram dan layanan Meta lainnya, serta iklan, tetap terbuka di aplikasi.");
         table.put("You paused HushGram.",
                 "Anda menjeda HushGram.");
+        table.put("the pure black dark mode",
+                "mode gelap hitam pekat");
         table.put("the re-signed build fix",
                 "perbaikan build yang ditandatangani ulang");
         table.put("the removed advertising ID permissions",
@@ -1285,7 +1303,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(392);
+        Map<String, String> table = new HashMap<>(398);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1495,6 +1513,8 @@ public final class L10nTranslations {
                 "O Instagram escolhe a qualidade enquanto cada v\u00eddeo \u00e9 reproduzido, de acordo com sua conex\u00e3o.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "O Instagram para de mostrar a tela que diz que esta vers\u00e3o \u00e9 antiga demais. Uma vers\u00e3o com patches n\u00e3o se atualiza sozinha, ent\u00e3o isso a mant\u00e9m utiliz\u00e1vel.");
+        table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
+                "O modo escuro do Instagram usa preto puro em vez do cinza quase preto. Menus, pain\u00e9is e bot\u00f5es mant\u00eam os pr\u00f3prios tons de cinza.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
                 "As pr\u00f3prias verifica\u00e7\u00f5es de assinatura do Instagram veem os certificados originais, ent\u00e3o continuam passando nesta vers\u00e3o com nova assinatura.");
         table.put("Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.",
@@ -1535,13 +1555,15 @@ public final class L10nTranslations {
                 "Etiquetas como Edits, Usar modelo, Meta AI e \u00f3culos Ray-Ban Meta. O selo de ao vivo e o aviso de m\u00eddia controlada pelo Estado continuam.");
         table.put("Playback",
                 "Reprodu\u00e7\u00e3o");
-        table.put("Playback quality",
-                "Qualidade de reprodu\u00e7\u00e3o");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Playback quality",
+                "Qualidade de reprodu\u00e7\u00e3o");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Posts e reels de contas que voc\u00ea n\u00e3o segue, marcados como Sugest\u00f5es para voc\u00ea. Posts de contas que voc\u00ea segue continuam l\u00e1.");
+        table.put("Pure black dark mode",
+                "Modo escuro preto puro");
         table.put("Re-signed build fix",
                 "Corre\u00e7\u00e3o para vers\u00e3o com nova assinatura");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1656,13 +1678,13 @@ public final class L10nTranslations {
                 "Desativar toque duplo para curtir");
         table.put("Up to %1$s",
                 "At\u00e9 %1$s");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Updates",
                 "Atualiza\u00e7\u00f5es");
         table.put("Version",
                 "Vers\u00e3o");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Vers\u00e3o %1$s para o Instagram %2$s");
         table.put("Video file name",
@@ -1689,6 +1711,8 @@ public final class L10nTranslations {
                 "Links da web abrem no seu navegador padr\u00e3o, sem o rastreador de cliques do Instagram. P\u00e1ginas do Instagram e de outros servi\u00e7os da Meta, e an\u00fancios, continuam abrindo no app.");
         table.put("You paused HushGram.",
                 "Voc\u00ea pausou o HushGram.");
+        table.put("the pure black dark mode",
+                "o modo escuro preto puro");
         table.put("the re-signed build fix",
                 "a corre\u00e7\u00e3o para vers\u00e3o reassinada");
         table.put("the removed advertising ID permissions",
@@ -1698,7 +1722,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(392);
+        Map<String, String> table = new HashMap<>(398);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1908,6 +1932,8 @@ public final class L10nTranslations {
                 "Instagram, her video oynat\u0131l\u0131rken kaliteyi ba\u011flant\u0131na g\u00f6re se\u00e7er.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram bu s\u00fcr\u00fcm\u00fcn \u00e7ok eski oldu\u011funu s\u00f6yleyen ekran\u0131 art\u0131k g\u00f6stermez. Yamalanm\u0131\u015f bir s\u00fcr\u00fcm kendi kendine g\u00fcncellenmez, bu y\u00fczden bu onu kullan\u0131labilir tutar.");
+        table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
+                "Instagram'\u0131n karanl\u0131k modu, siyaha yak\u0131n grisi yerine saf siyah kullan\u0131r. Men\u00fcler, sayfalar ve d\u00fc\u011fmeler kendi gri tonlar\u0131n\u0131 korur.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
                 "Instagram'\u0131n kendi imza denetimleri orijinal sertifikalar\u0131n\u0131 g\u00f6r\u00fcr, bu y\u00fczden yeniden imzalanm\u0131\u015f bu s\u00fcr\u00fcmde de ge\u00e7meye devam eder.");
         table.put("Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.",
@@ -1948,13 +1974,15 @@ public final class L10nTranslations {
                 "Edits, \u015eablonu kullan, Meta AI ve Ray-Ban Meta g\u00f6zl\u00fckleri gibi etiketler. Canl\u0131 yay\u0131n rozeti ve devlet kontrol\u00fcndeki medya etiketi kal\u0131r.");
         table.put("Playback",
                 "Oynatma");
-        table.put("Playback quality",
-                "Oynatma kalitesi");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Playback quality",
+                "Oynatma kalitesi");
         table.put("Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.",
                 "Takip etmedi\u011fin hesaplardan gelen, Senin i\u00e7in \u00f6nerilenler olarak i\u015faretli g\u00f6nderiler ve reel'ler. Takip etti\u011fin hesaplar\u0131n g\u00f6nderileri kal\u0131r.");
+        table.put("Pure black dark mode",
+                "Saf siyah karanl\u0131k mod");
         table.put("Re-signed build fix",
                 "Yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -2069,13 +2097,13 @@ public final class L10nTranslations {
                 "Be\u011fenmek i\u00e7in \u00e7ift dokunmay\u0131 kapat");
         table.put("Up to %1$s",
                 "En fazla %1$s");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Updates",
                 "G\u00fcncellemeler");
         table.put("Version",
                 "S\u00fcr\u00fcm");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Instagram %2$s i\u00e7in %1$s s\u00fcr\u00fcm\u00fc");
         table.put("Video file name",
@@ -2102,6 +2130,8 @@ public final class L10nTranslations {
                 "Web ba\u011flant\u0131lar\u0131, Instagram'\u0131n t\u0131klama izleyicisi olmadan varsay\u0131lan taray\u0131c\u0131nda a\u00e7\u0131l\u0131r. Instagram ve di\u011fer Meta sayfalar\u0131 ile reklamlar uygulamada a\u00e7\u0131lmaya devam eder.");
         table.put("You paused HushGram.",
                 "HushGram'u duraklatt\u0131n.");
+        table.put("the pure black dark mode",
+                "saf siyah karanl\u0131k mod");
         table.put("the re-signed build fix",
                 "yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("the removed advertising ID permissions",

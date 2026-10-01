@@ -129,4 +129,8 @@ public final class SettingsStatus {
     public static boolean developerOptions() {
         return false;
     }
+
+    public static boolean pureBlack() {
+        return false;
+    }
 }

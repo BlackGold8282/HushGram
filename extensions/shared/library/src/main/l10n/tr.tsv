@@ -196,3 +196,6 @@ the start-up fix for x86 devices	x86 cihazlar için açılış düzeltmesi
 Developer	Geliştirici
 Developer options on a long press of Home	Ana Sayfa'ya uzun basınca geliştirici seçenekleri
 Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.	Instagram'ın kendi geliştirici seçeneklerini açar. Orada sunucu bayrakları görülebilir ve değiştirilebilir. Yanlış bir bayrak, sen orada sıfırlayana kadar Instagram'ın bazı bölümlerini bozabilir.
+Pure black dark mode	Saf siyah karanlık mod
+Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.	Instagram'ın karanlık modu, siyaha yakın grisi yerine saf siyah kullanır. Menüler, sayfalar ve düğmeler kendi gri tonlarını korur.
+the pure black dark mode	saf siyah karanlık mod

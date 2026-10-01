@@ -348,7 +348,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "changed. A wrong flag can break parts of Instagram until you reset it there.")));
         }
 
-        if (build.contains(PatchFamily.RESTORE_TRUST) || build.contains(PatchFamily.REMOVE_AD_ID)) {
+        if (build.contains(PatchFamily.RESTORE_TRUST) || build.contains(PatchFamily.REMOVE_AD_ID)
+                || build.contains(PatchFamily.PURE_BLACK)) {
             PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
             if (build.contains(PatchFamily.RESTORE_TRUST)) {
                 patched.addPreference(mark(info(context, L10n.t("Re-signed build fix"),
@@ -360,6 +361,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         L10n.t("Instagram can't read your phone's advertising ID or tell Android's ad services "
                                 + "which ads you saw or tapped. The permissions for them are gone from this build.")),
                         SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.PURE_BLACK)) {
+                patched.addPreference(mark(info(context, L10n.t("Pure black dark mode"),
+                        L10n.t("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets "
+                                + "and buttons keep their own grays.")), SettingsIcons.MOON));
             }
             patched.addPreference(info(context, L10n.t("Changing these"),
                     L10n.t("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. "
