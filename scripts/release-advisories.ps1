@@ -6,8 +6,8 @@
 .DESCRIPTION
     Taken from Hushfacebook's scripts/release-advisories.ps1
     (https://github.com/SysAdminDoc/Hushfacebook, commit 814acd23d7b70d5d23abce6cb6c97767e16a051e).
-    GPL-3.0-only. Modified for HushGram (Instagram), 2026: unchanged apart from this note, since
-    nothing in it names an app.
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026: resolved dependency-scope validation
+    and a publisher-reviewed Guava supplement, separate from shipped-payload certification.
 
     Dot-sourced by build-release-receipt.ps1 and validate-release-facts.ps1, beside
     release-receipt.ps1, whose Read-ReleaseSbom reads the SBOM these functions take.
@@ -176,7 +176,8 @@ function Get-AdvisorySeverity {
     if ($label -eq 'MEDIUM') { $label = 'MODERATE' }
     if ($label -and $rank.ContainsKey($label)) {
         $level = $label
-        $why = "OSV rates it $label"
+        $who = if ($Advisory.source -eq 'publisher') { 'The publisher' } else { 'OSV' }
+        $why = "$who rates it $label"
     }
     foreach ($entry in @($Advisory.severity | Where-Object { $null -ne $_ })) {
         if ("$($entry.type)" -ne 'CVSS_V3') { continue }
@@ -240,6 +241,67 @@ function Invoke-OsvQuery {
     throw "OSV was still paging its answer about $Purl after 20 pages."
 }
 
+function Get-VendorAdvisories {
+    <# Publisher-reviewed supplements for advisories not yet returned by OSV. #>
+    param([Parameter(Mandatory = $true)]$Library)
+
+    if ($Library.Group -cne 'com.google.guava' -or $Library.Name -cne 'guava') { return }
+    $version = [regex]::Match([string]$Library.Version, '^(\d+\.\d+(?:\.\d+)?)(?:-(?:jre|android))?$')
+    if (-not $version.Success) { throw "The publisher dependency check cannot classify Guava $($Library.Version)." }
+    $number = [version]$version.Groups[1].Value
+    if ($number -lt [version]'4.0' -or $number -ge [version]'33.7.2') { return }
+    # https://github.com/google/guava/security/advisories/GHSA-xxph-c9ww-hj94
+    # Reviewed 2026-10-01. Requires attacker-controlled native Java deserialization;
+    # a component finding is not evidence of a reachable deserialization path.
+    return [pscustomobject]@{
+        id = 'GHSA-xxph-c9ww-hj94'; aliases = @('CVE-2026-102554')
+        summary = 'Uncontrolled allocation during native Java deserialization'
+        database_specific = [pscustomobject]@{ severity = 'MODERATE' }
+        severity = @([pscustomobject]@{ type = 'CVSS_V3'; score = 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H' })
+        source = 'publisher'
+        sourceUrl = 'https://github.com/google/guava/security/advisories/GHSA-xxph-c9ww-hj94'
+    }
+}
+
+function Read-DependencyGraphs {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    try { $report = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -ErrorAction Stop }
+    catch { throw "The dependency graph report cannot be read: $($_.Exception.Message)" }
+    if ($report.schemaVersion -ne 1 -or -not $report.graphs) {
+        throw 'The dependency graph report must use schema 1 and contain graphs.'
+    }
+    $scopes = @('settings-plugin', 'project-plugin', 'build', 'test', 'host-contract')
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $libraries = @{}
+    foreach ($graph in @($report.graphs)) {
+        if ($graph.scope -cnotin $scopes -or -not $graph.owner -or -not $graph.configuration -or
+            -not $graph.PSObject.Properties['libraries']) {
+            throw 'A dependency graph has no reviewed scope, owner, configuration or library list.'
+        }
+        if (-not $seen.Add("$($graph.scope) $($graph.owner) $($graph.configuration)")) {
+            throw 'The dependency graph report contains a duplicate graph.'
+        }
+        foreach ($library in @($graph.libraries)) {
+            $purl = [regex]::Match([string]$library.purl, '^pkg:maven/([^/@?#]+)/([^/@?#]+)@([^/@?#]+)$')
+            if (-not $library.group -or -not $library.name -or -not $library.version -or -not $purl.Success -or
+                [Uri]::UnescapeDataString($purl.Groups[1].Value) -cne $library.group -or
+                [Uri]::UnescapeDataString($purl.Groups[2].Value) -cne $library.name -or
+                [Uri]::UnescapeDataString($purl.Groups[3].Value) -cne $library.version) {
+                throw 'A dependency graph library is unresolved or its package URL names another coordinate.'
+            }
+            $libraries[[string]$library.purl] = $library
+        }
+    }
+    foreach ($scope in @('settings-plugin', 'build', 'test', 'host-contract')) {
+        if (-not @($report.graphs | Where-Object scope -CEQ $scope).Count) {
+            throw "The dependency graph report omits the $scope scope."
+        }
+    }
+    return [pscustomobject]@{ Path = $Path; Graphs = @($report.graphs)
+        Libraries = @($libraries.Values | Sort-Object purl) }
+}
+
 function Get-SbomAdvisories {
     <#
     .SYNOPSIS
@@ -252,15 +314,19 @@ function Get-SbomAdvisories {
 
     $findings = New-Object System.Collections.Generic.List[object]
     foreach ($library in @($Sbom.Libraries)) {
-        foreach ($advisory in @(Invoke-OsvQuery -Purl $library.Purl)) {
+        $reported = @(@(Invoke-OsvQuery -Purl $library.Purl) + @(Get-VendorAdvisories -Library $library))
+        $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; HIGH = 3; CRITICAL = 4; UNRATED = 5 }
+        foreach ($group in @($reported | Group-Object id)) {
+            $advisory = @($group.Group | Sort-Object { $rank[(Get-AdvisorySeverity -Advisory $_).Level] } -Descending)[0]
             $findings.Add([pscustomobject]@{
                 Package  = "$($library.Group):$($library.Name)"
                 Version  = $library.Version
                 Purl     = $library.Purl
                 Advisory = [string]$advisory.id
-                Aliases  = @($advisory.aliases | Where-Object { $_ } | ForEach-Object { [string]$_ })
+                Aliases  = @($group.Group.aliases | Where-Object { $_ } | ForEach-Object { [string]$_ } | Sort-Object -Unique)
                 Summary  = "$($advisory.summary)".Trim()
                 Severity = Get-AdvisorySeverity -Advisory $advisory
+                Sources  = @($group.Group | ForEach-Object { if ($_.source) { $_.source } else { 'OSV' } } | Sort-Object -Unique)
             })
         }
     }
@@ -279,7 +345,9 @@ function Test-AdvisoryFindings {
     #>
     param(
         [object[]]$Findings = @(),
-        [object[]]$Exceptions = @()
+        [object[]]$Exceptions = @(),
+        [string]$Subject = 'what the bundle carries',
+        [string]$ExceptionsLabel = 'scripts/advisory-exceptions.txt'
     )
 
     $findingsIn = @(@($Findings) | Where-Object { $null -ne $_ })
@@ -326,13 +394,13 @@ function Test-AdvisoryFindings {
 
     $reasons = @()
     if ($refused.Count -gt 0) {
-        $reasons += ('OSV reports high or critical advisories for what the bundle carries: ' + ($refused -join '; ') +
-            '. Move to a version without them, or accept one in scripts/advisory-exceptions.txt with the reason ' +
+        $reasons += ("OSV reports high or critical advisories for ${Subject}: " + ($refused -join '; ') +
+            ". Move to a version without them, or accept one in $ExceptionsLabel with the reason " +
             'it does not apply and a date within 90 days.')
     }
     if ($stale.Count -gt 0) {
-        $reasons += ('scripts/advisory-exceptions.txt accepts advisories OSV no longer reports for what the bundle ' +
-            'carries: ' + ($stale -join '; ') + '. Take them out.')
+        $reasons += ("$ExceptionsLabel accepts advisories OSV no longer reports for ${Subject}: " +
+            ($stale -join '; ') + '. Take them out.')
     }
     return [pscustomobject]@{
         Valid   = $reasons.Count -eq 0
@@ -377,5 +445,9 @@ function Invoke-ReleaseAdvisoryGate {
     if (-not $verdict.Valid) { throw $verdict.Reason }
     $packages = @($libraries | ForEach-Object { "$($_.Name) $($_.Version)" }) -join ', '
     $said = if ($findings.Count -eq 0) { 'no advisory' } else { "$($findings.Count) advisories, none refused" }
-    Write-Host "[advisories] OSV has $said for the libraries $sbomName lists: $packages"
+    if (@($findings | Where-Object { 'publisher' -in $_.Sources }).Count) {
+        Write-Host "[advisories] OSV and publisher checks found $said for the libraries $sbomName lists: $packages"
+    } else {
+        Write-Host "[advisories] OSV has $said for the libraries $sbomName lists: $packages"
+    }
 }

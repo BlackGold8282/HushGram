@@ -61,7 +61,10 @@ val safeBouncyCastleVersion = libs.versions.bouncycastle.get()
 // ends at 1.78, CVE-2026-5588 at 1.83, CVE-2025-14813 and CVE-2026-0636 at 1.84, and
 // CVE-2026-8763 and CVE-2026-13506 at 1.85. It is rewritten
 // all the same, because one reviewed release in the graph is easier to hold than two.
-val reviewedBouncyCastleRequests = setOf("1.85", safeBouncyCastleVersion)
+// Resolving every graph also reaches AGP's device-test tooling, which requests 1.79.
+// Its known affected range is reviewed in settings.gradle.kts; the common override
+// selects 1.86 here too. This records the request without permitting the old result.
+val reviewedBouncyCastleRequests = setOf("1.79", "1.85", safeBouncyCastleVersion)
 // Modules Robolectric declares with no version of its own, because the BOM it imports carries
 // the version for them. Reviewing that BOM is what covers these, so they are named here rather
 // than by a version: the BOM's own request is reviewed above, and a module that turns up here

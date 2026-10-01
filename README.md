@@ -237,6 +237,10 @@ The bundle lands in `patches/build/release/patches-<version>.mpp`, beside its SH
 
 Tests: `./gradlew :patches:test :extensions:instagram:testDebugUnitTest`. Set `HUSHGRAM_FIXTURE_DIR` to a folder holding Instagram builds to run the tests that read real ones. Without it they skip and say so.
 
+After building, run `pwsh -File scripts/audit-dependencies.ps1` to check the other dependency scopes too. It resolves the settings plugins, project plugins, build and test graphs separately, then checks their exact versions against OSV and reviewed publisher advisories. Unresolved dependencies stop the check. The report is `build/reports/dependencies/advisories.json`, with the graph for each finding. High, critical and unrated findings stop it unless a reviewed exception applies. Tooling exceptions use `scripts/dependency-advisory-exceptions.txt`; shipped-payload exceptions stay separate. Both expire within 90 days and fail when stale. Moderate findings remain visible.
+
+The shipped SBOM still describes only what the bundle carries. The host-contract graph describes the patcher's locally resolved provided libraries. It doesn't prove which versions are inside an installed Morphe Manager or Desktop, and an advisory finding doesn't prove the affected code is reachable. On 2026-10-01 the settings plugin resolved Guava 33.5.0 despite the project overrides. Its own override now selects 33.7.2, matching the publisher's fixed version. Tool-created test graphs in the shared extension also take the same reviewed version.
+
 To apply every patch to a real build and check the result, run `scripts/verify-all-patches.ps1 -Apk <instagram .apks> -DesktopJar <morphe-desktop jar> -WorkDir <scratch folder>`. It patches without forcing anything, then compares the patched manifest to Meta's. [CONTRIBUTING.md](CONTRIBUTING.md) has the rest.
 
 ## License

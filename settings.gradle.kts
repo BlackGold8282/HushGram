@@ -60,6 +60,11 @@ buildscript {
             if (requested.group == "org.bouncycastle") {
                 useVersion("1.86")
             }
+            if (requested.group == "com.google.guava" && requested.name == "guava") {
+                // The settings graph resolved 33.5.0-jre on 2026-10-01. Project overrides do
+                // not reach it. Match the reviewed catalog pin (GHSA-xxph-c9ww-hj94).
+                useVersion("33.7.2-jre")
+            }
         }
     }
 }

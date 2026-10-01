@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** The dependency audit reports the resolved settings, plugin, build, test and host-contract graphs separately from the shipped SBOM. Missing dependencies stop it. OSV results include a reviewed publisher supplement for Guava, whose settings-plugin copy and shared-extension test graphs now resolve to 33.7.2. Host contracts don't certify an installed Manager or Desktop.
+
 * **Instagram:** The Before you sign in notice and the README's sign-in advice stick to what's known. They used to call a Root Mount install the lowest-risk path and say an older account is treated better, which nobody outside Meta can show. Now they say a re-signed Instagram can't pass Google's Play Store check whatever the patches do, that a Root Mount install keeps the sign-in you already have, that updating over the top with the same key keeps Instagram's data, and that a spare account keeps yours out of it. The notice is updated in all five translations.
 * **Instagram:** The HushGram settings row at the top of Settings and activity wraps its title onto a second line at a large text size or in a long translation, instead of cutting it off at the edge. At 200% text in a narrow window even the English title used to lose its last letters.
 * **Instagram:** `Turn off double tap to like` has two switches under it, On posts and On reels, both on to start. Turn one off and a double tap likes there again while the other stays held back, so you can keep double tap to like on posts and still not like a reel by accident. With the main switch off, both are greyed out and every double tap likes as it used to. Asked for in #6.

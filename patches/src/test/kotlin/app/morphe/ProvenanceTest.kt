@@ -220,18 +220,26 @@ class ProvenanceTest {
                 writeText("/* Taken from https://github.com/SysAdminDoc/Hushfacebook. */\n\nimport java.io.File;\n\n" +
                     "class X { String page = \"https://github.com/evil/other\"; }\n")
             }
+            val gradle = File(dir, "x.gradle").apply {
+                writeText("/* Taken from https://github.com/SysAdminDoc/Hushfacebook. */\n\n" +
+                    "import org.gradle.api.Project\nprintln('https://github.com/evil/other')\n")
+            }
             val rule = Rule(listOf("x/**"), "ported", listOf("https://github.com/SysAdminDoc/Hushfacebook"))
             assertEquals(null, headerProblem("x.ps1", headerOf(script), rule))
             assertEquals(null, headerProblem("x.txt", headerOf(list), rule))
             assertEquals(null, headerProblem("x.py", headerOf(python), rule))
             assertEquals(null, headerProblem("X.java", headerOf(program), rule))
+            assertEquals(null, headerProblem("x.gradle", headerOf(gradle), rule))
             assertTrue("a script's body counted as its header", "evil" !in headerOf(script))
             assertTrue("a list's entries counted as its header", "evil" !in headerOf(list))
             assertTrue("a Python script's body counted as its header", "evil" !in headerOf(python))
             assertTrue("a Java program's body counted as its header", "evil" !in headerOf(program))
+            assertTrue("a Gradle script's body counted as its header", "evil" !in headerOf(gradle))
             // A Java program with nothing above its imports has no header to agree.
             program.writeText("import java.io.File;\nimport java.util.List;\n// https://github.com/SysAdminDoc/Hushfacebook\n")
             assertTrue("a Java program without a header passed", headerProblem("X.java", headerOf(program), rule) != null)
+            gradle.writeText("import org.gradle.api.Project\n// https://github.com/SysAdminDoc/Hushfacebook\n")
+            assertTrue("a Gradle script without a header passed", headerProblem("x.gradle", headerOf(gradle), rule) != null)
             // And a header that names the wrong repository is still read as one.
             script.writeText("<#\n    Taken from https://github.com/evil/other.\n#>\n")
             assertTrue("a script naming a repository outside its chain passed",
@@ -253,6 +261,7 @@ class ProvenanceTest {
             "txt" -> text.lineSequence().takeWhile { it.startsWith("#") }.joinToString("\n")
             "py" -> if (text.startsWith("\"\"\"")) text.substring(3).substringBefore("\"\"\"") else ""
             "java", "kt" -> text.substringBefore("\npackage ").substringBefore("\nimport ")
+            "gradle" -> if (text.startsWith("/*") && "*/" in text) text.substringBefore("*/") + "*/" else ""
             else -> error("${file.path} has no header format this check knows")
         }
     }

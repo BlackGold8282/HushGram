@@ -15,12 +15,18 @@ plugins {
 // makes for itself. The settings classpath is forced separately in settings.gradle.kts, which
 // resolves before this file exists.
 val reviewedBouncyCastle = libs.versions.bouncycastle.get()
+val reviewedGuava = libs.versions.guava.get()
 allprojects {
     configurations.configureEach {
         resolutionStrategy.eachDependency {
             if (requested.group == "org.bouncycastle") {
                 useVersion(reviewedBouncyCastle)
                 because("The build classpath must use the reviewed Bouncy Castle release.")
+            }
+            if (requested.group == "com.google.guava" && requested.name == "guava") {
+                // Include tool-created test graphs in modules without a direct Guava request.
+                useVersion(reviewedGuava)
+                because("The resolved dependency audit must use the reviewed Guava release.")
             }
         }
     }

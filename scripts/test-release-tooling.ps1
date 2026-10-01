@@ -1211,7 +1211,8 @@ try {
     # Moderate and low go through, and say so.
     $said = Invoke-Gate @('pkg:maven/com.google.guava/guava@31.1-jre')
     Assert-True ($said -like '*below high, let through: GHSA-7g45-4rm6-3mm3 (MODERATE*' -and
-        $said -like '*below high, let through: GHSA-5mg8-w23w-74h3 (LOW*' -and $said -like '*2 advisories, none refused*') `
+        $said -like '*below high, let through: GHSA-5mg8-w23w-74h3 (LOW*' -and
+        $said -like '*GHSA-xxph-c9ww-hj94 (MODERATE*' -and $said -like '*3 advisories, none refused*') `
         "The gate refused, or said nothing of, moderate and low advisories: $said"
     # An advisory rated only by a vector this gate can't score counts as serious.
     $osvAnswers = @{ 'pkg:maven/org.apache.logging.log4j/log4j-core@2.26.0' = "{`"vulns`":[$log4jVectorFour]}" }
@@ -1272,6 +1273,76 @@ try {
     $said = Invoke-Gate @()
     Assert-True ($said -like '*lists no library to ask OSV about*' -and $osvAsked.Count -eq 0) `
         "An SBOM with no library was not passed as one: $said"
+
+    # These scopes used to be absent from the advisory gate altogether. Keep the actual
+    # resolved versions separate from the shipped payload and from an installed host.
+    $graphFile = Join-Path $advisoryRoot 'graphs.json'
+    $graphDocument = [ordered]@{ schemaVersion = 1; graphs = @(
+        foreach ($scope in @('settings-plugin', 'project-plugin', 'build', 'test', 'host-contract')) {
+            [ordered]@{ scope = $scope; owner = ':fixture'; configuration = 'runtimeClasspath'
+                libraries = @((New-GateSbom @($cleanPurl)).Libraries) }
+        }
+    ) }
+    $graphJson = $graphDocument | ConvertTo-Json -Depth 8
+    Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value $graphJson
+    $graphs = Read-DependencyGraphs -Path $graphFile
+    Assert-True ($graphs.Graphs.Count -eq 5 -and $graphs.Libraries.Count -eq 1) `
+        'Resolved scopes were lost, or a package shared by graphs was queried repeatedly.'
+    foreach ($broken in @(
+        @{ Name = 'an unknown schema'; Change = { param($d) $d.schemaVersion = 2 } },
+        @{ Name = 'an omitted settings scope'; Change = { param($d) $d.graphs = @($d.graphs | Where-Object scope -ne 'settings-plugin') } },
+        @{ Name = 'an unrecognized scope'; Change = { param($d) $d.graphs[0].scope = 'clean' } },
+        @{ Name = 'an unresolved library'; Change = { param($d) $d.graphs[0].libraries[0].version = '' } },
+        @{ Name = 'a forged package URL'; Change = { param($d) $d.graphs[0].libraries[0].purl = 'pkg:maven/com.example/other@1.0' } },
+        @{ Name = 'a duplicate graph'; Change = { param($d) $d.graphs += $d.graphs[0] } })) {
+        $variant = $graphJson | ConvertFrom-Json
+        & $broken.Change $variant
+        Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value ($variant | ConvertTo-Json -Depth 8)
+        Assert-Throws { Read-DependencyGraphs -Path $graphFile } '*dependency graph*' `
+            "The dependency audit accepted $($broken.Name)."
+    }
+    Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value $graphJson
+
+    # The publisher's Guava advisory was absent from OSV on 2026-10-01. An empty database
+    # result must not erase the known affected range, including both published editions.
+    foreach ($version in @('4.0', '33.7.1-jre', '33.7.1-android')) {
+        $library = (New-GateSbom @("pkg:maven/com.google.guava/guava@$version")).Libraries[0]
+        $vendor = @(Get-VendorAdvisories -Library $library)
+        Assert-True ($vendor.Count -eq 1 -and $vendor[0].id -eq 'GHSA-xxph-c9ww-hj94') `
+            "The publisher's Guava finding disappeared for $version."
+    }
+    foreach ($version in @('3.0', '33.7.2-jre', '33.7.2-android', '34.0-jre')) {
+        $library = (New-GateSbom @("pkg:maven/com.google.guava/guava@$version")).Libraries[0]
+        Assert-True (@(Get-VendorAdvisories -Library $library).Count -eq 0) `
+            "The publisher's Guava range incorrectly includes $version."
+    }
+    . $osvStandIn
+    $osvAnswers = @{ 'pkg:maven/com.google.guava/guava@33.7.1-jre' = '{}' }
+    $vendorFindings = @(Get-SbomAdvisories -Sbom (New-GateSbom @('pkg:maven/com.google.guava/guava@33.7.1-jre')))
+    Assert-True ($vendorFindings.Count -eq 1 -and $vendorFindings[0].Severity.Level -eq 'MODERATE') `
+        'An empty OSV result hid the publisher finding or changed its severity.'
+    $vendorJson = (Get-VendorAdvisories -Library (New-GateSbom @('pkg:maven/com.google.guava/guava@33.7.1-jre')).Libraries[0]) | ConvertTo-Json -Depth 5 -Compress
+    $osvAnswers = @{ 'pkg:maven/com.google.guava/guava@33.7.1-jre' = "{`"vulns`":[$vendorJson]}" }
+    Assert-True (@(Get-SbomAdvisories -Sbom (New-GateSbom @('pkg:maven/com.google.guava/guava@33.7.1-jre'))).Count -eq 1) `
+        'The same publisher and OSV advisory was counted twice.'
+
+    # Actual OSV controls read on 2026-10-01, reduced to the fields this gate uses.
+    $osvAnswers = @{
+        'pkg:maven/org.jetbrains.kotlin/kotlin-gradle-plugin@2.4.10' = '{"vulns":[{"id":"GHSA-r937-wjx7-w2jp","aliases":["CVE-2026-53914"],"database_specific":{"severity":"MODERATE"}}]}'
+        'pkg:maven/org.bouncycastle/bcprov-jdk18on@1.77' = '{"vulns":[{"id":"GHSA-qp49-qgx5-5m26","aliases":["CVE-2026-13506"],"database_specific":{"severity":"HIGH"}}]}'
+    }
+    $controls = @(Get-SbomAdvisories -Sbom (New-GateSbom @($osvAnswers.Keys)))
+    Assert-True ($controls.Count -eq 2 -and @($controls | Where-Object Advisory -eq 'GHSA-r937-wjx7-w2jp').Count -eq 1) `
+        'The affected Kotlin build-plugin control was lost.'
+    Assert-True (-not (Test-AdvisoryFindings -Findings $controls).Valid) `
+        'The affected Bouncy Castle control passed the existing high-severity policy.'
+    $scoped = Test-AdvisoryFindings -Findings $controls -Subject 'the audited tooling scopes' `
+        -ExceptionsLabel 'scripts/dependency-advisory-exceptions.txt'
+    Assert-True ($scoped.Reason -like '*for the audited tooling scopes*' -and
+        $scoped.Reason -like '*scripts/dependency-advisory-exceptions.txt*' -and
+        $scoped.Reason -notlike '*what the bundle carries*') `
+        'Tooling findings were described as shipped libraries or directed to payload exceptions.'
+    $osvAnswers = $osvRecorded
 } finally {
     Remove-Item -LiteralPath $advisoryRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
