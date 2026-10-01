@@ -20,14 +20,24 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val PATCH = "Start Home on Following"
 internal const val FEED_FLAG = "$EXTENSION_PACKAGE/feed/FollowingFeed;->flag(I)Z"
 internal const val SAVED_FEED = "$EXTENSION_PACKAGE/feed/FollowingFeed;->saved(Ljava/lang/String;)Ljava/lang/String;"
+internal const val LIMIT_PICKER = "$EXTENSION_PACKAGE/feed/FollowingFeed;->limitPicker(Ljava/util/List;)V"
+
+/** The trace name of the code that builds Home's feed picker. */
+internal const val FEED_PICKER = "FeedPickerStateManager"
+
+/** How far before its read of the saved feed the picker may freeze its list of feeds. */
+private const val FREEZE_REACH = 6
 
 /** The preference Instagram keeps the feed you last picked from Home's feed picker in. */
 internal const val SAVED_FEED_KEY = "last_selected_feed_type"
@@ -53,7 +63,8 @@ internal val FEED_PICKER_FLAGS = listOf(REMEMBERED_FEED_FLAG, FOR_YOU_PICKER_FLA
 val startOnFollowingPatch = bytecodePatch(
     name = "Start Home on Following",
     description = "Opens Home on posts from accounts you follow. Tap Following at the top to switch to For you, and " +
-        "Home remembers your pick. A change to the switch shows once Instagram restarts.",
+        "Home remembers your pick. A second switch, off to start, takes For you out of Home. " +
+        "A change to either shows once Instagram restarts.",
     default = false,
 ) {
     category("Interface")
@@ -68,6 +79,8 @@ val startOnFollowingPatch = bytecodePatch(
         // reads' indexes still hold.
         defaultSavedFeed(saved)
         answerFlagReads(reads, FEED_FLAG)
+        // Found after the flags are answered, since the picker reads them in the same method.
+        limitPicker(findPickerFreeze(saved))
         enableStatus("followingFeed")
     }
 }
@@ -129,6 +142,70 @@ internal fun BytecodePatchContext.defaultSavedFeed(saved: SavedFeedReturn) {
             move-result-object v$name
         """,
     )
+}
+
+/** Where the picker freezes its list of feeds: the method, the call's index and the list's register. */
+internal class PickerFreeze(val type: String, val name: String, val parameters: List<String>, val at: Int, val register: Int)
+
+/**
+ * Finds the one method outside the extension that loads [FEED_PICKER] and reads the saved feed
+ * through [saved]'s getter, once. Just before that read, within [FREEZE_REACH] instructions, a
+ * static call takes a List and freezes the picker's feeds: the list it's handed is the one the
+ * patch filters. Fails when any of these isn't there exactly once, since that's an update the
+ * patch hasn't seen.
+ */
+internal fun BytecodePatchContext.findPickerFreeze(saved: SavedFeedReturn): PickerFreeze {
+    val getter = "${saved.type}->${saved.name}()Ljava/lang/String;"
+    val pickers = mutableListOf<Pair<String, Method>>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.filter { FEED_PICKER in it.strings() && it.calls(getter) > 0 }.forEach { pickers += classDef.type to it }
+    }
+    val (type, picker) = pickers.singleOrNull()
+        ?: refuse("expected one method loading $FEED_PICKER and reading the saved feed, found ${pickers.size}")
+    val code = picker.implementation!!.instructions.toList()
+    val where = "$type->${picker.name}"
+    val read = code.indices.singleOrNull { code[it].calledSignature() == getter }
+        ?: refuse("$where reads the saved feed ${picker.calls(getter)} times, expected once")
+    val freezes = (maxOf(0, read - FREEZE_REACH) until read).filter { at ->
+        val instruction = code[at]
+        val called = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        instruction.opcode == Opcode.INVOKE_STATIC && called != null &&
+            called.parameterTypes.map(CharSequence::toString) == listOf("Ljava/util/List;") && called.returnType != "V"
+    }
+    val at = freezes.singleOrNull() ?: refuse("$where freezes ${freezes.size} lists before reading the saved feed, expected one")
+    val list = (code[at] as FiveRegisterInstruction).registerC
+    if (code.subList(0, at).none { it.addsTo(list) }) refuse("$where adds nothing to the list it freezes")
+    return PickerFreeze(type, picker.name, picker.parameterTypes.map(CharSequence::toString), at, list)
+}
+
+/**
+ * Just before the picker freezes its list, hands the list to [LIMIT_PICKER]. Every branch that
+ * landed on the freeze lands on the call first.
+ */
+internal fun BytecodePatchContext.limitPicker(freeze: PickerFreeze) {
+    val method = mutableClassDefBy(freeze.type).methods.single {
+        it.name == freeze.name && it.parameterTypes.map(CharSequence::toString) == freeze.parameters
+    }
+    method.addInstructionsAtControlFlowLabel(
+        freeze.at,
+        "invoke-static/range { v${freeze.register} .. v${freeze.register} }, $LIMIT_PICKER",
+    )
+}
+
+private fun Instruction.calledSignature(): String? {
+    if (opcode != Opcode.INVOKE_VIRTUAL && opcode != Opcode.INVOKE_VIRTUAL_RANGE) return null
+    val called = (this as ReferenceInstruction).reference as MethodReference
+    return "${called.definingClass}->${called.name}(${called.parameterTypes.joinToString("")})${called.returnType}"
+}
+
+private fun Method.calls(signature: String) = implementation?.instructions?.count { it.calledSignature() == signature } ?: 0
+
+/** Whether this calls add on a collection held in [register], as the picker fills its list. */
+private fun Instruction.addsTo(register: Int): Boolean {
+    if (opcode != Opcode.INVOKE_VIRTUAL && opcode != Opcode.INVOKE_INTERFACE) return false
+    val called = (this as ReferenceInstruction).reference as MethodReference
+    return called.name == "add" && called.parameterTypes.size == 1 && (this as FiveRegisterInstruction).registerC == register
 }
 
 private fun Method.strings(): Set<String> = implementation?.instructions

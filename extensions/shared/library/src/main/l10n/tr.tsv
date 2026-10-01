@@ -217,3 +217,5 @@ Takes Repost and its count off posts and reels, so nothing gets reposted to your
 Layout	Düzen
 Remove the empty space at the bottom	Alttaki boş alanı kaldır
 Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.	Telefonun gezinme çubuğunu gizlediğinde veya Instagram açılır pencerede olduğunda, Instagram sekme çubuğunun altında olmayan bir gezinme çubuğu için boş yer bırakabilir. Bu, o alanı kaldırır. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Only accounts you follow	Yalnızca takip ettiğin hesaplar
+Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.	Senin için'i Ana Sayfa'nın üstündeki seçiciden kaldırır, böylece Ana Sayfa Takip Edilenler'de veya Favoriler'de kalır. Ana Sayfa'yı Takip Edilenler ile aç açıkken çalışır. Değiştirdikten sonra Instagram'ı yeniden başlat.

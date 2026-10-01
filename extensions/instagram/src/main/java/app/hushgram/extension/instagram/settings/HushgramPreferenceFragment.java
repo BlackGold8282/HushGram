@@ -189,6 +189,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             feed.addPreference(toggle(context, Settings.START_ON_FOLLOWING, L10n.t("Start Home on Following"),
                     L10n.t("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, "
                             + "and Home remembers your pick. Restart Instagram after changing it.")));
+            feed.addPreference(toggle(context, Settings.ONLY_FOLLOWING, L10n.t("Only accounts you follow"),
+                    L10n.t("Takes For you out of the picker at the top of Home, so Home stays on Following or "
+                            + "Favorites. Works with Start Home on Following on. Restart Instagram after changing it.")));
         }
         if (suggestions) {
             feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_ACCOUNTS, L10n.t("Hide suggested accounts"),

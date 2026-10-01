@@ -1006,7 +1006,7 @@
     },
     {
       "name": "Start Home on Following",
-      "description": "Opens Home on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. A change to the switch shows once Instagram restarts.",
+      "description": "Opens Home on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. A second switch, off to start, takes For you out of Home. A change to either shows once Instagram restarts.",
       "category": "Interface",
       "use": false,
       "dependencies": [

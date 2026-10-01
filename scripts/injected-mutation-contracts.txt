@@ -272,6 +272,9 @@ shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in i
 shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in (Landroid/content/Context;L*;L*;Lcom/instagram/common/session/UserSession;L*;L*;)V holding pagination_source homecoming_all
 shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in instance (Z)V holding feed_title_with_chevron logo_with_chevron
 shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in (L*;I)Ljava/lang/Object; holding FeedPickerStateManager feedPickerStateManager
+# Its second switch hands the picker's list of feeds to limitPicker just before the same list build
+# freezes it, once. Left out, For you stays in the picker; twice or elsewhere, it isn't that list.
+once-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->limitPicker(Ljava/util/List;)V in (L*;I)Ljava/lang/Object; holding FeedPickerStateManager feedPickerStateManager
 #
 # Hide suggested stories asks hideTray() first thing in Home's story tray row build, the one method
 # holding "MainFeedStoryTrayBinderGroup.buildRowViewTypes", and nowhere else. It passes each item

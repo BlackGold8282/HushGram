@@ -148,6 +148,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_start_on_following", TRUE);
 
     /**
+     * With {@link #START_ON_FOLLOWING} on, Home keeps to accounts you follow: For you leaves the
+     * feed picker, and a remembered For you opens Following. Off to start, so For you stays a tap
+     * away until you choose this.
+     */
+    public static final BooleanSetting ONLY_FOLLOWING =
+            new BooleanSetting("hushgram_only_following", FALSE);
+
+    /**
      * Meta AI in the search bars: the Search tab's ("Search with Meta AI") and the one at the top of
      * your messages ("Search or ask Meta AI"), and the "Ask a follow-up…" bar under search results.
      */
