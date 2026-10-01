@@ -4,6 +4,7 @@
  */
 package app.hushgram.extension.instagram.explore;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -47,11 +48,11 @@ public class ExploreGridTest {
         Object location = new Object();
         ExploreGrid.track(explore);
 
-        assertFalse(ExploreGrid.loadMoreRow(explore, true));
-        assertFalse(ExploreGrid.loadMoreRow(explore, false));
-        assertTrue(ExploreGrid.loadMoreRow(location, true));
-        assertFalse(ExploreGrid.loadMoreRow(location, false));
-        assertTrue(ExploreGrid.loadMoreRow(null, true));
+        assertEquals(0, ExploreGrid.loadMoreRow(explore, 1));
+        assertEquals(0, ExploreGrid.loadMoreRow(explore, 0));
+        assertEquals(1, ExploreGrid.loadMoreRow(location, 1));
+        assertEquals(0, ExploreGrid.loadMoreRow(location, 0));
+        assertEquals(1, ExploreGrid.loadMoreRow(null, 1));
     }
 
     @Test
@@ -60,8 +61,8 @@ public class ExploreGridTest {
         ExploreGrid.track(explore);
         Settings.HIDE_EXPLORE_GRID.save(false);
         try {
-            assertTrue(ExploreGrid.loadMoreRow(explore, true));
-            assertFalse(ExploreGrid.loadMoreRow(explore, false));
+            assertEquals(1, ExploreGrid.loadMoreRow(explore, 1));
+            assertEquals(0, ExploreGrid.loadMoreRow(explore, 0));
         } finally {
             Settings.HIDE_EXPLORE_GRID.save(true);
         }

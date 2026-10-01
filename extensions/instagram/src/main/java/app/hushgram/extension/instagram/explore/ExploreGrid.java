@@ -66,16 +66,16 @@ public final class ExploreGrid {
 
     /**
      * Injected where a load more button binds and asks whether to show itself, with the row's state
-     * and Instagram's answer. Instagram shows the row, a "+" that fetches one more page, on any empty
-     * grid, so for Explore's state this says no while Hide the Explore grid is on, and the button
-     * hides itself. Every other list gets Instagram's answer. Never throws.
+     * and Instagram's answer, non-zero for yes. Instagram shows the row, a "+" that fetches one more
+     * page, on any empty grid, so for Explore's state this answers 0 while Hide the Explore grid is
+     * on, and the button hides itself. Every other list gets Instagram's answer. Never throws.
      */
-    public static boolean loadMoreRow(Object state, boolean show) {
+    public static int loadMoreRow(Object state, int show) {
         try {
-            if (!show || state == null || !EXPLORE_STATES.containsKey(state)) return show;
+            if (show == 0 || state == null || !EXPLORE_STATES.containsKey(state)) return show;
             HookStatus.invoked(FamilyNames.EXPLORE_GRID);
             if (!Utils.settingsReady() || !Settings.HIDE_EXPLORE_GRID.get()) return show;
-            return false;
+            return 0;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.EXPLORE_GRID, "load more row", failure);
             return show;

@@ -33,7 +33,7 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodRefere
 private const val PATCH = "Hide the Explore grid"
 internal const val HIDE_GRID = "$EXTENSION_PACKAGE/explore/ExploreGrid;->hide(Ljava/util/List;)Z"
 internal const val TRACK_STATE = "$EXTENSION_PACKAGE/explore/ExploreGrid;->track(Ljava/lang/Object;)V"
-internal const val LOAD_MORE_ROW = "$EXTENSION_PACKAGE/explore/ExploreGrid;->loadMoreRow(Ljava/lang/Object;Z)Z"
+internal const val LOAD_MORE_ROW = "$EXTENSION_PACKAGE/explore/ExploreGrid;->loadMoreRow(Ljava/lang/Object;I)I"
 
 /** The load more row's view and the method that picks what it draws, both kept names. */
 internal const val LOAD_MORE_BUTTON = "Lcom/instagram/ui/widget/loadmore/LoadMoreButton;"
