@@ -6,6 +6,7 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Instagram:** View stories anonymously has a second switch under Stories, Mark as seen button, which starts off. It adds an eye button to the top of each story, and a story you tap it on is sent as seen, on its own, while the others stay held back. Tap again to take the mark back before it goes. Asked for in #1 and #13.
 * **Instagram:** On a phone set to a right-to-left language like Arabic, Hebrew, Persian or Urdu, every title and summary in HushGram's settings now lines up at the right. Wrapped English text used to sit flush left beside one-line titles on the right. Left-to-right layouts look the same as before.
 * **Instagram:** Show if a profile follows you no longer fails as a whole when an Instagram build changes how its follow lists are drawn. The profile label still goes in, and Mark who doesn't follow you back is left out of settings, with a warning in the patch log and a line in the diagnostic report.
 * **Tooling:** The translation scripts stop straight away on Python older than 3.12 with one line naming the version they need. On Python 3.11 under Windows, every import used to fail with "destination changed after validation", which pointed at the wrong problem. The same cause on a newer Python with an older Windows build now gets its own plain message too.

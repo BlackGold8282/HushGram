@@ -446,13 +446,20 @@ once-call Lapp/hushgram/extension/instagram/media/ResumePlayback;->seeking(Ljava
 once-call Lapp/hushgram/extension/instagram/media/QualityChoice;->firstChoice(Ljava/lang/Object;)V in instance (*)V holding initializeCachedInitSegments CachedSegmentManager
 #
 # View stories anonymously asks the extension first thing in PendingReelSeenStateStore's send, the
-# one method that posts the stories you watched to media/seen/. The send holds no string, but its
-# class does: the store's read from disk holds the file name and the trace section the patch finds
-# the store by, and no other class holds either on 449. Of the store's methods the send is the one
-# instance method taking one object and answering nothing (its constructor takes two). Left out,
-# every story you watch is reported; twice or elsewhere, it isn't the guard the patch wrote.
-start-call Lapp/hushgram/extension/instagram/stories/StorySeen;->holdBack()Z in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
-once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->holdBack()Z in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+# one method that posts the stories you watched to media/seen/, and sends the batch it answers in
+# place of the one it was handed, or returns on null. The send holds no string, but its class does:
+# the store's read from disk holds the file name and the trace section the patch finds the store
+# by, and no other class holds either on 449. Of the store's methods the send is the one instance
+# method taking one object and answering nothing (its constructor takes two). Left out, every story
+# you watch is reported; twice or elsewhere, it isn't the guard the patch wrote.
+start-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+# Its second switch hands each story on screen to StorySeenButton first thing in the story header
+# binder (05UI.A06 on 449), the one static method holding the trace section Instagram names after
+# it, behind three moves of its account, story and view holder into borrowed locals. Left out, no
+# story gets a Mark as seen button; twice or elsewhere, it isn't the hook the patch wrote.
+start-call Lapp/hushgram/extension/instagram/stories/StorySeenButton;->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V in static (*)V holding ReelViewerItemBinder.bindHeaderViews
+once-call Lapp/hushgram/extension/instagram/stories/StorySeenButton;->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V in static (*)V holding ReelViewerItemBinder.bindHeaderViews
 #
 # Turn off double tap to like asks the extension first thing in the feed's double-tap like, the one
 # method every kind of post's gesture delegate hands a double tap to, and returns there before the

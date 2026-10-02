@@ -307,3 +307,9 @@ Overrides exported for this Instagram build and schema.	Valores personalizados e
 Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	No se pudieron validar los valores personalizados. Comprueba el archivo y abre los ajustes desde Inicio con la sesión iniciada. Nada ha cambiado.
 Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	No se pudieron exportar los valores personalizados. El archivo elegido podría estar incompleto. Los valores de Instagram no han cambiado.
 Couldn't start the override operation. Try again. Nothing changed.	No se pudo iniciar la operación de valores personalizados. Inténtalo de nuevo. Nada ha cambiado.
+# context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
+Mark as seen button	Botón Marcar como vista
+Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.	Añade un botón con un ojo en la parte superior de cada historia mientras ves de forma anónima. Tócalo para aparecer en la lista de espectadores de esa historia. Las demás historias siguen ocultas.
+Mark as seen	Marcar como vista
+Marked as seen. Tap again to undo.	Marcada como vista. Toca de nuevo para deshacer.
+Marked as seen and sent	Marcada como vista y enviada

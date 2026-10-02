@@ -88,6 +88,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_view_stories_anonymously", TRUE);
 
     /**
+     * The Mark as seen button in the story viewer's header
+     * ({@link app.hushgram.extension.instagram.stories.StorySeenButton}). Off to start. A story you
+     * tap it on is sent as seen while the rest stay held back. Read each time a story is shown and
+     * each time a batch of views goes to be sent.
+     */
+    public static final BooleanSetting MARK_STORIES_SEEN =
+            new BooleanSetting("hushgram_mark_stories_seen", FALSE);
+
+    /**
      * The rows of suggested reels between posts in the home feed, and the other feed units that
      * open the Reels viewer. A reel someone you follow posts is a post and stays.
      */

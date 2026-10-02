@@ -307,3 +307,9 @@ Overrides exported for this Instagram build and schema.	Geçersiz kılmalar bu I
 Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	Geçersiz kılmalar doğrulanamadı. Dosyayı denetleyin ve oturum açıkken Ana Sayfa'dan ayarları açın. Hiçbir şey değişmedi.
 Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	Geçersiz kılmalar dışa aktarılamadı. Seçilen dosya eksik olabilir. Instagram'ın geçersiz kılmaları değişmedi.
 Couldn't start the override operation. Try again. Nothing changed.	Geçersiz kılma işlemi başlatılamadı. Tekrar deneyin. Hiçbir şey değişmedi.
+# context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
+Mark as seen button	Görüldü olarak işaretle düğmesi
+Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.	Anonim izlerken her hikayenin üstüne bir göz düğmesi ekler. O hikayenin izleyici listesinde görünmek için düğmeye dokun. Diğer hikayeler gizli kalır.
+Mark as seen	Görüldü olarak işaretle
+Marked as seen. Tap again to undo.	Görüldü olarak işaretlendi. Geri almak için tekrar dokun.
+Marked as seen and sent	Görüldü olarak işaretlendi ve gönderildi

@@ -215,6 +215,25 @@ tasks.register("verifyAndroidBoundaries") {
                 "offPausedAndUnreadyKeepInstagramsRow[28]", "offPausedAndUnreadyKeepInstagramsRow",
                 "aThrowingReaderOrSwitchKeepsTheRowAndIsReported[28]", "aThrowingReaderOrSwitchKeepsTheRowAndIsReported",
                 "aRecycledRowLosesItsStaleMark[28]", "aRecycledRowLosesItsStaleMark"),
+            "app.hushgram.extension.instagram.stories.StoryMarksTest" to listOf(
+                "unmarkedStoriesNeverReachTheRequest[28]", "unmarkedStoriesNeverReachTheRequest",
+                "aMarkedStoryGoesOnceAndOnlyOnce[28]", "aMarkedStoryGoesOnceAndOnlyOnce",
+                "severalMarksGoTogether[28]", "severalMarksGoTogether",
+                "aMarkForAStoryNotInTheBatchWaitsThenLapses[28]", "aMarkForAStoryNotInTheBatchWaitsThenLapses",
+                "aStoryHeldBackBeforeItsMarkGoesWithTheNextSend[28]", "aStoryHeldBackBeforeItsMarkGoesWithTheNextSend",
+                "anUndoneMarkSendsNothing[28]", "anUndoneMarkSendsNothing",
+                "keysOfAnotherShapeStayHeldBack[28]", "keysOfAnotherShapeStayHeldBack",
+                "offPausedUnreadyOrThrowingKeepsStockBehavior[28]", "offPausedUnreadyOrThrowingKeepsStockBehavior",
+                "theSwitchesFollowTheSettingsAndThePause[28]", "theSwitchesFollowTheSettingsAndThePause"),
+            "app.hushgram.extension.instagram.stories.StorySeenButtonTest" to listOf(
+                "theButtonGoesBeforeTheMenuAndSaysWhatItDoes[28]", "theButtonGoesBeforeTheMenuAndSaysWhatItDoes",
+                "aTapMarksTheStoryAndASecondTapUndoesIt[28]", "aTapMarksTheStoryAndASecondTapUndoesIt",
+                "aTapOnAStoryAlreadyHeldBackSendsItRightAway[28]", "aTapOnAStoryAlreadyHeldBackSendsItRightAway",
+                "aRecycledHeaderFollowsItsNewStory[28]", "aRecycledHeaderFollowsItsNewStory",
+                "aStoryThatIsntAPostHasNoButton[28]", "aStoryThatIsntAPostHasNoButton",
+                "offPausedOrUnreadyShowsNoButton[28]", "offPausedOrUnreadyShowsNoButton",
+                "aHeaderWithoutTheRowIsReported[28]", "aHeaderWithoutTheRowIsReported",
+                "aThrowingReaderOrSwitchIsReportedAndLeavesTheHeader[28]", "aThrowingReaderOrSwitchIsReportedAndLeavesTheHeader"),
             "app.hushgram.extension.instagram.reels.ReelsSuggestionsTest" to listOf(
                 "offPausedAndUnreadyKeepEveryItem[28]", "offPausedAndUnreadyKeepEveryItem",
                 "aThrowingReaderOrSwitchKeepsTheItemAndIsReported[28]", "aThrowingReaderOrSwitchKeepsTheItemAndIsReported"),
@@ -248,6 +267,9 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.ReelAutoScrollSettingsTest" to listOf(
                 "missingPatchHasNoAutoScrollSwitch[28]", "missingPatchHasNoAutoScrollSwitch",
                 "autoScrollSwitchStartsOnPersistsAndHonorsPause[28]", "autoScrollSwitchStartsOnPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.settings.StorySeenSettingsTest" to listOf(
+                "missingPatchHasNoMarkAsSeenSwitch[28]", "missingPatchHasNoMarkAsSeenSwitch",
+                "markAsSeenSwitchStartsOffPersistsAndHonorsPause[28]", "markAsSeenSwitchStartsOffPersistsAndHonorsPause"),
             "app.hushgram.extension.instagram.settings.OverrideNavigationTest" to listOf(
                 "missingPatchHasNoNativeAction[28]", "missingPatchHasNoNativeAction",
                 "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[28]", "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery",
