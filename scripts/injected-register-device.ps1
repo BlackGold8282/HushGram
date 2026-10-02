@@ -9,14 +9,21 @@
     GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
 
+. (Join-Path $PSScriptRoot 'device-install.ps1')
 
 function Invoke-HushgramAdbCommand {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][string]$Adb,
         [Parameter(Mandatory = $true)][string[]]$Arguments,
-        [scriptblock]$Invoker
+        [scriptblock]$Invoker,
+        $DeviceLease
     )
+
+    if ($Arguments.Count -lt 3 -or $Arguments[0] -cne '-s') { throw 'Every ADB operation needs an exact serial.' }
+    $identity = ($Arguments[2..($Arguments.Count - 1)] -join ' ') -cin @(
+        'get-serialno', 'shell getprop ro.product.model', 'shell getprop ro.product.cpu.abi', 'emu avd name')
+    Assert-HushgramDeviceLease -DeviceLease $DeviceLease -Serial $Arguments[1] -IdentityQuery:$identity
 
     if ($Invoker) {
         $result = & $Invoker $Adb $Arguments
@@ -29,9 +36,28 @@ function Invoke-HushgramAdbCommand {
         }
     }
 
-    $PSNativeCommandUseErrorActionPreference = $false
-    $output = @(& $Adb @Arguments 2>&1 | ForEach-Object { "$_" })
-    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = [Diagnostics.ProcessStartInfo]::new($Adb)
+    $process.StartInfo.UseShellExecute = $false
+    $process.StartInfo.CreateNoWindow = $true
+    $process.StartInfo.RedirectStandardOutput = $true
+    $process.StartInfo.RedirectStandardError = $true
+    foreach ($argument in $Arguments) { $process.StartInfo.ArgumentList.Add($argument) }
+    $started = $false
+    try {
+        if (-not $process.Start()) { throw 'ADB did not start.' }
+        $started = $true
+        $stdout = $process.StandardOutput.ReadToEndAsync()
+        $stderr = $process.StandardError.ReadToEndAsync()
+        while (-not $process.WaitForExit(30000)) { Update-HushgramDeviceLease $DeviceLease }
+        $output = @(($stdout.GetAwaiter().GetResult() + "`n" + $stderr.GetAwaiter().GetResult()) -split '\r*\n|\r' |
+            Where-Object { $_ -ne '' })
+        [pscustomobject]@{ ExitCode = $process.ExitCode; Output = $output }
+    } finally {
+        # Keep ownership while a started ADB operation finishes, including an exceptional path.
+        if ($started -and -not $process.HasExited) { $process.WaitForExit() }
+        $process.Dispose()
+    }
 }
 
 function Format-HushgramAdbFailure {
@@ -49,8 +75,11 @@ function Invoke-AndroidVerifierTally {
         [Parameter(Mandatory = $true)][string]$Serial,
         [Parameter(Mandatory = $true)][string]$Local,
         [Parameter(Mandatory = $true)][string]$Label,
-        [scriptblock]$AdbInvoker
+        [scriptblock]$AdbInvoker,
+        $DeviceLease
     )
+
+    Assert-HushgramDeviceLease -DeviceLease $DeviceLease -Serial $Serial
 
     if ($Label -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$') {
         throw "Invalid verifier label: $Label"
@@ -66,13 +95,13 @@ function Invoke-AndroidVerifierTally {
     $localSize = (Get-Item -LiteralPath $Local).Length
     try {
         $push = Invoke-HushgramAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'push', $Local, $remote)
+            -Arguments @('-s', $Serial, 'push', $Local, $remote) -DeviceLease $DeviceLease
         if ($push.ExitCode -ne 0) {
             throw (Format-HushgramAdbFailure -Message "Could not push $Label to $Serial" -Result $push)
         }
 
         $setup = Invoke-HushgramAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'shell', "rm -rf $directory && mkdir -p $directory")
+            -Arguments @('-s', $Serial, 'shell', "rm -rf $directory && mkdir -p $directory") -DeviceLease $DeviceLease
         if ($setup.ExitCode -ne 0) {
             throw (Format-HushgramAdbFailure `
                 -Message "Could not prepare the verifier output directory for $Label on $Serial" `
@@ -80,19 +109,20 @@ function Invoke-AndroidVerifierTally {
         }
 
         $clear = Invoke-HushgramAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'logcat', '-c')
+            -Arguments @('-s', $Serial, 'logcat', '-c') -DeviceLease $DeviceLease
         if ($clear.ExitCode -ne 0) {
             throw (Format-HushgramAdbFailure `
                 -Message "Could not clear logcat on $Serial before verifying $Label" `
                 -Result $clear)
         }
 
-        $dexCommand = "dex2oat64 --dex-file=$remote --oat-file=$directory/out.oat " +
-            "--output-vdex=$directory/out.vdex --instruction-set=arm64 " +
+        $dexExecutable = if ($DeviceLease.InstructionSet -in @('arm64', 'x86_64')) { 'dex2oat64' } else { 'dex2oat' }
+        $dexCommand = "$dexExecutable --dex-file=$remote --oat-file=$directory/out.oat " +
+            "--output-vdex=$directory/out.vdex --instruction-set=$($DeviceLease.InstructionSet) " +
             '--compiler-filter=verify --runtime-arg -Xmx1024m -j4; echo exit=$?; ' +
             'echo size=$(stat -c %s ' + $remote + ' 2>/dev/null || echo 0)'
         $dex = Invoke-HushgramAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'shell', $dexCommand)
+            -Arguments @('-s', $Serial, 'shell', $dexCommand) -DeviceLease $DeviceLease
         if ($dex.ExitCode -ne 0) {
             throw (Format-HushgramAdbFailure `
                 -Message "Could not run dex2oat on $Label on $Serial" -Result $dex)
@@ -112,7 +142,7 @@ function Invoke-AndroidVerifierTally {
         }
 
         $logResult = Invoke-HushgramAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'logcat', '-d')
+            -Arguments @('-s', $Serial, 'logcat', '-d') -DeviceLease $DeviceLease
         if ($logResult.ExitCode -ne 0) {
             throw (Format-HushgramAdbFailure `
                 -Message "Could not read logcat on $Serial after verifying $Label" `
@@ -146,7 +176,7 @@ function Invoke-AndroidVerifierTally {
         foreach ($remotePath in @($directory, $remote)) {
             try {
                 $cleanup = Invoke-HushgramAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-                    -Arguments @('-s', $Serial, 'shell', "rm -rf $remotePath")
+                    -Arguments @('-s', $Serial, 'shell', "rm -rf $remotePath") -DeviceLease $DeviceLease
                 if ($cleanup.ExitCode -ne 0) {
                     $cleanupFailures.Add((Format-HushgramAdbFailure `
                         -Message "Could not remove $remotePath" -Result $cleanup))
