@@ -240,3 +240,22 @@ Remembered playback positions restored.	Posisi pemutaran tersimpan dipulihkan.
 Undo has expired.	Waktu untuk memulihkan telah habis.
 You cleared the remembered playback positions.	Kamu menghapus posisi pemutaran tersimpan.
 Could not update the remembered playback positions.	Tidak dapat memperbarui posisi pemutaran tersimpan.
+Settings backup	Cadangan pengaturan
+Export HushGram settings	Ekspor pengaturan HushGram
+Choose a file for your installed patches' settings. Accounts and history stay on this device.	Pilih file untuk pengaturan patch yang terpasang. Akun dan riwayat tetap di perangkat ini.
+Import HushGram settings	Impor pengaturan HushGram
+Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Pilih file pengaturan. Pilihan yang valid diterapkan bersama; kunci yang tidak didukung dilewati. Pembatalan berlaku selama 10 detik.
+Undo settings import	Batalkan impor pengaturan
+Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Pulihkan pilihan sebelumnya satu kali dalam 10 detik. Memulai ulang Instagram menghapus opsi pembatalan.
+No settings import to undo.	Tidak ada impor pengaturan yang dapat dibatalkan.
+No document picker is available. Your settings haven't changed.	Pemilih dokumen tidak tersedia. Pengaturan Anda tidak berubah.
+Couldn't use that settings file. Your settings haven't changed.	File pengaturan tersebut tidak dapat digunakan. Pengaturan Anda tidak berubah.
+HushGram settings exported.	Pengaturan HushGram diekspor.
+Couldn't export HushGram settings. Try another file.	Pengaturan HushGram tidak dapat diekspor. Coba file lain.
+Settings restored.	Pengaturan dipulihkan.
+Imported %1$d settings. Skipped %2$d unsupported keys.	%1$d pengaturan diimpor. %2$d kunci yang tidak didukung dilewati.
+Restart Instagram to apply these choices.	Mulai ulang Instagram untuk menerapkan pilihan ini.
+Couldn't save the settings. The previous values were restored.	Pengaturan tidak dapat disimpan. Nilai sebelumnya dipulihkan.
+Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Pembatalan tidak dapat memulihkan semua pengaturan. Periksa nilai yang ditampilkan; opsi pembatalan sudah digunakan.
+Couldn't save or fully restore the settings. Check the shown values and try Undo.	Pengaturan tidak dapat disimpan atau dipulihkan sepenuhnya. Periksa nilai yang ditampilkan dan coba batalkan.
+Couldn't start the settings operation. Try again.	Operasi pengaturan tidak dapat dimulai. Coba lagi.

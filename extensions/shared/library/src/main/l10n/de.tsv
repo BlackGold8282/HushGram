@@ -240,3 +240,22 @@ Remembered playback positions restored.	Gespeicherte Wiedergabepositionen wieder
 Undo has expired.	Die Frist zum Wiederherstellen ist abgelaufen.
 You cleared the remembered playback positions.	Du hast die gespeicherten Wiedergabepositionen gelöscht.
 Could not update the remembered playback positions.	Die gespeicherten Wiedergabepositionen konnten nicht aktualisiert werden.
+Settings backup	Einstellungen sichern
+Export HushGram settings	HushGram-Einstellungen exportieren
+Choose a file for your installed patches' settings. Accounts and history stay on this device.	Wähle eine Datei für die Einstellungen deiner installierten Patches. Konten und Verlauf bleiben auf diesem Gerät.
+Import HushGram settings	HushGram-Einstellungen importieren
+Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Wähle eine Einstellungsdatei. Gültige Werte werden gemeinsam übernommen; nicht unterstützte Schlüssel werden übersprungen. Rückgängig ist 10 Sekunden lang möglich.
+Undo settings import	Einstellungsimport rückgängig machen
+Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Stelle die vorherigen Werte einmal innerhalb von 10 Sekunden wieder her. Ein Neustart von Instagram verwirft diese Möglichkeit.
+No settings import to undo.	Kein Einstellungsimport zum Rückgängigmachen.
+No document picker is available. Your settings haven't changed.	Keine Dateiauswahl verfügbar. Deine Einstellungen wurden nicht geändert.
+Couldn't use that settings file. Your settings haven't changed.	Diese Einstellungsdatei konnte nicht verwendet werden. Deine Einstellungen wurden nicht geändert.
+HushGram settings exported.	HushGram-Einstellungen exportiert.
+Couldn't export HushGram settings. Try another file.	HushGram-Einstellungen konnten nicht exportiert werden. Versuche eine andere Datei.
+Settings restored.	Einstellungen wiederhergestellt.
+Imported %1$d settings. Skipped %2$d unsupported keys.	%1$d Einstellungen importiert. %2$d nicht unterstützte Schlüssel übersprungen.
+Restart Instagram to apply these choices.	Starte Instagram neu, um diese Werte anzuwenden.
+Couldn't save the settings. The previous values were restored.	Die Einstellungen konnten nicht gespeichert werden. Die vorherigen Werte wurden wiederhergestellt.
+Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Die Einstellungen konnten nicht vollständig wiederhergestellt werden. Prüfe die angezeigten Werte; Rückgängig wurde bereits verwendet.
+Couldn't save or fully restore the settings. Check the shown values and try Undo.	Die Einstellungen konnten weder gespeichert noch vollständig wiederhergestellt werden. Prüfe die angezeigten Werte und versuche Rückgängig.
+Couldn't start the settings operation. Try again.	Der Einstellungsvorgang konnte nicht gestartet werden. Versuche es erneut.

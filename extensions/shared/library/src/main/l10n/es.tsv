@@ -240,3 +240,22 @@ Remembered playback positions restored.	Se restauraron las posiciones de reprodu
 Undo has expired.	El plazo para restaurar ha terminado.
 You cleared the remembered playback positions.	Borraste las posiciones de reproducción guardadas.
 Could not update the remembered playback positions.	No se pudieron actualizar las posiciones de reproducción guardadas.
+Settings backup	Copia de ajustes
+Export HushGram settings	Exportar los ajustes de HushGram
+Choose a file for your installed patches' settings. Accounts and history stay on this device.	Elige un archivo para los ajustes de los parches instalados. Las cuentas y el historial se quedan en este dispositivo.
+Import HushGram settings	Importar los ajustes de HushGram
+Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Elige un archivo de ajustes. Las opciones válidas se aplican juntas; las claves no compatibles se omiten. Puedes deshacer durante 10 segundos.
+Undo settings import	Deshacer la importación de ajustes
+Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Restaura las opciones anteriores una vez durante 10 segundos. Reiniciar Instagram descarta esta opción.
+No settings import to undo.	No hay ninguna importación de ajustes que deshacer.
+No document picker is available. Your settings haven't changed.	No hay un selector de documentos disponible. Tus ajustes no han cambiado.
+Couldn't use that settings file. Your settings haven't changed.	No se pudo usar ese archivo de ajustes. Tus ajustes no han cambiado.
+HushGram settings exported.	Se exportaron los ajustes de HushGram.
+Couldn't export HushGram settings. Try another file.	No se pudieron exportar los ajustes de HushGram. Prueba otro archivo.
+Settings restored.	Se restauraron los ajustes.
+Imported %1$d settings. Skipped %2$d unsupported keys.	Se importaron %1$d ajustes. Se omitieron %2$d claves no compatibles.
+Restart Instagram to apply these choices.	Reinicia Instagram para aplicar estas opciones.
+Couldn't save the settings. The previous values were restored.	No se pudieron guardar los ajustes. Se restauraron los valores anteriores.
+Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	No se pudieron restaurar todos los ajustes. Revisa los valores que se muestran; ya se ha usado Deshacer.
+Couldn't save or fully restore the settings. Check the shown values and try Undo.	No se pudieron guardar ni restaurar todos los ajustes. Revisa los valores que se muestran e intenta deshacer.
+Couldn't start the settings operation. Try again.	No se pudo iniciar la operación de ajustes. Inténtalo de nuevo.

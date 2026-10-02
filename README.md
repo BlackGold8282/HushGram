@@ -138,6 +138,8 @@ Only accounts you follow, Ring size and Playback quality are disabled while thei
 
 Clear remembered positions sits below Resume long videos and works even when playback is off or paused. It deletes the local history of up to 200 positions kept for 30 days and cancels pending restores. Tap the same row within 10 seconds to undo once. Restarting Instagram discards Undo. The history stays in its own private file, outside the settings registry and diagnostic reports.
 
+Unreleased source builds include Settings backup. Export chooses a JSON file through Android's document picker. Import checks the whole file before applying the installed patches' settings together, reports unsupported keys it skipped, and says when a restart is needed. Undo restores the previous choices once within 10 seconds. Files larger than 256 KiB or containing more than 512 entries are refused. Accounts, signing keys, Pause and recovery state, onboarding markers and playback history aren't included. Instagram's developer overrides use a separate store and aren't included either.
+
 Pause turns off every feature a switch controls, all at once and without losing your choices. It's the quickest way to tell whether HushGram is behind a problem.
 
 If Instagram crashes within a minute of starting three times in a row, HushGram pauses itself and the card says why. Turn it back on from the same screen once you've patched again or left out the patch at fault. When Instagram won't stay open long enough to reach the settings, create an empty file named `hushgram-safe-mode` in `Android/data/com.instagram.android/files` (a computer or a file manager can reach it), and HushGram starts paused until you delete it.

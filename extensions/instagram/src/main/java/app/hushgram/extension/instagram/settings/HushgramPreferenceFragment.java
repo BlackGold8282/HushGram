@@ -97,6 +97,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable private Row clearPositions;
     private boolean changingPositions;
     private boolean positionsUndoShown;
+    private static final int EXPORT_CONFIGURATION = 0x4847;
+    private static final int IMPORT_CONFIGURATION = 0x4848;
+    private int documentRequest;
+    private boolean changingConfiguration;
+    @Nullable private String importFeedback;
+    @Nullable private Row exportConfiguration;
+    @Nullable private Row importConfiguration;
+    @Nullable private Row undoConfiguration;
 
     /** The page's dialogs that may still be on screen, which would outlive it. */
     private final List<Dialog> shownDialogs = new ArrayList<>();
@@ -110,6 +118,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** Keeps the rows in step with the saves while the page is showing. Saves tell it from their own thread. */
     private final SaveControl.Watcher saves = () -> Utils.runOnMainThread(this::showSaves);
+
+    @Override
+    public void onCreate(Bundle state) {
+        if (state != null) documentRequest = state.getInt("hushgram_document_request", 0);
+        super.onCreate(state);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putInt("hushgram_document_request", documentRequest);
+    }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -128,6 +148,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         SaveControl.watch(saves);
         showSaves();
         showClearPositions();
+        showConfiguration();
     }
 
     @Override
@@ -141,6 +162,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         for (Dialog dialog : new ArrayList<>(shownDialogs)) dialog.dismiss();
         shownDialogs.clear();
         clearPositions = null;
+        exportConfiguration = importConfiguration = undoConfiguration = null;
         super.onDestroyView();
     }
 
@@ -434,6 +456,29 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "Patch again to change them.")));
         }
 
+        PreferenceCategory backup = category(screen, L10n.t("Settings backup"));
+        exportConfiguration = new Row(context);
+        exportConfiguration.setKey("hushgram_export_configuration");
+        exportConfiguration.setPersistent(false);
+        exportConfiguration.setTitle(L10n.t("Export HushGram settings"));
+        exportConfiguration.setSummary(L10n.t("Choose a file for your installed patches' settings. Accounts and history stay on this device."));
+        exportConfiguration.setOnPreferenceClickListener(p -> { pickConfiguration(false); return true; });
+        backup.addPreference(mark(exportConfiguration, SettingsIcons.EXPORT));
+        importConfiguration = new Row(context);
+        importConfiguration.setKey("hushgram_import_configuration");
+        importConfiguration.setPersistent(false);
+        importConfiguration.setTitle(L10n.t("Import HushGram settings"));
+        importConfiguration.setSummary(L10n.t("Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds."));
+        importConfiguration.setOnPreferenceClickListener(p -> { pickConfiguration(true); return true; });
+        backup.addPreference(mark(importConfiguration, SettingsIcons.EXPORT));
+        undoConfiguration = new Row(context);
+        undoConfiguration.setKey("hushgram_undo_configuration");
+        undoConfiguration.setPersistent(false);
+        undoConfiguration.setTitle(L10n.t("Undo settings import"));
+        undoConfiguration.setOnPreferenceClickListener(p -> { changeConfiguration(null, true); return true; });
+        backup.addPreference(mark(undoConfiguration, SettingsIcons.DELETE));
+        showConfiguration();
+
         // Named for its rows: the screen's own title already says HushGram.
         PreferenceCategory hushgram = category(screen, L10n.t("Pause and diagnostics"));
         hushgram.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause HushGram"),
@@ -487,6 +532,131 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             return true;
         });
         about.addPreference(mark(licenses, SettingsIcons.LICENSE));
+    }
+
+    private void showConfiguration() {
+        boolean busy = changingConfiguration || documentRequest != 0;
+        if (exportConfiguration != null) exportConfiguration.setEnabled(!busy);
+        if (importConfiguration != null) importConfiguration.setEnabled(!busy);
+        if (importConfiguration != null && importFeedback != null) importConfiguration.setSummary(importFeedback);
+        if (undoConfiguration != null) {
+            boolean undo = ConfigurationBackup.canUndo();
+            undoConfiguration.setEnabled(!busy && undo);
+            undoConfiguration.setSummary(undo
+                    ? L10n.t("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.")
+                    : L10n.t("No settings import to undo."));
+        }
+    }
+
+    private void pickConfiguration(boolean importing) {
+        if (documentRequest != 0 || changingConfiguration) return;
+        documentRequest = importing ? IMPORT_CONFIGURATION : EXPORT_CONFIGURATION;
+        showConfiguration();
+        Intent picker = new Intent(importing ? Intent.ACTION_OPEN_DOCUMENT : Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE).setType("application/json");
+        if (!importing) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-settings.json");
+        try {
+            startActivityForResult(picker, documentRequest);
+        } catch (ActivityNotFoundException | SecurityException failure) {
+            documentRequest = 0;
+            showConfiguration();
+            Utils.showToastLong(L10n.t("No document picker is available. Your settings haven't changed."));
+        }
+    }
+
+    @Override
+    public void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != documentRequest || (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION)) return;
+        documentRequest = 0;
+        if (result != Activity.RESULT_OK) { showConfiguration(); return; }
+        Uri uri = data == null ? null : data.getData();
+        if (uri == null || !"content".equals(uri.getScheme())) {
+            Utils.showToastLong(L10n.t("Couldn't use that settings file. Your settings haven't changed."));
+            showConfiguration();
+            return;
+        }
+        if (request == IMPORT_CONFIGURATION) changeConfiguration(uri, false);
+        else exportConfiguration(uri);
+    }
+
+    private void exportConfiguration(Uri uri) {
+        Context context = getContext();
+        if (context == null) return;
+        changingConfiguration = true;
+        showConfiguration();
+        if (!Utils.runOnBackgroundThread(() -> {
+            try {
+                byte[] bytes = ConfigurationBackup.export();
+                try (java.io.OutputStream output = context.getContentResolver().openOutputStream(uri, "wt")) {
+                    if (output == null) throw new java.io.IOException();
+                    output.write(bytes);
+                }
+                Utils.showToastLong(L10n.t("HushGram settings exported."));
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Configuration export failed");
+                Utils.showToastLong(L10n.t("Couldn't export HushGram settings. Try another file."));
+            } finally { configurationFinished(); }
+        })) configurationQueueFull();
+    }
+
+    /** Undo always remains Undo, even if its expiration callback hasn't reached the screen yet. */
+    private void changeConfiguration(@Nullable Uri uri, boolean undo) {
+        if (changingConfiguration) return;
+        Context context = getContext();
+        if (context == null) return;
+        changingConfiguration = true;
+        showConfiguration();
+        if (!Utils.runOnBackgroundThread(() -> {
+            try {
+                ConfigurationBackup.Result result;
+                if (undo) result = ConfigurationBackup.undo();
+                else {
+                    try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
+                        result = ConfigurationBackup.restore(ConfigurationBackup.read(input));
+                    }
+                }
+                if (result == null) showImportFeedback(L10n.t("Undo has expired."));
+                else {
+                    String message = undo ? L10n.t("Settings restored.")
+                            : L10n.f("Imported %1$d settings. Skipped %2$d unsupported keys.", result.applied, result.skipped);
+                    if (result.restart) message += " " + L10n.t("Restart Instagram to apply these choices.");
+                    showImportFeedback(message);
+                }
+            } catch (Setting.BatchFailed failure) {
+                showImportFeedback(failure.restored
+                        ? L10n.t("Couldn't save the settings. The previous values were restored.")
+                        : undo ? L10n.t("Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.")
+                        : L10n.t("Couldn't save or fully restore the settings. Check the shown values and try Undo."));
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Configuration import failed before applying settings");
+                showImportFeedback(L10n.t("Couldn't use that settings file. Your settings haven't changed."));
+            } finally { configurationFinished(); }
+        })) configurationQueueFull();
+    }
+
+    /** Android limits toasts to two lines. Keep complete import/rollback/restart feedback readable. */
+    private void showImportFeedback(String message) {
+        Utils.showToastLong(message);
+        Utils.runOnMainThread(() -> {
+            importFeedback = message;
+            showConfiguration();
+        });
+    }
+
+    private void configurationQueueFull() {
+        changingConfiguration = false;
+        showConfiguration();
+        Utils.showToastLong(L10n.t("Couldn't start the settings operation. Try again."));
+    }
+
+    private void configurationFinished() {
+        Utils.runOnMainThread(() -> {
+            changingConfiguration = false;
+            if (isAdded() && getPreferenceScreen() != null) updateUIToSettingValues();
+            showConfiguration();
+            Utils.runOnMainThreadDelayed(this::showConfiguration, ConfigurationBackup.UNDO_WINDOW_MS);
+        });
     }
 
     /** Clear remains available when playback is off or paused; it never reads media identities. */

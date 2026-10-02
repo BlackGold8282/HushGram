@@ -240,3 +240,22 @@ Remembered playback positions restored.	Kaydedilen oynatma konumları geri yükl
 Undo has expired.	Geri yükleme süresi doldu.
 You cleared the remembered playback positions.	Kaydedilen oynatma konumlarını sildiniz.
 Could not update the remembered playback positions.	Kaydedilen oynatma konumları güncellenemedi.
+Settings backup	Ayar yedeği
+Export HushGram settings	HushGram ayarlarını dışa aktar
+Choose a file for your installed patches' settings. Accounts and history stay on this device.	Yüklü yamaların ayarları için bir dosya seçin. Hesaplar ve geçmiş bu cihazda kalır.
+Import HushGram settings	HushGram ayarlarını içe aktar
+Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Bir ayar dosyası seçin. Geçerli seçimler birlikte uygulanır; desteklenmeyen anahtarlar atlanır. Geri alma 10 saniye boyunca kullanılabilir.
+Undo settings import	Ayarları içe aktarmayı geri al
+Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Önceki seçimleri 10 saniye içinde bir kez geri yükleyin. Instagram yeniden başlatıldığında geri alma seçeneği silinir.
+No settings import to undo.	Geri alınacak ayar içe aktarma işlemi yok.
+No document picker is available. Your settings haven't changed.	Belge seçici kullanılamıyor. Ayarlarınız değişmedi.
+Couldn't use that settings file. Your settings haven't changed.	Bu ayar dosyası kullanılamadı. Ayarlarınız değişmedi.
+HushGram settings exported.	HushGram ayarları dışa aktarıldı.
+Couldn't export HushGram settings. Try another file.	HushGram ayarları dışa aktarılamadı. Başka bir dosya deneyin.
+Settings restored.	Ayarlar geri yüklendi.
+Imported %1$d settings. Skipped %2$d unsupported keys.	%1$d ayar içe aktarıldı. Desteklenmeyen %2$d anahtar atlandı.
+Restart Instagram to apply these choices.	Bu seçimleri uygulamak için Instagram'ı yeniden başlatın.
+Couldn't save the settings. The previous values were restored.	Ayarlar kaydedilemedi. Önceki değerler geri yüklendi.
+Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Geri alma, ayarların tamamını geri yükleyemedi. Gösterilen değerleri kontrol edin; geri alma seçeneği kullanıldı.
+Couldn't save or fully restore the settings. Check the shown values and try Undo.	Ayarlar kaydedilemedi veya tamamen geri yüklenemedi. Gösterilen değerleri kontrol edip geri almayı deneyin.
+Couldn't start the settings operation. Try again.	Ayar işlemi başlatılamadı. Tekrar deneyin.

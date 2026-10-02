@@ -240,3 +240,22 @@ Remembered playback positions restored.	Posições de reprodução salvas restau
 Undo has expired.	O prazo para restaurar terminou.
 You cleared the remembered playback positions.	Você apagou as posições de reprodução salvas.
 Could not update the remembered playback positions.	Não foi possível atualizar as posições de reprodução salvas.
+Settings backup	Backup das configurações
+Export HushGram settings	Exportar configurações do HushGram
+Choose a file for your installed patches' settings. Accounts and history stay on this device.	Escolha um arquivo para as configurações dos patches instalados. As contas e o histórico ficam neste dispositivo.
+Import HushGram settings	Importar configurações do HushGram
+Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Escolha um arquivo de configurações. As opções válidas são aplicadas juntas; as chaves incompatíveis são ignoradas. Você pode desfazer por 10 segundos.
+Undo settings import	Desfazer importação das configurações
+Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Restaure as opções anteriores uma vez em até 10 segundos. Reiniciar o Instagram descarta essa opção.
+No settings import to undo.	Não há importação de configurações para desfazer.
+No document picker is available. Your settings haven't changed.	Nenhum seletor de documentos está disponível. Suas configurações não mudaram.
+Couldn't use that settings file. Your settings haven't changed.	Não foi possível usar esse arquivo de configurações. Suas configurações não mudaram.
+HushGram settings exported.	Configurações do HushGram exportadas.
+Couldn't export HushGram settings. Try another file.	Não foi possível exportar as configurações do HushGram. Tente outro arquivo.
+Settings restored.	Configurações restauradas.
+Imported %1$d settings. Skipped %2$d unsupported keys.	%1$d configurações importadas. %2$d chaves incompatíveis ignoradas.
+Restart Instagram to apply these choices.	Reinicie o Instagram para aplicar essas opções.
+Couldn't save the settings. The previous values were restored.	Não foi possível salvar as configurações. Os valores anteriores foram restaurados.
+Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Não foi possível restaurar todas as configurações. Confira os valores exibidos; Desfazer já foi usado.
+Couldn't save or fully restore the settings. Check the shown values and try Undo.	Não foi possível salvar ou restaurar todas as configurações. Confira os valores exibidos e tente desfazer.
+Couldn't start the settings operation. Try again.	Não foi possível iniciar a operação de configurações. Tente novamente.

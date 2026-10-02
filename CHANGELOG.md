@@ -2,6 +2,11 @@
 
 Every HushGram release, newest first.
 
+## Unreleased
+
+* **Instagram:** Export and import the installed patches' settings through Android's document picker. Imports validate a bounded typed file before applying values together, report unsupported keys and restart requirements, and offer a one-use Undo for 10 seconds. Failed writes report whether rollback succeeded; private state and history aren't exported.
+* **Instagram:** Following, story size, Meta AI search and bottom-space settings now carry the restart requirements their descriptions already stated. Imported choices and Undo report the same requirements, and complete import feedback stays visible after its toast disappears.
+
 ## 0.0.3 (2026-10-01)
 
 * **Instagram:** HushGram 0.0.3 adds fourteen patches, for 35 in all, and still targets Instagram 449.0.0.52.84 (build 385511871, arm64-v8a) on Android 9 and newer.

@@ -131,7 +131,7 @@ public class Settings extends BaseSettings {
      * size again once Home is built anew.
      */
     public static final BooleanSetting STORY_RING =
-            new BooleanSetting("hushgram_story_ring", TRUE);
+            new BooleanSetting("hushgram_story_ring", TRUE, true);
 
     /**
      * The size the rings are drawn at while {@link #STORY_RING} is on, as a share of Instagram's.
@@ -139,14 +139,14 @@ public class Settings extends BaseSettings {
      * isn't a switch: the switch above it is.
      */
     public static final EnumSetting<StoryRingSize> STORY_RING_SCALE =
-            new EnumSetting<>("hushgram_story_ring_size", StoryRingSize.INSTAGRAM, parent(STORY_RING));
+            new EnumSetting<>("hushgram_story_ring_size", StoryRingSize.INSTAGRAM, true, parent(STORY_RING));
 
     /**
      * Home opening on the Following feed, with Instagram's For you and Following picker at its top,
      * while you haven't picked a feed there. Instagram remembers a pick from then on.
      */
     public static final BooleanSetting START_ON_FOLLOWING =
-            new BooleanSetting("hushgram_start_on_following", TRUE);
+            new BooleanSetting("hushgram_start_on_following", TRUE, true);
 
     /**
      * With {@link #START_ON_FOLLOWING} on, Home keeps to accounts you follow: For you leaves the
@@ -154,14 +154,14 @@ public class Settings extends BaseSettings {
      * away until you choose this.
      */
     public static final BooleanSetting ONLY_FOLLOWING =
-            new BooleanSetting("hushgram_only_following", FALSE, parent(START_ON_FOLLOWING));
+            new BooleanSetting("hushgram_only_following", FALSE, true, parent(START_ON_FOLLOWING));
 
     /**
      * Meta AI in the search bars: the Search tab's ("Search with Meta AI") and the one at the top of
      * your messages ("Search or ask Meta AI"), and the "Ask a follow-up…" bar under search results.
      */
     public static final BooleanSetting HIDE_META_AI_SEARCH =
-            new BooleanSetting("hushgram_hide_meta_ai_search", TRUE);
+            new BooleanSetting("hushgram_hide_meta_ai_search", TRUE, true);
 
     /** Meta AI's units in the home feed: Vibes videos, Meta AI chats and Imagine pictures. */
     public static final BooleanSetting HIDE_META_AI_POSTS =
@@ -193,7 +193,7 @@ public class Settings extends BaseSettings {
      * Instagram lays out its window's insets.
      */
     public static final BooleanSetting REMOVE_BOTTOM_SPACE =
-            new BooleanSetting("hushgram_remove_bottom_space", TRUE);
+            new BooleanSetting("hushgram_remove_bottom_space", TRUE, true);
 
     /**
      * Follows you or Doesn't follow you beside the name on someone's profile
