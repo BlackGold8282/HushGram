@@ -57,7 +57,8 @@ public class StorySeenButtonTest {
     private final BooleanSupplier switches = on::get;
     private final AtomicLong now = new AtomicLong(5_000_000L);
     private final StoryMarksTest.Batches batches = new StoryMarksTest.Batches();
-    private final Object session = new Object();
+    /** The account signed in. In these tests a session, and the store sending for it, are its user ID. */
+    private final Object session = StoryMarksTest.ME;
     private final List<Object> sends = new ArrayList<>();
     private final List<Object> sentBatches = new ArrayList<>();
     private StoryMarks marks;
@@ -69,7 +70,7 @@ public class StorySeenButtonTest {
     /** Instagram's send, through the hook, as a tap starts it: an empty batch the hook fills with what's marked. */
     private final StorySeenButton.Sender sender = account -> {
         sends.add(account);
-        sentBatches.add(StorySeen.toSend(new StoryMarksTest.Batch(), batches, () -> true, () -> true, marks));
+        sentBatches.add(StorySeen.toSend(account, new StoryMarksTest.Batch(), batches, () -> true, () -> true, marks, StorySeen.COUNTED));
     };
 
     /** A story's view holder: its root, the header's row of buttons and what Instagram keeps in the row. */
@@ -124,6 +125,11 @@ public class StorySeenButtonTest {
             @Override
             public View itemView(Object holder) {
                 return ((Header) holder).root;
+            }
+
+            @Override
+            public String account(Object session) {
+                return session instanceof String ? (String) session : null;
             }
         };
     }
@@ -203,13 +209,13 @@ public class StorySeenButtonTest {
         ImageView button = header.button();
 
         assertTrue(button.performClick());
-        assertEquals(StoryMarks.State.MARKED, marks.state("111"));
+        assertEquals(StoryMarks.State.MARKED, marks.state(StoryMarksTest.ME, "111"));
         assertEquals(StoryMarks.State.MARKED, drawn(button));
         assertEquals("Marked as seen. Tap again to undo.", button.getContentDescription().toString());
         assertTrue("the story's batch hasn't gone yet, so nothing is sent now", sends.isEmpty());
 
         assertTrue(button.performClick());
-        assertEquals(StoryMarks.State.UNMARKED, marks.state("111"));
+        assertEquals(StoryMarks.State.UNMARKED, marks.state(StoryMarksTest.ME, "111"));
         assertEquals(StoryMarks.State.UNMARKED, drawn(button));
         assertEquals("Mark as seen", button.getContentDescription().toString());
         assertTrue(sends.isEmpty());
@@ -218,7 +224,7 @@ public class StorySeenButtonTest {
     /** A story whose batch was held back before the tap goes straight away, through Instagram's send, and alone. */
     @Test
     public void aTapOnAStoryAlreadyHeldBackSendsItRightAway() {
-        assertNull(StorySeen.toSend(new StoryMarksTest.Batch().with("111_900_900", "222_900_900"), batches, () -> true, () -> true, marks));
+        assertNull(StorySeen.toSend(StoryMarksTest.ME, new StoryMarksTest.Batch().with("111_900_900", "222_900_900"), batches, () -> true, () -> true, marks, StorySeen.COUNTED));
         Header header = new Header();
         bind(header, STORY);
         ImageView button = header.button();
@@ -234,7 +240,7 @@ public class StorySeenButtonTest {
         assertEquals("Marked as seen and sent", button.getContentDescription().toString());
         assertFalse("a sent story can't be taken back", button.isEnabled());
         assertEquals(0.6f, button.getAlpha(), 0.001f);
-        assertEquals(StoryMarks.State.UNMARKED, marks.state("222"));
+        assertEquals(StoryMarks.State.UNMARKED, marks.state(StoryMarksTest.ME, "222"));
     }
 
     /** Holders are recycled: the one button follows the story the header shows now. */
@@ -308,7 +314,7 @@ public class StorySeenButtonTest {
         on.set(false);
         tapped.button().performClick();
         assertEquals(View.GONE, tapped.button().getVisibility());
-        assertEquals(StoryMarks.State.UNMARKED, marks.state("111"));
+        assertEquals(StoryMarks.State.UNMARKED, marks.state(StoryMarksTest.ME, "111"));
         assertTrue(sends.isEmpty());
     }
 
@@ -345,6 +351,11 @@ public class StorySeenButtonTest {
             public View itemView(Object holder) {
                 return header.root;
             }
+
+            @Override
+            public String account(Object session) {
+                return StoryMarksTest.ME;
+            }
         }, switches, marks, sender);
         assertNull(header.button());
         assertReported();
@@ -353,8 +364,63 @@ public class StorySeenButtonTest {
         bind(header, STORY);
         ImageView button = header.button();
         StorySeenButton.tapped(button, THROWS, marks, sender);
-        assertEquals(StoryMarks.State.UNMARKED, marks.state("111"));
+        assertEquals(StoryMarks.State.UNMARKED, marks.state(StoryMarksTest.ME, "111"));
         assertReported();
+    }
+
+    /** A story marked while signed in to one account is never sent in another account's batch. */
+    @Test
+    public void aMarkOnOneAccountIsNeverSentForAnother() {
+        Header header = new Header();
+        bind(header, STORY);
+        header.button().performClick();
+        assertEquals(StoryMarks.State.MARKED, marks.state(StoryMarksTest.ME, "111"));
+        assertEquals(StoryMarks.State.UNMARKED, marks.state(StoryMarksTest.OTHER, "111"));
+
+        StoryMarksTest.Batch theirs = new StoryMarksTest.Batch().with("111_900_900");
+        assertNull("the other account's views are held back, the marked story too",
+                StorySeen.toSend(StoryMarksTest.OTHER, theirs, batches, () -> true, () -> true, marks, StorySeen.COUNTED));
+        StorySeenButton.bind(StoryMarksTest.OTHER, new Object(), header, reader(STORY), switches, marks, sender);
+        assertEquals("the other account's button shows the story unmarked", StoryMarks.State.UNMARKED, drawn(header.button()));
+
+        StoryMarksTest.Batch mine = new StoryMarksTest.Batch().with("111_900_900");
+        StoryMarksTest.Batch sent = (StoryMarksTest.Batch) StorySeen.toSend(StoryMarksTest.ME, mine, batches, () -> true, () -> true, marks, StorySeen.COUNTED);
+        assertNotNull("this account's send carries it", sent);
+        assertTrue(sent.stories.containsKey("111_900_900"));
+    }
+
+    /** Without the account's user ID a story can't be marked, so it has no button. */
+    @Test
+    public void withoutTheAccountThereIsNoButton() {
+        Header header = new Header();
+        bind(header, STORY);
+        ImageView button = header.button();
+        StorySeenButton.bind(new Object(), new Object(), header, reader(STORY), switches, marks, sender);
+        assertEquals(View.GONE, button.getVisibility());
+        assertNull("it forgot its story", button.getTag());
+    }
+
+    /** A hidden button forgets its story: even a tap that reaches it marks nothing. */
+    @Test
+    public void aHiddenButtonForgetsItsStory() {
+        Header header = new Header();
+        bind(header, STORY);
+        ImageView button = header.button();
+        bind(header, "live_123");
+        assertEquals(View.GONE, button.getVisibility());
+        assertNull(button.getTag());
+        StorySeenButton.tapped(button, switches, marks, sender);
+        assertEquals(StoryMarks.State.UNMARKED, marks.state(StoryMarksTest.ME, "111"));
+
+        bind(header, STORY);
+        on.set(false);
+        button.performClick();
+        assertEquals(View.GONE, button.getVisibility());
+        assertNull(button.getTag());
+        on.set(true);
+        StorySeenButton.tapped(button, switches, marks, sender);
+        assertEquals("the tap after it was hidden marks nothing", StoryMarks.State.UNMARKED, marks.state(StoryMarksTest.ME, "111"));
+        assertTrue(sends.isEmpty());
     }
 
     private static void assertReported() {

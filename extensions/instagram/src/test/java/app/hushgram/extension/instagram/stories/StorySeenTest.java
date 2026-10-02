@@ -47,7 +47,7 @@ public class StorySeenTest {
     @Test
     public void withTheSwitchOnABatchIsHeldBackAndCounted() {
         FeedFilterCounters.snapshotAndClear();
-        assertNull(StorySeen.toSend(batch));
+        assertNull(StorySeen.toSend(null, batch));
         List<String> report = FeedFilterCounters.report();
         assertTrue(report.toString(), report.toString().contains(StorySeen.ROUTE));
         assertTrue(report.toString(), report.toString().contains(StorySeen.HELD_BACK));
@@ -57,20 +57,20 @@ public class StorySeenTest {
     @Test
     public void offPausedOrNotReadyTheBatchGoesOut() {
         Settings.VIEW_STORIES_ANONYMOUSLY.save(false);
-        assertSame("off", batch, StorySeen.toSend(batch));
+        assertSame("off", batch, StorySeen.toSend(null, batch));
         Settings.VIEW_STORIES_ANONYMOUSLY.save(true);
         PauseForTests.pause(HushgramPause.Reason.SWITCH);
-        assertSame("paused", batch, StorySeen.toSend(batch));
+        assertSame("paused", batch, StorySeen.toSend(null, batch));
         PauseForTests.resume();
-        SettingsContextRule.withoutContext(() -> assertSame("settings not ready", batch, StorySeen.toSend(batch)));
-        assertNull("the control: on, the same batch is held back", StorySeen.toSend(batch));
+        SettingsContextRule.withoutContext(() -> assertSame("settings not ready", batch, StorySeen.toSend(null, batch)));
+        assertNull("the control: on, the same batch is held back", StorySeen.toSend(null, batch));
     }
 
     /** The button's switch on with nothing marked holds the batch back just as the switch alone does. */
     @Test
     public void withTheButtonOnAndNothingMarkedTheBatchIsHeldBack() {
         Settings.MARK_STORIES_SEEN.save(true);
-        assertNull(StorySeen.toSend(batch));
+        assertNull(StorySeen.toSend(null, batch));
         assertTrue(HookStatus.missing(FamilyNames.STORY_SEEN).toString(), HookStatus.missing(FamilyNames.STORY_SEEN).isEmpty());
     }
 }

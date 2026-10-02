@@ -48,8 +48,12 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
  * closing, the tray loading) hands it a copy of its batch and clears its own. The hook goes first in
  * the send and answers the batch that goes out in its place: Instagram's own, one of the
  * extension's holding only the stories you marked, or none, and then the send returns, so a batch
- * held back is dropped, not kept for later. The store's retry queue is filled only from batches a
- * session before this one saved to disk, and Instagram 449 saves none there.
+ * held back is dropped, not kept for later. The store also retries batches, read back from what a
+ * session before this one saved to disk; a second hook goes right before the retry builds its
+ * request and, while views are held back, answers an empty batch for a retried one with stories in
+ * it. The only other call of the request on 449, the Reset NUX developer option, sends a batch it
+ * makes right there with nothing but a NUX in it, and the patch refuses any build with another
+ * route to the request ([findStorySeen]).
  *
  * The Mark as seen button goes in from the story header binder, which every story on screen runs
  * through with its account, the story and its view holder.
@@ -60,6 +64,7 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
 internal fun BytecodePatchContext.holdBackStoryViews() {
     val found = findStorySeen()
     hookStorySend(found)
+    hookStoryRetry(found)
     hookStoryHeader(found)
     found.fillStubs()
 }

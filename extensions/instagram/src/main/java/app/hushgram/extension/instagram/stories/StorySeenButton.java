@@ -47,7 +47,13 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>The button shows only while views are anonymous and its own switch is on. With either off,
  * HushGram paused or the settings not read yet, it's hidden, and the patch's send hook holds
  * every batch back or lets every batch through as it would without it. Holders are recycled, so a
- * button already in a header is shown, hidden or pointed at the new story on each bind.
+ * button already in a header is shown, hidden or pointed at the new story on each bind. On
+ * Instagram 449 every bind of a story to a holder runs the header binder: the item bind and the
+ * animation shim's both go through the media bind, and every way through that, the placeholder's
+ * included, ends in the header bind. A hidden button forgets its story, so it can't mark one later.
+ *
+ * <p>A mark belongs to the account signed in when it was made ({@link StoryMarks}), so a story
+ * marked on one account is never sent for another.
  */
 public final class StorySeenButton {
     /** Instagram's row of buttons at the top end of the story header, and its three-dot menu in it. */
@@ -74,6 +80,10 @@ public final class StorySeenButton {
         /** The root view of the story's view holder [holder], or null. */
         @Nullable
         View itemView(Object holder);
+
+        /** Instagram's user ID for [session], the account signed in, or null. */
+        @Nullable
+        String account(Object session);
     }
 
     static final Reader PATCHED = new Reader() {
@@ -86,6 +96,11 @@ public final class StorySeenButton {
         public View itemView(Object holder) {
             return StorySeenButton.itemView(holder);
         }
+
+        @Override
+        public String account(Object session) {
+            return StorySeen.sessionAccount(session);
+        }
     };
 
     /** What a tap does with a marked story a batch held back: sends it for [session]'s account. */
@@ -93,13 +108,15 @@ public final class StorySeenButton {
         void send(Object session);
     }
 
-    /** The story a button is for, and the account to send it for. */
+    /** The story a button is for, the account's user ID, and the account to send it for. */
     static final class Bound {
         final String story;
+        final String account;
         final WeakReference<Object> session;
 
-        Bound(String story, @Nullable Object session) {
+        Bound(String story, String account, @Nullable Object session) {
             this.story = story;
+            this.account = account;
             this.session = new WeakReference<>(session);
         }
     }
@@ -124,8 +141,9 @@ public final class StorySeenButton {
             if (row == null) return;
             ImageView button = find(row);
             String story = showing && item != null ? StoryMarks.storyOf(reader.storyId(item)) : null;
-            if (story == null) {
-                if (button != null) button.setVisibility(View.GONE);
+            String account = story != null && session != null ? reader.account(session) : null;
+            if (story == null || account == null) {
+                if (button != null) hide(button);
                 return;
             }
             if (button == null) {
@@ -133,8 +151,8 @@ public final class StorySeenButton {
                 insert(row, button);
                 added = true;
             }
-            button.setTag(new Bound(story, session));
-            show(button, marks.state(story));
+            button.setTag(new Bound(story, account, session));
+            show(button, marks.state(account, story));
             button.setVisibility(View.VISIBLE);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.STORY_SEEN, HOOK, failure);
@@ -146,15 +164,15 @@ public final class StorySeenButton {
         try {
             if (!(button.getTag() instanceof Bound)) return;
             if (!on.getAsBoolean()) {
-                button.setVisibility(View.GONE);
+                hide(button);
                 return;
             }
             Bound bound = (Bound) button.getTag();
-            if (marks.toggle(bound.story) == StoryMarks.State.MARKED && marks.held(bound.story)) {
+            if (marks.toggle(bound.account, bound.story) == StoryMarks.State.MARKED && marks.held(bound.account, bound.story)) {
                 Object session = bound.session.get();
                 if (session != null) sender.send(session);
             }
-            StoryMarks.State now = marks.state(bound.story);
+            StoryMarks.State now = marks.state(bound.account, bound.story);
             show(button, now);
             button.announceForAccessibility(describe(now));
         } catch (Throwable failure) {
@@ -247,6 +265,12 @@ public final class StorySeenButton {
         }
         button.setOnClickListener(view -> tapped((ImageView) view, on, marks, sender));
         return button;
+    }
+
+    /** Hides [button] and forgets its story, so nothing can mark it until a bind shows it again. */
+    private static void hide(ImageView button) {
+        button.setVisibility(View.GONE);
+        button.setTag(null);
     }
 
     private static void show(ImageView button, StoryMarks.State state) {

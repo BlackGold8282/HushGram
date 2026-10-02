@@ -473,10 +473,16 @@ once-call Lapp/hushgram/extension/instagram/media/QualityChoice;->firstChoice(Lj
 # place of the one it was handed, or returns on null. The send holds no string, but its class does:
 # the store's read from disk holds the file name and the trace section the patch finds the store
 # by, and no other class holds either on 449. Of the store's methods the send is the one instance
-# method taking one object and answering nothing (its constructor takes two). Left out, every story
-# you watch is reported; twice or elsewhere, it isn't the guard the patch wrote.
-start-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
-once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+# method taking one object and answering nothing (its constructor takes two). The hook is handed the
+# store too, for the account its marks belong to. Left out, every story you watch is reported; twice
+# or elsewhere, it isn't the guard the patch wrote.
+start-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+# The store's retry of a batch an earlier session saved to disk builds the same request, so a second
+# guard goes right before that build, not first: the retry casts its batch first. It's the store's
+# one instance method taking an Object and answering the request (00CT.A0J on 449, a bridge). Left
+# out, a retried batch posts the stories in it; twice or elsewhere, it isn't the guard the patch wrote.
+once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (Ljava/lang/Object;)L*; class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
 # Its second switch hands each story on screen to StorySeenButton first thing in the story header
 # binder (05UI.A06 on 449), the one static method holding the trace section Instagram names after
 # it, behind three moves of its account, story and view holder into borrowed locals. Left out, no

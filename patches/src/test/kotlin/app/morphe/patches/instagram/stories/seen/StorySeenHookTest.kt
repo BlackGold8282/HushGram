@@ -15,6 +15,7 @@ import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -45,11 +46,13 @@ class StorySeenHookTest {
             .filter { AccessFlags.STATIC.isSet(it.accessFlags) && (!public || AccessFlags.PUBLIC.isSet(it.accessFlags)) }
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         assertTrue(TO_SEND.substringAfter("->") in declared(STORY_SEEN, public = true))
+        assertTrue(TO_RETRY.substringAfter("->") in declared(STORY_SEEN, public = true))
         assertTrue(BIND_BUTTON.substringAfter("->") in declared(STORY_SEEN_BUTTON, public = true))
         val stubs = declared(STORY_SEEN, public = false) + declared(STORY_SEEN_BUTTON, public = false)
         for (stub in listOf(
             "emptyBatch()Ljava/lang/Object;", "seenStories(Ljava/lang/Object;)Ljava/util/Map;",
-            "send(Ljava/lang/Object;Ljava/lang/Object;)V", "storyId(Ljava/lang/Object;)Ljava/lang/String;",
+            "send(Ljava/lang/Object;Ljava/lang/Object;)V", "storeAccount(Ljava/lang/Object;)Ljava/lang/String;",
+            "sessionAccount(Ljava/lang/Object;)Ljava/lang/String;", "storyId(Ljava/lang/Object;)Ljava/lang/String;",
             "itemView(Ljava/lang/Object;)Landroid/view/View;",
         )) {
             assertTrue("$stub is not in the extension: $stubs", stub in stubs)
@@ -58,7 +61,8 @@ class StorySeenHookTest {
 
     /**
      * The send asks first and goes on with what it's told, in the batch's own register, or returns.
-     * The store's other methods taking a batch, and the rebuild for a retry, stay as they are.
+     * The retry asks right before its build. The store's other methods taking a batch, and the
+     * Reset NUX route making a batch of its own, stay as they are.
      */
     @Test
     fun theSendAsksBeforeItBuildsTheRequest() {
@@ -68,9 +72,12 @@ class StorySeenHookTest {
 
         val patched = context.mutableClassDefBy(STORE)
         assertSendHooked("the send", patched.methods.single { it.name == "A0O" }, BATCH)
-        for (name in listOf("A0P", "A0Q", "A0J", "A0L", "A00")) {
-            assertTrue("$name was touched", patched.methods.single { it.name == name }.code().none { it.referenceText() == TO_SEND })
+        val retry = patched.methods.single { it.name == "A0J" }
+        assertRetryHooked("the retry", retry, BATCH, build = 5)
+        for (name in listOf("A0P", "A0L", "A00")) {
+            assertEquals("$name was touched", 0, patched.methods.single { it.name == name }.code().count { it.referenceText() in HOOKS })
         }
+        assertEquals("the Reset NUX route was touched", 0, context.mutableClassDefBy(RESET_NUX).methods.sumOf { method -> method.code().count { it.referenceText() in HOOKS } })
     }
 
     /** The header binder hands the button its account, story and view holder before anything else. */
@@ -85,11 +92,14 @@ class StorySeenHookTest {
     }
 
     @Test
-    fun theStubsReachTheBatchTheStoreTheStoryAndItsView() {
+    fun theStubsReachTheBatchTheStoreTheAccountTheStoryAndItsView() {
         val context = PatchContexts.of(standIns())
         context.holdBackStoryViews()
 
-        assertStubsFilled(context, BATCH, "$BATCH->stories:Ljava/util/HashMap;", "$STORE->A00($USER_SESSION)$STORE", "$STORE->A0O($BATCH)V", "$VIEW_HOLDER->itemView:$VIEW")
+        assertStubsFilled(
+            context, BATCH, "$BATCH->stories:Ljava/util/HashMap;", "$STORE->A00($USER_SESSION)$STORE", "$STORE->A0O($BATCH)V",
+            "$STORE_BASE->A0H()$USER_SESSION", "$VIEW_HOLDER->itemView:$VIEW",
+        )
     }
 
     /** A filled stub answering something narrower than Object returns on its one way out (see FriendshipStatusHookTest). */
@@ -98,7 +108,10 @@ class StorySeenHookTest {
         val context = PatchContexts.of(standIns())
         context.holdBackStoryViews()
 
-        for ((type, names) in listOf(STORY_SEEN to listOf("emptyBatch", "seenStories", "send"), STORY_SEEN_BUTTON to listOf("storyId", "itemView"))) {
+        for ((type, names) in listOf(
+            STORY_SEEN to listOf("emptyBatch", "seenStories", "send", "storeAccount", "sessionAccount"),
+            STORY_SEEN_BUTTON to listOf("storyId", "itemView"),
+        )) {
             for (stub in context.mutableClassDefBy(type).methods.filter { it.name in names }) {
                 val code = stub.code()
                 val first = code.indexOfFirst { it.opcode == Opcode.RETURN_OBJECT || it.opcode == Opcode.RETURN_VOID }
@@ -124,6 +137,17 @@ class StorySeenHookTest {
     @Test
     fun aSendWritingOverItsBatchFails() = assertRefused(standIns(sendOverwrites = true), "writes over parameter 0")
 
+    /** The hook's answer replaces the batch before the send touches it, so nothing the send does before the request may add to it. */
+    @Test
+    fun aSendChangingItsBatchFirstFails() {
+        assertRefused(standIns(sendChangesBatch = true), "hands its batch to $BATCH->A0B()V at instruction 1")
+        assertRefused(standIns(sendHandsBatchOut = true), "hands its batch to $ELSEWHERE->keep(Ljava/lang/Object;)V")
+    }
+
+    /** move-result-object, if-nez and check-cast name a register in a byte. */
+    @Test
+    fun aBatchPastV255Fails() = assertRefused(standIns(sendRegisters = 258), "keeps its batch in v257, past v255")
+
     @Test
     fun aRequestNamingTheStoriesTwiceFails() = assertRefused(standIns(reelsTwice = true), "to name \"reels\" once")
 
@@ -139,6 +163,18 @@ class StorySeenHookTest {
     @Test
     fun aRequestHandingItsBatchOnFails() = assertRefused(standIns(requestHandsBatchOn = true), "hands its batch on")
 
+    /** A static field the request sends could hold stories a new batch doesn't. */
+    @Test
+    fun staticStateInTheRequestFails() = assertRefused(standIns(staticInRequest = true), "reads $BATCH->shared:Ljava/util/HashMap; into what it sends")
+
+    /** The request's parameter only starts the request; sent, it could carry anything. */
+    @Test
+    fun aRequestSendingItsParameterFails() = assertRefused(standIns(requestSendsItsParameter = true), "reads its parameter 0 into what it sends")
+
+    /** A call the request makes elsewhere could hand it what a new batch doesn't hold. */
+    @Test
+    fun aRequestCallingOutFails() = assertRefused(standIns(requestCallsOut = true), "calls $ELSEWHERE->latest()Ljava/lang/String;")
+
     /** A new batch that starts with something the request sends would send it along with the marked stories. */
     @Test
     fun aBatchThatStartsFullFails() {
@@ -147,11 +183,56 @@ class StorySeenHookTest {
         assertRefused(standIns(constructorStartsStories = false), "doesn't start stories, its stories, as a new empty map")
     }
 
+    /** The new map put in another object's field too could be filled through that object. */
+    @Test
+    fun aConstructorSharingItsStoriesFails() =
+        assertRefused(standIns(constructorSharesStories = true), "starts stories, which the seen request sends, as something other")
+
+    /** A constructor handing the new batch to another as more than its receiver may fill it there. */
+    @Test
+    fun aConstructorHandingItselfOnFails() = assertRefused(standIns(constructorHandsItselfOn = true), "constructor hands the batch on at instruction 2")
+
+    /** A batch reachable under another name, or built partly by a superclass, isn't the one the patch proved empty. */
+    @Test
+    fun aBatchThatIsntSealedFails() {
+        assertRefused(standIns(batchFinal = false), "isn't final")
+        assertRefused(standIns(batchSuperclass = BATCH_BASE), "extends $BATCH_BASE")
+        assertRefused(standIns(batchInterface = true), "is also $SEEN_STATE->A04")
+    }
+
     @Test
     fun aBatchTheExtensionCantStartFails() = assertRefused(standIns(publicConstructor = false), "no public constructor taking nothing")
 
+    /** Any call of the request that isn't hooked, or proved to send only constants, could post the stories you watched. */
+    @Test
+    fun anotherRouteToTheRequestFails() =
+        assertRefused(standIns(otherRoute = true), "$STORE->A0Q builds the seen request at instruction 4 from a batch that doesn't go through $STORE->A0O")
+
+    /** A batch made on the spot is safe only while what goes in it is constant and the batch goes nowhere else. */
+    @Test
+    fun aFreshRouteSendingMoreThanConstantsFails() {
+        assertRefused(standIns(freshRouteNotConstant = true), "$RESET_NUX->A00 builds the seen request")
+        assertRefused(standIns(freshRouteHandsBatchOn = true), "$RESET_NUX->A00 builds the seen request")
+    }
+
+    /** The retry's hook goes in right before its build, and its answer stands in for the batch from there on. */
+    @Test
+    fun aRetryTheHookCantFollowFails() {
+        assertRefused(standIns(retryOverwrites = true), "$STORE->A0J writes over the batch it rebuilds")
+        assertRefused(standIns(retryBranchesToBuild = true), "lands on its build of the seen request")
+        assertRefused(standIns(retryReadsAfter = true), "reads its batch again after building the seen request")
+        assertRefused(standIns(twoRetries = true), "in one place at most, found 2")
+    }
+
     @Test
     fun aStoreWithoutAGetterFails() = assertRefused(standIns(getter = false), "one public static getter")
+
+    /** Marks are kept per account, so the store's account and the session's user ID must both be readable. */
+    @Test
+    fun aStoreOrSessionWithoutItsAccountFails() {
+        assertRefused(standIns(storeSession = false), "$STORE has no public getter of the account it sends for")
+        assertRefused(standIns(userId = false), "$USER_SESSION has no public getUserId()")
+    }
 
     @Test
     fun aBuildWithoutTheHeaderBinderFails() = assertRefused(standIns(binder = false), "story header binder")
@@ -170,15 +251,18 @@ class StorySeenHookTest {
     fun aBinderWithoutThreeLocalsFails() = assertRefused(standIns(binderLocals = 2), "needs 3")
 
     @Test
-    fun aStoryWithoutAnIdFails() = assertRefused(standIns(storyId = false), "has no public getId()")
+    fun aStoryWithoutAnIdFails() {
+        assertRefused(standIns(storyId = false), "has no public getId()")
+        assertRefused(standIns(reelItemInterface = true), "$REEL_ITEM is an interface")
+    }
 
     @Test
     fun anItemViewTheExtensionCantReadFails() = assertRefused(standIns(itemViewPublic = false), "isn't a public field")
 
     /**
-     * On each declared build the send and the header binder are found and hooked and the stubs
-     * filled, and the same classes with the binder copied, or without the story class, are refused
-     * untouched.
+     * On each declared build the send, the retry and the header binder are found and hooked and the
+     * stubs filled, every other call of the seen request is left as it is, and the same classes with
+     * the binder copied, or without the story class, are refused untouched.
      */
     @Test
     fun eachDeclaredBuildHooksTheSendAndTheHeader() {
@@ -192,6 +276,7 @@ class StorySeenHookTest {
                 assertEquals("${bundle.name}: the binder's account", USER_SESSION, found.binderParameters[found.session])
                 assertEquals("${bundle.name}: the binder's story", REEL_ITEM, found.binderParameters[found.item])
                 assertEquals("${bundle.name}: the item view", VIEW, found.itemView.type)
+                val retry = found.retry ?: throw AssertionError("${bundle.name}: no retry found")
 
                 val context = PatchContexts.of(classes)
                 context.holdBackStoryViews()
@@ -200,12 +285,29 @@ class StorySeenHookTest {
                 val send = context.mutableClassDefBy(found.store).methods.single { it.name == found.send && it.parameterTypes.map(Any::toString) == listOf(found.batch) }
                 assertEquals("${bundle.name}: the send's size", before.code().size + 5, send.code().size)
                 assertSendHooked("${bundle.name}: the send", send, found.batch)
+                val retryBefore = store.methods.single { it.name == retry.name && it.parameterTypes.map(Any::toString) == retry.parameters }
+                val retryAfter = context.mutableClassDefBy(found.store).methods.single { it.name == retry.name && it.parameterTypes.map(Any::toString) == retry.parameters }
+                assertEquals("${bundle.name}: the retry's size", retryBefore.code().size + 3, retryAfter.code().size)
+                assertRetryHooked("${bundle.name}: the retry", retryAfter, found.batch, retry.build)
                 val binder = context.mutableClassDefBy(found.binder).methods.single { it.name == found.binderName && it.parameterTypes.map(Any::toString) == found.binderParameters }
                 assertHeaderHooked("${bundle.name}: the header binder", binder, found.session, found.item, found.holder)
                 assertStubsFilled(
                     context, found.batch, found.reels.toString(), "${found.store}->${found.getter}($USER_SESSION)${found.store}",
-                    "${found.store}->${found.send}(${found.batch})V", found.itemView.toString(),
+                    "${found.store}->${found.send}(${found.batch})V", "${found.sessionOwner}->${found.sessionGetter}()$USER_SESSION",
+                    found.itemView.toString(),
                 )
+                val hooked = mutableListOf<String>()
+                context.classDefForEach { classDef ->
+                    for (method in classDef.methods) {
+                        method.code().filter { it.referenceText() in HOOKS }.forEach { hooked += "${classDef.type}->${method.name} ${it.referenceText()}" }
+                    }
+                }
+                assertEquals(
+                    "${bundle.name}: the hooks are in the send, the retry and the binder, and nowhere else",
+                    setOf("${found.store}->${found.send} $TO_SEND", "${found.store}->${retry.name} $TO_RETRY", "${found.binder}->${found.binderName} $BIND_BUTTON"),
+                    hooked.toSet(),
+                )
+                assertEquals("${bundle.name}: one call of each hook", 3, hooked.size)
 
                 val binderClass = classes.single { it.type == found.binder }
                 assertRefused(classes + copyOf(binderClass, "Lfixture/SecondBinder;"), "story header binder")
@@ -217,9 +319,10 @@ class StorySeenHookTest {
     }
 
     /**
-     * The classes the patch reads on [bundle]: those holding its four strings in one pass, then the
-     * header binder's parameter types and the story class, then their superclasses up to the view
-     * holder base, and the extension's two classes.
+     * The classes the patch reads on [bundle]: those holding its four strings in one pass, then every
+     * class calling the seen request, then the header binder's parameter types, the story class and
+     * the account's, then their superclasses up to the view holder base and the store's, and the
+     * extension's two classes.
      */
     private fun fixtureClasses(bundle: java.io.File): List<ClassDef> {
         val strings = setOf("media/seen/?reel=%s&live_vod=0", "pending_reel_seen_states_", "ReelViewerItemBinder.bindHeaderViews", "itemView may not be null")
@@ -230,13 +333,20 @@ class StorySeenHookTest {
                 if (classDef.methods.any { method -> method.code().any { it.string() in strings } }) found[classDef.type] = ImmutableClassDef.of(classDef)
             }
         }
-        val binder = found.values.flatMap { it.methods }.single { method -> method.code().any { it.string() == "ReelViewerItemBinder.bindHeaderViews" } }
-        var wanted = (binder.parameterTypes.map(Any::toString) + REEL_ITEM).filter { it.startsWith("L") && it !in found }.toSet()
+        val methods = found.values.flatMap { it.methods }
+        val binder = methods.single { method -> method.code().any { it.string() == "ReelViewerItemBinder.bindHeaderViews" } }
+        val request = methods.single { method -> method.code().any { it.string() == "media/seen/?reel=%s&live_vod=0" } }
+        val requestKey = "${request.definingClass}->${request.name}(${request.parameterTypes.joinToString("")})${request.returnType}"
+        val callers = FixtureDex.methodsWhere(bundle, { dex -> dex.methodSection.any { it.toString() == requestKey } }) { method ->
+            method.code().any { it.referenceText() == requestKey }
+        }
+        var wanted = (binder.parameterTypes.map(Any::toString) + REEL_ITEM + USER_SESSION + callers.map { it.definingClass } + found.values.mapNotNull { it.superclass })
+            .filter { it.startsWith("L") && it !in found && it != OBJECT }.toSet()
         repeat(4) {
             if (wanted.isEmpty()) return@repeat
             val loaded = FixtureDex.classes(bundle, wanted)
             found += loaded
-            wanted = loaded.values.mapNotNull { it.superclass }.filter { it !in found && it != "Ljava/lang/Object;" }.toSet()
+            wanted = loaded.values.mapNotNull { it.superclass }.filter { it !in found && it != OBJECT }.toSet()
         }
         return (found.values + ExtensionDex.classDef(STORY_SEEN) + ExtensionDex.classDef(STORY_SEEN_BUTTON))
             .map { ImmutableClassDef.of(it) }.distinctBy { it.type }
@@ -253,7 +363,7 @@ class StorySeenHookTest {
     private fun assertUntouched(context: BytecodePatchContext) {
         context.classDefForEach { classDef ->
             classDef.methods.forEach { method ->
-                val calls = method.code().count { it.referenceText() == TO_SEND || it.referenceText() == BIND_BUTTON }
+                val calls = method.code().count { it.referenceText() in HOOKS }
                 assertEquals("${classDef.type}->${method.name} calls a hook", 0, calls)
             }
         }
@@ -267,10 +377,10 @@ class StorySeenHookTest {
     }
 
     /**
-     * The send's first five instructions: a range call handing the batch to [TO_SEND], its answer
-     * moved into the batch's own register, a return when it's null, and a cast back to the batch
-     * where the non-null answer lands, right before the send's own first instruction. The hook is
-     * called nowhere else in the send.
+     * The send's first five instructions: a range call handing the store and the batch to [TO_SEND],
+     * its answer moved into the batch's own register, a return when it's null, and a cast back to
+     * the batch where the non-null answer lands, right before the send's own first instruction. The
+     * hook is called nowhere else in the send.
      */
     private fun assertSendHooked(what: String, send: Method, batch: String) {
         val code = send.code()
@@ -282,7 +392,8 @@ class StorySeenHookTest {
         assertEquals("$what: the hook called", TO_SEND, code[0].referenceText())
         val register = send.parameterRegisterNumber(0)
         val call = code[0] as RegisterRangeInstruction
-        assertEquals("$what: the hook takes the batch", register to 1, call.startRegister to call.registerCount)
+        assertEquals("$what: the hook takes the store and the batch", send.localRegisterCount() to 2, call.startRegister to call.registerCount)
+        assertEquals("$what: the batch follows the store", register, call.startRegister + 1)
         assertEquals("$what: the answer replaces the batch", register, (code[1] as OneRegisterInstruction).registerA)
         assertEquals("$what: the null check reads it", register, (code[2] as OneRegisterInstruction).registerA)
         val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
@@ -294,6 +405,38 @@ class StorySeenHookTest {
             if (index == 2 || instruction !is OffsetInstruction) continue
             val target = addresses[index] + instruction.codeOffset
             assertTrue("$what: the branch at $index lands in the hook", target !in addresses.take(5))
+        }
+    }
+
+    /**
+     * The retry's three instructions at [build], where its build of the request was: a range call
+     * handing the store and the batch to [TO_RETRY], its answer moved into the batch's register and
+     * cast back to the batch, right before the build, which reads it as its receiver. No branch lands
+     * past the call into the hook.
+     */
+    private fun assertRetryHooked(what: String, retry: Method, batch: String, build: Int) {
+        val code = retry.code()
+        assertEquals(
+            "$what: the hook's opcodes",
+            listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST),
+            code.subList(build, build + 3).map { it.opcode },
+        )
+        assertEquals("$what: the hook called", TO_RETRY, code[build].referenceText())
+        val register = retry.parameterRegisterNumber(0)
+        val call = code[build] as RegisterRangeInstruction
+        assertEquals("$what: the hook takes the store and the batch", retry.localRegisterCount() to 2, call.startRegister to call.registerCount)
+        assertEquals("$what: the batch follows the store", register, call.startRegister + 1)
+        assertEquals("$what: the answer replaces the batch", register, (code[build + 1] as OneRegisterInstruction).registerA)
+        assertEquals("$what: cast back to the batch", batch, code[build + 2].referenceText())
+        assertEquals("$what: the cast is of the batch's register", register, (code[build + 2] as OneRegisterInstruction).registerA)
+        assertTrue("$what: the build follows", code[build + 3].referenceText()!!.startsWith("$batch->"))
+        assertEquals("$what: the build's receiver is the answer", register, code[build + 3].namedRegisters().first())
+        assertEquals("$what: calls of the hook", 1, code.count { it.referenceText() == TO_RETRY })
+        val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+        for ((index, instruction) in code.withIndex()) {
+            if (instruction !is OffsetInstruction) continue
+            val target = addresses[index] + instruction.codeOffset
+            assertTrue("$what: the branch at $index lands in the hook", target !in addresses.subList(build + 1, build + 4))
         }
     }
 
@@ -323,11 +466,16 @@ class StorySeenHookTest {
         }
     }
 
-    private fun assertStubsFilled(context: BytecodePatchContext, batch: String, stories: String, getter: String, send: String, itemView: String) {
+    private fun assertStubsFilled(
+        context: BytecodePatchContext, batch: String, stories: String, getter: String, send: String, session: String, itemView: String,
+    ) {
         fun reads(type: String, stub: String) = context.mutableClassDefBy(type).methods.single { it.name == stub }.code().mapNotNull { it.referenceText() }
+        val userId = "$USER_SESSION->getUserId()Ljava/lang/String;"
         assertTrue(reads(STORY_SEEN, "emptyBatch").containsAll(listOf(batch, "$batch-><init>()V")))
         assertTrue(reads(STORY_SEEN, "seenStories").containsAll(listOf(batch, stories)))
         assertTrue(reads(STORY_SEEN, "send").containsAll(listOf(USER_SESSION, getter, batch, send)))
+        assertTrue(reads(STORY_SEEN, "storeAccount").containsAll(listOf(session.substringBefore("->"), session, userId)))
+        assertTrue(reads(STORY_SEEN, "sessionAccount").containsAll(listOf(USER_SESSION, userId)))
         assertTrue(reads(STORY_SEEN_BUTTON, "storyId").containsAll(listOf(REEL_ITEM, "$REEL_ITEM->getId()Ljava/lang/String;")))
         assertTrue(reads(STORY_SEEN_BUTTON, "itemView").contains(itemView))
     }
@@ -336,44 +484,78 @@ class StorySeenHookTest {
 
     /**
      * The batch, its request builder, its constructors and empty check; the store with its disk
-     * reader, getter, send and the methods the patch leaves alone; the story header binder; the view
-     * holder base and a holder two classes down; the story class; and the extension's two classes.
+     * reader, getter, send, retry and the methods the patch leaves alone, and the class above it that
+     * answers its account; the account; the Reset NUX route; the story header binder; the view holder
+     * base and a holder two classes down; the story class; and the extension's two classes.
      */
     private fun standIns(
         request: Boolean = true,
         storeReader: Boolean = true,
         sends: Int = 1,
         sendOverwrites: Boolean = false,
+        sendChangesBatch: Boolean = false,
+        sendHandsBatchOut: Boolean = false,
+        sendRegisters: Int = 3,
         reelsTwice: Boolean = false,
         storiesFromStatic: Boolean = false,
         branchIntoStories: Boolean = false,
         requestHandsBatchOn: Boolean = false,
+        staticInRequest: Boolean = false,
+        requestSendsItsParameter: Boolean = false,
+        requestCallsOut: Boolean = false,
         constructorFillsStories: Boolean = false,
         constructorFillsModule: Boolean = false,
         constructorStartsStories: Boolean = true,
+        constructorSharesStories: Boolean = false,
+        constructorHandsItselfOn: Boolean = false,
+        batchFinal: Boolean = true,
+        batchSuperclass: String = OBJECT,
+        batchInterface: Boolean = false,
         publicConstructor: Boolean = true,
+        otherRoute: Boolean = false,
+        freshRouteNotConstant: Boolean = false,
+        freshRouteHandsBatchOn: Boolean = false,
+        retryOverwrites: Boolean = false,
+        retryBranchesToBuild: Boolean = false,
+        retryReadsAfter: Boolean = false,
+        twoRetries: Boolean = false,
         getter: Boolean = true,
+        storeSession: Boolean = true,
+        userId: Boolean = true,
         binder: Boolean = true,
         binderParameters: List<String> = listOf(DELEGATE, USER_SESSION, REEL_ITEM, VIEWER, HOLDER, "Z"),
         binderLoops: Boolean = false,
         binderLocals: Int = 11,
         storyId: Boolean = true,
+        reelItemInterface: Boolean = false,
         itemViewPublic: Boolean = true,
     ): List<ClassDef> {
         val stories = if (storiesFromStatic) "sget-object v0, $BATCH->shared:Ljava/util/HashMap;" else "iget-object v0, p0, $BATCH->stories:Ljava/util/HashMap;"
         val builder = """
-            ${if (branchIntoStories) "if-eqz p1, :late" else "nop"}
+            sget-object v1, $FACTORY->A01:$FACTORY
+            sget-object v0, $CONFIG->A00:$CONFIG
+            invoke-virtual { v1, v0, p1 }, $FACTORY->A03($CONFIG$USER_SESSION)$REQUEST
+            move-result-object v3
+            sget-object v0, $SETTINGS->A01:Ljava/lang/Integer;
+            invoke-virtual { v3, v0 }, $REQUEST->A07(Ljava/lang/Integer;)V
+            ${if (branchIntoStories) "const/4 v0, 0x0" else "nop"}
+            ${if (branchIntoStories) "if-eqz v0, :late" else "nop"}
+            iget-object v0, p0, $BATCH->stories:Ljava/util/HashMap;
+            invoke-virtual { v0 }, Ljava/util/HashMap;->size()I
+            move-result v0
             const-string v0, "1"
-            const-string v0, "media/seen/?reel=%s&live_vod=0"
+            const-string v1, "media/seen/?reel=%s&live_vod=0"
+            invoke-virtual { v3, v1, v0 }, $REQUEST->path(Ljava/lang/String;Ljava/lang/String;)V
             $stories
             invoke-static { v0 }, $BATCH->A00(Ljava/util/Map;)Ljava/lang/String;
             move-result-object v5
             iget-object v0, p0, $BATCH->skipped:Ljava/util/HashMap;
             invoke-static { v0 }, $BATCH->A00(Ljava/util/Map;)Ljava/lang/String;
             move-result-object v4
-            :late
-            new-instance v3, $REQUEST
             ${if (requestHandsBatchOn) "invoke-virtual { p0 }, $BATCH->A0A()Z" else "nop"}
+            ${if (requestSendsItsParameter) "invoke-virtual { v3, p1 }, $REQUEST->session($USER_SESSION)V" else "nop"}
+            ${if (requestCallsOut) "invoke-static { }, $ELSEWHERE->latest()Ljava/lang/String;" else "nop"}
+            :late
             if-eqz v5, :skipped
             const-string v0, "reels"
             invoke-virtual { v3, v0, v5 }, $REQUEST->add(Ljava/lang/String;Ljava/lang/String;)V
@@ -388,7 +570,7 @@ class StorySeenHookTest {
             invoke-static { v0 }, Ljava/lang/String;->valueOf(Ljava/lang/Object;)Ljava/lang/String;
             move-result-object v0
             invoke-virtual { v3, v1, v0 }, $REQUEST->add(Ljava/lang/String;Ljava/lang/String;)V
-            iget-object v1, p0, $BATCH->module:Ljava/lang/String;
+            ${if (staticInRequest) "sget-object v1, $BATCH->shared:Ljava/util/HashMap;" else "iget-object v1, p0, $BATCH->module:Ljava/lang/String;"}
             if-eqz v1, :done
             const-string v0, "container_module"
             invoke-virtual { v3, v0, v1 }, $REQUEST->add(Ljava/lang/String;Ljava/lang/String;)V
@@ -403,6 +585,8 @@ class StorySeenHookTest {
             new-instance v3, Ljava/util/HashMap;
             invoke-direct { v3 }, Ljava/util/HashMap;-><init>()V
             ${if (constructorFillsStories) "invoke-virtual { v3, v4, v4 }, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;" else "nop"}
+            ${if (constructorSharesStories) "new-instance v5, $BATCH" else "nop"}
+            ${if (constructorSharesStories) "iput-object v3, v5, $BATCH->stories:Ljava/util/HashMap;" else "nop"}
             new-instance v2, Ljava/util/HashMap;
             invoke-direct { v2 }, Ljava/util/HashMap;-><init>()V
             const/4 v0, 0x1
@@ -420,6 +604,11 @@ class StorySeenHookTest {
             iput-object ${if (constructorFillsModule) "v4" else "v0"}, p0, $BATCH->module:Ljava/lang/String;
             return-void
         """
+        val start = if (constructorHandsItselfOn) {
+            "invoke-direct { p0, p0 }, $BATCH-><init>(Ljava/lang/Object;)V"
+        } else {
+            "invoke-direct { p0, v0, v1 }, $BATCH-><init>(II)V"
+        }
         val batchClass = classOf(
             BATCH,
             listOf(
@@ -431,30 +620,73 @@ class StorySeenHookTest {
                 method(BATCH, "<init>", emptyList(), "V", 3, """
                     const/16 v1, 0x3ff
                     const/4 v0, 0x0
-                    invoke-direct { p0, v0, v1 }, $BATCH-><init>(II)V
+                    $start
                     return-void
                 """, static = false, constructor = true, public = publicConstructor),
-                method(BATCH, "<init>", listOf("I", "I"), "V", 8, synthetic, static = false, constructor = true),
-                if (request) method(BATCH, "A04", listOf(OBJECT), REQUEST, 8, builder, static = false) else null,
+                method(BATCH, "<init>", listOf("I", "I"), "V", 9, synthetic, static = false, constructor = true),
+                if (constructorHandsItselfOn) method(BATCH, "<init>", listOf(OBJECT), "V", 2, """
+                    invoke-direct { p0 }, Ljava/lang/Object;-><init>()V
+                    return-void
+                """, static = false, constructor = true) else null,
+                if (request) method(BATCH, "A04", listOf(USER_SESSION), REQUEST, 8, builder, static = false) else null,
                 method(BATCH, "A00", listOf("Ljava/util/Map;"), "Ljava/lang/String;", 2, """
                     const/4 v0, 0x0
                     return-object v0
                 """),
                 method(BATCH, "A0A", emptyList(), "Z", 2, """
-                    const/4 v0, 0x0
+                    iget-object v0, p0, $BATCH->stories:Ljava/util/HashMap;
+                    invoke-virtual { v0 }, Ljava/util/HashMap;->isEmpty()Z
+                    move-result v0
                     return v0
                 """, static = false),
+                method(BATCH, "A0B", emptyList(), "V", 2, """
+                    iget-object v0, p0, $BATCH->stories:Ljava/util/HashMap;
+                    invoke-virtual { v0 }, Ljava/util/HashMap;->clear()V
+                    return-void
+                """, static = false),
             ),
+            superclass = batchSuperclass,
+            final = batchFinal,
+            interfaces = if (batchInterface) listOf(SEEN_STATE) else emptyList(),
         )
-        val sendBody = """
-            ${if (sendOverwrites) "const/4 p1, 0x0" else "nop"}
-            invoke-virtual { p1 }, $BATCH->A0A()Z
-            move-result v0
-            if-nez v0, :done
-            const/4 v0, 0x0
-            invoke-virtual { p1, v0 }, $BATCH->A04(Ljava/lang/Object;)$REQUEST
-            :done
-            return-void
+        val sendBody = if (sendRegisters > 16) {
+            """
+                invoke-virtual/range { p1 .. p1 }, $BATCH->A0A()Z
+                move-result v0
+                if-nez v0, :done
+                invoke-virtual/range { p0 .. p0 }, $STORE_BASE->A0H()$USER_SESSION
+                move-result-object v1
+                move-object/from16 v0, p1
+                invoke-virtual { v0, v1 }, $BATCH->A04($USER_SESSION)$REQUEST
+                :done
+                return-void
+            """
+        } else {
+            """
+                ${if (sendOverwrites) "const/4 p1, 0x0" else "nop"}
+                ${if (sendChangesBatch) "invoke-virtual { p1 }, $BATCH->A0B()V" else "nop"}
+                ${if (sendHandsBatchOut) "invoke-static { p1 }, $ELSEWHERE->keep(Ljava/lang/Object;)V" else "nop"}
+                invoke-virtual { p1 }, $BATCH->A0A()Z
+                move-result v0
+                if-nez v0, :done
+                invoke-virtual { p0 }, $STORE_BASE->A0H()$USER_SESSION
+                move-result-object v0
+                invoke-virtual { p1, v0 }, $BATCH->A04($USER_SESSION)$REQUEST
+                :done
+                return-void
+            """
+        }
+        val retryBody = """
+            ${if (retryOverwrites) "const/4 p1, 0x0" else "nop"}
+            check-cast p1, $BATCH
+            invoke-virtual { p0 }, $STORE_BASE->A0H()$USER_SESSION
+            move-result-object v0
+            ${if (retryBranchesToBuild) "if-eqz v0, :build" else "nop"}
+            :build
+            invoke-virtual { p1, v0 }, $BATCH->A04($USER_SESSION)$REQUEST
+            move-result-object v0
+            ${if (retryReadsAfter) "invoke-virtual { p1 }, $BATCH->A0A()Z" else "nop"}
+            return-object v0
         """
         val storeClass = classOf(
             STORE,
@@ -469,19 +701,64 @@ class StorySeenHookTest {
                     new-instance v0, $STORE
                     return-object v0
                 """) else null,
-                method(STORE, "A0J", listOf(OBJECT), REQUEST, 3, """
-                    check-cast p1, $BATCH
-                    const/4 v0, 0x0
-                    invoke-virtual { p1, v0 }, $BATCH->A04(Ljava/lang/Object;)$REQUEST
-                    move-result-object v0
-                    return-object v0
-                """, static = false),
+                method(STORE, "A0J", listOf(OBJECT), REQUEST, 3, retryBody, static = false),
+                if (twoRetries) method(STORE, "A0M", listOf(OBJECT), REQUEST, 3, retryBody, static = false) else null,
                 method(STORE, "A0P", listOf(BATCH), "V", 3, """
                     invoke-virtual { p1 }, $BATCH->A0A()Z
                     return-void
                 """, static = false),
-                method(STORE, "A0Q", listOf(BATCH), "V", 2, sendBody.replace("p1", "p0")),
-            ) + (0 until sends).map { copy -> method(STORE, if (copy == 0) "A0O" else "A0R", listOf(BATCH), "V", 3, sendBody, static = false) },
+                if (otherRoute) method(STORE, "A0Q", listOf(BATCH), "V", 2, """
+                    invoke-virtual { p0 }, $BATCH->A0A()Z
+                    move-result v0
+                    if-nez v0, :done
+                    const/4 v0, 0x0
+                    invoke-virtual { p0, v0 }, $BATCH->A04($USER_SESSION)$REQUEST
+                    :done
+                    return-void
+                """) else null,
+            ) + (0 until sends).map { copy -> method(STORE, if (copy == 0) "A0O" else "A0R", listOf(BATCH), "V", sendRegisters, sendBody, static = false) },
+            superclass = STORE_BASE,
+        )
+        val storeBase = classOf(
+            STORE_BASE,
+            emptyList(),
+            listOfNotNull(
+                if (storeSession) method(STORE_BASE, "A0H", emptyList(), USER_SESSION, 2, """
+                    const/4 v0, 0x0
+                    return-object v0
+                """, static = false) else null,
+            ),
+            abstract = true,
+        )
+        val resetNux = classOf(
+            RESET_NUX,
+            emptyList(),
+            listOf(
+                method(RESET_NUX, "A00", listOf(USER_SESSION), "V", 5, """
+                    const/16 v0, 0x3ff
+                    const/4 v1, 0x0
+                    new-instance v2, $BATCH
+                    invoke-direct { v2, v1, v0 }, $BATCH-><init>(II)V
+                    iget-object v0, v2, $BATCH->skipped:Ljava/util/HashMap;
+                    const-string v1, "nux_story"
+                    ${if (freshRouteNotConstant) "move-object v3, p0" else "const-string v3, \"0\""}
+                    invoke-virtual { v0, v1, v3 }, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                    ${if (freshRouteHandsBatchOn) "invoke-static { v2 }, $ELSEWHERE->keep(Ljava/lang/Object;)V" else "nop"}
+                    invoke-virtual { v2, p0 }, $BATCH->A04($USER_SESSION)$REQUEST
+                    move-result-object v0
+                    return-void
+                """),
+            ),
+        )
+        val userSession = classOf(
+            USER_SESSION,
+            emptyList(),
+            listOfNotNull(
+                if (userId) method(USER_SESSION, "getUserId", emptyList(), "Ljava/lang/String;", 2, """
+                    const/4 v0, 0x0
+                    return-object v0
+                """, static = false) else null,
+            ),
         )
         val binderClass = if (binder) {
             val holderAt = binderParameters.indexOf(HOLDER).takeIf { it >= 0 } ?: 4
@@ -530,9 +807,24 @@ class StorySeenHookTest {
                     return-object v0
                 """, static = false) else null,
             ),
+            isInterface = reelItemInterface,
         )
+        val seenState = if (batchInterface) {
+            ImmutableClassDef(
+                SEEN_STATE, AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value, OBJECT, null, null, null,
+                emptyList(),
+                listOf(
+                    ImmutableMethod(
+                        SEEN_STATE, "A04", listOf(ImmutableMethodParameter(USER_SESSION, null, null)), REQUEST,
+                        AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null,
+                    ),
+                ),
+            )
+        } else {
+            null
+        }
         return listOfNotNull(
-            batchClass, storeClass, binderClass, viewHolder, reelItem,
+            batchClass, storeClass, storeBase, resetNux, userSession, binderClass, viewHolder, reelItem, seenState,
             classOf(HOLDER_BASE, emptyList(), emptyList(), superclass = VIEW_HOLDER, abstract = true),
             classOf(HOLDER, emptyList(), emptyList(), superclass = HOLDER_BASE),
             classOf(VIEWER, emptyList(), emptyList()),
@@ -568,10 +860,16 @@ class StorySeenHookTest {
 
     private fun classOf(
         type: String, fields: List<ImmutableField>, methods: List<Method>, superclass: String = OBJECT, abstract: Boolean = false,
-    ): ClassDef = ImmutableClassDef(
-        type, AccessFlags.PUBLIC.value or (if (abstract) AccessFlags.ABSTRACT.value else AccessFlags.FINAL.value), superclass,
-        null, null, null, fields, methods,
-    )
+        final: Boolean = true, isInterface: Boolean = false, interfaces: List<String> = emptyList(),
+    ): ClassDef {
+        val kind = when {
+            isInterface -> AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value
+            abstract -> AccessFlags.ABSTRACT.value
+            final -> AccessFlags.FINAL.value
+            else -> 0
+        }
+        return ImmutableClassDef(type, AccessFlags.PUBLIC.value or kind, superclass, interfaces, null, null, fields, methods)
+    }
 
     /** [classDef] under another name, its members moved with it. */
     private fun copyOf(classDef: ClassDef, type: String): ClassDef = ImmutableClassDef(
@@ -590,8 +888,16 @@ class StorySeenHookTest {
 
     private companion object {
         const val BATCH = "Lfixture/PendingReelSeenState;"
+        const val BATCH_BASE = "Lfixture/SeenStateBase;"
+        const val SEEN_STATE = "Lfixture/SeenState;"
         const val STORE = "Lfixture/PendingReelSeenStateStore;"
+        const val STORE_BASE = "Lfixture/SessionStore;"
+        const val RESET_NUX = "Lfixture/ResetNux;"
         const val REQUEST = "Lfixture/Request;"
+        const val FACTORY = "Lfixture/RequestFactory;"
+        const val CONFIG = "Lfixture/RequestConfig;"
+        const val SETTINGS = "Lfixture/Settings;"
+        const val ELSEWHERE = "Lfixture/Elsewhere;"
         const val BINDER = "Lfixture/ReelViewerItemBinder;"
         const val VIEW_HOLDER = "Lfixture/ViewHolder;"
         const val HOLDER_BASE = "Lfixture/HolderBase;"
@@ -600,5 +906,6 @@ class StorySeenHookTest {
         const val VIEWER = "Lfixture/Viewer;"
         const val OBJECT = "Ljava/lang/Object;"
         const val VIEW = "Landroid/view/View;"
+        val HOOKS = setOf(TO_SEND, TO_RETRY, BIND_BUTTON)
     }
 }

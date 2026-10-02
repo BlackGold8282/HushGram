@@ -21,11 +21,17 @@ import java.util.function.LongSupplier;
  * batch's stories are matched to marks by the first part of their key. A key of any other shape is
  * never matched, and that story stays held back.
  *
+ * <p>Everything here belongs to the account it happened on, by Instagram's user ID for it: a mark
+ * made while signed in to one account is never sent in another account's batch, and a story one
+ * account held back is never sent for another. With no account to go by, nothing is marked, kept
+ * or sent.
+ *
  * <p>When a batch goes to be sent, {@link #choose} picks the stories in it that are marked, and the
  * ones an earlier batch held back that have been marked since, and puts them, and nothing else, in a
  * new batch of Instagram's that started empty. Each story picked counts as sent: its mark is spent,
- * and if it turns up in a batch again it's held back like any other. A mark whose story isn't in
- * the batch stays until a send carries it, for 24 hours after the tap at most. Marks are kept in
+ * and if it turns up in a batch again it's held back like any other. Sent means handed to
+ * Instagram's send, which may still fail on the network. A mark whose story isn't in the batch stays
+ * until a send carries it, for 24 hours after the tap at most. Marks, and what was sent, are kept in
  * memory only, so they also lapse when Instagram's process ends.
  *
  * <p>Batches are held back whole while views are anonymous. So a story you mark after its batch went
@@ -50,67 +56,81 @@ final class StoryMarks {
         SENT,
     }
 
-    /** A story a batch held back: its key and entry in the batch's map, and when. */
+    /** A story a batch held back: the account, the story, its key and entry in the batch's map, and when. */
     private static final class Held {
+        final String account;
         final String story;
+        final Object key;
         final Object entry;
         final long at;
 
-        Held(String story, Object entry, long at) {
+        Held(String account, String story, Object key, Object entry, long at) {
+            this.account = account;
             this.story = story;
+            this.key = key;
             this.entry = entry;
             this.at = at;
         }
     }
 
     private final LongSupplier clock;
-    /** Story ID to when it was marked, oldest first. */
+    /** Account and story ID to when it was marked, oldest first. */
     private final LinkedHashMap<String, Long> marked = new LinkedHashMap<>();
-    /** Story ID to when it was sent, oldest first. */
+    /** Account and story ID to when it was sent, oldest first. */
     private final LinkedHashMap<String, Long> sent = new LinkedHashMap<>();
-    /** A held-back story's key in a batch's map, to the story and its entry, oldest first. */
-    private final LinkedHashMap<Object, Held> held = new LinkedHashMap<>();
+    /** Account and a held-back story's key in a batch's map, to what was held, oldest first. */
+    private final LinkedHashMap<String, Held> held = new LinkedHashMap<>();
 
     StoryMarks(LongSupplier clock) {
         this.clock = clock;
     }
 
-    /** Where [story] stands, UNMARKED for null. */
-    synchronized State state(@Nullable String story) {
-        if (story == null) return State.UNMARKED;
+    /** Where [story] stands for [account], UNMARKED for either null. */
+    synchronized State state(@Nullable String account, @Nullable String story) {
+        if (account == null || story == null) return State.UNMARKED;
         prune(clock.getAsLong());
-        if (sent.containsKey(story)) return State.SENT;
-        return marked.containsKey(story) ? State.MARKED : State.UNMARKED;
+        String id = id(account, story);
+        if (sent.containsKey(id)) return State.SENT;
+        return marked.containsKey(id) ? State.MARKED : State.UNMARKED;
     }
 
-    /** A tap: marks [story], or takes its mark back. A story already sent stays sent. Answers where it stands now. */
-    synchronized State toggle(String story) {
+    /**
+     * A tap: marks [story] for [account], or takes its mark back. A story already sent stays sent,
+     * and with no account nothing is marked. Answers where it stands now.
+     */
+    synchronized State toggle(@Nullable String account, String story) {
+        if (account == null) return State.UNMARKED;
         long now = clock.getAsLong();
         prune(now);
-        if (sent.containsKey(story)) return State.SENT;
-        if (marked.remove(story) != null) return State.UNMARKED;
-        marked.put(story, now);
+        String id = id(account, story);
+        if (sent.containsKey(id)) return State.SENT;
+        if (marked.remove(id) != null) return State.UNMARKED;
+        marked.put(id, now);
         trim(marked, MAX_MARKS);
         return State.MARKED;
     }
 
-    /** Whether a batch held [story] back and it's still kept here to send. */
-    synchronized boolean held(String story) {
+    /** Whether a batch of [account]'s held [story] back and it's still kept here to send. */
+    synchronized boolean held(@Nullable String account, String story) {
+        if (account == null) return false;
         prune(clock.getAsLong());
         for (Held entry : held.values()) {
-            if (entry.story.equals(story)) return true;
+            if (entry.account.equals(account) && entry.story.equals(story)) return true;
         }
         return false;
     }
 
     /**
-     * Picks what goes out of [batch]: a new batch from [batches] holding only the marked stories of
-     * [batch] and the marked ones held back before, or null when there are none, and then nothing
-     * goes. Keeps the other stories of [batch] as held back. Null too when the new batch doesn't
-     * start empty, since anything else in it would go out as well.
+     * Picks what goes out of [batch], a batch of [account]'s: a new batch from [batches] holding
+     * only the marked stories of [batch] and the marked ones [account] held back before, or null
+     * when there are none, and then nothing goes. Keeps the other stories of [batch] as held back.
+     * Null too when the new batch doesn't start empty, since anything else in it would go out as
+     * well; the marked stories are then kept as held back, for a later send to carry. Null, and
+     * nothing kept, with no account.
      */
     @Nullable
-    synchronized Object choose(@Nullable Object batch, StorySeen.Batches batches) {
+    synchronized Object choose(@Nullable String account, @Nullable Object batch, StorySeen.Batches batches) {
+        if (account == null) return null;
         long now = clock.getAsLong();
         prune(now);
         Map<Object, Object> stories = batch == null ? null : batches.stories(batch);
@@ -120,32 +140,38 @@ final class StoryMarks {
             for (Map.Entry<Object, Object> entry : entries) {
                 String story = storyOfKey(entry.getKey());
                 if (story == null) continue;
-                if (marked.containsKey(story)) {
+                String id = id(account, story);
+                if (marked.containsKey(id)) {
                     chosen.put(entry.getKey(), entry.getValue());
-                } else if (!sent.containsKey(story)) {
-                    held.remove(entry.getKey());
-                    held.put(entry.getKey(), new Held(story, entry.getValue(), now));
+                } else if (!sent.containsKey(id)) {
+                    keep(account, story, entry.getKey(), entry.getValue(), now);
                 }
             }
             trim(held, MAX_HELD);
         }
-        for (Map.Entry<Object, Held> entry : held.entrySet()) {
-            if (marked.containsKey(entry.getValue().story) && !chosen.containsKey(entry.getKey())) {
-                chosen.put(entry.getKey(), entry.getValue().entry);
+        for (Held entry : held.values()) {
+            if (entry.account.equals(account) && marked.containsKey(id(account, entry.story)) && !chosen.containsKey(entry.key)) {
+                chosen.put(entry.key, entry.entry);
             }
         }
         if (chosen.isEmpty()) return null;
 
         Object fresh = batches.empty();
         Map<Object, Object> into = fresh == null ? null : batches.stories(fresh);
-        if (into == null || !into.isEmpty()) return null;
+        if (into == null || !into.isEmpty()) {
+            for (Map.Entry<Object, Object> entry : chosen.entrySet()) {
+                keep(account, storyOfKey(entry.getKey()), entry.getKey(), entry.getValue(), now);
+            }
+            trim(held, MAX_HELD);
+            return null;
+        }
         into.putAll(chosen);
         for (Object key : chosen.keySet()) {
-            held.remove(key);
-            String story = storyOfKey(key);
-            marked.remove(story);
-            sent.remove(story);
-            sent.put(story, now);
+            held.remove(heldId(account, key));
+            String id = id(account, storyOfKey(key));
+            marked.remove(id);
+            sent.remove(id);
+            sent.put(id, now);
         }
         trim(sent, MAX_SENT);
         return fresh;
@@ -182,6 +208,21 @@ final class StoryMarks {
         if (second < 0 || second == text.length() - 1) return null;
         String media = text.substring(0, first);
         return digits(media) && digits(text.substring(first + 1, second)) ? media : null;
+    }
+
+    private void keep(String account, String story, Object key, Object entry, long now) {
+        String id = heldId(account, key);
+        held.remove(id);
+        held.put(id, new Held(account, story, key, entry, now));
+    }
+
+    /** An account's user ID never holds a slash, so the two can't run together into another pair. */
+    private static String id(String account, String story) {
+        return account + "/" + story;
+    }
+
+    private static String heldId(String account, Object key) {
+        return account + "/" + key;
     }
 
     private static boolean digits(String text) {
