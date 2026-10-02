@@ -250,6 +250,9 @@ tasks.register("verifyAndroidBoundaries") {
                 "aHostRecycledForAnItemWithNoBarKeepsNoLabel[28]", "aHostRecycledForAnItemWithNoBarKeepsNoLabel",
                 "aReplacedBarLeavesOneLabelOnItsHost[28]", "aReplacedBarLeavesOneLabelOnItsHost",
                 "aBarWithNoRoomKeepsOneLabelAndOneListener[28]", "aBarWithNoRoomKeepsOneLabelAndOneListener",
+                "anOrdinaryReelBoundAgainKeepsItsLabelUp[28]", "anOrdinaryReelBoundAgainKeepsItsLabelUp",
+                "twoBarsSharingAHostKeepOneLabelAcrossAMove[28]", "twoBarsSharingAHostKeepOneLabelAcrossAMove",
+                "aBarFurtherDownItsContainerStillCounts[28]", "aBarFurtherDownItsContainerStillCounts",
                 "adsAndOtherScreensGetNoLabel[28]", "adsAndOtherScreensGetNoLabel"),
             "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
                 "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch",

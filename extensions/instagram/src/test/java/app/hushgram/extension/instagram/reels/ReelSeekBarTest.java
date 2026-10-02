@@ -42,6 +42,7 @@ import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
@@ -677,7 +678,9 @@ public class ReelSeekBarTest {
 
     /**
      * With no room for the label anywhere near, a bar keeps the one label and the one listener it
-     * got with its first tick, however many ticks come and whatever the collector does.
+     * got with its first tick, however many ticks come and whatever the collector does. Nothing
+     * here holds the label but the bar: a label held only weakly was collected between ticks, and
+     * each tick then gave the bar another one and another layout listener.
      */
     @Test
     public void aBarWithNoRoomKeepsOneLabelAndOneListener() {
@@ -690,23 +693,152 @@ public class ReelSeekBarTest {
         int windowListeners = listeners(bar, "mOnAttachStateChangeListeners");
 
         ReelSeekBar.progress(bar, 0);
-        TextView label = ReelTimeLabel.labelOf(bar);
-        assertNotNull(label);
+        WeakReference<TextView> first = new WeakReference<>(ReelTimeLabel.labelOf(bar));
+        assertNotNull(first.get());
         for (int tick = 1; tick <= 20; tick++) {
-            System.gc();
-            System.runFinalization();
+            collect();
             ReelSeekBar.progress(bar, tick * 1_000);
-            assertSame("tick " + tick, label, ReelTimeLabel.labelOf(bar));
         }
         bar.requestLayout();
         layout(container, CONTAINER_PX);
         ShadowLooper.idleMainLooper();
 
-        assertSame(label, ReelTimeLabel.labelOf(bar));
         assertEquals("layout listeners", layoutListeners + 1, listeners(bar, "mOnLayoutChangeListeners"));
         assertEquals("window listeners", windowListeners + 1, listeners(bar, "mOnAttachStateChangeListeners"));
+        TextView label = first.get();
+        assertNotNull("the bar kept its first label", label);
+        assertSame(label, ReelTimeLabel.labelOf(bar));
         assertNull("nowhere to go", label.getParent());
         assertEquals(View.GONE, label.getVisibility());
+        assertNothingFailed();
+    }
+
+    /**
+     * Litho can bind the scrubber container again while its reel plays. Bound again to the same
+     * ordinary reel, the label stays up through it, with no frame where it's hidden. Bound to
+     * another reel, it starts over: hidden at once, then shown with that reel's time.
+     */
+    @Test
+    public void anOrdinaryReelBoundAgainKeepsItsLabelUp() {
+        FrameLayout host = host();
+        FrameLayout container = scrubber(host, 55_000, false);
+        container.setTag(ReelTimeLabel.REEL_TAG_PREFIX + "1");
+        SeekBar bar = barIn(container);
+        bar.setProgress(10_000);
+        ReelSeekBar.progress(bar, 10_000);
+        TextView label = ReelTimeLabel.labelOf(bar);
+        assertEquals(View.VISIBLE, label.getVisibility());
+
+        ReelSeekBar.bind(container, 0);
+        assertEquals("bound again, still up", View.VISIBLE, label.getVisibility());
+        frame();
+        assertEquals("and on the next frame", View.VISIBLE, label.getVisibility());
+        ShadowLooper.idleMainLooper();
+        assertEquals(View.VISIBLE, label.getVisibility());
+        assertEquals("0:10 / 0:55", label.getText().toString());
+
+        container.setTag(ReelTimeLabel.REEL_TAG_PREFIX + "2");
+        bar.setMax(30_000);
+        bar.setProgress(0);
+        ReelSeekBar.bind(container, 0);
+        assertEquals("another reel, hidden at once", View.GONE, label.getVisibility());
+        ShadowLooper.idleMainLooper();
+        assertEquals(View.VISIBLE, label.getVisibility());
+        assertEquals("0:00 / 0:30", label.getText().toString());
+    }
+
+    /**
+     * Two bars in one container share the view their labels go in, which holds one label. When the
+     * shown label moves from the container's children to the same container's overlay and back, it
+     * keeps its hold, and the other bar's label still waits.
+     */
+    @Test
+    public void twoBarsSharingAHostKeepOneLabelAcrossAMove() {
+        FrameLayout container = container();
+        SeekBar firstBar = new SeekBar(context());
+        SeekBar secondBar = new SeekBar(context());
+        for (SeekBar bar : new SeekBar[] {firstBar, secondBar}) {
+            bar.setPadding(30, 0, 40, 0);
+            bar.setMax(55_000);
+            container.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, BAR_PX, Gravity.BOTTOM));
+        }
+        show(container, HEIGHT);
+        ReelSeekBar.progress(firstBar, 10_000);
+        ReelSeekBar.progress(secondBar, 5_000);
+        TextView firstLabel = ReelTimeLabel.labelOf(firstBar);
+        TextView secondLabel = ReelTimeLabel.labelOf(secondBar);
+        assertSame("a child of the container", container, firstLabel.getParent());
+        assertEquals(View.VISIBLE, firstLabel.getVisibility());
+        assertNull("the second bar's label waits", secondLabel.getParent());
+
+        // Padding that leaves room above the bar on the container's overlay, but not inside it.
+        int room = firstBar.getTop();
+        int needed = firstLabel.getMeasuredHeight() + gap(context());
+        assertTrue("room for the label above the bar", room - needed > 0);
+        container.setPadding(0, room - needed + 1, 0, 0);
+        layout(container);
+        assertEquals("the bar stayed where it was", room, firstBar.getTop());
+        ReelSeekBar.progress(firstBar, 11_000);
+        assertNotSame("moved to the container's overlay", container, firstLabel.getParent());
+        assertNotNull(firstLabel.getParent());
+        assertEquals(View.VISIBLE, firstLabel.getVisibility());
+
+        ReelSeekBar.progress(secondBar, 6_000);
+        frame();
+        assertNull("the second bar's label still waits", secondLabel.getParent());
+        assertEquals(View.GONE, secondLabel.getVisibility());
+        assertEquals("labels on the container's overlay", 1, ((ViewGroup) firstLabel.getParent()).getChildCount());
+
+        container.setPadding(0, 0, 0, 0);
+        layout(container);
+        ReelSeekBar.progress(firstBar, 12_000);
+        assertSame("back among the container's children", container, firstLabel.getParent());
+        ReelSeekBar.progress(secondBar, 7_000);
+        frame();
+        assertNull("and the second bar's label waits", secondLabel.getParent());
+        assertEquals("the container's children: two bars and one label", 3, container.getChildCount());
+        assertNothingFailed();
+    }
+
+    /**
+     * The container Instagram binds is the nearest bound view above the bar, for the ad check and
+     * the reel's tag alike, so a bar a view further down still gets its label, an ad's still gets
+     * none, and binding the container to an ad reaches the bar.
+     */
+    @Test
+    public void aBarFurtherDownItsContainerStillCounts() {
+        FrameLayout host = host();
+        FrameLayout container = new FrameLayout(context());
+        container.setTag(ReelTimeLabel.REEL_TAG_PREFIX + "7");
+        ReelSeekBar.bind(container, 0);
+        FrameLayout wrapper = new FrameLayout(context());
+        SeekBar bar = new SeekBar(context());
+        bar.setPadding(30, 0, 40, 0);
+        bar.setMax(55_000);
+        wrapper.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, BAR_PX, Gravity.BOTTOM));
+        container.addView(wrapper, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, CONTAINER_PX, Gravity.BOTTOM));
+        host.addView(container, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, CONTAINER_PX, Gravity.BOTTOM));
+        layout(host);
+
+        ReelSeekBar.progress(bar, 10_000);
+        TextView label = ReelTimeLabel.labelOf(bar);
+        assertNotNull(label);
+        assertEquals(View.VISIBLE, label.getVisibility());
+        assertEquals("0:10 / 0:55", label.getText().toString());
+        assertEquals(ReelTimeLabel.REEL_TAG_PREFIX + "7", ReelTimeLabel.reelOf(bar));
+
+        ReelSeekBar.bind(container, 1);
+        assertEquals("bound to an ad, hidden at once", View.GONE, label.getVisibility());
+        ShadowLooper.idleMainLooper();
+        assertNull(label.getParent());
+
+        // A nearer container bound to an ad decides for its own bar.
+        ReelSeekBar.bind(container, 0);
+        ReelSeekBar.bind(wrapper, 1);
+        ReelSeekBar.progress(bar, 11_000);
+        frame();
+        assertNull("the nearer container is an ad's", label.getParent());
+        assertNull(ReelTimeLabel.reelOf(bar));
     }
 
     /**
@@ -828,6 +960,21 @@ public class ReelSeekBarTest {
     /** What runs before a frame of the window is drawn. */
     private void frame() {
         window.getViewTreeObserver().dispatchOnPreDraw();
+    }
+
+    /** No seek bar hook reported a failure, which would have hidden the label and left a diagnostic. */
+    private static void assertNothingFailed() {
+        assertTrue(HookStatus.missing(FamilyNames.REEL_SEEK_BAR).toString(), HookStatus.missing(FamilyNames.REEL_SEEK_BAR).isEmpty());
+    }
+
+    /** Runs the collector until it has really run: an object nothing else holds is gone. */
+    private static void collect() {
+        WeakReference<Object> canary = new WeakReference<>(new Object());
+        for (int i = 0; i < 50 && canary.get() != null; i++) {
+            System.gc();
+            System.runFinalization();
+        }
+        assertNull("the collector never ran", canary.get());
     }
 
     /** How many listeners of a kind ([field] of View's ListenerInfo) [view] has. */

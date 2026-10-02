@@ -42,7 +42,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>Instagram's reel seek bar keeps the reel's position and length in milliseconds as its
  * progress and max, and every change of either reaches its onProgressChanged, where
  * {@link #update} runs. Only a bar whose container Instagram bound to an ordinary reel gets a
- * label ({@link #bind}): an ad's bar, or the same kind of bar anywhere else, stays as it is.
+ * label ({@link #bind}): an ad's bar, or the same kind of bar anywhere else, stays as it is. The
+ * container is the nearest view above the bar that Instagram bound, for the reel's tag too, so a
+ * bar a view or two further down still counts.
  *
  * <p>Each bar gets one label, made with its first update and kept by the bar itself for as long as
  * the bar lives, along with one listener for the bar's layout, its window and the window's frames.
@@ -77,7 +79,10 @@ final class ReelTimeLabel {
     /** The label's text size, the size of Instagram's own scrubber times. */
     static final float TEXT_SP = 12f;
 
-    /** How many views up from the bar the reel's tag is looked for. */
+    /**
+     * How many views up from the bar, its parent first, the container Instagram bound to a reel is
+     * looked for, and how far down from a bound container its bar is.
+     */
     private static final int TAG_REACH = 8;
 
     /**
@@ -238,21 +243,25 @@ final class ReelTimeLabel {
 
     /**
      * Notes whether Instagram bound [container], a seek bar container, to an ordinary reel or to an
-     * ad. A bar in a container bound to an ad loses its label at once, and one in a container bound
-     * to an ordinary reel gets its label shown for that reel. Never throws.
+     * ad. A bar in a container bound to an ad or to another reel loses its label at once, and one
+     * in a container bound to an ordinary reel gets its label shown for that reel. Bound again to
+     * the same ordinary reel, the label stays up rather than blinking for a frame. Never throws.
      */
     static void bind(Object container, boolean ad, BooleanSupplier on) {
         if (!(container instanceof View)) return;
         try {
             HookStatus.invoked(FamilyNames.REEL_SEEK_BAR);
             View view = (View) container;
+            Boolean before;
             synchronized (REELS) {
-                REELS.put(view, !ad);
+                before = REELS.put(view, !ad);
             }
+            boolean stillOrdinary = !ad && Boolean.TRUE.equals(before);
             for (SeekBar bar : barsIn(view)) {
                 Tracker tracker = trackerOf(bar);
                 if (tracker != null) {
-                    hide(bar, tracker.label);
+                    State state = (State) tracker.label.getTag();
+                    if (!stillOrdinary || !Objects.equals(state.reel, reelOf(bar))) hide(bar, tracker.label);
                     tracker.queue(bar);
                 } else if (!ad && on.getAsBoolean()) {
                     MAIN.post(() -> update(bar, bar.getProgress(), on));
@@ -276,7 +285,7 @@ final class ReelTimeLabel {
             Tracker tracker = trackerOf(bar);
             label = tracker == null ? null : tracker.label;
             ViewParent parent = bar.getParent();
-            if (!(parent instanceof ViewGroup) || !ordinaryReel(parent)) {
+            if (!(parent instanceof ViewGroup) || !ordinaryReel(bar)) {
                 // An ad's bar, a bar on another screen, or one taken out of its container.
                 if (label != null) remove(bar, label);
                 return;
@@ -332,22 +341,53 @@ final class ReelTimeLabel {
         }
     }
 
-    private static boolean ordinaryReel(Object container) {
+    /** Whether the container Instagram bound nearest above [bar] holds an ordinary reel. */
+    private static boolean ordinaryReel(View bar) {
+        View container = containerOf(bar);
+        if (container == null) return false;
         synchronized (REELS) {
             return Boolean.TRUE.equals(REELS.get(container));
         }
     }
 
-    private static List<SeekBar> barsIn(View container) {
-        List<SeekBar> bars = new ArrayList<>(1);
-        if (container instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) container;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                View child = group.getChildAt(i);
-                if (child instanceof SeekBar) bars.add((SeekBar) child);
+    /**
+     * The nearest view above [bar], its parent first and up to {@link #TAG_REACH}, that Instagram
+     * bound to a reel, or null. On 449 that's the bar's parent, the FrameLayout the scrubber puts
+     * it in.
+     */
+    private static View containerOf(View bar) {
+        ViewParent parent = bar.getParent();
+        synchronized (REELS) {
+            for (int i = 0; i < TAG_REACH && parent instanceof View; i++) {
+                if (REELS.containsKey(parent)) return (View) parent;
+                parent = parent.getParent();
             }
         }
-        return bars;
+        return null;
+    }
+
+    /** The bars [container] is the nearest bound container of, down to {@link #TAG_REACH} below it. */
+    private static List<SeekBar> barsIn(View container) {
+        List<SeekBar> bars = new ArrayList<>(1);
+        collectBars(container, TAG_REACH, bars);
+        List<SeekBar> own = new ArrayList<>(bars.size());
+        for (SeekBar bar : bars) {
+            if (containerOf(bar) == container) own.add(bar);
+        }
+        return own;
+    }
+
+    private static void collectBars(View view, int depth, List<SeekBar> bars) {
+        if (depth <= 0 || !(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof SeekBar) {
+                bars.add((SeekBar) child);
+            } else {
+                collectBars(child, depth - 1, bars);
+            }
+        }
     }
 
     /** Makes the bar's one label and listener, and has the bar keep them. */
@@ -381,6 +421,10 @@ final class ReelTimeLabel {
         label.setFocusable(false);
         label.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         label.setVisibility(View.GONE);
+        // Layout parameters before any view holds it: a TextView that has been measured reads them
+        // on every new text, and a label with no room, or waiting for another bar's, holds none.
+        label.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         label.setTag(new State(bar));
         return label;
     }
@@ -433,7 +477,7 @@ final class ReelTimeLabel {
         State state = (State) label.getTag();
         ViewGroup holder = holderOf(label);
         if (holder == null) return;
-        if (!under(bar, holder) || !ordinaryReel(bar.getParent())) {
+        if (!under(bar, holder) || !ordinaryReel(bar)) {
             remove(bar, label);
             return;
         }
@@ -476,8 +520,9 @@ final class ReelTimeLabel {
     }
 
     /**
-     * Makes [label] the one label [host] holds. Another label there gives way when its bar is gone,
-     * no longer under [host], not showing, or its label isn't wanted; otherwise [label] waits.
+     * Whether [label] may go in [host], which holds one label at most. Another label there gives
+     * way when its bar is gone, no longer under [host], not showing, or its label isn't wanted;
+     * otherwise [label] waits. {@link #attach} records the hold once the label is in place.
      */
     private static boolean claim(ViewGroup host, TextView label) {
         TextView other;
@@ -491,9 +536,6 @@ final class ReelTimeLabel {
                     && under(otherBar, host);
             if (showing) return false;
             remove(otherBar, other);
-        }
-        synchronized (HELD) {
-            HELD.put(host, new WeakReference<>(label));
         }
         return true;
     }
@@ -525,22 +567,31 @@ final class ReelTimeLabel {
         return null;
     }
 
-    /** Puts the label in [host]: a child of the bar's FrameLayout, or on the view's overlay. */
+    /**
+     * Puts the label in [host], a child of the bar's FrameLayout or on the view's overlay, and
+     * records that [host] holds it. The record comes last: moving between a view's children and
+     * the same view's overlay takes the label off first, which drops the view's record.
+     */
     private static void attach(Host host, TextView label, State state) {
         if (host.child) {
-            if (label.getParent() == host.view && state.overlay == null) return;
-            detach(label, state);
-            host.view.addView(label, new FrameLayout.LayoutParams(
-                    state.width, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.END));
-            return;
+            if (label.getParent() != host.view || state.overlay != null) {
+                detach(label, state);
+                host.view.addView(label, new FrameLayout.LayoutParams(
+                        state.width, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.END));
+            }
+        } else {
+            ViewGroup current = state.overlay == null ? null : state.overlay.get();
+            if (current != host.view || label.getParent() == null) {
+                detach(label, state);
+                // A width of its own, so a new text redraws the label without asking for a new layout.
+                label.setLayoutParams(new ViewGroup.LayoutParams(state.width, ViewGroup.LayoutParams.WRAP_CONTENT));
+                host.view.getOverlay().add(label);
+                state.overlay = new WeakReference<>(host.view);
+            }
         }
-        ViewGroup current = state.overlay == null ? null : state.overlay.get();
-        if (current == host.view && label.getParent() != null) return;
-        detach(label, state);
-        // A width of its own, so a new text redraws the label without asking for a new layout.
-        label.setLayoutParams(new ViewGroup.LayoutParams(state.width, ViewGroup.LayoutParams.WRAP_CONTENT));
-        host.view.getOverlay().add(label);
-        state.overlay = new WeakReference<>(host.view);
+        synchronized (HELD) {
+            HELD.put(host.view, new WeakReference<>(label));
+        }
     }
 
     /** Takes the label off whatever holds it, and lets that view hold another. */
@@ -636,16 +687,14 @@ final class ReelTimeLabel {
         return out.toString();
     }
 
-    /** The tag of the bar's reel container, "clips_scrubber_" and the reel's id, or null. */
+    /**
+     * The tag Instagram 449 gives the bar's reel container when it binds it, "clips_scrubber_" and
+     * the reel's id, or null.
+     */
     static String reelOf(View bar) {
-        View view = bar;
-        for (int i = 0; i < TAG_REACH && view != null; i++) {
-            Object tag = view.getTag();
-            if (tag instanceof String && ((String) tag).startsWith(REEL_TAG_PREFIX)) return (String) tag;
-            ViewParent parent = view.getParent();
-            view = parent instanceof View ? (View) parent : null;
-        }
-        return null;
+        View container = containerOf(bar);
+        Object tag = container == null ? null : container.getTag();
+        return tag instanceof String && ((String) tag).startsWith(REEL_TAG_PREFIX) ? (String) tag : null;
     }
 
     private static void hide(SeekBar bar, TextView label) {
