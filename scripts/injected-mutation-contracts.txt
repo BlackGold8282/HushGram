@@ -609,11 +609,16 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelsSuggestions;->netego(Ljav
 # ad branch still reads Instagram's own value. The seek bar's onProgressChanged, the one method of
 # its shape reading the bar's listener field, hands the bar and its position to ReelSeekBar.progress
 # first thing, once. Left out, short reels go back to Instagram's rules or the time label never
-# shows; twice or elsewhere, it isn't the hook the patch wrote.
+# shows; twice or elsewhere, it isn't the hook the patch wrote. The binder that tags a seek bar
+# container clips_scrubber_ and the reel's id (063c.invoke on 449, the one instance method of its
+# shape holding that string) hands the container and Instagram's answer for whether the reel is an
+# ad to ReelSeekBar.bind once, right after reading it. Left out, no bar gets the label; twice or
+# elsewhere, it isn't the hook the patch wrote.
 shared-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->minSeconds(J)J in static (Lcom/instagram/common/session/UserSession;JZZ)Z holding android_purge_26_q2_ClipsExperimentUtil_shouldShowAttachedScrubber
 once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->lazy(I)Z in static (Lcom/instagram/clips/intf/ClipsViewerConfig;L*;L*;Lcom/instagram/common/session/UserSession;Z)L*; holding android_purge_26_q3_ClipsScrubberRowUseCase_getUiState
 start-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->progress(Landroid/widget/SeekBar;I)V in instance (Landroid/widget/SeekBar;IZ)V holding Lcom/instagram/ui/mediaactions/VideoScrubberSeekBar;->A00:Landroid/widget/SeekBar$OnSeekBarChangeListener;
 once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->progress(Landroid/widget/SeekBar;I)V in instance (Landroid/widget/SeekBar;IZ)V holding Lcom/instagram/ui/mediaactions/VideoScrubberSeekBar;->A00:Landroid/widget/SeekBar$OnSeekBarChangeListener;
+once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->bind(Ljava/lang/Object;I)V in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; holding clips_scrubber_
 
 # Keep Reels auto scroll on hands the choice made with one of Instagram's auto scroll switches to
 # ReelAutoScroll.chosen first thing in the Reels auto scroll plugin's handler for them (0CrH.A00 on

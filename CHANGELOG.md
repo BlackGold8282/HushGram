@@ -15,6 +15,7 @@ Every HushGram release, newest first.
 * **Instagram:** New patch, `Hide suggested accounts in Reels`, off until you pick it in Manager. The cards of people and creators to follow that Instagram puts between reels are left out, and Your algorithm cards, ads and every reel stay. Its switch is under Reels. Asked for in #15 and #20.
 * **Instagram:** New patch, `Keep a seek bar on Reels`, off until you pick it in Manager. Every ordinary reel keeps Instagram's seek bar under it, short ones too, where Instagram would otherwise draw none or hide it until you hold the reel, and the time played and the reel's length show just above the bar, like 0:10 / 0:55. Ads keep Instagram's own rules. Its switch is under Reels. Asked for in #10.
 * **Instagram:** New patch, `Keep Reels auto scroll on`, off until you pick it in Manager. Once you turn on Instagram's auto scroll in Reels, it stays on after Instagram restarts or you leave Reels, and when you turn it off it stays off. Its switch is under Reels. Asked for in #21.
+* **Instagram:** Keep a seek bar on Reels puts its time only on an ordinary reel's bar in Reels, never on an ad's bar or one elsewhere in the app, and each bar has one label that hides while its bar is hidden and leaves with it, so a scrolled or recycled reel can't keep an old or doubled time.
 
 * **Instagram:** Copy comment only takes a comment menu renderer whose middle argument fits one register. A future build that made it a long or double would have shifted the selected comment's register, so it's refused before anything changes.
 

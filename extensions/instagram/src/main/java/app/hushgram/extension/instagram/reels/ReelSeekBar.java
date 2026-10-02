@@ -26,7 +26,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *
  * <p>The bar shows the time only while you drag it. {@link #progress} runs with every change of
  * the bar's position or length and keeps a label of the time played and the reel's length beside
- * it ({@link ReelTimeLabel}).
+ * it ({@link ReelTimeLabel}). Instagram uses the same bar for ads and could use it elsewhere, so
+ * {@link #bind} hears from the binder that ties a seek bar container to a reel whether that reel
+ * is an ad, and only a bar in a container bound to an ordinary reel gets the label.
  *
  * <p>Off, paused, before the settings are read, or when anything goes wrong, Instagram's own
  * answers stand and the label is hidden. None of the hooks throws.
@@ -93,6 +95,15 @@ public final class ReelSeekBar {
      */
     public static void progress(SeekBar bar, int progress) {
         ReelTimeLabel.update(bar, progress, ReelSeekBar::switchedOn);
+    }
+
+    /**
+     * Injected in the binder that ties Instagram's seek bar container to a reel, right after it
+     * reads whether the reel is an ad, with the container and that answer as an int (non-zero is
+     * an ad). Only a bar in a container bound to an ordinary reel gets the time label.
+     */
+    public static void bind(Object container, int ad) {
+        ReelTimeLabel.bind(container, ad != 0, ReelSeekBar::switchedOn);
     }
 
     static boolean switchedOn() {
