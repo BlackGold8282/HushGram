@@ -4,6 +4,10 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+### HushGram v0.0.4
+
+* **Tooling:** Prepare source version 0.0.4 with the audit corrections. The published release and source index remain at 0.0.3.
+
 * **Instagram:** A failed sign-in notice dismissal asks for a retry without claiming that storage was restored. Its earlier message could make that claim even when the write landed and rollback failed. All five translations carry the corrected feedback.
 
 * **Instagram:** Concurrent Android 9 saves keep separate hidden files and cleanup identities. Cancelling one leaves the other's bytes alone, and completed saves take different final names. A refused cleanup record removes its reserved file without touching finished media.

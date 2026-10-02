@@ -1,7 +1,7 @@
 ![HushGram. Keep the moments. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.3-E1306C" alt="Version 0.0.3">
+  <img src="https://img.shields.io/badge/version-0.0.4-E1306C" alt="Version 0.0.4">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Instagram-449.0.0.52.84-E1306C" alt="Instagram 449.0.0.52.84">
@@ -64,7 +64,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 
 Unreleased source builds include Default playback quality in Manager's simple mode. It starts at Auto, so Instagram keeps choosing the quality until you change it in HushGram. Patches whose initial switches or patch-time changes alter behavior keep their opt-in selection.
 
-The source contains 36 patches for `com.instagram.android`, targeting Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The published v0.0.3 has 35 patches. Copy comment is an unreleased source feature.
+The unreleased v0.0.4 source contains 36 patches for `com.instagram.android`, targeting Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The published v0.0.3 has 35 patches. Copy comment is an unreleased source feature.
 
 | Patch | What it does |
 |---|---|
