@@ -351,7 +351,9 @@ public class CarouselSaveTest {
         Settings.DOWNLOAD_PHOTOS.save(true);
         VideoDownload.offerAll(new Object(), rows);
         assertTrue("a video's cover isn't a photo to save", rows.isEmpty());
-        assertEquals("nothing was fetched to decide", 0, server.hits("/e.mp4") + server.hits("/a.jpg"));
+        int fetched = 0;
+        for (String path : Arrays.asList("/a.jpg", "/b.jpg", "/c.jpg", "/d.mp4", "/e.mp4", "/f.mp4")) fetched += server.hits(path);
+        assertEquals("nothing was fetched to decide", 0, fetched);
     }
 
     @Test public void exhaustedPreferenceRetirementDoesNotTurnTheBatchIntoAnInterruption() throws Exception {
