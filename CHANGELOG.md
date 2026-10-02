@@ -6,6 +6,7 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Instagram:** When Open MetaConfig overrides can't open (signed out, or a screen without Instagram's editor), its row now keeps the whole reason under it, since Android cuts the toast to two lines and dropped the part about signing in.
 * **Instagram:** Show if a profile follows you has a second switch under Profiles, Mark who doesn't follow you back, which starts off. On your own Following list it adds Doesn't follow you after the name of each account Instagram says doesn't follow you back. Followers and other people's lists stay as they are, and nothing shows until Instagram has checked. Asked for in #1.
 * **Instagram:** New patch, `Hide suggested people on profiles`, off until you pick it in Manager. Suggested for you goes from profiles, yours and other people's, whether Instagram puts it in the Follow and Message area or in a row under the header, and so does the Discover people button beside those buttons. Its switch is under Profiles, and bios, counts, posts and follower lists stay. Asked for in #15 and #20.
 * **Instagram:** New patch, `Hide suggested accounts in Reels`, off until you pick it in Manager. The cards of people and creators to follow that Instagram puts between reels are left out, and Your algorithm cards, ads and every reel stay. Its switch is under Reels. Asked for in #15 and #20.

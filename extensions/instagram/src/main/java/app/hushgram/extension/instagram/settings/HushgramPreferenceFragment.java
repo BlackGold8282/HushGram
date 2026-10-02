@@ -515,7 +515,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         ((DialogFragment) getParentFragment()).dismissAllowingStateLoss();
                     }
                 } else {
-                    Utils.showToastShort(L10n.t("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in."));
+                    String why = L10n.t("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.");
+                    // Android cuts a toast to two lines, so the row keeps the whole reason.
+                    row.setSummary(why);
+                    Utils.showToastShort(why);
                 }
                 return true;
             });

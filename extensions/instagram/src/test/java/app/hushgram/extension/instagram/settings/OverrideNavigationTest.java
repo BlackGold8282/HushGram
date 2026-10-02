@@ -84,6 +84,8 @@ public class OverrideNavigationTest {
         assertTrue(dialog.isAdded());
         assertFalse(row().isPersistent());
         assertTrue(ShadowToast.getTextOfLatestToast().contains("signed in"));
+        // The toast is cut to two lines on a phone; the row keeps the whole reason.
+        assertTrue(String.valueOf(row().getSummary()), String.valueOf(row().getSummary()).endsWith("from Home while signed in."));
         assertSame(controller.get(), NativeOptions.host);
         NativeOptions.failure = true;
         tap();
