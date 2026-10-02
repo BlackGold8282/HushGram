@@ -65,6 +65,19 @@ def stamp(path):
     return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns, info.st_mode
 
 
+def require_identity(stamped):
+    """Refuse a stamp with no file identity rather than call it a different file.
+
+    Windows answers no device or file number for a file a handle holds open when Python can only
+    ask through FindFirstFile, as 3.11 does, and as newer versions do on Windows builds without
+    GetFileInformationByName. NTFS never numbers a real file 0.
+    """
+    if stamped[0] == 0 and stamped[1] == 0:
+        raise ImportError("this Python can't read a file's identity on this Windows build while the import holds it "
+                          "open, so it can't prove the table is unchanged; nothing was imported. Try Python 3.13.")
+    return stamped
+
+
 def bounded_bytes(path):
     with path.open("rb") as handle:
         data = handle.read(MAX_BYTES + 1)
@@ -309,7 +322,7 @@ def conditional_commit(path, expected, staged, data, owned):
                 if not creating:
                     # TxF/CRT creation timestamps differ. Read the protected namespace
                     # stamp, bind its identity to this handle, and compare complete bytes.
-                    current = stamp(guarded)
+                    current = require_identity(stamp(guarded))
                     content = handle.read(MAX_BYTES + 1)
                     if (info.st_dev, info.st_ino) != current[:2] or (guarded == path and Snapshot(content, current) != expected):
                         raise ImportError("destination changed after validation; nothing was imported")

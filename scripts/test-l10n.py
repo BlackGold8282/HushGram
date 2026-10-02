@@ -604,6 +604,25 @@ class TranslationTests(unittest.TestCase):
         self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
         self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
 
+    def test_a_destination_without_a_file_identity_is_refused_plainly_and_left_intact(self):
+        # What Windows answers when Python can only stat an open file through FindFirstFile.
+        before = self.table.read_bytes()
+        real = bridge.stamp
+
+        def unidentified(path):
+            stamped = real(path)
+            return (0, 0) + tuple(stamped[2:]) if Path(path) == self.table else stamped
+
+        with mock.patch.object(bridge, "stamp", side_effect=unidentified), \
+                mock.patch.object(bridge, "require_identity", wraps=bridge.require_identity) as checked, \
+                self.assertRaises(bridge.ImportError) as refused:
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertIn("can't read a file's identity", str(refused.exception))
+        self.assertTrue(checked.called)
+        self.assertEqual(before, self.table.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
     def test_write_fsync_and_replace_failures_leave_destination_intact(self):
         before = self.table.read_bytes()
         for target in ("NamedTemporaryFile", "fsync", "conditional_commit"):
@@ -780,6 +799,19 @@ class TranslationTests(unittest.TestCase):
         self.assertIn("incomplete", failed.stderr)
         self.assertEqual(before, self.table.read_bytes())
 
+
+
+class IdentityTests(unittest.TestCase):
+    def test_a_stamp_without_a_file_identity_is_refused_plainly(self):
+        with self.assertRaises(bridge.ImportError) as refused:
+            bridge.require_identity((0, 0, 140, 1, 2, 33206))
+        self.assertIn("can't read a file's identity", str(refused.exception))
+        self.assertNotIn("destination changed", str(refused.exception))
+
+    def test_a_stamp_with_an_identity_passes_through(self):
+        stamped = (12, 34, 140, 1, 2, 33206)
+        self.assertIs(stamped, bridge.require_identity(stamped))
+        self.assertEqual((0, 7), bridge.require_identity((0, 7)))
 
 
 class InterpreterTests(unittest.TestCase):
