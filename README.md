@@ -290,7 +290,7 @@ Verification reads coverage back from the patched APK and writes a separate cove
 
 ## Translating HushGram
 
-HushGram keeps its translations in UTF-8 TSV files under `extensions/shared/library/src/main/l10n`. The English text is the lookup key. Use Python 3.13 on Windows to export the current source catalog and existing translations as flat JSON for Crowdin:
+HushGram keeps its translations in UTF-8 TSV files under `extensions/shared/library/src/main/l10n`. The English text is the lookup key. The scripts need Python 3.12 or newer and stop with a one-line message on anything older. On Windows, use Python 3.13 to export the current source catalog and existing translations as flat JSON for Crowdin:
 
 ```powershell
 py -3.13 scripts/sync-l10n.py export --output "path/to/translation-review"

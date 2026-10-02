@@ -39,7 +39,7 @@ forms keeps each extra one as a row keyed by the other form plus "|" and the CLD
 Only zero, two, few and many are extra rows. The original singular key already supplies one.
 The source scan requires all base keys and rejects variants attached to a non-quantity key.
 
-Run from the repository root: python scripts/gen-l10n.py
+Run from the repository root: py -3.13 scripts/gen-l10n.py
 """
 import io
 import os
@@ -48,6 +48,24 @@ import sys
 import tempfile
 import unicodedata
 from collections import Counter
+
+# sync-l10n.py and test-l10n.py load this file first, so the check below covers all three.
+MINIMUM_PYTHON = (3, 12)
+
+
+def require_python(version=sys.version_info):
+    """Stop with one line on a Python too old for these tools.
+
+    Python 3.11 on Windows stats a file another handle holds open through FindFirstFile, which
+    answers no device or file number, so sync-l10n.py takes the table it's replacing for a
+    different file and refuses every import with "destination changed after validation".
+    """
+    if tuple(version[:2]) < MINIMUM_PYTHON:
+        sys.exit(f"HushGram's translation tools need Python {MINIMUM_PYTHON[0]}.{MINIMUM_PYTHON[1]} or newer, "
+                 f"and this is {version[0]}.{version[1]}. Run them with py -3.13.")
+
+
+require_python()
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 L10N = os.path.join(ROOT, "extensions", "shared", "library", "src", "main", "l10n")

@@ -18,12 +18,13 @@ from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRATCH = Path(os.environ.get("HUSHGRAM_L10N_TEST_WORK", str(ROOT / "build/l10n-tests")))
-SCRATCH.mkdir(parents=True, exist_ok=True)
+# Loading the bridge loads the generator, which stops an unsupported Python before anything is written.
 spec = importlib.util.spec_from_file_location("hushgram_translation_sync", ROOT / "scripts/sync-l10n.py")
 bridge = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bridge)
 generator = bridge.generator
+SCRATCH = Path(os.environ.get("HUSHGRAM_L10N_TEST_WORK", str(ROOT / "build/l10n-tests")))
+SCRATCH.mkdir(parents=True, exist_ok=True)
 
 
 class TranslationTests(unittest.TestCase):
@@ -778,6 +779,42 @@ class TranslationTests(unittest.TestCase):
         self.assertEqual(1, failed.returncode)
         self.assertIn("incomplete", failed.stderr)
         self.assertEqual(before, self.table.read_bytes())
+
+
+
+class InterpreterTests(unittest.TestCase):
+    def test_an_older_python_stops_with_one_line_naming_the_version_needed(self):
+        with self.assertRaises(SystemExit) as stopped:
+            generator.require_python((3, 11, 9, "final", 0))
+        message = str(stopped.exception.code)
+        self.assertEqual([message], message.splitlines())
+        self.assertIn("need Python 3.12 or newer", message)
+        self.assertIn("this is 3.11", message)
+
+    def test_a_supported_python_goes_on(self):
+        for version in ((3, 12, 0, "final", 0), (3, 13, 7, "final", 0), (4, 0, 0, "alpha", 1)):
+            self.assertIsNone(generator.require_python(version))
+
+    def test_every_tool_stops_on_an_older_python_before_writing(self):
+        # Each tool runs in a child whose sys.version_info claims 3.11, from a copy of the scripts.
+        root = Path(tempfile.mkdtemp(prefix="interpreter-", dir=SCRATCH))
+        self.addCleanup(shutil.rmtree, root, True)
+        (root / "scripts").mkdir()
+        for name in ("gen-l10n.py", "sync-l10n.py", "test-l10n.py"):
+            shutil.copyfile(ROOT / "scripts" / name, root / "scripts" / name)
+        for name in ("gen-l10n.py", "sync-l10n.py", "test-l10n.py"):
+            program = ("import runpy, sys\n"
+                       "sys.version_info = (3, 11, 9, 'final', 0)\n"
+                       "sys.argv = [sys.argv[1], 'export']\n"
+                       "runpy.run_path(sys.argv[0], run_name='__main__')\n")
+            with self.subTest(name):
+                done = subprocess.run([sys.executable, "-c", program, str(root / "scripts" / name)],
+                                      capture_output=True, text=True, timeout=60)
+                self.assertEqual(1, done.returncode, done.stderr)
+                self.assertEqual("", done.stdout)
+                self.assertEqual(["HushGram's translation tools need Python 3.12 or newer, and this is 3.11. "
+                                  "Run them with py -3.13."], done.stderr.splitlines())
+                self.assertEqual(["scripts"], sorted(path.name for path in root.iterdir()))
 
 
 if __name__ == "__main__":
