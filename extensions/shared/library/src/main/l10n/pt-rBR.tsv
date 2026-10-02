@@ -278,3 +278,6 @@ Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Carrossel cancelado. 
 Saved %1$d. Failed %2$d. Skipped %3$d.	Salvos %1$d. Falhas %2$d. Ignorados %3$d.
 %1$d saved in lower quality than on Instagram.	%1$d salvos com qualidade menor que no Instagram.
 Last carousel save	Último carrossel salvo
+Open MetaConfig overrides	Abrir substituições do MetaConfig
+Opens Instagram's native flag editor. A wrong override can break parts of Instagram.	Abre o editor nativo de opções do Instagram. Uma substituição incorreta pode impedir o funcionamento de partes do Instagram.
+MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.	O MetaConfig não está disponível nesta tela. Abra as configurações do HushGram pela página inicial com a sessão iniciada.

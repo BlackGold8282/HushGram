@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(556);
+        Map<String, String> table = new HashMap<>(562);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -350,6 +350,8 @@ public final class L10nTranslations {
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
                 "Videos, Chats und Bilder von dir aus Meta AI, die Instagram in deinen Home-Feed setzt.");
+        table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
+                "MetaConfig ist auf diesem Bildschirm nicht verf\u00fcgbar. \u00d6ffne die HushGram-Einstellungen auf der Startseite, w\u00e4hrend du angemeldet bist.");
         table.put("Much larger",
                 "Viel gr\u00f6\u00dfer");
         table.put("Much smaller",
@@ -378,8 +380,12 @@ public final class L10nTranslations {
                 "Bei Reels");
         table.put("Only accounts you follow",
                 "Nur Konten, denen du folgst");
+        table.put("Open MetaConfig overrides",
+                "MetaConfig-\u00dcberschreibungen \u00f6ffnen");
         table.put("Open links in external browser",
                 "Links im externen Browser \u00f6ffnen");
+        table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
+                "\u00d6ffnet Instagrams eigenen Flag-Editor. Eine falsche \u00dcberschreibung kann Teile von Instagram unbrauchbar machen.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "\u00d6ffnet die eigenen Entwickleroptionen von Instagram, in denen sich seine Server-Flags ansehen und \u00e4ndern lassen. Ein falsches Flag kann Teile von Instagram lahmlegen, bis du es dort zur\u00fccksetzt.");
         table.put("Page %1$d of %2$d",
@@ -416,15 +422,15 @@ public final class L10nTranslations {
                 "\u00d6ffne das Medium erneut und speichere es noch einmal.");
         table.put("Restart Instagram to apply these choices.",
                 "Starte Instagram neu, um diese Werte anzuwenden.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
                 "Stelle die vorherigen Werte einmal innerhalb von 10 Sekunden wieder her. Ein Neustart von Instagram verwirft diese M\u00f6glichkeit.");
         table.put("Resume long videos",
                 "Lange Videos fortsetzen");
         table.put("Retry",
                 "Erneut versuchen");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Ring size",
                 "Ringgr\u00f6\u00dfe");
         table.put("Sanitize sharing links",
@@ -539,15 +545,15 @@ public final class L10nTranslations {
                 "Die Ringe haben die Gr\u00f6\u00dfe, die Instagram f\u00fcr deinen Bildschirm w\u00e4hlt.");
         table.put("The rings in the stories row at the top of Home are drawn at the size below. Restart Instagram after changing it.",
                 "Die Ringe in der Story-Leiste oben auf der Startseite werden in der Gr\u00f6\u00dfe darunter gezeigt. Starte Instagram nach einer \u00c4nderung neu.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
                 "Die Reihen mit Konten, Shops und Hashtags, die Instagram dir zum Folgen vorschl\u00e4gt.");
         table.put("The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.",
                 "Die Reihen vorgeschlagener Reels zwischen den Beitr\u00e4gen in deinem Feed. Ein Reel von jemandem, dem du folgst, bleibt.");
         table.put("The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.",
                 "Dasselbe \u201eHerunterladen\u201c bei einem Foto-Beitrag und bei einem Karussell, das gerade ein Foto zeigt. Speichert die gr\u00f6\u00dfte Version, die Instagram hat.");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "Die Einstellung lie\u00df sich nicht vollst\u00e4ndig aktualisieren. Der gespeicherte Wert wird angezeigt.");
         table.put("There's no diagnostic data to clear.",
@@ -627,7 +633,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(556);
+        Map<String, String> table = new HashMap<>(562);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -931,6 +937,8 @@ public final class L10nTranslations {
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
                 "Los videos, chats e im\u00e1genes tuyas de Meta AI que Instagram pone en tu feed de inicio.");
+        table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
+                "MetaConfig no est\u00e1 disponible en esta pantalla. Abre los ajustes de HushGram desde Inicio con la sesi\u00f3n iniciada.");
         table.put("Much larger",
                 "Mucho m\u00e1s grande");
         table.put("Much smaller",
@@ -959,8 +967,12 @@ public final class L10nTranslations {
                 "En reels");
         table.put("Only accounts you follow",
                 "Solo cuentas que sigues");
+        table.put("Open MetaConfig overrides",
+                "Abrir anulaciones de MetaConfig");
         table.put("Open links in external browser",
                 "Abrir enlaces en el navegador externo");
+        table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
+                "Abre el editor nativo de opciones de Instagram. Una anulaci\u00f3n incorrecta puede impedir que funcionen partes de Instagram.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Abre las opciones de desarrollador propias de Instagram, donde se pueden ver y cambiar sus indicadores del servidor. Un indicador incorrecto puede romper partes de Instagram hasta que lo restablezcas ah\u00ed.");
         table.put("Page %1$d of %2$d",
@@ -997,15 +1009,15 @@ public final class L10nTranslations {
                 "Vuelve a abrir el contenido y gu\u00e1rdalo otra vez.");
         table.put("Restart Instagram to apply these choices.",
                 "Reinicia Instagram para aplicar estas opciones.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
                 "Restaura las opciones anteriores una vez durante 10 segundos. Reiniciar Instagram descarta esta opci\u00f3n.");
         table.put("Resume long videos",
                 "Reanudar videos largos");
         table.put("Retry",
                 "Reintentar");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Ring size",
                 "Tama\u00f1o de los anillos");
         table.put("Sanitize sharing links",
@@ -1120,15 +1132,15 @@ public final class L10nTranslations {
                 "Los anillos tienen el tama\u00f1o que Instagram elige para tu pantalla.");
         table.put("The rings in the stories row at the top of Home are drawn at the size below. Restart Instagram after changing it.",
                 "Los anillos de la fila de historias arriba de Inicio se muestran con el tama\u00f1o de abajo. Reinicia Instagram despu\u00e9s de cambiarlo.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
                 "Las filas de cuentas, tiendas y hashtags que Instagram te sugiere seguir.");
         table.put("The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.",
                 "Las filas de reels sugeridos entre las publicaciones de tu feed. Un reel que publica alguien a quien sigues se queda.");
         table.put("The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.",
                 "La misma opci\u00f3n Descargar en una publicaci\u00f3n con foto y en un carrusel que muestra una foto. Guarda el tama\u00f1o m\u00e1s grande que tenga Instagram.");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.");
         table.put("There's no diagnostic data to clear.",
@@ -1208,7 +1220,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(556);
+        Map<String, String> table = new HashMap<>(562);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1512,6 +1524,8 @@ public final class L10nTranslations {
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
                 "Video, chat, dan gambar dirimu dari Meta AI yang dimasukkan Instagram ke feed beranda kamu.");
+        table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
+                "MetaConfig tidak tersedia di layar ini. Buka pengaturan HushGram dari Beranda saat sudah masuk.");
         table.put("Much larger",
                 "Jauh lebih besar");
         table.put("Much smaller",
@@ -1540,8 +1554,12 @@ public final class L10nTranslations {
                 "Di reel");
         table.put("Only accounts you follow",
                 "Hanya akun yang kamu ikuti");
+        table.put("Open MetaConfig overrides",
+                "Buka penggantian MetaConfig");
         table.put("Open links in external browser",
                 "Buka tautan di browser eksternal");
+        table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
+                "Membuka editor flag bawaan Instagram. Penggantian yang salah dapat merusak beberapa bagian Instagram.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Membuka opsi pengembang milik Instagram sendiri, tempat flag servernya bisa dilihat dan diubah. Flag yang salah bisa merusak sebagian Instagram sampai kamu mengaturnya ulang di sana.");
         table.put("Page %1$d of %2$d",
@@ -1578,15 +1596,15 @@ public final class L10nTranslations {
                 "Buka kembali media dan simpan lagi.");
         table.put("Restart Instagram to apply these choices.",
                 "Mulai ulang Instagram untuk menerapkan pilihan ini.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
                 "Pulihkan pilihan sebelumnya satu kali dalam 10 detik. Memulai ulang Instagram menghapus opsi pembatalan.");
         table.put("Resume long videos",
                 "Lanjutkan video panjang");
         table.put("Retry",
                 "Coba lagi");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Ring size",
                 "Ukuran lingkaran");
         table.put("Sanitize sharing links",
@@ -1701,15 +1719,15 @@ public final class L10nTranslations {
                 "Lingkaran berukuran sesuai pilihan Instagram untuk layar Anda.");
         table.put("The rings in the stories row at the top of Home are drawn at the size below. Restart Instagram after changing it.",
                 "Lingkaran di baris cerita di atas Beranda ditampilkan dengan ukuran di bawah. Mulai ulang Instagram setelah mengubahnya.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
                 "Deretan akun, toko, dan tagar yang disarankan Instagram untuk kamu ikuti.");
         table.put("The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.",
                 "Deretan reel yang disarankan di antara postingan di feed beranda Anda. Reel yang diposting orang yang Anda ikuti tetap ada.");
         table.put("The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.",
                 "Opsi Unduh yang sama di postingan foto, dan di carousel yang sedang menampilkan foto. Menyimpan ukuran terbesar yang dimiliki Instagram.");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.");
         table.put("There's no diagnostic data to clear.",
@@ -1789,7 +1807,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(556);
+        Map<String, String> table = new HashMap<>(562);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2093,6 +2111,8 @@ public final class L10nTranslations {
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
                 "Os v\u00eddeos, chats e imagens suas da Meta AI que o Instagram coloca no seu feed inicial.");
+        table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
+                "O MetaConfig n\u00e3o est\u00e1 dispon\u00edvel nesta tela. Abra as configura\u00e7\u00f5es do HushGram pela p\u00e1gina inicial com a sess\u00e3o iniciada.");
         table.put("Much larger",
                 "Bem maior");
         table.put("Much smaller",
@@ -2121,8 +2141,12 @@ public final class L10nTranslations {
                 "Em reels");
         table.put("Only accounts you follow",
                 "S\u00f3 contas que voc\u00ea segue");
+        table.put("Open MetaConfig overrides",
+                "Abrir substitui\u00e7\u00f5es do MetaConfig");
         table.put("Open links in external browser",
                 "Abrir links no navegador externo");
+        table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
+                "Abre o editor nativo de op\u00e7\u00f5es do Instagram. Uma substitui\u00e7\u00e3o incorreta pode impedir o funcionamento de partes do Instagram.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Abre as op\u00e7\u00f5es do desenvolvedor do pr\u00f3prio Instagram, onde as flags do servidor podem ser vistas e alteradas. Uma flag errada pode quebrar partes do Instagram at\u00e9 voc\u00ea redefini-la l\u00e1.");
         table.put("Page %1$d of %2$d",
@@ -2159,15 +2183,15 @@ public final class L10nTranslations {
                 "Abra a m\u00eddia novamente e salve outra vez.");
         table.put("Restart Instagram to apply these choices.",
                 "Reinicie o Instagram para aplicar essas op\u00e7\u00f5es.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
                 "Restaure as op\u00e7\u00f5es anteriores uma vez em at\u00e9 10 segundos. Reiniciar o Instagram descarta essa op\u00e7\u00e3o.");
         table.put("Resume long videos",
                 "Retomar v\u00eddeos longos");
         table.put("Retry",
                 "Tentar novamente");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Ring size",
                 "Tamanho dos an\u00e9is");
         table.put("Sanitize sharing links",
@@ -2282,15 +2306,15 @@ public final class L10nTranslations {
                 "Os an\u00e9is t\u00eam o tamanho que o Instagram escolhe para a sua tela.");
         table.put("The rings in the stories row at the top of Home are drawn at the size below. Restart Instagram after changing it.",
                 "Os an\u00e9is da fileira de stories no topo do In\u00edcio aparecem no tamanho abaixo. Reinicie o Instagram depois de mudar.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
                 "As fileiras de contas, lojas e hashtags que o Instagram sugere que voc\u00ea siga.");
         table.put("The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.",
                 "As fileiras de reels sugeridos entre os posts do seu feed. Um reel postado por algu\u00e9m que voc\u00ea segue continua l\u00e1.");
         table.put("The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.",
                 "O mesmo Baixar em um post com foto e em um carrossel mostrando uma foto. Salva o maior tamanho que o Instagram tiver.");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "N\u00e3o foi poss\u00edvel concluir a atualiza\u00e7\u00e3o da configura\u00e7\u00e3o. O valor salvo est\u00e1 sendo mostrado.");
         table.put("There's no diagnostic data to clear.",
@@ -2370,7 +2394,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(556);
+        Map<String, String> table = new HashMap<>(562);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2674,6 +2698,8 @@ public final class L10nTranslations {
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
                 "Instagram'\u0131n ana ak\u0131\u015f\u0131na koydu\u011fu Meta AI videolar\u0131, sohbetleri ve senin g\u00f6rsellerin.");
+        table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
+                "MetaConfig bu ekranda kullan\u0131lam\u0131yor. Oturum a\u00e7\u0131kken Ana Sayfa'dan HushGram ayarlar\u0131n\u0131 a\u00e7\u0131n.");
         table.put("Much larger",
                 "\u00c7ok daha b\u00fcy\u00fck");
         table.put("Much smaller",
@@ -2702,8 +2728,12 @@ public final class L10nTranslations {
                 "Reel'lerde");
         table.put("Only accounts you follow",
                 "Yaln\u0131zca takip etti\u011fin hesaplar");
+        table.put("Open MetaConfig overrides",
+                "MetaConfig ge\u00e7ersiz k\u0131lmalar\u0131n\u0131 a\u00e7");
         table.put("Open links in external browser",
                 "Ba\u011flant\u0131lar\u0131 harici taray\u0131c\u0131da a\u00e7");
+        table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
+                "Instagram'\u0131n kendi bayrak d\u00fczenleyicisini a\u00e7ar. Yanl\u0131\u015f bir ge\u00e7ersiz k\u0131lma Instagram'\u0131n baz\u0131 b\u00f6l\u00fcmlerini bozabilir.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Instagram'\u0131n kendi geli\u015ftirici se\u00e7eneklerini a\u00e7ar. Orada sunucu bayraklar\u0131 g\u00f6r\u00fclebilir ve de\u011fi\u015ftirilebilir. Yanl\u0131\u015f bir bayrak, sen orada s\u0131f\u0131rlayana kadar Instagram'\u0131n baz\u0131 b\u00f6l\u00fcmlerini bozabilir.");
         table.put("Page %1$d of %2$d",
@@ -2740,15 +2770,15 @@ public final class L10nTranslations {
                 "Medyay\u0131 yeniden a\u00e7\u0131p tekrar kaydet.");
         table.put("Restart Instagram to apply these choices.",
                 "Bu se\u00e7imleri uygulamak i\u00e7in Instagram'\u0131 yeniden ba\u015flat\u0131n.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
                 "\u00d6nceki se\u00e7imleri 10 saniye i\u00e7inde bir kez geri y\u00fckleyin. Instagram yeniden ba\u015flat\u0131ld\u0131\u011f\u0131nda geri alma se\u00e7ene\u011fi silinir.");
         table.put("Resume long videos",
                 "Uzun videolara kald\u0131\u011f\u0131n yerden devam et");
         table.put("Retry",
                 "Yeniden dene");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Ring size",
                 "Halka boyutu");
         table.put("Sanitize sharing links",
@@ -2863,15 +2893,15 @@ public final class L10nTranslations {
                 "Halkalar, Instagram'\u0131n ekran\u0131n i\u00e7in se\u00e7ti\u011fi boyuttad\u0131r.");
         table.put("The rings in the stories row at the top of Home are drawn at the size below. Restart Instagram after changing it.",
                 "Ana sayfan\u0131n \u00fcst\u00fcndeki hik\u00e2ye sat\u0131r\u0131ndaki halkalar a\u015fa\u011f\u0131daki boyutta g\u00f6sterilir. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("The rows of accounts, shops and hashtags Instagram suggests you follow.",
                 "Instagram'\u0131n takip etmeni \u00f6nerdi\u011fi hesap, ma\u011faza ve hashtag s\u0131ralar\u0131.");
         table.put("The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.",
                 "Ana ak\u0131\u015f\u0131ndaki g\u00f6nderiler aras\u0131na giren \u00f6nerilen reel s\u0131ralar\u0131. Takip etti\u011fin birinin payla\u015ft\u0131\u011f\u0131 reel kal\u0131r.");
         table.put("The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.",
                 "Ayn\u0131 \u0130ndir se\u00e7ene\u011fi bir foto\u011fraf g\u00f6nderisinde ve foto\u011fraf g\u00f6steren bir kayd\u0131rmal\u0131 g\u00f6nderide de \u00e7\u0131kar. Instagram'daki en b\u00fcy\u00fck boyutu kaydeder.");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "Ayar\u0131n g\u00fcncellenmesi tamamlanamad\u0131. Kay\u0131tl\u0131 de\u011feri g\u00f6steriliyor.");
         table.put("There's no diagnostic data to clear.",

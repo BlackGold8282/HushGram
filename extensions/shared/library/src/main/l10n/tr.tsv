@@ -278,3 +278,6 @@ Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Çoklu gönderi iptal
 Saved %1$d. Failed %2$d. Skipped %3$d.	Kaydedilen %1$d. Başarısız %2$d. Atlanan %3$d.
 %1$d saved in lower quality than on Instagram.	%1$d öğe Instagram'dakinden daha düşük kalitede kaydedildi.
 Last carousel save	Son çoklu gönderi kaydı
+Open MetaConfig overrides	MetaConfig geçersiz kılmalarını aç
+Opens Instagram's native flag editor. A wrong override can break parts of Instagram.	Instagram'ın kendi bayrak düzenleyicisini açar. Yanlış bir geçersiz kılma Instagram'ın bazı bölümlerini bozabilir.
+MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.	MetaConfig bu ekranda kullanılamıyor. Oturum açıkken Ana Sayfa'dan HushGram ayarlarını açın.

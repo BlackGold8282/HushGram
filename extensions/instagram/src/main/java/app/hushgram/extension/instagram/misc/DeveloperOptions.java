@@ -4,6 +4,8 @@
  */
 package app.hushgram.extension.instagram.misc;
 
+import android.app.Activity;
+
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.Logger;
@@ -20,6 +22,24 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  */
 public final class DeveloperOptions {
     private DeveloperOptions() {
+    }
+
+    /** A deliberate settings action; it doesn't enable the Home long-press switch or any flag. */
+    public static boolean openOverrides(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()
+                || activity.getFragmentManager().isStateSaved()) return false;
+        try {
+            HookStatus.invoked(FamilyNames.DEVELOPER_OPTIONS);
+            return openOverridesNative(activity) == 1;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DEVELOPER_OPTIONS, "override editor", failure);
+            return false;
+        }
+    }
+
+    /** Filled by the patch with verified host/session checks and Instagram's native navigation. */
+    static int openOverridesNative(Object activity) {
+        return 0;
     }
 
     /**

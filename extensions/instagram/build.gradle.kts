@@ -184,6 +184,11 @@ tasks.register("verifyAndroidBoundaries") {
     inputs.dir(results)
     doLast {
         val required = mapOf(
+            "app.hushgram.extension.instagram.settings.OverrideNavigationTest" to listOf(
+                "missingPatchHasNoNativeAction[28]", "missingPatchHasNoNativeAction",
+                "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[28]", "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery",
+                "successfulNavigationClosesTheDialogWithoutEnablingLongPress[28]", "successfulNavigationClosesTheDialogWithoutEnablingLongPress",
+                "finishingDestroyedOrSavedHostsNeverCallNativeNavigation[28]", "finishingDestroyedOrSavedHostsNeverCallNativeNavigation"),
             "app.hushgram.extension.instagram.settings.SettingsDialogBoundaryTest" to listOf(
                 "sdk28DialogKeepsLegacyBarsOutsideLargeTextContent", "sdk37DialogKeepsSystemBarsOutsideLargeTextContent",
                 "sdk28DialogMirrorsItsLargeTextHeader", "sdk37DialogMirrorsItsLargeTextHeader"),

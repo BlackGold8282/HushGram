@@ -9,6 +9,7 @@ package app.hushgram.extension.instagram.settings;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -467,6 +468,23 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Developer options on a long press of Home"),
                     L10n.t("Opens Instagram's own developer options, where its server flags can be looked at and "
                             + "changed. A wrong flag can break parts of Instagram until you reset it there.")));
+            Preference overrides = new Row(context);
+            overrides.setKey("hushgram_open_overrides");
+            overrides.setPersistent(false);
+            overrides.setTitle(L10n.t("Open MetaConfig overrides"));
+            overrides.setSummary(L10n.t("Opens Instagram's native flag editor. A wrong override can break parts of Instagram."));
+            overrides.setOnPreferenceClickListener(row -> {
+                if (app.hushgram.extension.instagram.misc.DeveloperOptions.openOverrides(getActivity())) {
+                    SettingsEntry.onClosedByUser();
+                    if (getParentFragment() instanceof DialogFragment) {
+                        ((DialogFragment) getParentFragment()).dismissAllowingStateLoss();
+                    }
+                } else {
+                    Utils.showToastShort(L10n.t("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in."));
+                }
+                return true;
+            });
+            developer.addPreference(overrides);
         }
 
         if (build.contains(PatchFamily.RESTORE_TRUST) || build.contains(PatchFamily.REMOVE_AD_ID)
