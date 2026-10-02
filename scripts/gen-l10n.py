@@ -147,10 +147,12 @@ def placeholder_problem(english, translated):
         given, given_literals = format_tokens(translated)
     except ValueError as error:
         return str(error)
-    if wanted and all("$" in token for token in wanted):
-        matches = Counter(wanted) == Counter(given)
-    else:
-        matches = wanted == given
+    # Explicit indices don't advance Java's implicit index, even in mixed formats.
+    # Numbered tokens may move independently; only the bare subsequence keeps its order.
+    matches = (Counter(token for token in wanted if "$" in token)
+               == Counter(token for token in given if "$" in token)
+               and [token for token in wanted if "$" not in token]
+               == [token for token in given if "$" not in token])
     if not matches or wanted_literals != given_literals:
         return f"placeholders {wanted} became {given}"
     return None

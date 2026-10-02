@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -139,6 +140,40 @@ public class L10nCatalogTest {
         assertTrue(placeholderProblem("%1$s", "%1$999999999s") != null);
         assertEquals(null, placeholderProblem("%s %% %d", "%% %s %d"));
         assertTrue(placeholderProblem("%s %%", "%s") != null);
+    }
+
+    @Test
+    public void mixedFormatsLetNumberedArgumentsMoveAroundBareArguments() {
+        // Java's implicit index advances only for bare arguments, independently of explicit indices.
+        assertEquals("second then first", String.format(java.util.Locale.ROOT,
+                "%2$s then %s", "first", "second"));
+        assertEquals("first then second", String.format(java.util.Locale.ROOT,
+                "%s then %2$s", "first", "second"));
+        assertEquals("third first 7 7", String.format(java.util.Locale.ROOT,
+                "%3$s %s %2$d %d", "first", 7, "third"));
+        assertEquals("first 7 7 third", String.format(java.util.Locale.ROOT,
+                "%s %d %2$d %3$s", "first", 7, "third"));
+        String[][] moved = {
+                {"%2$s then %s", "%s then %2$s"},
+                {"%3$s %s %2$d %d", "%s %d %2$d %3$s"},
+                {"%2$s %s %% %2$s %n %d", "%% %s %d %n %2$s %2$s"},
+                {"%s %3$S %d %3$S", "%3$S %s %3$S %d"}
+        };
+        for (String[] pair : moved) assertEquals(pair[1], null, placeholderProblem(pair[0], pair[1]));
+    }
+
+    @Test
+    public void mixedFormatsRejectBareTypeIndexAndCountChanges() {
+        String source = "%3$s %s %2$d %d %3$s";
+        for (String changed : Arrays.asList(
+                "%d %s %2$d %3$s %3$s", "%s %s %2$d %3$s %3$s",
+                "%s %d %2$s %3$s %3$s", "%s %d %1$d %3$s %3$s",
+                "%s %d %2$d %3$s", "%s %d %2$d %3$s %3$s %3$s",
+                "%s %2$d %3$s %3$s", "%s %d %d %2$d %3$s %3$s",
+                "%1$s %d %2$d %3$s %3$s", "%s %d %2$d %3$s %3$s %%",
+                "%s %d %2$d %3$s %3$s %n")) {
+            assertTrue(changed, placeholderProblem(source, changed) != null);
+        }
     }
 
     /**
@@ -384,10 +419,10 @@ public class L10nCatalogTest {
         List<String> wanted = formatTokens(english.replaceFirst("\\|(zero|two|few|many)$", ""), wantedLiterals);
         List<String> given = formatTokens(translated, givenLiterals);
         if (wanted == null || given == null) return "unsupported or malformed format in " + english;
-        if (!wanted.isEmpty() && wanted.stream().allMatch(token -> token.contains("$"))) {
-            Collections.sort(wanted);
-            Collections.sort(given);
-        }
+        // Stable sorting retains the bare subsequence while ordering explicit indices separately.
+        Comparator<String> argumentOrder = Comparator.comparing(token -> token.contains("$") ? token : "");
+        wanted.sort(argumentOrder);
+        given.sort(argumentOrder);
         Collections.sort(wantedLiterals);
         Collections.sort(givenLiterals);
         return wanted.equals(given) && wantedLiterals.equals(givenLiterals) ? null

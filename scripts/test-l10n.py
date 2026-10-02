@@ -203,6 +203,33 @@ class TranslationTests(unittest.TestCase):
         self.make_repository(rows, ["de"])
         self.assertEqual((True, 1, 0), self.import_rows({"%1$s then %2$d": "%2$d dann %1$s"}))
 
+    def test_mixed_formats_allow_numbered_arguments_to_move_around_bare_arguments(self):
+        for source, translated in (("%2$s then %s", "%s then %2$s"),
+                                   ("%3$s %s %2$d %d", "%s %d %2$d %3$s"),
+                                   ("%2$s %s %% %2$s %n %d", "%% %s %d %n %2$s %2$s"),
+                                   ("%s %3$S %d %3$S", "%3$S %s %3$S %d")):
+            with self.subTest(source=source, translated=translated):
+                self.assertIsNone(generator.placeholder_problem(source, translated))
+
+    def test_mixed_formats_reject_bare_type_index_and_count_changes(self):
+        source = "%3$s %s %2$d %d %3$s"
+        for translated in ("%d %s %2$d %3$s %3$s", "%s %s %2$d %3$s %3$s",
+                           "%s %d %2$s %3$s %3$s", "%s %d %1$d %3$s %3$s",
+                           "%s %d %2$d %3$s", "%s %d %2$d %3$s %3$s %3$s",
+                           "%s %2$d %3$s %3$s", "%s %d %d %2$d %3$s %3$s",
+                           "%1$s %d %2$d %3$s %3$s", "%s %d %2$d %3$s %3$s %%",
+                           "%s %d %2$d %3$s %3$s %n"):
+            with self.subTest(translated=translated):
+                self.assertIsNotNone(generator.placeholder_problem(source, translated))
+
+    def test_real_mixed_reordering_imports(self):
+        source = "%3$s %s %2$d %d"
+        rows = {source: source}
+        shutil.rmtree(self.root)
+        self.make_repository(rows, ["de"])
+        self.assertEqual((True, 1, 0), self.import_rows({source: "%s %d %2$d %3$s"}))
+        self.assertEqual("%s %d %2$d %3$s", generator.read(self.table)[source])
+
     def test_reachable_plural_variant_import_export_and_partial_retention(self):
         rows = dict(self.rows, **{"%1$d items|few": "%1$d wenige Eintrage"})
         self.assertEqual((True, 6, 0), self.import_rows(rows))
