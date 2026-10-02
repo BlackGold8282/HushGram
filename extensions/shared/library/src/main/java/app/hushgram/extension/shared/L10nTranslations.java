@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(528);
+        Map<String, String> table = new HashMap<>(538);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -126,6 +126,10 @@ public final class L10nTranslations {
                 "Diagnosedaten l\u00f6schen");
         table.put("Clear remembered positions",
                 "Gespeicherte Wiedergabepositionen l\u00f6schen");
+        table.put("Clear search",
+                "Suche l\u00f6schen");
+        table.put("Contacts, location setup, analytics",
+                "Kontakte, Standorteinrichtung, Analysedaten");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Angaben.");
         table.put("Copy a short report to the clipboard.",
@@ -172,13 +176,13 @@ public final class L10nTranslations {
                 "Analysedaten deaktivieren");
         table.put("Doesn't follow you",
                 "Folgt dir nicht");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("Don't send reel watch history",
                 "Reel-Wiedergabeverlauf nicht senden");
         table.put("Download",
                 "Herunterladen");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("Download failed",
                 "Download fehlgeschlagen");
         table.put("Download feed photos",
@@ -295,13 +299,13 @@ public final class L10nTranslations {
                 "%1$d Einstellungen importiert. %2$d nicht unterst\u00fctzte Schl\u00fcssel \u00fcbersprungen.");
         table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
                 "Instagram l\u00e4sst unter der Tableiste manchmal leeren Platz f\u00fcr eine Navigationsleiste, die gar nicht da ist, wenn dein Handy die Navigationsleiste ausblendet oder Instagram in einem Pop-up-Fenster l\u00e4uft. Damit verschwindet dieser Platz. Starte Instagram nach einer \u00c4nderung neu.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "Instagram kann die Werbe-ID deines Telefons nicht lesen und den Werbediensten von Android nicht mitteilen, welche Anzeigen du gesehen oder angetippt hast. Die Berechtigungen daf\u00fcr fehlen in diesem Build.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram ist dreimal hintereinander innerhalb einer Minute nach dem Start abgest\u00fcrzt oder h\u00e4ngen geblieben, deshalb hat sich HushGram selbst pausiert.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram erf\u00e4hrt nicht, welche Reels du angesehen hast und wie weit. Damit sortiert es deine Reels, und sonst sieht das niemand. Bereits gesehene Reels k\u00f6nnen wieder auftauchen.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -346,6 +350,8 @@ public final class L10nTranslations {
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Keine Dateiauswahl verf\u00fcgbar. Deine Einstellungen wurden nicht ge\u00e4ndert.");
+        table.put("No matching settings",
+                "Keine passenden Einstellungen");
         table.put("No settings import to undo.",
                 "Kein Einstellungsimport zum R\u00fcckg\u00e4ngigmachen.");
         table.put("Nobody outside Meta knows what gets an account suspended. A re-signed Instagram can't pass Google's check that it's the Play Store app, and no patch changes that. If you'd rather not risk your account, try a spare one first. Installing updates over the top with the same key keeps Instagram's data and your sign-in, and on a rooted phone a Root Mount install keeps the sign-in you already have.",
@@ -416,15 +422,15 @@ public final class L10nTranslations {
                 "Speicherordner");
         table.put("Save full report",
                 "Vollst\u00e4ndigen Bericht speichern");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Save the full report in Download/Morphe.",
                 "Vollst\u00e4ndigen Bericht unter Download/Morphe speichern.");
         table.put("Save videos other apps can open",
                 "Videos speichern, die andere Apps \u00f6ffnen k\u00f6nnen");
         table.put("Saved to %1$s",
                 "Gespeichert unter %1$s");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "Gespeichert unter %1$s, in geringerer Qualit\u00e4t als auf Instagram");
         table.put("Saved to the gallery",
@@ -441,6 +447,8 @@ public final class L10nTranslations {
                 "Wird gespeichert \u2026");
         table.put("Saving... Cancel: Downloads in HushGram.",
                 "Wird gespeichert \u2026 Abbrechen: Downloads in HushGram.");
+        table.put("Search settings",
+                "Einstellungen durchsuchen");
         table.put("Set when you patched",
                 "Beim Patchen festgelegt");
         table.put("Settings backup",
@@ -529,12 +537,17 @@ public final class L10nTranslations {
                 "Diese werden beim Patchen in Morphe Manager ausgew\u00e4hlt, und die Pause schaltet sie nicht aus. Patche erneut, um sie zu \u00e4ndern.");
         table.put("Try again, or go back to Instagram.",
                 "Versuche es noch einmal oder kehre zu Instagram zur\u00fcck.");
+        table.put("Try another word or clear the search.",
+                "Versuche einen anderen Begriff oder l\u00f6sche die Suche.");
         table.put("Turn off double tap to like",
                 "Doppeltippen zum Liken ausschalten");
         table.put("Turn on Default playback quality to use this choice.",
                 "Aktiviere \u201eStandard-Wiedergabequalit\u00e4t\u201c, um diese Auswahl zu nutzen.");
         table.put("Turn on Start Home on Following to use this choice.",
                 "Aktiviere \u201eStartseite mit Gefolgt \u00f6ffnen\u201c, um diese Auswahl zu nutzen.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Turn on Story ring size to use this choice.",
                 "Aktiviere \u201eGr\u00f6\u00dfe der Story-Ringe\u201c, um diese Auswahl zu nutzen.");
         table.put("Undo cleared positions",
@@ -545,9 +558,6 @@ public final class L10nTranslations {
                 "Die Frist zum Wiederherstellen ist abgelaufen.");
         table.put("Undo settings import",
                 "Einstellungsimport r\u00fcckg\u00e4ngig machen");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "Bis %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -599,7 +609,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(528);
+        Map<String, String> table = new HashMap<>(538);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -679,6 +689,10 @@ public final class L10nTranslations {
                 "Borrar datos de diagn\u00f3stico");
         table.put("Clear remembered positions",
                 "Borrar las posiciones guardadas");
+        table.put("Clear search",
+                "Borrar b\u00fasqueda");
+        table.put("Contacts, location setup, analytics",
+                "Contactos, configuraci\u00f3n de ubicaci\u00f3n, anal\u00edticas");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Copia un informe r\u00e1pido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si queda otro texto privado antes de compartirlo.");
         table.put("Copy a short report to the clipboard.",
@@ -725,13 +739,13 @@ public final class L10nTranslations {
                 "Desactivar anal\u00edticas");
         table.put("Doesn't follow you",
                 "No te sigue");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("Don't send reel watch history",
                 "No enviar el historial de reels vistos");
         table.put("Download",
                 "Descargar");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("Download failed",
                 "No se pudo descargar");
         table.put("Download feed photos",
@@ -848,13 +862,13 @@ public final class L10nTranslations {
                 "Se importaron %1$d ajustes. Se omitieron %2$d claves no compatibles.");
         table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
                 "Instagram puede dejar espacio vac\u00edo debajo de la barra de pesta\u00f1as para una barra de navegaci\u00f3n que no est\u00e1, cuando tu tel\u00e9fono oculta la barra de navegaci\u00f3n o Instagram est\u00e1 en una ventana emergente. Esto quita ese espacio. Reinicia Instagram despu\u00e9s de cambiarlo.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "Instagram no puede leer el ID de publicidad de tu tel\u00e9fono ni decir a los servicios de publicidad de Android qu\u00e9 anuncios viste o tocaste. Los permisos para ello ya no est\u00e1n en esta versi\u00f3n.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Tres veces seguidas, Instagram fall\u00f3 o se congel\u00f3 durante el primer minuto tras iniciarse, as\u00ed que HushGram se paus\u00f3 solo.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram no sabe qu\u00e9 reels viste ni hasta d\u00f3nde llegaste. Con eso ordena tus Reels, y nadie m\u00e1s lo ve. Los reels que ya viste pueden volver a aparecer.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -899,6 +913,8 @@ public final class L10nTranslations {
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "No hay un selector de documentos disponible. Tus ajustes no han cambiado.");
+        table.put("No matching settings",
+                "No hay ajustes coincidentes");
         table.put("No settings import to undo.",
                 "No hay ninguna importaci\u00f3n de ajustes que deshacer.");
         table.put("Nobody outside Meta knows what gets an account suspended. A re-signed Instagram can't pass Google's check that it's the Play Store app, and no patch changes that. If you'd rather not risk your account, try a spare one first. Installing updates over the top with the same key keeps Instagram's data and your sign-in, and on a rooted phone a Root Mount install keeps the sign-in you already have.",
@@ -969,15 +985,15 @@ public final class L10nTranslations {
                 "Carpeta de guardado");
         table.put("Save full report",
                 "Guardar informe completo");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Save the full report in Download/Morphe.",
                 "Guarda el informe completo en Download/Morphe.");
         table.put("Save videos other apps can open",
                 "Guardar videos que otras apps puedan abrir");
         table.put("Saved to %1$s",
                 "Se guard\u00f3 en %1$s");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "Se guard\u00f3 en %1$s con menos calidad que en Instagram");
         table.put("Saved to the gallery",
@@ -994,6 +1010,8 @@ public final class L10nTranslations {
                 "Guardando...");
         table.put("Saving... Cancel: Downloads in HushGram.",
                 "Guardando... Cancelar: Descargas en HushGram.");
+        table.put("Search settings",
+                "Buscar en ajustes");
         table.put("Set when you patched",
                 "Aplicado al parchear");
         table.put("Settings backup",
@@ -1082,12 +1100,17 @@ public final class L10nTranslations {
                 "Se eligen en Morphe Manager al parchear, y Pausar no los desactiva. Vuelve a parchear para cambiarlos.");
         table.put("Try again, or go back to Instagram.",
                 "Int\u00e9ntalo de nuevo o vuelve a Instagram.");
+        table.put("Try another word or clear the search.",
+                "Prueba otra palabra o borra la b\u00fasqueda.");
         table.put("Turn off double tap to like",
                 "Desactivar tocar dos veces para dar Me gusta");
         table.put("Turn on Default playback quality to use this choice.",
                 "Activa \u00abCalidad de reproducci\u00f3n predeterminada\u00bb para usar esta opci\u00f3n.");
         table.put("Turn on Start Home on Following to use this choice.",
                 "Activa \u00abAbrir Inicio en Siguiendo\u00bb para usar esta opci\u00f3n.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Turn on Story ring size to use this choice.",
                 "Activa \u00abTama\u00f1o de los anillos de historias\u00bb para usar esta opci\u00f3n.");
         table.put("Undo cleared positions",
@@ -1098,9 +1121,6 @@ public final class L10nTranslations {
                 "El plazo para restaurar ha terminado.");
         table.put("Undo settings import",
                 "Deshacer la importaci\u00f3n de ajustes");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "Hasta %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -1152,7 +1172,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(528);
+        Map<String, String> table = new HashMap<>(538);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1232,6 +1252,10 @@ public final class L10nTranslations {
                 "Hapus data diagnostik");
         table.put("Clear remembered positions",
                 "Hapus posisi tersimpan");
+        table.put("Clear search",
+                "Hapus pencarian");
+        table.put("Contacts, location setup, analytics",
+                "Kontak, pengaturan lokasi, analitik");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.");
         table.put("Copy a short report to the clipboard.",
@@ -1278,13 +1302,13 @@ public final class L10nTranslations {
                 "Nonaktifkan analitik");
         table.put("Doesn't follow you",
                 "Tidak mengikuti kamu");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("Don't send reel watch history",
                 "Jangan kirim riwayat tontonan reel");
         table.put("Download",
                 "Unduh");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("Download failed",
                 "Unduhan gagal");
         table.put("Download feed photos",
@@ -1401,13 +1425,13 @@ public final class L10nTranslations {
                 "%1$d pengaturan diimpor. %2$d kunci yang tidak didukung dilewati.");
         table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
                 "Instagram bisa menyisakan ruang kosong di bawah bilah tab untuk bilah navigasi yang tidak ada, saat ponsel Anda menyembunyikan bilah navigasinya atau Instagram berada di jendela pop-up. Ini menghapus ruang tersebut. Mulai ulang Instagram setelah mengubahnya.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "Instagram tidak dapat membaca ID iklan ponselmu atau memberi tahu layanan iklan Android iklan mana yang kamu lihat atau ketuk. Izin untuk itu sudah dihapus dari build ini.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushGram menjeda dirinya sendiri.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram tidak diberi tahu reel mana yang Anda tonton atau sampai mana. Instagram memakainya untuk mengurutkan Reels Anda, dan tidak ada orang lain yang melihatnya. Reel yang sudah Anda tonton bisa muncul lagi.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -1452,6 +1476,8 @@ public final class L10nTranslations {
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Pemilih dokumen tidak tersedia. Pengaturan Anda tidak berubah.");
+        table.put("No matching settings",
+                "Tidak ada pengaturan yang cocok");
         table.put("No settings import to undo.",
                 "Tidak ada impor pengaturan yang dapat dibatalkan.");
         table.put("Nobody outside Meta knows what gets an account suspended. A re-signed Instagram can't pass Google's check that it's the Play Store app, and no patch changes that. If you'd rather not risk your account, try a spare one first. Installing updates over the top with the same key keeps Instagram's data and your sign-in, and on a rooted phone a Root Mount install keeps the sign-in you already have.",
@@ -1522,15 +1548,15 @@ public final class L10nTranslations {
                 "Folder simpan");
         table.put("Save full report",
                 "Simpan laporan lengkap");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Save the full report in Download/Morphe.",
                 "Simpan laporan lengkap di Download/Morphe.");
         table.put("Save videos other apps can open",
                 "Simpan video yang bisa dibuka aplikasi lain");
         table.put("Saved to %1$s",
                 "Disimpan ke %1$s");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "Disimpan ke %1$s dengan kualitas lebih rendah daripada di Instagram");
         table.put("Saved to the gallery",
@@ -1547,6 +1573,8 @@ public final class L10nTranslations {
                 "Menyimpan...");
         table.put("Saving... Cancel: Downloads in HushGram.",
                 "Menyimpan... Batal: Unduhan di HushGram.");
+        table.put("Search settings",
+                "Cari pengaturan");
         table.put("Set when you patched",
                 "Diatur saat Anda menambal");
         table.put("Settings backup",
@@ -1635,12 +1663,17 @@ public final class L10nTranslations {
                 "Semua ini dipilih di Morphe Manager saat Anda menambal, dan Jeda tidak mematikannya. Tambal ulang untuk mengubahnya.");
         table.put("Try again, or go back to Instagram.",
                 "Coba lagi, atau kembali ke Instagram.");
+        table.put("Try another word or clear the search.",
+                "Coba kata lain atau hapus pencarian.");
         table.put("Turn off double tap to like",
                 "Matikan ketuk dua kali untuk menyukai");
         table.put("Turn on Default playback quality to use this choice.",
                 "Aktifkan Kualitas pemutaran default untuk menggunakan pilihan ini.");
         table.put("Turn on Start Home on Following to use this choice.",
                 "Aktifkan Mulai Beranda di Mengikuti untuk menggunakan pilihan ini.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Turn on Story ring size to use this choice.",
                 "Aktifkan Ukuran lingkaran cerita untuk menggunakan pilihan ini.");
         table.put("Undo cleared positions",
@@ -1651,9 +1684,6 @@ public final class L10nTranslations {
                 "Waktu untuk memulihkan telah habis.");
         table.put("Undo settings import",
                 "Batalkan impor pengaturan");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "Hingga %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -1705,7 +1735,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(528);
+        Map<String, String> table = new HashMap<>(538);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1785,6 +1815,10 @@ public final class L10nTranslations {
                 "Limpar dados de diagn\u00f3stico");
         table.put("Clear remembered positions",
                 "Apagar posi\u00e7\u00f5es salvas");
+        table.put("Clear search",
+                "Limpar pesquisa");
+        table.put("Contacts, location setup, analytics",
+                "Contatos, configura\u00e7\u00e3o de localiza\u00e7\u00e3o, an\u00e1lises");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "Copie um relat\u00f3rio r\u00e1pido ou salve o relat\u00f3rio completo em Download/Morphe. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Verifique se h\u00e1 outros textos privados antes de compartilhar.");
         table.put("Copy a short report to the clipboard.",
@@ -1831,13 +1865,13 @@ public final class L10nTranslations {
                 "Desativar an\u00e1lises");
         table.put("Doesn't follow you",
                 "N\u00e3o segue voc\u00ea");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Don't send reel watch history",
                 "N\u00e3o enviar o hist\u00f3rico de reels assistidos");
         table.put("Download",
                 "Baixar");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Download failed",
                 "Falha no download");
         table.put("Download feed photos",
@@ -1954,13 +1988,13 @@ public final class L10nTranslations {
                 "%1$d configura\u00e7\u00f5es importadas. %2$d chaves incompat\u00edveis ignoradas.");
         table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
                 "O Instagram pode deixar um espa\u00e7o vazio embaixo da barra de abas para uma barra de navega\u00e7\u00e3o que n\u00e3o existe, quando o celular esconde a barra de navega\u00e7\u00e3o ou o Instagram est\u00e1 numa janela pop-up. Isso tira esse espa\u00e7o. Reinicie o Instagram depois de mudar.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "O Instagram n\u00e3o consegue ler o ID de publicidade do seu celular nem informar aos servi\u00e7os de an\u00fancios do Android quais an\u00fancios voc\u00ea viu ou tocou. As permiss\u00f5es para isso foram removidas desta vers\u00e3o.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "O Instagram fechou com erro ou travou no primeiro minuto ap\u00f3s iniciar, tr\u00eas vezes seguidas, ent\u00e3o o HushGram foi pausado automaticamente.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "O Instagram n\u00e3o fica sabendo quais reels voc\u00ea assistiu nem at\u00e9 onde. Ele usa isso para ordenar seus Reels, e ningu\u00e9m mais v\u00ea. Reels que voc\u00ea j\u00e1 assistiu podem voltar a aparecer.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -2005,6 +2039,8 @@ public final class L10nTranslations {
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Nenhum seletor de documentos est\u00e1 dispon\u00edvel. Suas configura\u00e7\u00f5es n\u00e3o mudaram.");
+        table.put("No matching settings",
+                "Nenhuma configura\u00e7\u00e3o correspondente");
         table.put("No settings import to undo.",
                 "N\u00e3o h\u00e1 importa\u00e7\u00e3o de configura\u00e7\u00f5es para desfazer.");
         table.put("Nobody outside Meta knows what gets an account suspended. A re-signed Instagram can't pass Google's check that it's the Play Store app, and no patch changes that. If you'd rather not risk your account, try a spare one first. Installing updates over the top with the same key keeps Instagram's data and your sign-in, and on a rooted phone a Root Mount install keeps the sign-in you already have.",
@@ -2075,15 +2111,15 @@ public final class L10nTranslations {
                 "Pasta de destino");
         table.put("Save full report",
                 "Salvar relat\u00f3rio completo");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Save the full report in Download/Morphe.",
                 "Salve o relat\u00f3rio completo em Download/Morphe.");
         table.put("Save videos other apps can open",
                 "Salvar v\u00eddeos que outros apps conseguem abrir");
         table.put("Saved to %1$s",
                 "Salvo em %1$s");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "Salvo em %1$s com qualidade menor que no Instagram");
         table.put("Saved to the gallery",
@@ -2100,6 +2136,8 @@ public final class L10nTranslations {
                 "Salvando...");
         table.put("Saving... Cancel: Downloads in HushGram.",
                 "Salvando... Cancelar: Downloads no HushGram.");
+        table.put("Search settings",
+                "Pesquisar configura\u00e7\u00f5es");
         table.put("Set when you patched",
                 "Definido ao aplicar os patches");
         table.put("Settings backup",
@@ -2188,12 +2226,17 @@ public final class L10nTranslations {
                 "Eles s\u00e3o escolhidos no Morphe Manager quando voc\u00ea aplica os patches, e a pausa n\u00e3o os desativa. Aplique os patches novamente para alter\u00e1-los.");
         table.put("Try again, or go back to Instagram.",
                 "Tente novamente ou volte para o Instagram.");
+        table.put("Try another word or clear the search.",
+                "Tente outra palavra ou limpe a pesquisa.");
         table.put("Turn off double tap to like",
                 "Desativar toque duplo para curtir");
         table.put("Turn on Default playback quality to use this choice.",
                 "Ative Qualidade de reprodu\u00e7\u00e3o padr\u00e3o para usar esta op\u00e7\u00e3o.");
         table.put("Turn on Start Home on Following to use this choice.",
                 "Ative Iniciar a p\u00e1gina inicial em Seguindo para usar esta op\u00e7\u00e3o.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Turn on Story ring size to use this choice.",
                 "Ative Tamanho do c\u00edrculo dos stories para usar esta op\u00e7\u00e3o.");
         table.put("Undo cleared positions",
@@ -2204,9 +2247,6 @@ public final class L10nTranslations {
                 "O prazo para restaurar terminou.");
         table.put("Undo settings import",
                 "Desfazer importa\u00e7\u00e3o das configura\u00e7\u00f5es");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "At\u00e9 %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -2258,7 +2298,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(528);
+        Map<String, String> table = new HashMap<>(538);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2338,6 +2378,10 @@ public final class L10nTranslations {
                 "Tan\u0131lama verilerini temizle");
         table.put("Clear remembered positions",
                 "Kaydedilen konumlar\u0131 sil");
+        table.put("Clear search",
+                "Aramay\u0131 temizle");
+        table.put("Contacts, location setup, analytics",
+                "Ki\u015filer, konum kurulumu, analiz");
         table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
                 "K\u0131sa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve oturum belirte\u00e7leri \u00e7\u0131kar\u0131l\u0131r. Payla\u015fmadan \u00f6nce ba\u015fka \u00f6zel bilgi olup olmad\u0131\u011f\u0131na bak.");
         table.put("Copy a short report to the clipboard.",
@@ -2384,13 +2428,13 @@ public final class L10nTranslations {
                 "Analiti\u011fi devre d\u0131\u015f\u0131 b\u0131rak");
         table.put("Doesn't follow you",
                 "Seni takip etmiyor");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("Don't send reel watch history",
                 "Reel izleme ge\u00e7mi\u015fini g\u00f6nderme");
         table.put("Download",
                 "\u0130ndir");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("Download failed",
                 "\u0130ndirme ba\u015far\u0131s\u0131z oldu");
         table.put("Download feed photos",
@@ -2507,13 +2551,13 @@ public final class L10nTranslations {
                 "%1$d ayar i\u00e7e aktar\u0131ld\u0131. Desteklenmeyen %2$d anahtar atland\u0131.");
         table.put("Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.",
                 "Telefonun gezinme \u00e7ubu\u011funu gizledi\u011finde veya Instagram a\u00e7\u0131l\u0131r pencerede oldu\u011funda, Instagram sekme \u00e7ubu\u011funun alt\u0131nda olmayan bir gezinme \u00e7ubu\u011fu i\u00e7in bo\u015f yer b\u0131rakabilir. Bu, o alan\u0131 kald\u0131r\u0131r. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.",
                 "Instagram telefonunun reklam kimli\u011fini okuyamaz ve Android'in reklam hizmetlerine hangi reklamlar\u0131 g\u00f6rd\u00fc\u011f\u00fcn\u00fc veya dokundu\u011funu bildiremez. Bunlar i\u00e7in gereken izinler bu s\u00fcr\u00fcmden kald\u0131r\u0131ld\u0131.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram a\u00e7\u0131ld\u0131ktan sonraki bir dakika i\u00e7inde \u00fcst \u00fcste \u00fc\u00e7 kez \u00e7\u00f6kt\u00fc veya dondu, bu y\u00fczden HushGram kendini duraklatt\u0131.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram hangi reelleri izledi\u011fini ve ne kadar\u0131n\u0131 izledi\u011fini \u00f6\u011frenmez. Reels ak\u0131\u015f\u0131n\u0131 buna g\u00f6re s\u0131ralar ve bunu ba\u015fka kimse g\u00f6rmez. \u0130zledi\u011fin reeller yeniden kar\u015f\u0131na \u00e7\u0131kabilir.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -2558,6 +2602,8 @@ public final class L10nTranslations {
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Belge se\u00e7ici kullan\u0131lam\u0131yor. Ayarlar\u0131n\u0131z de\u011fi\u015fmedi.");
+        table.put("No matching settings",
+                "E\u015fle\u015fen ayar yok");
         table.put("No settings import to undo.",
                 "Geri al\u0131nacak ayar i\u00e7e aktarma i\u015flemi yok.");
         table.put("Nobody outside Meta knows what gets an account suspended. A re-signed Instagram can't pass Google's check that it's the Play Store app, and no patch changes that. If you'd rather not risk your account, try a spare one first. Installing updates over the top with the same key keeps Instagram's data and your sign-in, and on a rooted phone a Root Mount install keeps the sign-in you already have.",
@@ -2628,15 +2674,15 @@ public final class L10nTranslations {
                 "Kay\u0131t klas\u00f6r\u00fc");
         table.put("Save full report",
                 "Tam raporu kaydet");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Save the full report in Download/Morphe.",
                 "Tam raporu Download/Morphe konumuna kaydeder.");
         table.put("Save videos other apps can open",
                 "Videolar\u0131 di\u011fer uygulamalar\u0131n a\u00e7abilece\u011fi bi\u00e7imde kaydet");
         table.put("Saved to %1$s",
                 "\u015euraya kaydedildi: %1$s");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "\u015euraya Instagram'dakinden d\u00fc\u015f\u00fck kalitede kaydedildi: %1$s");
         table.put("Saved to the gallery",
@@ -2653,6 +2699,8 @@ public final class L10nTranslations {
                 "Kaydediliyor...");
         table.put("Saving... Cancel: Downloads in HushGram.",
                 "Kaydediliyor... \u0130ptal: HushGram'da \u0130ndirmeler.");
+        table.put("Search settings",
+                "Ayarlarda ara");
         table.put("Set when you patched",
                 "Yamalad\u0131\u011f\u0131nda ayarlananlar");
         table.put("Settings backup",
@@ -2741,12 +2789,17 @@ public final class L10nTranslations {
                 "Bunlar yamalarken Morphe Manager'da se\u00e7ilir ve Duraklatma bunlar\u0131 kapatmaz. De\u011fi\u015ftirmek i\u00e7in yeniden yamala.");
         table.put("Try again, or go back to Instagram.",
                 "Tekrar dene veya Instagram'a geri d\u00f6n.");
+        table.put("Try another word or clear the search.",
+                "Ba\u015fka bir s\u00f6zc\u00fck deneyin veya aramay\u0131 temizleyin.");
         table.put("Turn off double tap to like",
                 "Be\u011fenmek i\u00e7in \u00e7ift dokunmay\u0131 kapat");
         table.put("Turn on Default playback quality to use this choice.",
                 "Bu se\u00e7imi kullanmak i\u00e7in Varsay\u0131lan oynatma kalitesi se\u00e7ene\u011fini a\u00e7\u0131n.");
         table.put("Turn on Start Home on Following to use this choice.",
                 "Bu se\u00e7imi kullanmak i\u00e7in Ana sayfay\u0131 Takip edilenler ile ba\u015flat se\u00e7ene\u011fini a\u00e7\u0131n.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Turn on Story ring size to use this choice.",
                 "Bu se\u00e7imi kullanmak i\u00e7in Hik\u00e2ye halkas\u0131 boyutu se\u00e7ene\u011fini a\u00e7\u0131n.");
         table.put("Undo cleared positions",
@@ -2757,9 +2810,6 @@ public final class L10nTranslations {
                 "Geri y\u00fckleme s\u00fcresi doldu.");
         table.put("Undo settings import",
                 "Ayarlar\u0131 i\u00e7e aktarmay\u0131 geri al");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "En fazla %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",

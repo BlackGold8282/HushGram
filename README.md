@@ -113,6 +113,8 @@ Long-press Instagram's icon on your home screen and tap **HushGram settings**. O
   <img src="assets/settings-pause-and-diagnostics.png" alt="HushGram settings: Set when you patched, Pause and Debug logging" width="270">
 </p>
 
+Unreleased source builds also have **Search settings**. Search by a control's label or description in your phone's language, or by its English patch name. Contacts and location setup lead to Disable analytics; Following and Reels find their installed controls. Pause, diagnostics and any running save's Cancel stay available while searching. Clear the search to return to the same sections and choices. Search works offline and doesn't keep a history.
+
 At the top, a card says whether HushGram is on or paused. Below it:
 
 - **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links, Open links in external browser and Disable analytics.

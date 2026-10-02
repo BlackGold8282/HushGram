@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Search installed settings by their translated labels and descriptions or English patch names, including contacts, location setup, Following and Reels. Pause, recovery and running saves' Cancel remain available. Clearing restores the same controls and choices, and filtering leaves the live Cancel button in place as progress changes. Search stays offline, with no stored history.
 * **Tooling:** Android 9 and Android 17 regression cases exercise settings opening, large text, right-to-left layout, system bars, recovery, diagnostic export, storage and save cancellation with Instagram 449's target SDK 36. The local push check refuses missing or skipped boundary cases, including cleanup of Android 9's hidden unfinished files without deleting finished media.
 * **Instagram:** Imports close the picked file before applying settings and retain the complete result across settings reopening. Saves record a separate one-byte outcome marker, so failed preference writes don't turn completion or Cancel into an interruption.
 * **Instagram:** After an interrupted save, cleanup removes its unfinished resources and the next opening explains how to save again. One opaque marker tracks each save without keeping media or account IDs. Completed and cancelled saves leave no interruption notice; failed cleanup stays pending, including a gallery row whose deletion was refused.

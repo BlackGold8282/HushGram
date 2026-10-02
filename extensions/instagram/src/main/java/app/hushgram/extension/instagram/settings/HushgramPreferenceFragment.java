@@ -25,6 +25,8 @@ import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.preference.TwoStatePreference;
 import android.text.Layout;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.util.Linkify;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
@@ -39,6 +41,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -46,10 +49,13 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.text.NumberFormat;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -108,6 +114,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable private Row importConfiguration;
     @Nullable private Row undoConfiguration;
 
+    private String searchQuery = "";
+    @Nullable private SearchRow search;
+    @Nullable private Row noSearchResults;
+    /** Keep the actual row objects, including their values and listeners, while filtering. */
+    private final Map<PreferenceCategory, List<Preference>> searchableRows = new LinkedHashMap<>();
+    private final Map<Preference, String> searchAliases = new HashMap<>();
+
     /** The page's dialogs that may still be on screen, which would outlive it. */
     private final List<Dialog> shownDialogs = new ArrayList<>();
 
@@ -126,6 +139,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Override
     public void onCreate(Bundle state) {
         if (state != null) documentRequest = state.getInt("hushgram_document_request", 0);
+        if (state != null) searchQuery = state.getString("hushgram_settings_query", "");
         super.onCreate(state);
     }
 
@@ -133,6 +147,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     public void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putInt("hushgram_document_request", documentRequest);
+        state.putString("hushgram_settings_query", searchQuery);
     }
 
     @Override
@@ -140,6 +155,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         super.onViewCreated(view, savedInstanceState);
         ListView list = view.findViewById(android.R.id.list);
         if (list != null) {
+            list.setItemsCanFocus(true);
             list.setDivider(null);
             list.setDividerHeight(0);
             list.setBackgroundColor(Color.BLACK);
@@ -184,9 +200,24 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         Context context = themed(getContext());
         PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(context);
         setPreferenceScreen(screen);
+        searchableRows.clear();
+        searchAliases.clear();
 
         screen.addPreference(statusCard(context));
         if (!Settings.SIGN_IN_NOTICE_HIDDEN.savedValue()) screen.addPreference(signInNotice(context, screen));
+        search = new SearchRow(context);
+        search.setKey("hushgram_settings_search");
+        search.setTitle(L10n.t("Search settings"));
+        search.setPersistent(false);
+        search.setSelectable(false);
+        screen.addPreference(search);
+        noSearchResults = new Row(context);
+        noSearchResults.setPersistent(false);
+        noSearchResults.setSelectable(false);
+        noSearchResults.setKey("hushgram_settings_search_empty");
+        noSearchResults.setOrder(search.getOrder() + 1);
+        noSearchResults.setTitle(L10n.t("No matching settings"));
+        noSearchResults.setSummary(L10n.t("Try another word or clear the search."));
         // The export row below reads this; registering twice keeps one.
         PatchFamily.registerDiagnostics();
         Set<PatchFamily> build = PatchFamily.inThisBuild();
@@ -540,6 +571,113 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             return true;
         });
         about.addPreference(mark(licenses, SettingsIcons.LICENSE));
+        for (int i = 0; i < screen.getPreferenceCount(); i++) {
+            Preference section = screen.getPreference(i);
+            if (!(section instanceof PreferenceCategory)) continue;
+            PreferenceCategory group = (PreferenceCategory) section;
+            List<Preference> rows = new ArrayList<>();
+            for (int j = 0; j < group.getPreferenceCount(); j++) {
+                Preference row = group.getPreference(j);
+                rows.add(row);
+                String key = row.getKey();
+                StringBuilder aliases = new StringBuilder();
+                for (PatchFamily family : build) {
+                    boolean belongs = family.switches.stream().anyMatch(setting -> setting.key.equals(key));
+                    belongs |= family == PatchFamily.STORY_RING && Settings.STORY_RING_SCALE.key.equals(key);
+                    belongs |= family == PatchFamily.PLAYBACK_QUALITY && Settings.PLAYBACK_QUALITY.key.equals(key);
+                    belongs |= family == PatchFamily.RESUME_LONG_VIDEOS && row == clearPositions;
+                    belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.STORY_DOWNLOAD
+                            || family == PatchFamily.VIDEO_DOWNLOAD) && (Settings.DOWNLOAD_QUALITY.key.equals(key)
+                            || Settings.SAVE_FOLDER.key.equals(key) || Settings.FILENAME_TEMPLATE.key.equals(key)
+                            || Settings.DOWNLOAD_COMPATIBLE.key.equals(key));
+                    belongs |= family == PatchFamily.RESTORE_TRUST && L10n.t("Re-signed build fix").equals(row.getTitle());
+                    belongs |= family == PatchFamily.REMOVE_AD_ID && L10n.t("Advertising ID removed").equals(row.getTitle());
+                    belongs |= family == PatchFamily.PURE_BLACK && L10n.t("Pure black dark mode").equals(row.getTitle());
+                    if (!belongs) continue;
+                    aliases.append(' ').append(family.patchName);
+                    if (family == PatchFamily.DISABLE_ANALYTICS) aliases.append(" contacts contact location setup analytics ")
+                            .append(L10n.t("Contacts, location setup, analytics"));
+                    if (family == PatchFamily.FOLLOWING_FEED) aliases.append(" following home feed");
+                    if (family == PatchFamily.REEL_DECLUTTER || family == PatchFamily.REEL_DOWNLOAD
+                            || family == PatchFamily.REEL_WATCH_HISTORY || family == PatchFamily.REELS_TAB
+                            || family == PatchFamily.KEEP_REEL_SPEED || family == PatchFamily.TAP_TO_PLAY
+                            || family == PatchFamily.PLAYBACK_QUALITY || family == PatchFamily.RESUME_LONG_VIDEOS
+                            || Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS.key.equals(key)) aliases.append(" reels");
+                }
+                searchAliases.put(row, aliases.toString());
+            }
+            searchableRows.put(group, rows);
+        }
+        filterSettings();
+    }
+
+    /** Hidden rows still participate in the shared preference synchronization contract. */
+    @Override public Preference findPreference(CharSequence key) {
+        Preference visible = super.findPreference(key);
+        if (visible != null || key == null) return visible;
+        for (List<Preference> rows : searchableRows.values()) {
+            for (Preference row : rows) if (key.toString().equals(row.getKey())) return row;
+        }
+        return null;
+    }
+
+    private void restoreSearchRows() {
+        PreferenceScreen screen = getPreferenceScreen();
+        if (screen == null || search == null || screen.findPreference(search.getKey()) != search) return;
+        for (Map.Entry<PreferenceCategory, List<Preference>> section : searchableRows.entrySet()) {
+            PreferenceCategory group = section.getKey();
+            if (group.getParent() != screen) screen.addPreference(group);
+            for (Preference row : section.getValue()) if (row.getParent() != group) group.addPreference(row);
+        }
+    }
+
+    @Override protected void updateUIToSettingValues() {
+        restoreSearchRows();
+        try { super.updateUIToSettingValues(); } finally { filterSettings(); }
+    }
+
+    @Override protected void updateUIAvailability() {
+        restoreSearchRows();
+        try { super.updateUIAvailability(); } finally { filterSettings(); }
+    }
+
+    private static String searchText(CharSequence text) {
+        return text == null ? "" : Normalizer.normalize(text, Normalizer.Form.NFKD)
+                .toUpperCase(Locale.ROOT).toLowerCase(Locale.ROOT).replaceAll("\\p{M}+|\\p{Cf}+", "");
+    }
+
+    void searchSettings(String query) {
+        searchQuery = query == null ? "" : query;
+        filterSettings();
+    }
+
+    private void filterSettings() {
+        PreferenceScreen screen = getPreferenceScreen();
+        if (screen == null || search == null || screen.findPreference(search.getKey()) != search) return;
+        String normalized = searchText(searchQuery).trim();
+        String[] terms = normalized.isEmpty() ? new String[0] : normalized.split("\\s+");
+        int matches = 0;
+        for (Map.Entry<PreferenceCategory, List<Preference>> section : searchableRows.entrySet()) {
+            PreferenceCategory group = section.getKey();
+            for (Preference row : section.getValue()) {
+                String text = searchText(group.getTitle()) + " " + searchText(row.getTitle()) + " "
+                        + searchText(row.getSummary()) + " " + searchText(searchAliases.get(row));
+                boolean match = true;
+                for (String term : terms) if (!text.contains(term)) { match = false; break; }
+                if (match) matches++;
+                if (match || group == recovery) {
+                    if (row.getParent() != group) group.addPreference(row);
+                } else if (row.getParent() == group) group.removePreference(row);
+            }
+            // Running saves are live rows outside the snapshot, so Cancel survives every query.
+            if (group.getPreferenceCount() > 0) {
+                if (group.getParent() != screen) screen.addPreference(group);
+            } else if (group.getParent() == screen) screen.removePreference(group);
+        }
+        // removePreference notifies even when absent. No-op changes mustn't rebind live Cancel.
+        if (terms.length > 0 && matches == 0) {
+            if (noSearchResults.getParent() != screen) screen.addPreference(noSearchResults);
+        } else if (noSearchResults.getParent() == screen) screen.removePreference(noSearchResults);
     }
 
     private void showConfiguration() {
@@ -554,6 +692,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     ? L10n.t("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.")
                     : L10n.t("No settings import to undo."));
         }
+        filterSettings();
     }
 
     private void pickConfiguration(boolean importing) {
@@ -683,6 +822,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setSummary(undo
                 ? L10n.t("You can restore the cleared positions once within 10 seconds.")
                 : L10n.t("Up to 200 positions, kept for 30 days. Tap to clear them from this device."));
+        filterSettings();
     }
 
     /** Disk commits run on the existing worker, with immediate feedback and no confirmation. */
@@ -758,6 +898,60 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             row = new SaveRow(group.getContext(), save);
             saveRows.put(save.id, row);
             group.addPreference(row);
+        }
+        filterSettings();
+    }
+
+    /** Inline input. Its query is local to this page and never becomes a stored setting. */
+    private final class SearchRow extends Preference {
+        SearchRow(Context context) { super(context); }
+
+        @Override protected View onCreateView(android.view.ViewGroup parent) {
+            Context context = getContext();
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            int touch = Math.round(48 * context.getResources().getDisplayMetrics().density);
+            int inset = Math.round(16 * context.getResources().getDisplayMetrics().density);
+            row.setPaddingRelative(inset, 0, inset, 0);
+            row.setMinimumHeight(touch);
+            // Legacy ListView refocuses a row during layout. Keep focus on its typing field.
+            row.setDescendantFocusability(android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS);
+            EditText field = new EditText(context);
+            field.setTag("hushgram-settings-search");
+            field.setSingleLine(true);
+            field.setTextSize(16);
+            field.setTextColor(ScreenColors.DEFAULT.title);
+            field.setHintTextColor(ScreenColors.DEFAULT.summary);
+            field.setHint(L10n.t("Search settings"));
+            field.setContentDescription(L10n.t("Search settings"));
+            field.setMinimumHeight(touch);
+            field.setText(searchQuery);
+            row.addView(field, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+            Button clear = new Button(context);
+            clear.setText("×");
+            clear.setAllCaps(false);
+            clear.setTextSize(24);
+            clear.setTextColor(ScreenColors.DEFAULT.heading);
+            clear.setBackgroundColor(Color.TRANSPARENT);
+            clear.setContentDescription(L10n.t("Clear search"));
+            clear.setPadding(0, 0, 0, 0);
+            clear.setMinimumWidth(touch);
+            clear.setMinimumHeight(touch);
+            clear.setEnabled(!searchQuery.isEmpty());
+            clear.setVisibility(searchQuery.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+            clear.setOnClickListener(view -> field.setText(""));
+            row.addView(clear, new LinearLayout.LayoutParams(touch, LinearLayout.LayoutParams.WRAP_CONTENT));
+            field.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
+                @Override public void onTextChanged(CharSequence text, int start, int before, int count) { }
+                @Override public void afterTextChanged(Editable text) {
+                    searchSettings(text.toString());
+                    clear.setEnabled(text.length() > 0);
+                    clear.setVisibility(text.length() == 0 ? View.INVISIBLE : View.VISIBLE);
+                }
+            });
+            return row;
         }
     }
 
