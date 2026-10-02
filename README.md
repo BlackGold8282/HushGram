@@ -62,6 +62,8 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 
 ## Patches
 
+Unreleased source builds include Default playback quality in Manager's simple mode. It starts at Auto, so Instagram keeps choosing the quality until you change it in HushGram. Patches whose initial switches or patch-time changes alter behavior keep their opt-in selection.
+
 There are 35 patches for `com.instagram.android`, checked against Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The fourteen newest, Show if a profile follows you, Remove the empty space at the bottom, Hide the Repost button, Story ring size, Hide group buttons on the share sheet, Pure black dark mode, Open developer options, Start on x86 devices, Keep the reel speed, Hide suggested posts, Hide Meta AI, Hide the Explore grid, Start Home on Following and Hide suggested stories, are new in v0.0.3.
 
 | Patch | What it does |
