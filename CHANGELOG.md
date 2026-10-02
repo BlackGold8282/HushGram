@@ -6,6 +6,8 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Instagram:** New patch, `Hide suggested people on profiles`, off until you pick it in Manager. Suggested for you goes from profiles, yours and other people's, whether Instagram puts it in the Follow and Message area or in a row under the header, and so does the Discover people button beside those buttons. Its switch is under Profiles, and bios, counts, posts and follower lists stay. Asked for in #15 and #20.
+
 * **Instagram:** Copy comment only takes a comment menu renderer whose middle argument fits one register. A future build that made it a long or double would have shifted the selected comment's register, so it's refused before anything changes.
 
 * **Tooling:** The injected-register verifier no longer clears a shared phone's log buffer. It writes its own marker line, reads only what follows it, and stops with a plain message if the buffer has already rotated past the marker.

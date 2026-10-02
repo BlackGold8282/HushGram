@@ -571,3 +571,15 @@ once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->inPlaceOf
 # Copy is added after the common renderer's popup guards, once before its stock list iteration.
 # The renderer holds no string; its class holds the matching selection-dismissal marker.
 once-call Lapp/hushgram/extension/instagram/comment/CommentCopy;->rows(Ljava/util/List;Ljava/lang/Object;Landroid/content/Context;)Ljava/util/List; in instance (L*;L*;L*;Ljava/util/List;F)V class-holding select_comment_screen_comment_unselect_tap_
+
+# Hide suggested people on profiles hands the action row's show flag for its inline row of
+# suggestions to ProfileSuggestions right after the read, and the person-plus button to it right
+# after Instagram sets the button up, both in the one method loading the binder message below
+# (0Cky.A01 on 449). In the header's binder group (0BNk on 449, the one class loading both trace
+# names) its row list asks before adding the standalone row of suggestions. Each hook is called
+# once there and nowhere else, so all three are once-call. Left out, the suggestions come back;
+# twice or elsewhere, it isn't the hook the patch wrote. HideProfileSuggestionsHookTest checks on
+# the 449 fixture where each lands and that the row list's jumps still land where they did.
+once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->inlineRow(I)I in instance (L*;L*;L*;L*;Ljava/lang/Integer;Ljava/util/List;Ljava/util/List;I)V holding No\ssuggested\sViewBinder\sto\sbind\ssuggested\susers
+once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->chainingButton(Landroid/view/View;)V in instance (L*;L*;L*;L*;Ljava/lang/Integer;Ljava/util/List;Ljava/util/List;I)V holding No\ssuggested\sViewBinder\sto\sbind\ssuggested\susers
+once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->keepStandaloneRow()I in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V class-holding ProfileHeaderBinderGroup.bindView ProfileHeaderBinderGroup.createView

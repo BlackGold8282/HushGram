@@ -203,6 +203,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_FRIENDSHIP_STATUS =
             new BooleanSetting("hushgram_show_friendship_status", TRUE);
 
+    /**
+     * Suggested for you and the Discover people button on profiles
+     * ({@link app.hushgram.extension.instagram.profile.ProfileSuggestions}). Read each time Instagram
+     * builds or binds a profile's header, so off or paused, the suggestions are back on the next one.
+     */
+    public static final BooleanSetting HIDE_PROFILE_SUGGESTIONS =
+            new BooleanSetting("hushgram_hide_profile_suggestions", TRUE);
+
     /** An explicit Copy action for original comment text. Off until enabled. */
     public static final BooleanSetting COPY_COMMENTS =
             new BooleanSetting("hushgram_copy_comments", FALSE);

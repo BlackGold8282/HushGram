@@ -108,6 +108,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean profileSuggestions() {
+        return false;
+    }
+
     public static boolean commentCopy() {
         return false;
     }

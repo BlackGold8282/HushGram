@@ -203,6 +203,10 @@ tasks.register("verifyAndroidBoundaries") {
                 "discoveryAndClipboardFailuresReturnToNativeDismissal[28]", "discoveryAndClipboardFailuresReturnToNativeDismissal",
                 "emptyOrNullCurrentTextRemovesStaleOwnedRowsFromImmutableMenus[28]", "emptyOrNullCurrentTextRemovesStaleOwnedRowsFromImmutableMenus",
                 "staleMenusAreUntouchedWhileOffPausedOrUnreadyAndFailuresRemainContained[28]", "staleMenusAreUntouchedWhileOffPausedOrUnreadyAndFailuresRemainContained"),
+            "app.hushgram.extension.instagram.profile.ProfileSuggestionsTest" to listOf(
+                "offPausedAndUnreadyLeaveInstagramsAnswers[28]", "offPausedAndUnreadyLeaveInstagramsAnswers",
+                "aButtonHiddenEarlierComesBackWhenTheSwitchGoesOff[28]", "aButtonHiddenEarlierComesBackWhenTheSwitchGoesOff",
+                "aButtonThatThrowsIsLeftAndReported[28]", "aButtonThatThrowsIsLeftAndReported"),
             "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
                 "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch",
                 "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause"),

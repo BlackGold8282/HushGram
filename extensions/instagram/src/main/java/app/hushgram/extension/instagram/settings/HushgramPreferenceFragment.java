@@ -431,11 +431,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.")));
         }
 
-        if (build.contains(PatchFamily.FRIENDSHIP_STATUS)) {
+        if (build.contains(PatchFamily.FRIENDSHIP_STATUS) || build.contains(PatchFamily.PROFILE_SUGGESTIONS)) {
             PreferenceCategory profiles = category(screen, L10n.t("Profiles"));
-            profiles.addPreference(toggle(context, Settings.SHOW_FRIENDSHIP_STATUS, L10n.t("Show if a profile follows you"),
-                    L10n.t("Adds Follows you or Doesn't follow you beside the name on someone's profile, after "
-                            + "their pronouns if they've set any. Nothing shows until Instagram has checked.")));
+            if (build.contains(PatchFamily.FRIENDSHIP_STATUS)) {
+                profiles.addPreference(toggle(context, Settings.SHOW_FRIENDSHIP_STATUS, L10n.t("Show if a profile follows you"),
+                        L10n.t("Adds Follows you or Doesn't follow you beside the name on someone's profile, after "
+                                + "their pronouns if they've set any. Nothing shows until Instagram has checked.")));
+            }
+            if (build.contains(PatchFamily.PROFILE_SUGGESTIONS)) {
+                profiles.addPreference(toggle(context, Settings.HIDE_PROFILE_SUGGESTIONS, L10n.t("Hide suggested people"),
+                        L10n.t("Takes Suggested for you and the Discover people button off profiles, yours included. "
+                                + "Bios, counts, posts and follower lists stay.")));
+            }
         }
 
         if (build.contains(PatchFamily.BOTTOM_SPACE)) {
