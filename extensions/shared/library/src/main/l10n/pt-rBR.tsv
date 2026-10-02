@@ -286,3 +286,14 @@ Copy comment	Copiar comentário
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Adiciona Copiar ao menu de um comentário selecionado. Copia o texto original, incluindo quebras de linha.
 Comment copied	Comentário copiado
 Couldn't copy comment	Não foi possível copiar o comentário
+Export overrides	Exportar valores personalizados
+Save this signed-in session's overrides for the exact Instagram build and schema.	Salve os valores personalizados desta sessão para esta versão e este esquema exatos do Instagram.
+Validate an overrides file	Validar um arquivo de valores personalizados
+Check a saved file against this session's typed schema. Validation applies nothing.	Confira um arquivo salvo com o esquema tipado desta sessão. A validação não aplica nada.
+No document picker is available. Overrides haven't changed.	Nenhum seletor de documentos está disponível. Os valores personalizados não mudaram.
+Couldn't use that overrides document. Native overrides haven't changed.	Não foi possível usar esse documento de valores personalizados. Os valores do Instagram não mudaram.
+Validated %1$d overrides only. Nothing was applied.	Apenas %1$d valores personalizados foram validados. Nada foi aplicado.
+Overrides exported for this Instagram build and schema.	Valores personalizados exportados para esta versão e este esquema do Instagram.
+Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	Não foi possível validar os valores personalizados. Confira o arquivo e abra as configurações pela página inicial com a sessão iniciada. Nada mudou.
+Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	Não foi possível exportar os valores personalizados. O arquivo escolhido pode estar incompleto. Os valores do Instagram não mudaram.
+Couldn't start the override operation. Try again. Nothing changed.	Não foi possível iniciar a operação de valores personalizados. Tente novamente. Nada mudou.

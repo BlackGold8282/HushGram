@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(572);
+        Map<String, String> table = new HashMap<>(594);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -124,6 +124,8 @@ public final class L10nTranslations {
                 "Karussell abgebrochen. Gespeichert %1$d. Fehlgeschlagen %2$d. \u00dcbersprungen %3$d.");
         table.put("Changing these",
                 "So \u00e4nderst du sie");
+        table.put("Check a saved file against this session's typed schema. Validation applies nothing.",
+                "Pr\u00fcfe eine gespeicherte Datei anhand des typisierten Schemas dieser Sitzung. Die Pr\u00fcfung \u00fcbernimmt nichts.");
         table.put("Choose a file for your installed patches' settings. Accounts and history stay on this device.",
                 "W\u00e4hle eine Datei f\u00fcr die Einstellungen deiner installierten Patches. Konten und Verlauf bleiben auf diesem Ger\u00e4t.");
         table.put("Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.",
@@ -158,27 +160,35 @@ public final class L10nTranslations {
                 "Kommentar konnte nicht kopiert werden");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "HushGram-Einstellungen konnten nicht exportiert werden. Versuche eine andere Datei.");
+        table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
+                "Die \u00dcberschreibungen konnten nicht exportiert werden. Die ausgew\u00e4hlte Datei ist m\u00f6glicherweise unvollst\u00e4ndig. Instagrams \u00dcberschreibungen wurden nicht ge\u00e4ndert.");
         table.put("Couldn't put back the diagnostic data. Try again.",
                 "Die Diagnosedaten lie\u00dfen sich nicht wiederherstellen. Versuche es noch einmal.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
                 "Die Einstellungen konnten weder gespeichert noch vollst\u00e4ndig wiederhergestellt werden. Pr\u00fcfe die angezeigten Werte und versuche R\u00fcckg\u00e4ngig.");
         table.put("Couldn't save the settings. The previous values were restored.",
                 "Die Einstellungen konnten nicht gespeichert werden. Die vorherigen Werte wurden wiederhergestellt.");
+        table.put("Couldn't start the override operation. Try again. Nothing changed.",
+                "Der Vorgang f\u00fcr \u00dcberschreibungen konnte nicht gestartet werden. Versuche es erneut. Es wurde nichts ge\u00e4ndert.");
         table.put("Couldn't start the report export. Try again shortly.",
                 "Der Export des Berichts lie\u00df sich nicht starten. Versuche es gleich noch einmal.");
         table.put("Couldn't start the settings operation. Try again.",
                 "Der Einstellungsvorgang konnte nicht gestartet werden. Versuche es erneut.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "HushGram lie\u00df sich nicht wieder einschalten. Versuche es noch einmal.");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
+        table.put("Couldn't use that overrides document. Native overrides haven't changed.",
+                "Dieses \u00dcberschreibungsdokument konnte nicht verwendet werden. Instagrams \u00dcberschreibungen wurden nicht ge\u00e4ndert.");
         table.put("Couldn't use that settings file. Your settings haven't changed.",
                 "Diese Einstellungsdatei konnte nicht verwendet werden. Deine Einstellungen wurden nicht ge\u00e4ndert.");
+        table.put("Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.",
+                "Die \u00dcberschreibungen konnten nicht gepr\u00fcft werden. Pr\u00fcfe die Datei und \u00f6ffne die Einstellungen auf der Startseite, w\u00e4hrend du angemeldet bist. Es wurde nichts ge\u00e4ndert.");
         table.put("Data saver",
                 "Datensparmodus");
         table.put("Debug logging",
                 "Debug-Protokollierung");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("Default playback quality",
                 "Standard-Wiedergabequalit\u00e4t");
         table.put("Developer",
@@ -233,6 +243,8 @@ public final class L10nTranslations {
                 "HushGram-Einstellungen exportieren");
         table.put("Export diagnostic report",
                 "Diagnosebericht exportieren");
+        table.put("Export overrides",
+                "\u00dcberschreibungen exportieren");
         table.put("Feed",
                 "Feed");
         table.put("File name",
@@ -287,6 +299,9 @@ public final class L10nTranslations {
                 "Stories-Leiste ausblenden");
         table.put("Highest",
                 "H\u00f6chste");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "Die Startseite \u00f6ffnet sich mit Beitr\u00e4gen von Konten, denen du folgst. Tippe oben auf \u201eGefolgt\u201c, um zu \u201eF\u00fcr dich\u201c zu wechseln, und die Startseite merkt sich deine Wahl. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -299,9 +314,6 @@ public final class L10nTranslations {
                 "HushGram ist pausiert");
         table.put("HushGram pauses when Instagram restarts.",
                 "HushGram pausiert, sobald Instagram neu startet.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("HushGram saves",
                 "Speichern mit HushGram");
         table.put("HushGram settings",
@@ -368,6 +380,8 @@ public final class L10nTranslations {
                 "Viel kleiner");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
+        table.put("No document picker is available. Overrides haven't changed.",
+                "Es ist keine Dateiauswahl verf\u00fcgbar. Die \u00dcberschreibungen wurden nicht ge\u00e4ndert.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Keine Dateiauswahl verf\u00fcgbar. Deine Einstellungen wurden nicht ge\u00e4ndert.");
         table.put("No matching settings",
@@ -398,6 +412,8 @@ public final class L10nTranslations {
                 "\u00d6ffnet Instagrams eigenen Flag-Editor. Eine falsche \u00dcberschreibung kann Teile von Instagram unbrauchbar machen.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "\u00d6ffnet die eigenen Entwickleroptionen von Instagram, in denen sich seine Server-Flags ansehen und \u00e4ndern lassen. Ein falsches Flag kann Teile von Instagram lahmlegen, bis du es dort zur\u00fccksetzt.");
+        table.put("Overrides exported for this Instagram build and schema.",
+                "\u00dcberschreibungen f\u00fcr diese Instagram-Version und dieses Schema exportiert.");
         table.put("Page %1$d of %2$d",
                 "Seite %1$d von %2$d");
         table.put("Pause HushGram",
@@ -406,6 +422,9 @@ public final class L10nTranslations {
                 "Pause und Diagnose");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Hinweise wie Edits, Vorlage verwenden, Meta AI und Ray-Ban Meta Brillen. Ein Live-Abzeichen und ein Hinweis auf staatlich kontrollierte Medien bleiben.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Playback",
                 "Wiedergabe");
         table.put("Playback quality",
@@ -422,9 +441,6 @@ public final class L10nTranslations {
                 "Zeichnet Patch-Aktivit\u00e4t auf und zeigt Fehler f\u00fcr einen Fehlerbericht. Im Alltag ausgeschaltet lassen.");
         table.put("Reels",
                 "Reels");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Remembered playback positions restored.",
                 "Gespeicherte Wiedergabepositionen wiederhergestellt.");
         table.put("Remove build expired popup",
@@ -457,6 +473,8 @@ public final class L10nTranslations {
                 "Vollst\u00e4ndigen Bericht speichern");
         table.put("Save the full report in Download/Morphe.",
                 "Vollst\u00e4ndigen Bericht unter Download/Morphe speichern.");
+        table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
+                "Speichere die \u00dcberschreibungen dieser angemeldeten Sitzung f\u00fcr genau diese Instagram-Version und dieses Schema.");
         table.put("Save videos other apps can open",
                 "Videos speichern, die andere Apps \u00f6ffnen k\u00f6nnen");
         table.put("Saved %1$d. Failed %2$d. Skipped %3$d.",
@@ -527,6 +545,9 @@ public final class L10nTranslations {
                 "Entfernt stkn, igsh, utm_source und andere Tracking-Parameter aus Links, die du kopierst oder teilst, und \u00f6ffnet Bio-Links ohne Umweg \u00fcber Instagrams Klick-Tracker. Der Beitrag, das Reel oder das Profil, das ein Link \u00f6ffnet, bleibt gleich.");
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Entfernt die ganze Stories-Leiste oben auf der Startseite, \u201eDeine Story\u201c eingeschlossen. Stories lassen sich weiter \u00fcber ein Profil oder eine Nachricht \u00f6ffnen.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Tap to hide this.",
                 "Zum Ausblenden tippen.");
         table.put("Tap to play",
@@ -545,9 +566,6 @@ public final class L10nTranslations {
                 "Der Diagnosebericht lie\u00df sich nicht speichern. Versuche es noch einmal.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s, um HushGram wieder einzuschalten.");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Die Beitr\u00e4ge und Reels unter der Suchleiste im Tab Suche. Die Suche, deine letzten Suchen und die Suchergebnisse bleiben.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -600,6 +618,10 @@ public final class L10nTranslations {
                 "Updates");
         table.put("Updating remembered positions...",
                 "Gespeicherte Wiedergabepositionen werden aktualisiert...");
+        table.put("Validate an overrides file",
+                "Eine \u00dcberschreibungsdatei pr\u00fcfen");
+        table.put("Validated %1$d overrides only. Nothing was applied.",
+                "%1$d \u00dcberschreibungen wurden nur gepr\u00fcft. Es wurde nichts \u00fcbernommen.");
         table.put("Version",
                 "Version");
         table.put("Version %1$s for Instagram %2$s",
@@ -643,7 +665,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(572);
+        Map<String, String> table = new HashMap<>(594);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -721,6 +743,8 @@ public final class L10nTranslations {
                 "Carrusel cancelado. Guardados %1$d. Fallidos %2$d. Omitidos %3$d.");
         table.put("Changing these",
                 "C\u00f3mo cambiarlos");
+        table.put("Check a saved file against this session's typed schema. Validation applies nothing.",
+                "Comprueba un archivo guardado con el esquema tipado de esta sesi\u00f3n. La validaci\u00f3n no aplica nada.");
         table.put("Choose a file for your installed patches' settings. Accounts and history stay on this device.",
                 "Elige un archivo para los ajustes de los parches instalados. Las cuentas y el historial se quedan en este dispositivo.");
         table.put("Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.",
@@ -755,27 +779,35 @@ public final class L10nTranslations {
                 "No se pudo copiar el comentario");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "No se pudieron exportar los ajustes de HushGram. Prueba otro archivo.");
+        table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
+                "No se pudieron exportar los valores personalizados. El archivo elegido podr\u00eda estar incompleto. Los valores de Instagram no han cambiado.");
         table.put("Couldn't put back the diagnostic data. Try again.",
                 "No se pudieron restaurar los datos de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
                 "No se pudieron guardar ni restaurar todos los ajustes. Revisa los valores que se muestran e intenta deshacer.");
         table.put("Couldn't save the settings. The previous values were restored.",
                 "No se pudieron guardar los ajustes. Se restauraron los valores anteriores.");
+        table.put("Couldn't start the override operation. Try again. Nothing changed.",
+                "No se pudo iniciar la operaci\u00f3n de valores personalizados. Int\u00e9ntalo de nuevo. Nada ha cambiado.");
         table.put("Couldn't start the report export. Try again shortly.",
                 "No se pudo iniciar la exportaci\u00f3n del informe. Int\u00e9ntalo de nuevo en breve.");
         table.put("Couldn't start the settings operation. Try again.",
                 "No se pudo iniciar la operaci\u00f3n de ajustes. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "No se pudo volver a activar HushGram. Int\u00e9ntalo de nuevo.");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
+        table.put("Couldn't use that overrides document. Native overrides haven't changed.",
+                "No se pudo usar ese documento de valores personalizados. Los valores de Instagram no han cambiado.");
         table.put("Couldn't use that settings file. Your settings haven't changed.",
                 "No se pudo usar ese archivo de ajustes. Tus ajustes no han cambiado.");
+        table.put("Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.",
+                "No se pudieron validar los valores personalizados. Comprueba el archivo y abre los ajustes desde Inicio con la sesi\u00f3n iniciada. Nada ha cambiado.");
         table.put("Data saver",
                 "Ahorro de datos");
         table.put("Debug logging",
                 "Registro de depuraci\u00f3n");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("Default playback quality",
                 "Calidad de reproducci\u00f3n predeterminada");
         table.put("Developer",
@@ -830,6 +862,8 @@ public final class L10nTranslations {
                 "Exportar los ajustes de HushGram");
         table.put("Export diagnostic report",
                 "Exportar informe de diagn\u00f3stico");
+        table.put("Export overrides",
+                "Exportar valores personalizados");
         table.put("Feed",
                 "Feed");
         table.put("File name",
@@ -884,6 +918,9 @@ public final class L10nTranslations {
                 "Ocultar la fila de historias");
         table.put("Highest",
                 "La m\u00e1s alta");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "Inicio se abre con publicaciones de las cuentas que sigues. Toca Seguidos arriba para cambiar a Para ti, e Inicio recuerda lo que elegiste. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -896,9 +933,6 @@ public final class L10nTranslations {
                 "HushGram est\u00e1 en pausa");
         table.put("HushGram pauses when Instagram restarts.",
                 "HushGram se pausa cuando Instagram se reinicie.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("HushGram saves",
                 "Descargas de HushGram");
         table.put("HushGram settings",
@@ -965,6 +999,8 @@ public final class L10nTranslations {
                 "Mucho m\u00e1s peque\u00f1o");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
+        table.put("No document picker is available. Overrides haven't changed.",
+                "No hay ning\u00fan selector de documentos disponible. Los valores personalizados no han cambiado.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "No hay un selector de documentos disponible. Tus ajustes no han cambiado.");
         table.put("No matching settings",
@@ -995,6 +1031,8 @@ public final class L10nTranslations {
                 "Abre el editor nativo de opciones de Instagram. Una anulaci\u00f3n incorrecta puede impedir que funcionen partes de Instagram.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Abre las opciones de desarrollador propias de Instagram, donde se pueden ver y cambiar sus indicadores del servidor. Un indicador incorrecto puede romper partes de Instagram hasta que lo restablezcas ah\u00ed.");
+        table.put("Overrides exported for this Instagram build and schema.",
+                "Valores personalizados exportados para esta versi\u00f3n y este esquema de Instagram.");
         table.put("Page %1$d of %2$d",
                 "P\u00e1gina %1$d de %2$d");
         table.put("Pause HushGram",
@@ -1003,6 +1041,9 @@ public final class L10nTranslations {
                 "Pausa y diagn\u00f3stico");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Etiquetas como Edits, Usar plantilla, Meta AI y las gafas Ray-Ban Meta. Una insignia de directo y la etiqueta de medio controlado por el Estado se quedan.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Playback",
                 "Reproducci\u00f3n");
         table.put("Playback quality",
@@ -1019,9 +1060,6 @@ public final class L10nTranslations {
                 "Registra la actividad de los parches y muestra errores para un informe. D\u00e9jalo desactivado en el uso normal.");
         table.put("Reels",
                 "Reels");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Remembered playback positions restored.",
                 "Se restauraron las posiciones de reproducci\u00f3n guardadas.");
         table.put("Remove build expired popup",
@@ -1054,6 +1092,8 @@ public final class L10nTranslations {
                 "Guardar informe completo");
         table.put("Save the full report in Download/Morphe.",
                 "Guarda el informe completo en Download/Morphe.");
+        table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
+                "Guarda los valores personalizados de esta sesi\u00f3n para esta versi\u00f3n y este esquema exactos de Instagram.");
         table.put("Save videos other apps can open",
                 "Guardar videos que otras apps puedan abrir");
         table.put("Saved %1$d. Failed %2$d. Skipped %3$d.",
@@ -1124,6 +1164,9 @@ public final class L10nTranslations {
                 "Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biograf\u00eda sin pasar por el rastreador de clics de Instagram. La publicaci\u00f3n, el reel o el perfil que abre un enlace sigue siendo el mismo.");
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Quita toda la fila de historias de arriba de Inicio, incluida Tu historia. Las historias se siguen abriendo desde un perfil o un mensaje.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Tap to hide this.",
                 "Toca para ocultar esto.");
         table.put("Tap to play",
@@ -1142,9 +1185,6 @@ public final class L10nTranslations {
                 "No se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s para volver a activar HushGram.");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Las publicaciones y reels debajo de la barra de la pesta\u00f1a Buscar. La b\u00fasqueda, tus b\u00fasquedas recientes y los resultados se quedan.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -1197,6 +1237,10 @@ public final class L10nTranslations {
                 "Actualizaciones");
         table.put("Updating remembered positions...",
                 "Actualizando las posiciones guardadas...");
+        table.put("Validate an overrides file",
+                "Validar un archivo de valores personalizados");
+        table.put("Validated %1$d overrides only. Nothing was applied.",
+                "Solo se validaron %1$d valores personalizados. No se aplic\u00f3 nada.");
         table.put("Version",
                 "Versi\u00f3n");
         table.put("Version %1$s for Instagram %2$s",
@@ -1240,7 +1284,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(572);
+        Map<String, String> table = new HashMap<>(594);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1318,6 +1362,8 @@ public final class L10nTranslations {
                 "Carousel dibatalkan. Disimpan %1$d. Gagal %2$d. Dilewati %3$d.");
         table.put("Changing these",
                 "Mengubah pilihan ini");
+        table.put("Check a saved file against this session's typed schema. Validation applies nothing.",
+                "Periksa berkas tersimpan dengan skema bertipe sesi ini. Validasi tidak menerapkan apa pun.");
         table.put("Choose a file for your installed patches' settings. Accounts and history stay on this device.",
                 "Pilih file untuk pengaturan patch yang terpasang. Akun dan riwayat tetap di perangkat ini.");
         table.put("Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.",
@@ -1352,27 +1398,35 @@ public final class L10nTranslations {
                 "Tidak dapat menyalin komentar");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "Pengaturan HushGram tidak dapat diekspor. Coba file lain.");
+        table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
+                "Nilai pengganti tidak dapat diekspor. Berkas yang dipilih mungkin tidak lengkap. Nilai pengganti Instagram tidak berubah.");
         table.put("Couldn't put back the diagnostic data. Try again.",
                 "Data diagnostik tidak dapat dikembalikan. Coba lagi.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
                 "Pengaturan tidak dapat disimpan atau dipulihkan sepenuhnya. Periksa nilai yang ditampilkan dan coba batalkan.");
         table.put("Couldn't save the settings. The previous values were restored.",
                 "Pengaturan tidak dapat disimpan. Nilai sebelumnya dipulihkan.");
+        table.put("Couldn't start the override operation. Try again. Nothing changed.",
+                "Operasi nilai pengganti tidak dapat dimulai. Coba lagi. Tidak ada yang berubah.");
         table.put("Couldn't start the report export. Try again shortly.",
                 "Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.");
         table.put("Couldn't start the settings operation. Try again.",
                 "Operasi pengaturan tidak dapat dimulai. Coba lagi.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "HushGram tidak dapat diaktifkan lagi. Coba lagi.");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
+        table.put("Couldn't use that overrides document. Native overrides haven't changed.",
+                "Dokumen nilai pengganti itu tidak dapat digunakan. Nilai pengganti Instagram tidak berubah.");
         table.put("Couldn't use that settings file. Your settings haven't changed.",
                 "File pengaturan tersebut tidak dapat digunakan. Pengaturan Anda tidak berubah.");
+        table.put("Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.",
+                "Nilai pengganti tidak dapat divalidasi. Periksa berkas dan buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.");
         table.put("Data saver",
                 "Penghemat data");
         table.put("Debug logging",
                 "Pencatatan debug");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("Default playback quality",
                 "Kualitas pemutaran default");
         table.put("Developer",
@@ -1427,6 +1481,8 @@ public final class L10nTranslations {
                 "Ekspor pengaturan HushGram");
         table.put("Export diagnostic report",
                 "Ekspor laporan diagnostik");
+        table.put("Export overrides",
+                "Ekspor nilai pengganti");
         table.put("Feed",
                 "Feed");
         table.put("File name",
@@ -1481,6 +1537,9 @@ public final class L10nTranslations {
                 "Sembunyikan baris Cerita");
         table.put("Highest",
                 "Tertinggi");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "Beranda terbuka dengan postingan dari akun yang kamu ikuti. Ketuk Mengikuti di bagian atas untuk beralih ke Untuk Anda, dan Beranda mengingat pilihanmu. Mulai ulang Instagram setelah mengubahnya.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -1493,9 +1552,6 @@ public final class L10nTranslations {
                 "HushGram dijeda");
         table.put("HushGram pauses when Instagram restarts.",
                 "HushGram dijeda saat Instagram dimulai ulang.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("HushGram saves",
                 "Penyimpanan HushGram");
         table.put("HushGram settings",
@@ -1562,6 +1618,8 @@ public final class L10nTranslations {
                 "Jauh lebih kecil");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
+        table.put("No document picker is available. Overrides haven't changed.",
+                "Pemilih dokumen tidak tersedia. Nilai pengganti tidak berubah.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Pemilih dokumen tidak tersedia. Pengaturan Anda tidak berubah.");
         table.put("No matching settings",
@@ -1592,6 +1650,8 @@ public final class L10nTranslations {
                 "Membuka editor flag bawaan Instagram. Penggantian yang salah dapat merusak beberapa bagian Instagram.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Membuka opsi pengembang milik Instagram sendiri, tempat flag servernya bisa dilihat dan diubah. Flag yang salah bisa merusak sebagian Instagram sampai kamu mengaturnya ulang di sana.");
+        table.put("Overrides exported for this Instagram build and schema.",
+                "Nilai pengganti diekspor untuk versi dan skema Instagram ini.");
         table.put("Page %1$d of %2$d",
                 "Halaman %1$d dari %2$d");
         table.put("Pause HushGram",
@@ -1600,6 +1660,9 @@ public final class L10nTranslations {
                 "Jeda dan diagnostik");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Label seperti Edits, Gunakan template, Meta AI, dan kacamata Ray-Ban Meta. Lencana siaran langsung dan label media yang dikendalikan negara tetap ada.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Playback",
                 "Pemutaran");
         table.put("Playback quality",
@@ -1616,9 +1679,6 @@ public final class L10nTranslations {
                 "Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.");
         table.put("Reels",
                 "Reels");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Remembered playback positions restored.",
                 "Posisi pemutaran tersimpan dipulihkan.");
         table.put("Remove build expired popup",
@@ -1651,6 +1711,8 @@ public final class L10nTranslations {
                 "Simpan laporan lengkap");
         table.put("Save the full report in Download/Morphe.",
                 "Simpan laporan lengkap di Download/Morphe.");
+        table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
+                "Simpan nilai pengganti sesi yang sudah masuk ini untuk versi dan skema Instagram yang sama persis.");
         table.put("Save videos other apps can open",
                 "Simpan video yang bisa dibuka aplikasi lain");
         table.put("Saved %1$d. Failed %2$d. Skipped %3$d.",
@@ -1721,6 +1783,9 @@ public final class L10nTranslations {
                 "Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.");
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Menghapus seluruh baris cerita di atas Beranda, termasuk Cerita Anda. Cerita tetap bisa dibuka dari profil atau pesan.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Tap to hide this.",
                 "Ketuk untuk menyembunyikan ini.");
         table.put("Tap to play",
@@ -1739,9 +1804,6 @@ public final class L10nTranslations {
                 "Laporan diagnostik tidak dapat disimpan. Coba lagi.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushGram lagi.");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Postingan dan reel di bawah bilah tab Cari. Pencarian, pencarian terbaru kamu, dan hasil pencarian tetap ada.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -1794,6 +1856,10 @@ public final class L10nTranslations {
                 "Pembaruan");
         table.put("Updating remembered positions...",
                 "Memperbarui posisi tersimpan...");
+        table.put("Validate an overrides file",
+                "Validasi berkas nilai pengganti");
+        table.put("Validated %1$d overrides only. Nothing was applied.",
+                "Hanya memvalidasi %1$d nilai pengganti. Tidak ada yang diterapkan.");
         table.put("Version",
                 "Versi");
         table.put("Version %1$s for Instagram %2$s",
@@ -1837,7 +1903,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(572);
+        Map<String, String> table = new HashMap<>(594);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1915,6 +1981,8 @@ public final class L10nTranslations {
                 "Carrossel cancelado. Salvos %1$d. Falhas %2$d. Ignorados %3$d.");
         table.put("Changing these",
                 "Como alterar estas op\u00e7\u00f5es");
+        table.put("Check a saved file against this session's typed schema. Validation applies nothing.",
+                "Confira um arquivo salvo com o esquema tipado desta sess\u00e3o. A valida\u00e7\u00e3o n\u00e3o aplica nada.");
         table.put("Choose a file for your installed patches' settings. Accounts and history stay on this device.",
                 "Escolha um arquivo para as configura\u00e7\u00f5es dos patches instalados. As contas e o hist\u00f3rico ficam neste dispositivo.");
         table.put("Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.",
@@ -1949,27 +2017,35 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel copiar o coment\u00e1rio");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "N\u00e3o foi poss\u00edvel exportar as configura\u00e7\u00f5es do HushGram. Tente outro arquivo.");
+        table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
+                "N\u00e3o foi poss\u00edvel exportar os valores personalizados. O arquivo escolhido pode estar incompleto. Os valores do Instagram n\u00e3o mudaram.");
         table.put("Couldn't put back the diagnostic data. Try again.",
                 "N\u00e3o foi poss\u00edvel restaurar os dados de diagn\u00f3stico. Tente de novo.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
                 "N\u00e3o foi poss\u00edvel salvar ou restaurar todas as configura\u00e7\u00f5es. Confira os valores exibidos e tente desfazer.");
         table.put("Couldn't save the settings. The previous values were restored.",
                 "N\u00e3o foi poss\u00edvel salvar as configura\u00e7\u00f5es. Os valores anteriores foram restaurados.");
+        table.put("Couldn't start the override operation. Try again. Nothing changed.",
+                "N\u00e3o foi poss\u00edvel iniciar a opera\u00e7\u00e3o de valores personalizados. Tente novamente. Nada mudou.");
         table.put("Couldn't start the report export. Try again shortly.",
                 "N\u00e3o foi poss\u00edvel iniciar a exporta\u00e7\u00e3o do relat\u00f3rio. Tente de novo daqui a pouco.");
         table.put("Couldn't start the settings operation. Try again.",
                 "N\u00e3o foi poss\u00edvel iniciar a opera\u00e7\u00e3o de configura\u00e7\u00f5es. Tente novamente.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "N\u00e3o foi poss\u00edvel reativar o HushGram. Tente novamente.");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Couldn't use that overrides document. Native overrides haven't changed.",
+                "N\u00e3o foi poss\u00edvel usar esse documento de valores personalizados. Os valores do Instagram n\u00e3o mudaram.");
         table.put("Couldn't use that settings file. Your settings haven't changed.",
                 "N\u00e3o foi poss\u00edvel usar esse arquivo de configura\u00e7\u00f5es. Suas configura\u00e7\u00f5es n\u00e3o mudaram.");
+        table.put("Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.",
+                "N\u00e3o foi poss\u00edvel validar os valores personalizados. Confira o arquivo e abra as configura\u00e7\u00f5es pela p\u00e1gina inicial com a sess\u00e3o iniciada. Nada mudou.");
         table.put("Data saver",
                 "Economia de dados");
         table.put("Debug logging",
                 "Registro de depura\u00e7\u00e3o");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Default playback quality",
                 "Qualidade de reprodu\u00e7\u00e3o padr\u00e3o");
         table.put("Developer",
@@ -2024,6 +2100,8 @@ public final class L10nTranslations {
                 "Exportar configura\u00e7\u00f5es do HushGram");
         table.put("Export diagnostic report",
                 "Exportar relat\u00f3rio de diagn\u00f3stico");
+        table.put("Export overrides",
+                "Exportar valores personalizados");
         table.put("Feed",
                 "Feed");
         table.put("File name",
@@ -2078,6 +2156,9 @@ public final class L10nTranslations {
                 "Ocultar a fileira de stories");
         table.put("Highest",
                 "A mais alta");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "O In\u00edcio abre com posts das contas que voc\u00ea segue. Toque em Seguindo no topo para mudar para Para voc\u00ea, e o In\u00edcio lembra da sua escolha. Reinicie o Instagram depois de mudar.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -2090,9 +2171,6 @@ public final class L10nTranslations {
                 "O HushGram est\u00e1 pausado");
         table.put("HushGram pauses when Instagram restarts.",
                 "O HushGram ser\u00e1 pausado quando o Instagram for reiniciado.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("HushGram saves",
                 "Salvamentos do HushGram");
         table.put("HushGram settings",
@@ -2159,6 +2237,8 @@ public final class L10nTranslations {
                 "Bem menor");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
+        table.put("No document picker is available. Overrides haven't changed.",
+                "Nenhum seletor de documentos est\u00e1 dispon\u00edvel. Os valores personalizados n\u00e3o mudaram.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Nenhum seletor de documentos est\u00e1 dispon\u00edvel. Suas configura\u00e7\u00f5es n\u00e3o mudaram.");
         table.put("No matching settings",
@@ -2189,6 +2269,8 @@ public final class L10nTranslations {
                 "Abre o editor nativo de op\u00e7\u00f5es do Instagram. Uma substitui\u00e7\u00e3o incorreta pode impedir o funcionamento de partes do Instagram.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Abre as op\u00e7\u00f5es do desenvolvedor do pr\u00f3prio Instagram, onde as flags do servidor podem ser vistas e alteradas. Uma flag errada pode quebrar partes do Instagram at\u00e9 voc\u00ea redefini-la l\u00e1.");
+        table.put("Overrides exported for this Instagram build and schema.",
+                "Valores personalizados exportados para esta vers\u00e3o e este esquema do Instagram.");
         table.put("Page %1$d of %2$d",
                 "P\u00e1gina %1$d de %2$d");
         table.put("Pause HushGram",
@@ -2197,6 +2279,9 @@ public final class L10nTranslations {
                 "Pausa e diagn\u00f3stico");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Etiquetas como Edits, Usar modelo, Meta AI e \u00f3culos Ray-Ban Meta. O selo de ao vivo e o aviso de m\u00eddia controlada pelo Estado continuam.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Playback",
                 "Reprodu\u00e7\u00e3o");
         table.put("Playback quality",
@@ -2213,9 +2298,6 @@ public final class L10nTranslations {
                 "Registra a atividade dos patches e mostra os erros para um relat\u00f3rio de problema. Mantenha desativado durante o uso normal.");
         table.put("Reels",
                 "Reels");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Remembered playback positions restored.",
                 "Posi\u00e7\u00f5es de reprodu\u00e7\u00e3o salvas restauradas.");
         table.put("Remove build expired popup",
@@ -2248,6 +2330,8 @@ public final class L10nTranslations {
                 "Salvar relat\u00f3rio completo");
         table.put("Save the full report in Download/Morphe.",
                 "Salve o relat\u00f3rio completo em Download/Morphe.");
+        table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
+                "Salve os valores personalizados desta sess\u00e3o para esta vers\u00e3o e este esquema exatos do Instagram.");
         table.put("Save videos other apps can open",
                 "Salvar v\u00eddeos que outros apps conseguem abrir");
         table.put("Saved %1$d. Failed %2$d. Skipped %3$d.",
@@ -2318,6 +2402,9 @@ public final class L10nTranslations {
                 "Tira stkn, igsh, utm_source e outras chaves de rastreamento dos links que voc\u00ea copia ou compartilha, e abre links da bio sem passar pelo rastreador de cliques do Instagram. O post, o reel ou o perfil que um link abre continua o mesmo.");
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Tira toda a fileira de stories do topo do In\u00edcio, incluindo o Seu story. Os stories ainda abrem por um perfil ou uma mensagem.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Tap to hide this.",
                 "Toque para ocultar isto.");
         table.put("Tap to play",
@@ -2336,9 +2423,6 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel salvar o relat\u00f3rio de diagn\u00f3stico. Tente de novo.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushGram.");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Os posts e reels embaixo da barra da aba Pesquisar. A pesquisa, suas pesquisas recentes e os resultados continuam.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -2391,6 +2475,10 @@ public final class L10nTranslations {
                 "Atualiza\u00e7\u00f5es");
         table.put("Updating remembered positions...",
                 "Atualizando posi\u00e7\u00f5es salvas...");
+        table.put("Validate an overrides file",
+                "Validar um arquivo de valores personalizados");
+        table.put("Validated %1$d overrides only. Nothing was applied.",
+                "Apenas %1$d valores personalizados foram validados. Nada foi aplicado.");
         table.put("Version",
                 "Vers\u00e3o");
         table.put("Version %1$s for Instagram %2$s",
@@ -2434,7 +2522,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(572);
+        Map<String, String> table = new HashMap<>(594);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2512,6 +2600,8 @@ public final class L10nTranslations {
                 "\u00c7oklu g\u00f6nderi iptal edildi. Kaydedilen %1$d. Ba\u015far\u0131s\u0131z %2$d. Atlanan %3$d.");
         table.put("Changing these",
                 "Bunlar\u0131 de\u011fi\u015ftirmek");
+        table.put("Check a saved file against this session's typed schema. Validation applies nothing.",
+                "Kaydedilmi\u015f bir dosyay\u0131 bu oturumun t\u00fcr bilgili \u015femas\u0131yla denetleyin. Do\u011frulama hi\u00e7bir \u015feyi uygulamaz.");
         table.put("Choose a file for your installed patches' settings. Accounts and history stay on this device.",
                 "Y\u00fckl\u00fc yamalar\u0131n ayarlar\u0131 i\u00e7in bir dosya se\u00e7in. Hesaplar ve ge\u00e7mi\u015f bu cihazda kal\u0131r.");
         table.put("Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.",
@@ -2546,27 +2636,35 @@ public final class L10nTranslations {
                 "Yorum kopyalanamad\u0131");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "HushGram ayarlar\u0131 d\u0131\u015fa aktar\u0131lamad\u0131. Ba\u015fka bir dosya deneyin.");
+        table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
+                "Ge\u00e7ersiz k\u0131lmalar d\u0131\u015fa aktar\u0131lamad\u0131. Se\u00e7ilen dosya eksik olabilir. Instagram'\u0131n ge\u00e7ersiz k\u0131lmalar\u0131 de\u011fi\u015fmedi.");
         table.put("Couldn't put back the diagnostic data. Try again.",
                 "Tan\u0131lama verileri geri getirilemedi. Tekrar dene.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
                 "Ayarlar kaydedilemedi veya tamamen geri y\u00fcklenemedi. G\u00f6sterilen de\u011ferleri kontrol edip geri almay\u0131 deneyin.");
         table.put("Couldn't save the settings. The previous values were restored.",
                 "Ayarlar kaydedilemedi. \u00d6nceki de\u011ferler geri y\u00fcklendi.");
+        table.put("Couldn't start the override operation. Try again. Nothing changed.",
+                "Ge\u00e7ersiz k\u0131lma i\u015flemi ba\u015flat\u0131lamad\u0131. Tekrar deneyin. Hi\u00e7bir \u015fey de\u011fi\u015fmedi.");
         table.put("Couldn't start the report export. Try again shortly.",
                 "Rapor d\u0131\u015fa aktar\u0131m\u0131 ba\u015flat\u0131lamad\u0131. Birazdan tekrar dene.");
         table.put("Couldn't start the settings operation. Try again.",
                 "Ayar i\u015flemi ba\u015flat\u0131lamad\u0131. Tekrar deneyin.");
         table.put("Couldn't turn HushGram back on. Try again.",
                 "HushGram yeniden a\u00e7\u0131lamad\u0131. Tekrar dene.");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
+        table.put("Couldn't use that overrides document. Native overrides haven't changed.",
+                "Bu ge\u00e7ersiz k\u0131lma belgesi kullan\u0131lamad\u0131. Instagram'\u0131n ge\u00e7ersiz k\u0131lmalar\u0131 de\u011fi\u015fmedi.");
         table.put("Couldn't use that settings file. Your settings haven't changed.",
                 "Bu ayar dosyas\u0131 kullan\u0131lamad\u0131. Ayarlar\u0131n\u0131z de\u011fi\u015fmedi.");
+        table.put("Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.",
+                "Ge\u00e7ersiz k\u0131lmalar do\u011frulanamad\u0131. Dosyay\u0131 denetleyin ve oturum a\u00e7\u0131kken Ana Sayfa'dan ayarlar\u0131 a\u00e7\u0131n. Hi\u00e7bir \u015fey de\u011fi\u015fmedi.");
         table.put("Data saver",
                 "Veri tasarrufu");
         table.put("Debug logging",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("Default playback quality",
                 "Varsay\u0131lan oynatma kalitesi");
         table.put("Developer",
@@ -2621,6 +2719,8 @@ public final class L10nTranslations {
                 "HushGram ayarlar\u0131n\u0131 d\u0131\u015fa aktar");
         table.put("Export diagnostic report",
                 "Tan\u0131lama raporunu d\u0131\u015fa aktar");
+        table.put("Export overrides",
+                "Ge\u00e7ersiz k\u0131lmalar\u0131 d\u0131\u015fa aktar");
         table.put("Feed",
                 "Ak\u0131\u015f");
         table.put("File name",
@@ -2675,6 +2775,9 @@ public final class L10nTranslations {
                 "Hikaye s\u0131ras\u0131n\u0131 gizle");
         table.put("Highest",
                 "En y\u00fcksek");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "Ana Sayfa, takip etti\u011fin hesaplar\u0131n g\u00f6nderileriyle a\u00e7\u0131l\u0131r. Senin i\u00e7in'e ge\u00e7mek i\u00e7in \u00fcstteki Takip Edilenler'e dokun, Ana Sayfa se\u00e7imini hat\u0131rlar. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -2687,9 +2790,6 @@ public final class L10nTranslations {
                 "HushGram duraklat\u0131ld\u0131");
         table.put("HushGram pauses when Instagram restarts.",
                 "HushGram, Instagram yeniden ba\u015flad\u0131\u011f\u0131nda duraklat\u0131l\u0131r.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("HushGram saves",
                 "HushGram kaydetme i\u015flemleri");
         table.put("HushGram settings",
@@ -2756,6 +2856,8 @@ public final class L10nTranslations {
                 "\u00c7ok daha k\u00fc\u00e7\u00fck");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
+        table.put("No document picker is available. Overrides haven't changed.",
+                "Belge se\u00e7ici kullan\u0131lam\u0131yor. Ge\u00e7ersiz k\u0131lmalar de\u011fi\u015fmedi.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Belge se\u00e7ici kullan\u0131lam\u0131yor. Ayarlar\u0131n\u0131z de\u011fi\u015fmedi.");
         table.put("No matching settings",
@@ -2786,6 +2888,8 @@ public final class L10nTranslations {
                 "Instagram'\u0131n kendi bayrak d\u00fczenleyicisini a\u00e7ar. Yanl\u0131\u015f bir ge\u00e7ersiz k\u0131lma Instagram'\u0131n baz\u0131 b\u00f6l\u00fcmlerini bozabilir.");
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Instagram'\u0131n kendi geli\u015ftirici se\u00e7eneklerini a\u00e7ar. Orada sunucu bayraklar\u0131 g\u00f6r\u00fclebilir ve de\u011fi\u015ftirilebilir. Yanl\u0131\u015f bir bayrak, sen orada s\u0131f\u0131rlayana kadar Instagram'\u0131n baz\u0131 b\u00f6l\u00fcmlerini bozabilir.");
+        table.put("Overrides exported for this Instagram build and schema.",
+                "Ge\u00e7ersiz k\u0131lmalar bu Instagram s\u00fcr\u00fcm\u00fc ve \u015femas\u0131 i\u00e7in d\u0131\u015fa aktar\u0131ld\u0131.");
         table.put("Page %1$d of %2$d",
                 "%1$d / %2$d sayfa");
         table.put("Pause HushGram",
@@ -2794,6 +2898,9 @@ public final class L10nTranslations {
                 "Duraklatma ve tan\u0131lama");
         table.put("Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.",
                 "Edits, \u015eablonu kullan, Meta AI ve Ray-Ban Meta g\u00f6zl\u00fckleri gibi etiketler. Canl\u0131 yay\u0131n rozeti ve devlet kontrol\u00fcndeki medya etiketi kal\u0131r.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Playback",
                 "Oynatma");
         table.put("Playback quality",
@@ -2810,9 +2917,6 @@ public final class L10nTranslations {
                 "Hata raporu i\u00e7in yama etkinli\u011fini kaydeder ve hatalar\u0131 g\u00f6sterir. Normal kullan\u0131mda kapal\u0131 b\u0131rak\u0131n.");
         table.put("Reels",
                 "Reels");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Remembered playback positions restored.",
                 "Kaydedilen oynatma konumlar\u0131 geri y\u00fcklendi.");
         table.put("Remove build expired popup",
@@ -2845,6 +2949,8 @@ public final class L10nTranslations {
                 "Tam raporu kaydet");
         table.put("Save the full report in Download/Morphe.",
                 "Tam raporu Download/Morphe konumuna kaydeder.");
+        table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
+                "Bu a\u00e7\u0131k oturumun ge\u00e7ersiz k\u0131lmalar\u0131n\u0131 ayn\u0131 Instagram s\u00fcr\u00fcm\u00fc ve \u015femas\u0131 i\u00e7in kaydedin.");
         table.put("Save videos other apps can open",
                 "Videolar\u0131 di\u011fer uygulamalar\u0131n a\u00e7abilece\u011fi bi\u00e7imde kaydet");
         table.put("Saved %1$d. Failed %2$d. Skipped %3$d.",
@@ -2915,6 +3021,9 @@ public final class L10nTranslations {
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n ba\u011flant\u0131lardan stkn, igsh, utm_source ve di\u011fer izleme anahtarlar\u0131n\u0131 kald\u0131r\u0131r, biyografi ba\u011flant\u0131lar\u0131n\u0131 Instagram'\u0131n t\u0131klama izleyicisinden ge\u00e7meden a\u00e7ar. Bir ba\u011flant\u0131n\u0131n a\u00e7t\u0131\u011f\u0131 g\u00f6nderi, reel veya profil ayn\u0131 kal\u0131r.");
         table.put("Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.",
                 "Ana Sayfa'n\u0131n \u00fcst\u00fcndeki hikaye s\u0131ras\u0131n\u0131, Hikayen dahil tamamen kald\u0131r\u0131r. Hikayeler bir profilden veya mesajdan a\u00e7\u0131lmaya devam eder.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Tap to hide this.",
                 "Gizlemek i\u00e7in dokun.");
         table.put("Tap to play",
@@ -2933,9 +3042,6 @@ public final class L10nTranslations {
                 "Tan\u0131lama raporu kaydedilemedi. Tekrar dene.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. HushGram'u yeniden a\u00e7mak i\u00e7in onu %2$s i\u00e7inden sil.");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Ara sekmesinin \u00e7ubu\u011fu alt\u0131ndaki g\u00f6nderiler ve reels videolar\u0131. Arama, son aramalar\u0131n ve arama sonu\u00e7lar\u0131 kal\u0131r.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -2988,6 +3094,10 @@ public final class L10nTranslations {
                 "G\u00fcncellemeler");
         table.put("Updating remembered positions...",
                 "Kaydedilen konumlar g\u00fcncelleniyor...");
+        table.put("Validate an overrides file",
+                "Bir ge\u00e7ersiz k\u0131lma dosyas\u0131n\u0131 do\u011frula");
+        table.put("Validated %1$d overrides only. Nothing was applied.",
+                "Yaln\u0131zca %1$d ge\u00e7ersiz k\u0131lma do\u011fruland\u0131. Hi\u00e7bir \u015fey uygulanmad\u0131.");
         table.put("Version",
                 "S\u00fcr\u00fcm");
         table.put("Version %1$s for Instagram %2$s",

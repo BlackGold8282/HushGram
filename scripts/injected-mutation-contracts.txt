@@ -84,6 +84,18 @@ shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava
 # two values the server can set the press to. Nothing else calls open().
 start-call Lapp/hushgram/extension/instagram/misc/DeveloperOptions;->open()I in instance (Landroid/view/View;)Z holding click activity
 once-call Lapp/hushgram/extension/instagram/misc/DeveloperOptions;->open()I in instance (Landroid/view/View;)Z holding click activity
+# Read-only override exchange mustn't introduce native writes or cache reloads. The holder's
+# own typed forwarding wrappers are allowed; extension callers aren't.
+no-call Lcom/facebook/mobileconfig/troubleshooting/MobileConfigOverridesWriterHolder;->importOverridesFromUser(Ljava/lang/String;)Ljava/lang/String; outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->reload()V outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->removeAllOverrides()V outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->removeOverrideForParam(J)V outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->removeOverridesForQEUniverse(Ljava/lang/String;)V outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForQE(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForBool(JZ)V outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForInt(JJ)V outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForString(JLjava/lang/String;)V outside Lcom/facebook/mobileconfig/
+no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForDouble(JD)V outside Lcom/facebook/mobileconfig/
 #
 # Don't send reel watch history asks the extension first thing in both record methods of the batch
 # Instagram posts to clips/write_seen_state/. The one recording a reel reached, an instance method

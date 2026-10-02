@@ -286,3 +286,14 @@ Copy comment	Salin komentar
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Menambahkan Salin ke menu komentar yang dipilih. Menyalin teks asli, termasuk pergantian baris.
 Comment copied	Komentar disalin
 Couldn't copy comment	Tidak dapat menyalin komentar
+Export overrides	Ekspor nilai pengganti
+Save this signed-in session's overrides for the exact Instagram build and schema.	Simpan nilai pengganti sesi yang sudah masuk ini untuk versi dan skema Instagram yang sama persis.
+Validate an overrides file	Validasi berkas nilai pengganti
+Check a saved file against this session's typed schema. Validation applies nothing.	Periksa berkas tersimpan dengan skema bertipe sesi ini. Validasi tidak menerapkan apa pun.
+No document picker is available. Overrides haven't changed.	Pemilih dokumen tidak tersedia. Nilai pengganti tidak berubah.
+Couldn't use that overrides document. Native overrides haven't changed.	Dokumen nilai pengganti itu tidak dapat digunakan. Nilai pengganti Instagram tidak berubah.
+Validated %1$d overrides only. Nothing was applied.	Hanya memvalidasi %1$d nilai pengganti. Tidak ada yang diterapkan.
+Overrides exported for this Instagram build and schema.	Nilai pengganti diekspor untuk versi dan skema Instagram ini.
+Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	Nilai pengganti tidak dapat divalidasi. Periksa berkas dan buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.
+Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	Nilai pengganti tidak dapat diekspor. Berkas yang dipilih mungkin tidak lengkap. Nilai pengganti Instagram tidak berubah.
+Couldn't start the override operation. Try again. Nothing changed.	Operasi nilai pengganti tidak dapat dimulai. Coba lagi. Tidak ada yang berubah.

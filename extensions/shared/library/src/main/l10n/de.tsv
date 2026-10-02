@@ -286,3 +286,14 @@ Copy comment	Kommentar kopieren
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Fügt dem Menü eines ausgewählten Kommentars Kopieren hinzu. Kopiert den Originaltext einschließlich Zeilenumbrüchen.
 Comment copied	Kommentar kopiert
 Couldn't copy comment	Kommentar konnte nicht kopiert werden
+Export overrides	Überschreibungen exportieren
+Save this signed-in session's overrides for the exact Instagram build and schema.	Speichere die Überschreibungen dieser angemeldeten Sitzung für genau diese Instagram-Version und dieses Schema.
+Validate an overrides file	Eine Überschreibungsdatei prüfen
+Check a saved file against this session's typed schema. Validation applies nothing.	Prüfe eine gespeicherte Datei anhand des typisierten Schemas dieser Sitzung. Die Prüfung übernimmt nichts.
+No document picker is available. Overrides haven't changed.	Es ist keine Dateiauswahl verfügbar. Die Überschreibungen wurden nicht geändert.
+Couldn't use that overrides document. Native overrides haven't changed.	Dieses Überschreibungsdokument konnte nicht verwendet werden. Instagrams Überschreibungen wurden nicht geändert.
+Validated %1$d overrides only. Nothing was applied.	%1$d Überschreibungen wurden nur geprüft. Es wurde nichts übernommen.
+Overrides exported for this Instagram build and schema.	Überschreibungen für diese Instagram-Version und dieses Schema exportiert.
+Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	Die Überschreibungen konnten nicht geprüft werden. Prüfe die Datei und öffne die Einstellungen auf der Startseite, während du angemeldet bist. Es wurde nichts geändert.
+Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	Die Überschreibungen konnten nicht exportiert werden. Die ausgewählte Datei ist möglicherweise unvollständig. Instagrams Überschreibungen wurden nicht geändert.
+Couldn't start the override operation. Try again. Nothing changed.	Der Vorgang für Überschreibungen konnte nicht gestartet werden. Versuche es erneut. Es wurde nichts geändert.

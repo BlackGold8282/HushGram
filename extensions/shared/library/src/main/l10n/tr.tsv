@@ -286,3 +286,14 @@ Copy comment	Yorumu kopyala
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Seçilen yorumun menüsüne Kopyala seçeneğini ekler. Satır sonları dahil özgün metni kopyalar.
 Comment copied	Yorum kopyalandı
 Couldn't copy comment	Yorum kopyalanamadı
+Export overrides	Geçersiz kılmaları dışa aktar
+Save this signed-in session's overrides for the exact Instagram build and schema.	Bu açık oturumun geçersiz kılmalarını aynı Instagram sürümü ve şeması için kaydedin.
+Validate an overrides file	Bir geçersiz kılma dosyasını doğrula
+Check a saved file against this session's typed schema. Validation applies nothing.	Kaydedilmiş bir dosyayı bu oturumun tür bilgili şemasıyla denetleyin. Doğrulama hiçbir şeyi uygulamaz.
+No document picker is available. Overrides haven't changed.	Belge seçici kullanılamıyor. Geçersiz kılmalar değişmedi.
+Couldn't use that overrides document. Native overrides haven't changed.	Bu geçersiz kılma belgesi kullanılamadı. Instagram'ın geçersiz kılmaları değişmedi.
+Validated %1$d overrides only. Nothing was applied.	Yalnızca %1$d geçersiz kılma doğrulandı. Hiçbir şey uygulanmadı.
+Overrides exported for this Instagram build and schema.	Geçersiz kılmalar bu Instagram sürümü ve şeması için dışa aktarıldı.
+Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	Geçersiz kılmalar doğrulanamadı. Dosyayı denetleyin ve oturum açıkken Ana Sayfa'dan ayarları açın. Hiçbir şey değişmedi.
+Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	Geçersiz kılmalar dışa aktarılamadı. Seçilen dosya eksik olabilir. Instagram'ın geçersiz kılmaları değişmedi.
+Couldn't start the override operation. Try again. Nothing changed.	Geçersiz kılma işlemi başlatılamadı. Tekrar deneyin. Hiçbir şey değişmedi.

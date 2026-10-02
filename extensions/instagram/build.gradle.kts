@@ -184,6 +184,17 @@ tasks.register("verifyAndroidBoundaries") {
     inputs.dir(results)
     doLast {
         val required = mapOf(
+            "app.hushgram.extension.instagram.settings.OverrideDocumentsTest" to listOf(
+                "installedDeveloperPatchOffersReadOnlyDocumentActions[28]", "installedDeveloperPatchOffersReadOnlyDocumentActions",
+                "missingDeveloperPatchHasNoOverrideDocumentActions[28]", "missingDeveloperPatchHasNoOverrideDocumentActions",
+                "exportUsesTheResolvedSessionStoreAndClosesTheDocumentBeforeSuccess[28]", "exportUsesTheResolvedSessionStoreAndClosesTheDocumentBeforeSuccess",
+                "changedValidFileIsValidatedOnlyAndLeavesNativeBytesUntouched[28]", "changedValidFileIsValidatedOnlyAndLeavesNativeBytesUntouched",
+                "cancellationWrongUriAndMissingPickerKeepControlsUsableWithoutNativeReads[28]", "cancellationWrongUriAndMissingPickerKeepControlsUsableWithoutNativeReads",
+                "malformedOversizedAndBuildMismatchedDocumentsAreRefusedWithoutWrites[28]", "malformedOversizedAndBuildMismatchedDocumentsAreRefusedWithoutWrites",
+                "inputReadAndCloseFailuresCannotReportValidatedSuccess[28]", "inputReadAndCloseFailuresCannotReportValidatedSuccess",
+                "outputWriteAndCloseFailuresCannotReportExportedSuccess[28]", "outputWriteAndCloseFailuresCannotReportExportedSuccess",
+                "unsupportedSessionNativeFailureAndRelativePathRefuseBeforeDocumentOutput[28]", "unsupportedSessionNativeFailureAndRelativePathRefuseBeforeDocumentOutput",
+                "absentNativeFileExportsEmptyValuesWithoutCreatingIt[28]", "absentNativeFileExportsEmptyValuesWithoutCreatingIt"),
             "app.hushgram.extension.instagram.comment.CommentCopyTest" to listOf(
                 "explicitTapCopiesTheOriginalVerbatimAndMarksItSensitive[28]", "explicitTapCopiesTheOriginalVerbatimAndMarksItSensitive",
                 "immutableAndRepeatedMenusKeepStockIdentityAndOnlyOneOwnedRow[28]", "immutableAndRepeatedMenusKeepStockIdentityAndOnlyOneOwnedRow",

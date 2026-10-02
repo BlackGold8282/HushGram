@@ -42,6 +42,12 @@ public final class DeveloperOptions {
         return 0;
     }
 
+    /** Read-only boundaries filled from the current host's signed-in manager and typed schema. */
+    static Object getOverrideStoreNative(Object activity) { return null; }
+    static java.io.File getOverrideFileNative(Object manager) { return null; }
+    static java.util.List<?> getOverrideSchemaNative(Object manager) { return null; }
+    static OverrideExchange.Parameter getOverrideParameterNative(Object parameter) { return null; }
+
     /**
      * Injected first thing in the Home tab's long press. Answers 1 while the switch is on, and the
      * patch opens the developer options and ends the press. Otherwise 0, and the long press does

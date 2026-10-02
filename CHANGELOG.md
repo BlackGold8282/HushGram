@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Add read-only MetaConfig override export and file validation tied to the exact Instagram build and typed schema. Validation reports its result without applying any overrides.
 * **Tooling:** Refresh the settings, diagnostics and About captures from the published v0.0.3 bundle. Document their actual patch selection and verified build tools, and label source-only controls as unreleased.
 * **Instagram:** Add an optional Copy action to the common comment menu, with an off-by-default Comments switch. An explicit tap copies the original text, including literal markup and line breaks, and uses Instagram's own menu dismissal.
 
