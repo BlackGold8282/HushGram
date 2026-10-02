@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Protect translation replacement with an enforced Windows file transaction. Stale edits and conflicting writers refuse the import, existing readers retain complete old bytes, and unsupported storage refuses writes. Unchanged imports still preserve exact bytes.
 * **Tooling:** Exercise every native override writer and reload prohibition with its own failing DEX fixture. Calls inside Instagram's native package remain allowed, and all existing shortcut checks stay in place.
 * **Instagram:** Add read-only MetaConfig override export and file validation tied to the exact Instagram build and typed schema. Validation reports its result without applying any overrides.
 * **Tooling:** Refresh the settings, diagnostics and About captures from the published v0.0.3 bundle. Document their actual patch selection and verified build tools, and label source-only controls as unreleased.
@@ -12,7 +13,7 @@ Every HushGram release, newest first.
 * **Instagram:** Default playback quality is included in Manager's simple mode. Its initial Auto choice leaves playback unchanged; patches that change behavior immediately remain opt-in.
 * **Tooling:** Accept reordered numbered arguments within mixed translation formats while keeping bare arguments in their original order. Changed types, indices and argument counts still stop the import.
 * **Instagram:** Direct MetaConfig discovery now verifies the native editor and navigation objects reach the presenter, refusing overwritten values and unsafe branch entries before changing the app.
-* **Tooling:** Export the English catalog and translations as Crowdin-compatible JSON, then validate complete or explicit partial local imports before replacing a table. Unchanged round trips retain exact bytes; format, escape, plural and input limits are checked. Imports coordinate through owned locks; unrelated editors must stop writing the destination during an import. Hosted translation approval remains separate.
+* **Tooling:** Export the English catalog and translations as Crowdin-compatible JSON, then validate complete or explicit partial local imports before replacing a table. Unchanged round trips retain exact bytes; format, escape, plural and input limits are checked. Imports coordinate through owned locks. Hosted translation approval remains separate.
 * **Instagram:** Save recovery can retire an already-removed Samsung gallery row even when its next delete reports no access. It requires a successful exact-row query; pending or unreadable rows stay queued for cleanup, and published files are kept.
 * **Instagram:** Open MetaConfig overrides from HushGram's Developer section without enabling Home long press or changing a flag. Unsupported or signed-out screens keep settings open with an explanation; successful navigation closes them.
 * **Instagram:** Save all keeps a carousel's ordered pages in one cancellable job, with the same download quality throughout and a 32-page limit. The current-page Download stays available. Downloads keeps the complete saved, failed and skipped counts for this process, including cancellation and lower-quality warnings. Cancel keeps finished files and removes unfinished resources.

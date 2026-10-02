@@ -279,10 +279,10 @@ Verification reads coverage back from the patched APK and writes a separate cove
 
 ## Translating HushGram
 
-HushGram keeps its translations in UTF-8 TSV files under `extensions/shared/library/src/main/l10n`. The English text is the lookup key. Python 3.10 or newer can export the current source catalog and existing translations as flat JSON for Crowdin:
+HushGram keeps its translations in UTF-8 TSV files under `extensions/shared/library/src/main/l10n`. The English text is the lookup key. Use Python 3.13 on Windows to export the current source catalog and existing translations as flat JSON for Crowdin:
 
-```bash
-python scripts/sync-l10n.py export --output "path/to/translation-review"
+```powershell
+py -3.13 scripts/sync-l10n.py export --output "path/to/translation-review"
 ```
 
 Upload `en.json` as the source file and the five language files as existing translations. Identifiers are the full SHA-256 of each exact English key, so adding or moving a row doesn't change other identifiers. Changing the English creates a new identifier that needs review. Existing translations that match English are valid and should be kept when seeding the project.
@@ -291,10 +291,10 @@ Create the hosted project from the authenticated account that will own it. Use E
 
 Import a complete reviewed file, then regenerate the class the extension carries:
 
-```bash
-python scripts/sync-l10n.py import --language de --input "path/to/translation-review/de.json"
-python scripts/gen-l10n.py
-python scripts/test-l10n.py
+```powershell
+py -3.13 scripts/sync-l10n.py import --language de --input "path/to/translation-review/de.json"
+py -3.13 scripts/gen-l10n.py
+py -3.13 scripts/test-l10n.py
 ```
 
 For an existing language, `--partial` keeps every row absent from the download. Blank values are rejected. A new language needs a complete file and an explicit `--new-language`, such as `--language ko --new-language`. Indonesian's `id` maps to `in.tsv`, and `pt-BR` maps to `pt-rBR.tsv`.
@@ -303,9 +303,9 @@ Each import validates the input before atomically replacing one table. Unchanged
 
 TSV escapes are `\\` for a backslash and `\n` for a line feed. Printable right-to-left text is preserved. Invisible controls are rejected, and the runtime isolates dynamic values itself. Extra plural rows use the actual quantity call's other key followed by `|zero`, `|two`, `|few` or `|many`. The original singular key supplies `one`.
 
-Importers use an exclusive transaction lock and check the destination again before replacement. A competing import stops without taking over its lock. If a process dies holding a lock, remove that lock only after verifying the old process has stopped.
+Writing an export or changed import requires writable local NTFS with Windows file transactions available. The script rechecks the destination inside an enforced transaction, then commits a separate file. An unrelated edit or newly created destination after validation makes the import refuse stale application. Existing readers keep complete old bytes. An editor holding a writable handle can make the import refuse, and new opens can briefly report a sharing conflict while the rename commits. Retry after the editor closes the file. Unsupported platforms, volumes, encrypted files, reparse points and hard links refuse writes without falling back to an unsafe replacement. Unchanged imports keep their bytes without opening a write transaction.
 
-The lock coordinates this script's imports. Other tools can still edit a table between the final check and replacement. Stop those tools from writing the destination during an import.
+Importer locks also prevent competing imports. They are never taken over automatically. If a process dies holding a lock, remove that lock only after verifying the old process has stopped. [Microsoft has deprecated file transactions](https://learn.microsoft.com/en-us/windows/win32/fileio/deprecation-of-txf), so availability is checked for each write and unavailable systems refuse the operation.
 
 ## License
 

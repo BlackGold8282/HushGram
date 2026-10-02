@@ -223,8 +223,119 @@ def transaction_lock(path):
             print(f"translation sync warning: lock cleanup failed for {lock}: {error}", file=sys.stderr)
 
 
+def transaction_calls():
+    """Bind the documented Windows transaction boundary, or refuse without a fallback write."""
+    if sys.platform != "win32":
+        raise ImportError("conditional commits require local NTFS and Windows file transactions; nothing was imported")
+    import ctypes
+    from ctypes import wintypes
+    try:
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        manager = ctypes.WinDLL("ktmw32", use_last_error=True)
+        definitions = {
+            "create": (manager, "CreateTransaction", [wintypes.LPVOID, wintypes.LPVOID, wintypes.DWORD,
+                       wintypes.DWORD, wintypes.DWORD, wintypes.DWORD, wintypes.LPWSTR], wintypes.HANDLE),
+            "commit": (manager, "CommitTransaction", [wintypes.HANDLE], wintypes.BOOL),
+            "rollback": (manager, "RollbackTransaction", [wintypes.HANDLE], wintypes.BOOL),
+            "close": (kernel, "CloseHandle", [wintypes.HANDLE], wintypes.BOOL),
+            "open": (kernel, "CreateFileTransactedW", [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                     wintypes.LPVOID, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE, wintypes.HANDLE,
+                     wintypes.LPVOID, wintypes.LPVOID], wintypes.HANDLE),
+            "move": (kernel, "MoveFileTransactedW", [wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.LPVOID,
+                     wintypes.LPVOID, wintypes.DWORD, wintypes.HANDLE], wintypes.BOOL),
+            "volume": (kernel, "GetVolumeInformationByHandleW", [wintypes.HANDLE, wintypes.LPWSTR,
+                       wintypes.DWORD, wintypes.LPVOID, wintypes.LPVOID, ctypes.POINTER(wintypes.DWORD),
+                       wintypes.LPWSTR, wintypes.DWORD], wintypes.BOOL),
+            "attributes": (kernel, "GetFileInformationByHandleEx", [wintypes.HANDLE, wintypes.INT,
+                           wintypes.LPVOID, wintypes.DWORD], wintypes.BOOL),
+        }
+        calls = {}
+        for key, (library, name, arguments, result) in definitions.items():
+            function = getattr(library, name)
+            function.argtypes, function.restype = arguments, result
+            calls[key] = function
+        return calls
+    except (OSError, AttributeError) as error:
+        raise ImportError("Windows file transactions are unavailable; nothing was imported") from error
+
+
+def conditional_commit(path, expected, staged, data, owned):
+    """Validate and stage under enforced native exclusion; commit the complete isolated view."""
+    calls = transaction_calls()
+    import ctypes
+    import msvcrt
+    from ctypes import wintypes
+
+    def check(result):
+        if not result:
+            raise ctypes.WinError(ctypes.get_last_error())
+        return result
+
+    invalid = ctypes.c_void_p(-1).value
+    transaction = calls["create"](None, None, 0, 0, 0, 30000, "HushGram translation commit")
+    if transaction in (None, invalid):
+        raise ctypes.WinError(ctypes.get_last_error())
+    native = descriptor = None
+    committed = False
+    try:
+        for guarded in (path, staged):
+            # OPEN_EXISTING or CREATE_NEW, never a truncating open. OPEN_REPARSE_POINT
+            # prevents a raced leaf symlink from redirecting this operation.
+            creating = guarded == path and expected.stamp is None
+            native = calls["open"](os.path.abspath(guarded), 0xC0000000, 7, None, 1 if creating else 3,
+                                   0x00200080, None, transaction, None, None)
+            if native in (None, invalid):
+                error = ctypes.get_last_error()
+                if guarded == path and ((creating and error in (80, 183)) or (not creating and error in (2, 3))):
+                    raise ImportError("destination changed after validation; nothing was imported")
+                raise ctypes.WinError(error)
+            attributes = (wintypes.DWORD * 2)()
+            check(calls["attributes"](native, 9, attributes, ctypes.sizeof(attributes)))
+            if attributes[0] & (0x10 | 0x400 | 0x4000):
+                raise ImportError("conditional commits refuse directories, reparse points and encrypted files")
+            filesystem = ctypes.create_unicode_buffer(261)
+            flags = wintypes.DWORD()
+            check(calls["volume"](native, None, 0, None, None, ctypes.byref(flags), filesystem, len(filesystem)))
+            if filesystem.value != "NTFS" or not flags.value & 0x00200000 or flags.value & 0x00080000:
+                raise ImportError("conditional commits require writable local NTFS with file transactions enabled")
+            descriptor = msvcrt.open_osfhandle(native, os.O_RDWR | os.O_BINARY | os.O_NOINHERIT)
+            native = None  # The CRT descriptor now owns the native handle.
+            handle = os.fdopen(descriptor, "r+b", buffering=0)
+            descriptor = None  # FileIO owns the descriptor, including failures during close.
+            with handle:
+                info = os.fstat(handle.fileno())
+                if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                    raise ImportError("conditional commits require one regular file without hard links")
+                if not creating:
+                    # TxF/CRT creation timestamps differ. Read the protected namespace
+                    # stamp, bind its identity to this handle, and compare complete bytes.
+                    current = stamp(guarded)
+                    content = handle.read(MAX_BYTES + 1)
+                    if (info.st_dev, info.st_ino) != current[:2] or (guarded == path and Snapshot(content, current) != expected):
+                        raise ImportError("destination changed after validation; nothing was imported")
+                    if guarded == staged and content != data:
+                        raise ImportError("staged translation bytes changed; nothing was imported")
+        # Rename a separate file, preserving old reader handles instead of mixing their
+        # reads across an in-place commit. An open that denies deletion refuses the import.
+        # The transaction excludes external writes even after all file handles close.
+        owned()
+        check(calls["move"](os.path.abspath(staged), os.path.abspath(path), None, None, 1, transaction))
+        check(calls["commit"](transaction))
+        committed = True
+    finally:
+        if descriptor is not None:
+            try:
+                os.close(descriptor)
+            except OSError as error:
+                print(f"translation sync warning: descriptor cleanup failed: {error}", file=sys.stderr)
+        for key, argument in (("close", native), ("rollback", transaction if not committed else None), ("close", transaction)):
+            if argument not in (None, invalid) and not calls[key](argument):
+                error = ctypes.WinError(ctypes.get_last_error())
+                print(f"translation sync warning: transaction {key} cleanup failed: {error}", file=sys.stderr)
+
+
 def replace_if_unchanged(path, expected, data):
-    """Validate the snapshot again under the exclusive import lock, then replace atomically."""
+    """Validate under an importer lock, then enter an enforced conditional native commit."""
     if len(data) > MAX_BYTES:
         raise ImportError("table exceeds the file-size limit")
     temporary = None
@@ -248,9 +359,9 @@ def replace_if_unchanged(path, expected, data):
             owned()
             if snapshot(path) != expected:
                 raise ImportError("destination changed during staging; nothing was imported")
-            os.replace(temporary, path)
-            # The temporary name no longer belongs to this import. Do not inspect or
-            # remove anything recreated there, or let cleanup misreport a committed write.
+            conditional_commit(path, expected, temporary, data, owned)
+            # The committed rename consumed this exact temporary name. Never inspect or
+            # remove something another process creates there after the commit.
             temporary = None
             return True
         finally:

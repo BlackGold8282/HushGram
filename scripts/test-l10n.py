@@ -373,11 +373,241 @@ class TranslationTests(unittest.TestCase):
             bridge.replace_if_unchanged(created, missing, b"wrong")
         self.assertEqual(b"created by another writer", created.read_bytes())
 
+    def test_separate_writer_after_final_snapshot_keeps_changed_and_new_destination(self):
+        for absent in (False, True):
+            with self.subTest(absent=absent):
+                destination = self.table.with_name("fresh.tsv") if absent else self.table
+                expected = bridge.snapshot(destination)
+                latest = b"written by an unrelated process after the final snapshot"
+                real_snapshot = bridge.snapshot
+                calls = 0
+
+                def after_snapshot(path, original=real_snapshot, target=destination, updated=latest):
+                    nonlocal calls
+                    saved = original(path)
+                    if path == target:
+                        calls += 1
+                        if calls == 2:
+                            writer = subprocess.run(
+                                [sys.executable, "-B", "-c",
+                                 "from pathlib import Path; import sys; Path(sys.argv[1]).write_bytes(bytes.fromhex(sys.argv[2]))",
+                                 str(target), updated.hex()], capture_output=True, text=True, check=False)
+                            self.assertEqual(0, writer.returncode, writer.stderr)
+                    return saved
+
+                with mock.patch.object(bridge, "snapshot", side_effect=after_snapshot), self.assertRaises(ValueError):
+                    bridge.replace_if_unchanged(destination, expected, b"imported bytes")
+                self.assertEqual(2, calls)
+                self.assertEqual(latest, destination.read_bytes())
+                self.assertEqual([], list(destination.parent.glob(".*.tmp")))
+                self.assertEqual([], list(destination.parent.glob("*.import-lock")))
+
+    def test_reader_open_across_commit_never_combines_old_and_new_file_bytes(self):
+        before, after = b"a" * 8192, b"b" * 8192
+        self.table.write_bytes(before)
+        expected = bridge.snapshot(self.table)
+        with self.table.open("rb", buffering=0) as reader:
+            prefix = reader.read(4096)
+            try:
+                changed = bridge.replace_if_unchanged(self.table, expected, after)
+            except (OSError, ValueError):
+                changed = False
+                self.assertEqual(before, self.table.read_bytes())
+            self.assertEqual(before, prefix + reader.read())
+        self.assertEqual(after if changed else before, self.table.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_unsupported_platform_volume_and_reparse_attributes_refuse_without_writes(self):
+        import ctypes
+        before = self.table.read_bytes()
+        with mock.patch.object(bridge.sys, "platform", "linux"), self.assertRaises(ValueError):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(before, self.table.read_bytes())
+        with mock.patch.object(ctypes, "WinDLL", side_effect=OSError("transaction API unavailable")), self.assertRaises(ValueError):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(before, self.table.read_bytes())
+        real_calls = bridge.transaction_calls
+        for kind in ("no-transactions", "other-filesystem", "read-only-volume", "reparse", "encrypted"):
+            with self.subTest(kind=kind):
+                calls = real_calls()
+                real_volume, real_attributes = calls["volume"], calls["attributes"]
+
+                def volume(handle, name, length, serial, maximum, flags, filesystem, capacity, scenario=kind, original=real_volume):
+                    result = original(handle, name, length, serial, maximum, flags, filesystem, capacity)
+                    if scenario == "no-transactions":
+                        flags._obj.value &= ~0x00200000
+                    elif scenario == "read-only-volume":
+                        flags._obj.value |= 0x00080000
+                    elif scenario == "other-filesystem":
+                        filesystem.value = "FAT32"
+                    return result
+
+                def attributes(handle, category, output, size, scenario=kind, original=real_attributes):
+                    result = original(handle, category, output, size)
+                    if scenario == "reparse":
+                        output[0] |= 0x400
+                    elif scenario == "encrypted":
+                        output[0] |= 0x4000
+                    return result
+
+                calls.update(volume=volume, attributes=attributes)
+                with mock.patch.object(bridge, "transaction_calls", return_value=calls), self.assertRaises(ValueError):
+                    self.import_rows({"Hello": "Neu"}, partial=True)
+                self.assertEqual(before, self.table.read_bytes())
+                self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+                self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_share_delete_reader_keeps_old_bytes_through_successful_native_commit(self):
+        import ctypes
+        import msvcrt
+        from ctypes import wintypes
+
+        before, after = b"a" * 8192, b"b" * 8192
+        self.table.write_bytes(before)
+        expected = bridge.snapshot(self.table)
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        open_file = kernel.CreateFileW
+        open_file.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, wintypes.LPVOID,
+                              wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        open_file.restype = wintypes.HANDLE
+        native = open_file(str(self.table), 0x80000000, 7, None, 3, 0x80, None)
+        self.assertNotIn(native, (None, ctypes.c_void_p(-1).value))
+        try:
+            descriptor = msvcrt.open_osfhandle(native, os.O_RDONLY | os.O_BINARY | os.O_NOINHERIT)
+        except BaseException:
+            bridge.transaction_calls()["close"](native)
+            raise
+        with os.fdopen(descriptor, "rb", buffering=0) as reader:
+            prefix = reader.read(4096)
+            self.assertTrue(bridge.replace_if_unchanged(self.table, expected, after))
+            self.assertEqual(before, prefix + reader.read())
+            self.assertEqual(after, self.table.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_hard_link_destination_is_refused_and_neither_name_changes(self):
+        alias = self.table.with_name("alias.tsv")
+        os.link(self.table, alias)
+        before = self.table.read_bytes()
+        with self.assertRaises(ValueError):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(before, self.table.read_bytes())
+        self.assertEqual(before, alias.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_native_move_and_commit_failures_roll_back_existing_and_absent_files(self):
+        import ctypes
+        real_calls = bridge.transaction_calls
+        for operation in ("move", "commit"):
+            for absent in (False, True):
+                with self.subTest(operation=operation, absent=absent):
+                    destination = self.table.with_name("not-created.tsv") if absent else self.table
+                    expected = bridge.snapshot(destination)
+                    calls = real_calls()
+
+                    def fail(*_):
+                        ctypes.set_last_error(5)
+                        return 0
+
+                    calls[operation] = fail
+                    with mock.patch.object(bridge, "transaction_calls", return_value=calls), self.assertRaises(OSError):
+                        bridge.replace_if_unchanged(destination, expected, b"new imported bytes")
+                    self.assertEqual(expected.data, destination.read_bytes() if destination.exists() else None)
+                    self.assertEqual([], list(destination.parent.glob(".*.tmp")))
+                    self.assertEqual([], list(destination.parent.glob("*.import-lock")))
+
+    def test_post_commit_native_cleanup_failure_reports_applied_result(self):
+        import ctypes
+        calls = bridge.transaction_calls()
+        real_close = calls["close"]
+        errors = io.StringIO()
+
+        def fail_close(handle):
+            self.assertTrue(real_close(handle))
+            ctypes.set_last_error(6)
+            return 0
+
+        calls["close"] = fail_close
+        with mock.patch.object(bridge, "transaction_calls", return_value=calls), mock.patch.object(bridge.sys, "stderr", errors):
+            self.assertEqual((True, 1, 4), self.import_rows({"Hello": "Neu"}, partial=True))
+        self.assertEqual("Neu", generator.read(self.table)["Hello"])
+        self.assertIn("transaction close cleanup failed", errors.getvalue())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_separate_writes_and_renames_are_excluded_after_guard_handles_close(self):
+        real_calls = bridge.transaction_calls
+        program = ("from pathlib import Path; import os,sys; p=Path(sys.argv[1]); "
+                   "q=p.with_name('outside-source'); "
+                   "p.write_bytes(b'foreign') if sys.argv[2]=='write' else "
+                   "(q.write_bytes(b'foreign'), os.replace(q,p))")
+        for absent in (False, True):
+            with self.subTest(absent=absent):
+                destination = self.table.with_name("new.tsv") if absent else self.table
+                expected = bridge.snapshot(destination)
+                calls = real_calls()
+                real_move = calls["move"]
+
+                def move(*arguments, target=destination, original=real_move):
+                    result = original(*arguments)
+                    self.assertTrue(result)
+                    for operation in ("write", "replace"):
+                        writer = subprocess.run([sys.executable, "-B", "-c", program, str(target), operation],
+                                                capture_output=True, text=True, check=False)
+                        self.assertNotEqual(0, writer.returncode, "Unrelated writer unexpectedly crossed the native boundary")
+                    return result
+
+                calls["move"] = move
+                with mock.patch.object(bridge, "transaction_calls", return_value=calls):
+                    self.assertTrue(bridge.replace_if_unchanged(destination, expected, b"imported"))
+                self.assertEqual(b"imported", destination.read_bytes())
+                self.assertEqual([], list(destination.parent.glob(".*.tmp")))
+                self.assertEqual([], list(destination.parent.glob("*.import-lock")))
+
+    def test_held_writable_handle_refuses_import_and_preserves_the_other_process(self):
+        program = ('import pathlib,sys\n'
+                   'with pathlib.Path(sys.argv[1]).open("r+b",buffering=0) as f:\n'
+                   ' print("held",flush=True)\n'
+                   ' sys.stdin.readline()\n'
+                   ' f.seek(0); f.write(b"foreign held writer"); f.truncate()\n')
+        process = subprocess.Popen([sys.executable, "-B", "-c", program, str(self.table)],
+                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        before = self.table.read_bytes()
+        try:
+            self.assertEqual("held", process.stdout.readline().strip())
+            with self.assertRaises(OSError):
+                self.import_rows({"Hello": "Neu"}, partial=True)
+            self.assertEqual(before, self.table.read_bytes())
+        finally:
+            _, error = process.communicate("\n", timeout=10)
+        self.assertEqual(0, process.returncode, error)
+        self.assertEqual(b"foreign held writer", self.table.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_changed_staging_bytes_are_refused_before_the_destination_moves(self):
+        before = self.table.read_bytes()
+        real_calls = bridge.transaction_calls
+
+        def change_staging():
+            staged = list(self.table.parent.glob(".*.tmp"))
+            self.assertEqual(1, len(staged))
+            staged[0].write_bytes(b"foreign staged bytes")
+            return real_calls()
+
+        with mock.patch.object(bridge, "transaction_calls", side_effect=change_staging), self.assertRaises(ValueError):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(before, self.table.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
     def test_write_fsync_and_replace_failures_leave_destination_intact(self):
         before = self.table.read_bytes()
-        for target in ("NamedTemporaryFile", "fsync", "replace"):
+        for target in ("NamedTemporaryFile", "fsync", "conditional_commit"):
             with self.subTest(target=target):
-                owner = bridge.tempfile if target == "NamedTemporaryFile" else bridge.os
+                owner = bridge.tempfile if target == "NamedTemporaryFile" else bridge if target == "conditional_commit" else bridge.os
                 original = getattr(owner, target)
                 calls = 0
 
@@ -484,7 +714,7 @@ class TranslationTests(unittest.TestCase):
             return original(path, *args, **kwargs)
 
         with mock.patch.object(Path, "unlink", autospec=True, side_effect=fail_cleanup), \
-                mock.patch.object(bridge.os, "replace", side_effect=OSError("injected replace failure")), \
+                mock.patch.object(bridge, "conditional_commit", side_effect=OSError("injected replace failure")), \
                 mock.patch.object(bridge.sys, "stderr", errors), \
                 self.assertRaisesRegex(OSError, "replace failure"):
             self.import_rows({"Hello": "Neu"}, partial=True)
