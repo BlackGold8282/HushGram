@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -15,6 +16,8 @@ import android.preference.Preference;
 import android.preference.PreferenceScreen;
 
 import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.FailingStore;
 import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
 import org.junit.After;
@@ -23,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowToast;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 
@@ -83,6 +87,28 @@ public class SignInNoticeTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             PreferenceScreen screen = DownloadSettingsTest.pageIn(controller).getPreferenceScreen();
             assertNull(screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY));
+        }
+    }
+
+    @Test
+    @Config(sdk = {28, 29, 30, 37})
+    public void aFailedDismissalKeepsTheNoticeAndExplainsTheFailure() {
+        org.robolectric.RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        BaseSettings.DEBUG.save(false);
+        ShadowToast.reset();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            PreferenceScreen screen = DownloadSettingsTest.pageIn(controller).getPreferenceScreen();
+            Preference notice = screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY);
+            assertNotNull(notice);
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+                assertTrue(notice.getOnPreferenceClickListener().onPreferenceClick(notice));
+            }
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            assertFalse(Settings.SIGN_IN_NOTICE_HIDDEN.savedValue());
+            assertSame("a refused dismissal must leave the retry target on screen", notice,
+                    screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY));
+            assertEquals("Couldn't save the settings. The previous values were restored.",
+                    ShadowToast.getTextOfLatestToast());
         }
     }
 }

@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** A refused sign-in notice dismissal keeps the notice visible and explains the save failure. The diagnostic report chooser closes with its settings page, and a late tap cannot reopen it after teardown.
 * **Tooling:** Device installs and verifier runs require an exclusive lease and verified device identity. Updates keep installed data and permissions, replacement uninstalls refuse, and verification selects the device's actual instruction set. Windows emulator identity replies accept their native line endings.
 * **Tooling:** Protect translation replacement with an enforced Windows file transaction. Stale edits and conflicting writers refuse the import, existing readers retain complete old bytes, and unsupported storage refuses writes. Unchanged imports still preserve exact bytes.
 * **Tooling:** Exercise every native override writer and reload prohibition with its own failing DEX fixture. Calls inside Instagram's native package remain allowed, and all existing shortcut checks stay in place.

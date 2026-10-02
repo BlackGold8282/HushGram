@@ -178,7 +178,7 @@ tasks.withType<Test>().configureEach {
 // behavioral cases must all have passed, including the dialog cases that assert SDK_INT itself.
 tasks.register("verifyAndroidBoundaries") {
     group = "verification"
-    description = "Requires passing Android 9/17 settings, recovery, storage and Cancel cases."
+    description = "Requires passing Android 9/10/17 settings, recovery, storage and Cancel cases."
     dependsOn("testDebugUnitTest")
     val results = layout.buildDirectory.dir("test-results/testDebugUnitTest")
     inputs.dir(results)
@@ -211,7 +211,12 @@ tasks.register("verifyAndroidBoundaries") {
                 "finishingDestroyedOrSavedHostsNeverCallNativeNavigation[28]", "finishingDestroyedOrSavedHostsNeverCallNativeNavigation"),
             "app.hushgram.extension.instagram.settings.SettingsDialogBoundaryTest" to listOf(
                 "sdk28DialogKeepsLegacyBarsOutsideLargeTextContent", "sdk37DialogKeepsSystemBarsOutsideLargeTextContent",
-                "sdk28DialogMirrorsItsLargeTextHeader", "sdk37DialogMirrorsItsLargeTextHeader"),
+                "sdk28DialogMirrorsItsLargeTextHeader", "sdk37DialogMirrorsItsLargeTextHeader",
+                "diagnosticChooserClosesWithItsSettingsPage[28]", "diagnosticChooserClosesWithItsSettingsPage[29]", "diagnosticChooserClosesWithItsSettingsPage",
+                "aLateReportTapCannotOpenAChooserAfterPageTeardown[28]", "aLateReportTapCannotOpenAChooserAfterPageTeardown[29]", "aLateReportTapCannotOpenAChooserAfterPageTeardown"),
+            "app.hushgram.extension.instagram.settings.SignInNoticeTest" to listOf(
+                "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[28]", "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[29]",
+                "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[30]", "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure"),
             "app.hushgram.extension.instagram.settings.SettingsEntryOpenTest" to listOf(
                 "movesToAScreenInstagramOpensOverIt[28]", "movesToAScreenInstagramOpensOverIt",
                 "staysClosedOnceThePersonClosedIt[28]", "staysClosedOnceThePersonClosedIt"),
@@ -278,7 +283,7 @@ tasks.register("verifyAndroidBoundaries") {
                     }) throw GradleException("Android boundary case did not pass exactly once: $suiteName.$name")
             }
         }
-        logger.lifecycle("Verified Android API 28/37 boundary cases with the Instagram 449 target SDK (36).")
+        logger.lifecycle("Verified Android API 28/29/37 boundary cases with the Instagram 449 target SDK (36).")
     }
 }
 

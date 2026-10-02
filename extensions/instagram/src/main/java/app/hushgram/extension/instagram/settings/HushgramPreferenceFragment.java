@@ -1139,8 +1139,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 + " " + L10n.t("Tap to hide this."));
         notice.actsAtOnce = true;
         notice.setOnPreferenceClickListener(row -> {
-            Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
-            screen.removePreference(row);
+            if (Settings.SIGN_IN_NOTICE_HIDDEN.save(true)) screen.removePreference(row);
+            else Utils.showToastLong(L10n.t(context, "Couldn't save the settings. The previous values were restored."));
             return true;
         });
         return notice;
@@ -1970,9 +1970,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
-    static final class ExportRow extends ExportDiagnosticReportPreference {
+    final class ExportRow extends ExportDiagnosticReportPreference {
         ExportRow(Context context) {
             super(context);
+            Preference.OnPreferenceClickListener open = getOnPreferenceClickListener();
+            setOnPreferenceClickListener(row -> {
+                Activity activity = getActivity();
+                if (HushgramPreferenceFragment.this.getView() != null && activity != null
+                        && !activity.isFinishing() && !activity.isDestroyed()) {
+                    open.onPreferenceClick(row);
+                }
+                return true;
+            });
         }
 
         /** The two choices as cards, each saying what it does under its name. */
@@ -1994,6 +2003,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 list.setSelector(new ColorDrawable(Color.TRANSPARENT));
             }
             ScreenColors.dialog(dialog);
+            shownDialogs.add(dialog);
+            dialog.setOnDismissListener(shownDialogs::remove);
         }
 
         @Override
