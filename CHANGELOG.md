@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** A failed sign-in notice dismissal asks for a retry without claiming that storage was restored. Its earlier message could make that claim even when the write landed and rollback failed. All five translations carry the corrected feedback.
+
 * **Instagram:** Concurrent Android 9 saves keep separate hidden files and cleanup identities. Cancelling one leaves the other's bytes alone, and completed saves take different final names. A refused cleanup record removes its reserved file without touching finished media.
 
 * **Instagram:** Turning HushGram back on from its status card saves in the background instead of blocking settings. Both recovery controls stay disabled until the write finishes, duplicate taps are ignored, and failures leave the saved Pause choice visible for retry. Closing settings during recovery leaves detached controls alone.

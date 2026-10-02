@@ -20,6 +20,7 @@ import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.FailingStore;
 import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
+import app.hushgram.extension.shared.settings.Setting;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -107,8 +108,35 @@ public class SignInNoticeTest {
             assertFalse(Settings.SIGN_IN_NOTICE_HIDDEN.savedValue());
             assertSame("a refused dismissal must leave the retry target on screen", notice,
                     screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY));
-            assertEquals("Couldn't save the settings. The previous values were restored.",
+            assertEquals("Couldn't hide this notice. Try again.",
                     ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    @Test
+    @Config(sdk = {28, 29, 30, 37})
+    public void aFailedDismissalDoesNotClaimAnUnprovenRollback() {
+        org.robolectric.RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        BaseSettings.DEBUG.save(false);
+        ShadowToast.reset();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            PreferenceScreen screen = DownloadSettingsTest.pageIn(controller).getPreferenceScreen();
+            Preference notice = screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY);
+            assertNotNull(notice);
+            try (FailingStore ignored = FailingStore.install(
+                    FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, FailingStore.Fault.LOST)) {
+                assertTrue(notice.getOnPreferenceClickListener().onPreferenceClick(notice));
+            }
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            assertFalse("the scalar setting retained its previous live value", Settings.SIGN_IN_NOTICE_HIDDEN.savedValue());
+            assertTrue("the injected commit landed and rollback did not", Setting.preferences
+                    .getBoolean(Settings.SIGN_IN_NOTICE_HIDDEN.key, false));
+            assertSame("the failed dismissal must leave a retry target", notice,
+                    screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY));
+            assertEquals("Couldn't hide this notice. Try again.",
+                    ShadowToast.getTextOfLatestToast());
+        } finally {
+            Setting.preferences.removeKey(Settings.SIGN_IN_NOTICE_HIDDEN.key);
         }
     }
 }

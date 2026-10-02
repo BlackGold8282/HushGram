@@ -218,7 +218,9 @@ tasks.register("verifyAndroidBoundaries") {
                 "aLateReportTapCannotOpenAChooserAfterPageTeardown[28]", "aLateReportTapCannotOpenAChooserAfterPageTeardown[29]", "aLateReportTapCannotOpenAChooserAfterPageTeardown"),
             "app.hushgram.extension.instagram.settings.SignInNoticeTest" to listOf(
                 "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[28]", "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[29]",
-                "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[30]", "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure"),
+                "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[30]", "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure",
+                "aFailedDismissalDoesNotClaimAnUnprovenRollback[28]", "aFailedDismissalDoesNotClaimAnUnprovenRollback[29]",
+                "aFailedDismissalDoesNotClaimAnUnprovenRollback[30]", "aFailedDismissalDoesNotClaimAnUnprovenRollback"),
             "app.hushgram.extension.instagram.settings.PauseRecoveryTest" to listOf(
                 "aWorkerCommitDisablesBothRecoveryInputsAndIgnoresDuplicateTaps[28]", "aWorkerCommitDisablesBothRecoveryInputsAndIgnoresDuplicateTaps[29]", "aWorkerCommitDisablesBothRecoveryInputsAndIgnoresDuplicateTaps",
                 "aFailedCommitKeepsTheSavedPauseAndRestoresTheRetryControls[28]", "aFailedCommitKeepsTheSavedPauseAndRestoresTheRetryControls[29]", "aFailedCommitKeepsTheSavedPauseAndRestoresTheRetryControls",

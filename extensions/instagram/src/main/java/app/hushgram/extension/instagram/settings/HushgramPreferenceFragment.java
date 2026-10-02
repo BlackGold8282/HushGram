@@ -1144,7 +1144,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         notice.actsAtOnce = true;
         notice.setOnPreferenceClickListener(row -> {
             if (Settings.SIGN_IN_NOTICE_HIDDEN.save(true)) screen.removePreference(row);
-            else Utils.showToastLong(L10n.t(context, "Couldn't save the settings. The previous values were restored."));
+            else Utils.showToastLong(L10n.t(context, "Couldn't hide this notice. Try again."));
             return true;
         });
         return notice;
