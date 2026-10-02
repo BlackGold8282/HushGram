@@ -4,10 +4,8 @@
  */
 package app.morphe.patches.instagram.misc.developeroptions
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.originalName
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -19,8 +17,6 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
 internal const val OVERRIDE_PARAMETER = "$EXTENSION_PACKAGE/misc/OverrideExchange\$Parameter;"
 private const val USER = "Lcom/instagram/common/session/UserSession;"
@@ -211,10 +207,12 @@ private fun BytecodePatchContext.constructorFields(owner: ClassDef, reference: M
     return RECORD_ARGS.indices.map { assigned.getValue(it) }
 }
 
-/** All four replacements are built before any stub changes. None invokes a writer or reload. */
-internal fun BytecodePatchContext.fillOverrideReader(reader: OverrideReader, editor: OverrideEditor) {
-    val owner = mutableClassDefBy(OVERRIDE_BRIDGE)
-    val stubs = readerStubs()
+/** Puts in the reader bodies [prepareOverrideReader] assembled. */
+internal fun BytecodePatchContext.fillOverrideReader(reader: OverrideReader, editor: OverrideEditor) =
+    putStubs(prepareOverrideReader(reader, editor))
+
+/** All four replacements are assembled before any stub changes. None invokes a writer or reload. */
+internal fun BytecodePatchContext.prepareOverrideReader(reader: OverrideReader, editor: OverrideEditor): PreparedStubs {
     val bodies = listOf(
         6 to """
             instance-of v0, p0, Lcom/instagram/mainactivity/InstagramMainActivity;
@@ -272,14 +270,7 @@ internal fun BytecodePatchContext.fillOverrideReader(reader: OverrideReader, edi
             return-object v0
         """,
     )
-    val replacements = stubs.zip(bodies).map { (old, body) ->
-        ImmutableMethod(old.definingClass, old.name, old.parameters, old.returnType, old.accessFlags, old.annotations,
-            old.hiddenApiRestrictions, ImmutableMethodImplementation(body.first, emptyList(), null, null)).toMutable().apply {
-            addInstructionsWithLabels(0, body.second.trimIndent())
-        }
-    }
-    stubs.forEach { owner.methods.remove(it) }
-    owner.methods.addAll(replacements)
+    return prepareStubs(readerStubs(), bodies.map { (registers, body) -> registers to body.trimIndent() }, ::readerRefuse)
 }
 
 private fun BytecodePatchContext.readerStubs() = listOf(

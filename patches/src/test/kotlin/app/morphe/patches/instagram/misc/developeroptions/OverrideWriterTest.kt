@@ -16,12 +16,20 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.*
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedValue
 import org.junit.Assert.*
 import org.junit.Test
@@ -39,7 +47,7 @@ class OverrideWriterTest {
         for (prefix in listOf("", "Renamed")) {
             val patch = PatchContexts.of(classes(prefix))
             val writer = patch.findOverrideWriter(model(prefix))
-            patch.fillOverrideWriter(writer, model(prefix))
+            patch.fillOverrideWriter(writer)
             assertWriter(patch, writer, model(prefix))
             assertEquals(type("Table", prefix), writer.table)
             assertEquals("${type("Delegate", prefix)}->gate(${type("Base", prefix)})$MANAGER_IMPL", writer.gate)
@@ -60,14 +68,39 @@ class OverrideWriterTest {
             "table kept where the put doesn't read" to "otherField", "missing gate" to "noGate", "two gates" to "twoGates",
             "gate without a native check" to "blindGate", "no native-ready check" to "noReadyCheck",
             "missing writer stub" to "noStub", "renamed manager base getter" to "renamedBaseGetter",
+            "private native manager table getter" to "privateManagerGetter",
+            // The arms are a convention until the put shows it: code k must reach the writer the extension uses for k.
+            "string and double arms swapped" to "swappedArms", "put doesn't branch on the decoder" to "unusedDecoder",
+            "decoder reads another ID than the writers" to "otherId",
         )
         for ((case, option) in cases) {
             val patch = PatchContexts.of(classes("", setOf(option)))
             val before = bridgeCode(patch)
-            val failure = runCatching { patch.fillOverrideWriter(patch.findOverrideWriter(model()), model()) }.exceptionOrNull()
+            val failure = runCatching { patch.fillOverrideWriter(patch.findOverrideWriter(model())) }.exceptionOrNull()
             assertTrue("$case: $failure", failure?.message?.startsWith("Open developer options: ") == true)
             assertEquals(case, before, bridgeCode(patch))
         }
+    }
+
+    @Test fun swappedArmsNameTheArmThatDisagrees() {
+        val failure = runCatching { PatchContexts.of(classes("", setOf("swappedArms"))).findOverrideWriter(model()) }.exceptionOrNull()
+        assertEquals("Open developer options: typed put doesn't send decoder code 3 only to its Ljava/lang/String; writer", failure?.message)
+    }
+
+    @Test fun writerStubsAreAssembledWhileFindingSoFillingCantFailAfterOtherChanges() {
+        val patch = PatchContexts.of(classes("", setOf("unassemblable")))
+        val before = bridgeCode(patch)
+        val failure = runCatching { patch.findOverrideWriter(model()) }.exceptionOrNull()
+        assertEquals("Open developer options: getOverrideTableNative doesn't assemble", failure?.message)
+        assertEquals(before, bridgeCode(patch))
+
+        // A writer that was found carries every assembled body; filling only swaps them in.
+        val good = PatchContexts.of(classes(""))
+        val writer = good.findOverrideWriter(model())
+        assertEquals(WRITER_STUBS.keys.toList(), writer.stubs.replacements.map { it.name })
+        assertTrue(writer.stubs.replacements.all { it.implementation!!.instructions.any() })
+        good.fillOverrideWriter(writer)
+        assertWriter(good, writer, model())
     }
 
     @Test fun declared449FixtureResolvesInstagramsOwnTypedWriterAndNeverAStringImport() {
@@ -126,9 +159,13 @@ class OverrideWriterTest {
             val reader = patch.findOverrideReader(editor)
             val writer = patch.findOverrideWriter(reader.model)
             patch.fillOverrideReader(reader, editor)
-            patch.fillOverrideWriter(writer, reader.model)
+            patch.fillOverrideWriter(writer)
             assertWriter(patch, writer, reader.model)
             assertTrue(writer.tableGetter.endsWith("->getOrCreateOverridesTable()${writer.table}"))
+            assertEquals("$MANAGER_IMPL->getOrCreateOverridesTable()${writer.table}", writer.managerGetter)
+            // On the device build the put branches on the decoder: 1 bool, 2 long, 3 string, 4 double.
+            assertEquals(mapOf(1 to "Z", 2 to "J", 3 to "Ljava/lang/String;", 4 to "D").mapValues {
+                "${writer.table}->updateOverrideForParam(J${it.value})V" }, writer.dispatch)
             assertEquals("${writer.table}->removeOverrideForParam(J)V", writer.remove)
             assertTrue(writer.gate.endsWith(")$MANAGER_IMPL"))
             checked += version
@@ -145,7 +182,16 @@ class OverrideWriterTest {
         val all = references.values.flatten()
         assertTrue(all.toString(), all.none { reference -> FORBIDDEN_WRITES.any { reference.contains("->$it(") } })
         assertTrue(all.toString(), all.none { it.contains("->updateOverrideFor") && !it.contains("->updateOverrideForParam(") })
-        assertEquals(listOf(model, model, writer.delegate, writer.gate, writer.tableGetter, TABLE_IMPL), references["getOverrideTableNative"])
+        // The table comes from the native manager the gate unwrapped, never from the delegate itself.
+        assertEquals(listOf(model, model, writer.delegate, writer.gate, MANAGER_IMPL, writer.managerGetter, TABLE_IMPL),
+            references["getOverrideTableNative"])
+        val table = stubs.getValue("getOverrideTableNative").implementation!!.instructions.toList()
+        val gateCall = table.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == writer.gate }
+        val unwrapped = (table[gateCall + 1] as OneRegisterInstruction).registerA
+        val getterCall = table.single { (it as? ReferenceInstruction)?.reference?.toString() == writer.managerGetter }
+        assertEquals(unwrapped, (getterCall as FiveRegisterInstruction).registerC)
+        assertTrue(table.none { (it as? ReferenceInstruction)?.reference?.toString() == writer.tableGetter })
+        assertEquals(DECODED_VALUES.mapValues { writer.updates.getValue(it.value) }, writer.dispatch)
         assertEquals(listOf(writer.decoder), references["getOverrideTypeNative"])
         val setters = mapOf("setOverrideBooleanNative" to writer.updates.getValue("Z"), "setOverrideLongNative" to writer.updates.getValue("J"),
             "setOverrideDoubleNative" to writer.updates.getValue("D"), "setOverrideStringNative" to writer.updates.getValue("Ljava/lang/String;"),
@@ -169,23 +215,33 @@ class OverrideWriterTest {
         val base = type("Base", prefix); val delegate = type("Delegate", prefix); val model = model(prefix)
         val factory = type("StoreFactory", prefix); val ready = type("BugImport", prefix)
         val other = type("OtherTable", prefix)
+        // Legal in a dex file, but smali can't parse it, so a stub calling it can't be assembled.
+        val gateName = if (on("unassemblable")) "gate now" else "gate"
+        // Instagram's put branches on the decoder's code, one typed writer per arm.
+        val arm = mapOf(1 to "bool", 2 to "long", 3 to if (on("swappedArms")) "double" else "string",
+            4 to if (on("swappedArms")) "string" else "double")
+        val leave = if (on("unusedDecoder")) "nop" else "goto :done"
         val putCode = listOfNotNull(
-            "const-string v0, \"$PUT_FAILURE\"", "const-string v0, \"$DEBUG_STORE\"",
-            if (on("noDecoder")) null else "invoke-static { p1, p2 }, $ids->type(J)I",
+            "const-string v0, \"$PUT_FAILURE\"", "const-string v0, \"$DEBUG_STORE\"", "const-wide/16 v3, 0x0",
+            if (on("noDecoder")) null else "invoke-static { ${if (on("otherId")) "v3, v4" else "p1, p2"} }, $ids->type(J)I",
+            if (on("noDecoder")) null else "move-result v5",
             if (on("twoDecoders")) "invoke-static { p1, p2 }, $ids->other(J)I" else null,
-            "iget-object v1, p0, $store->table:$table", "const/4 v2, 0x0",
-            "invoke-interface { v1, p1, p2, v2 }, $table->updateOverrideForParam(JZ)V",
-            "const-wide/16 v3, 0x0",
-            "invoke-interface { v1, p1, p2, v3, v4 }, $table->updateOverrideForParam(JJ)V",
-            if (on("noDouble")) null else "invoke-interface { v1, p1, p2, v3, v4 }, ${if (on("otherTable")) other else table}->updateOverrideForParam(JD)V",
-            "invoke-interface { v1, p1, p2, p3 }, $table->updateOverrideForParam(JLjava/lang/String;)V",
+            "iget-object v1, p0, $store->table:$table",
+        ).plus(if (on("unusedDecoder") || on("noDecoder")) emptyList() else
+            (1..4).flatMap { listOf("const/4 v0, 0x$it", "if-eq v5, v0, :${arm.getValue(it)}") } + "goto :done"
+        ).plus(listOfNotNull(
+            ":bool", "const/4 v2, 0x0", "invoke-interface { v1, p1, p2, v2 }, $table->updateOverrideForParam(JZ)V", leave,
+            ":long", "invoke-interface { v1, p1, p2, v3, v4 }, $table->updateOverrideForParam(JJ)V", leave,
+            ":double", if (on("noDouble")) null else
+                "invoke-interface { v1, p1, p2, v3, v4 }, ${if (on("otherTable")) other else table}->updateOverrideForParam(JD)V", leave,
+            ":string", "invoke-interface { v1, p1, p2, p3 }, $table->updateOverrideForParam(JLjava/lang/String;)V",
             if (on("stringImport")) "invoke-virtual { v1, p3 }, Lcom/facebook/mobileconfig/troubleshooting/MobileConfigOverridesWriterHolder;->importOverridesFromUser(Ljava/lang/String;)Ljava/lang/String;" else null,
-            "return-void",
-        ).joinToString("\n")
+            ":done", "return-void",
+        )).joinToString("\n")
         val removeCode = "iget-object v0, p0, $store->table:$table\ninvoke-interface { v0, p1, p2 }, $table->removeOverrideForParam(J)V\nreturn-void"
         val storeMethods = listOfNotNull(
-            if (on("noPut")) null else method(store, "put", listOf("J", "Ljava/lang/String;"), "V", 9, public, putCode),
-            if (on("twoPuts")) method(store, "putAgain", listOf("J", "Ljava/lang/String;"), "V", 9, public, putCode) else null,
+            if (on("noPut")) null else method(store, "put", listOf("J", "Ljava/lang/String;"), "V", 10, public, putCode),
+            if (on("twoPuts")) method(store, "putAgain", listOf("J", "Ljava/lang/String;"), "V", 10, public, putCode) else null,
             if (on("noRemove")) null else method(store, "remove", listOf("J"), "V", 4, public, removeCode),
             if (on("twoRemoves")) method(store, "reset", listOf("J"), "V", 4, public, removeCode) else null,
         )
@@ -226,17 +282,23 @@ class OverrideWriterTest {
                 if (on("renamedBaseGetter")) "getOrCreateTable" else "getOrCreateOverridesTable", emptyList(), table, abstractFlags))),
             clazz(MANAGER_IMPL, superclass = base, methods = listOf(
                 declared(MANAGER_IMPL, "getOrCreateOverridesTableHolder", emptyList(), TABLE_IMPL, nativeFlags),
-                method(MANAGER_IMPL, "getOrCreateOverridesTable", emptyList(), table, 2, public, managerCode))),
+                method(MANAGER_IMPL, "getOrCreateOverridesTable", emptyList(), table, 2,
+                    if (on("privateManagerGetter")) AccessFlags.PRIVATE.value else public, managerCode))),
             clazz(delegate, superclass = base, methods = listOfNotNull(
-                if (on("noGate")) null else method(delegate, "gate", listOf(base), MANAGER_IMPL, 2, static, gateCode),
+                if (on("noGate")) null else method(delegate, gateName, listOf(base), MANAGER_IMPL, 2, static, gateCode),
                 if (on("twoGates")) method(delegate, "unwrap", listOf(base), MANAGER_IMPL, 2, static, gateCode) else null)),
             clazz(model, methods = listOf(method(model, "delegate", emptyList(), delegate, 2, public, "const/4 v0, 0x0\nreturn-object v0"))),
             if (on("noFactory")) null else clazz(factory, methods = listOf(factoryMethod)),
             if (on("twoFactories")) clazz(type("OtherFactory", prefix), methods = listOf(method(type("OtherFactory", prefix), "forSession",
                 listOf(user), store, 5, static, factoryCode))) else null,
-            clazz(ready, original = "MobileConfigBugImport", methods = listOf(method(ready, "onClick", emptyList(), "V", 2, public,
-                (if (on("noReadyCheck")) "" else "const-string v0, \"$RUNTIME_NOT_READY\"\n") +
-                    "const/4 v0, 0x0\ninvoke-static { v0 }, $delegate->gate($base)$MANAGER_IMPL\nreturn-void"))),
+            // Built without smali, so a gate name smali can't parse still reaches the writer.
+            clazz(ready, original = "MobileConfigBugImport", methods = listOf(ImmutableMethod(ready, "onClick", emptyList(), "V", public,
+                null, null, ImmutableMethodImplementation(2, listOfNotNull(
+                    if (on("noReadyCheck")) null else ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(RUNTIME_NOT_READY)),
+                    ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                    ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0,
+                        ImmutableMethodReference(delegate, gateName, listOf(base), MANAGER_IMPL)),
+                    ImmutableInstruction10x(Opcode.RETURN_VOID)), null, null)))),
             bridge(omit = if (on("noStub")) "removeOverrideNative" else null),
         )
     }

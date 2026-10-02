@@ -4,10 +4,8 @@
  */
 package app.morphe.patches.instagram.misc.developeroptions
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.originalName
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
@@ -25,8 +23,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
 internal const val OVERRIDE_TITLE = "MetaConfig: Overrides"
 internal const val OVERRIDE_BRIDGE = "$EXTENSION_PACKAGE/misc/DeveloperOptions;"
@@ -184,15 +180,12 @@ private fun BytecodePatchContext.overrideStub() = mutableClassDefBy(OVERRIDE_BRI
         it.returnType == "I" && AccessFlags.STATIC.isSet(it.accessFlags)
 } ?: editorRefuse("extension has no unique override bridge")
 
-/** Only a current logged-in Home/modal host can supply the native editor's session. */
-internal fun BytecodePatchContext.fillOverrideEditor(editor: OverrideEditor) {
-    val owner = mutableClassDefBy(OVERRIDE_BRIDGE)
-    val old = overrideStub()
-    val replacement = ImmutableMethod(
-        old.definingClass, old.name, old.parameters, old.returnType, old.accessFlags, old.annotations,
-        old.hiddenApiRestrictions, ImmutableMethodImplementation(6, emptyList(), null, null),
-    ).toMutable().apply {
-        addInstructionsWithLabels(0, """
+/** Puts in the editor body [prepareOverrideEditor] assembled. */
+internal fun BytecodePatchContext.fillOverrideEditor(editor: OverrideEditor) = putStubs(prepareOverrideEditor(editor))
+
+/** Only a current logged-in Home/modal host can supply the native editor's session. Assembles, changes nothing. */
+internal fun BytecodePatchContext.prepareOverrideEditor(editor: OverrideEditor): PreparedStubs =
+    prepareStubs(listOf(overrideStub()), listOf(6 to """
             instance-of v0, p0, $MAIN
             if-nez v0, :session
             instance-of v0, p0, $MODAL
@@ -222,10 +215,6 @@ internal fun BytecodePatchContext.fillOverrideEditor(editor: OverrideEditor) {
             :unavailable
             const/4 v0, 0x0
             return v0
-        """.trimIndent())
-    }
-    owner.methods.remove(old)
-    owner.methods.add(replacement)
-}
+        """.trimIndent()), ::editorRefuse)
 
 private fun editorRefuse(detail: String): Nothing = throw PatchException("Open developer options: $detail")
