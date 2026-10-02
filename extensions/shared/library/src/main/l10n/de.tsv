@@ -269,3 +269,12 @@ Clear search	Suche löschen
 No matching settings	Keine passenden Einstellungen
 Try another word or clear the search.	Versuche einen anderen Begriff oder lösche die Suche.
 Contacts, location setup, analytics	Kontakte, Standorteinrichtung, Analysedaten
+Save all	Alle speichern
+Saving a carousel	Karussell wird gespeichert
+Cancel saving this carousel	Speichern dieses Karussells abbrechen
+Page %1$d of %2$d	Seite %1$d von %2$d
+Not saved: a carousel can have at most %1$d pages	Nicht gespeichert: Ein Karussell darf höchstens %1$d Seiten haben
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Karussell abgebrochen. Gespeichert %1$d. Fehlgeschlagen %2$d. Übersprungen %3$d.
+Saved %1$d. Failed %2$d. Skipped %3$d.	Gespeichert %1$d. Fehlgeschlagen %2$d. Übersprungen %3$d.
+%1$d saved in lower quality than on Instagram.	%1$d in niedrigerer Qualität als auf Instagram gespeichert.
+Last carousel save	Letzter gespeicherter Karussellbeitrag

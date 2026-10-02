@@ -202,6 +202,25 @@ tasks.register("verifyAndroidBoundaries") {
                 "onAndroid9ASaveWritesTheFileIntoTheFolderItself"),
             "app.hushgram.extension.instagram.download.SaveInterruptionTest" to listOf(
                 "sdk28InterruptedSaveRemovesItsHiddenStorageFileBeforeNotice"),
+            "app.hushgram.extension.instagram.settings.SettingsSearchTest" to listOf(
+                "clearingRestoresTheOriginalObjectsOrderAndChoices[28]", "clearingRestoresTheOriginalObjectsOrderAndChoices",
+                "hiddenRowsStillSynchronizeStoredChangesAndParentAvailability[28]", "hiddenRowsStillSynchronizeStoredChangesAndParentAvailability",
+                "noMatchIsLocalizedWhilePauseAndRecoveryStayReachable[28]", "noMatchIsLocalizedWhilePauseAndRecoveryStayReachable",
+                "typingAndClearUseTheInlineAccessibleControls[28]", "typingAndClearUseTheInlineAccessibleControls",
+                "frameworkStateDoesNotRetainTheSearchQuery[28]", "frameworkStateDoesNotRetainTheSearchQuery",
+                "theLiveInlineControlsFitAndMirrorAtTwiceTheTextSize[28]", "theLiveInlineControlsFitAndMirrorAtTwiceTheTextSize",
+                "aSaveStartedDuringFilteringKeepsOneWorkingCancelRow[28]", "aSaveStartedDuringFilteringKeepsOneWorkingCancelRow",
+                "aCarouselKeepsItsCancelIdentityAcrossFilteredPageChanges[28]", "aCarouselKeepsItsCancelIdentityAcrossFilteredPageChanges",
+                "aCompleteCarouselOutcomeSurvivesFilteringAndReopeningSettings[28]", "aCompleteCarouselOutcomeSurvivesFilteringAndReopeningSettings",
+                "aCancelledCarouselShowsEveryCountAndQualityWarningAtLargeText[28]", "aCancelledCarouselShowsEveryCountAndQualityWarningAtLargeText"),
+            "app.hushgram.extension.instagram.download.CarouselSaveTest" to listOf(
+                "aMixedBatchPreservesOrderSnapshotsAndQuality", "failedAndDisabledPagesHaveExactCountsAndNoRetry",
+                "tooManyPagesAreRejectedAndTheExactLimitIsAccepted", "oneCancelStopsTheTransferAndAllRemainingPages",
+                "cancelBeforeCommitRemovesThePendingRowAndKeepsEarlierFiles", "aBatchUsesOneSlotAndNeverQueuesPastTheExistingLimit",
+                "currentPageDownloadAndSaveAllReadDifferentSnapshots", "theSeparateMenuActionUsesItsLabelAndKeepsNativeOptionsIntact",
+                "exhaustedPreferenceRetirementDoesNotTurnTheBatchIntoAnInterruption", "cancellationSurvivesExhaustedPreferenceRetirementToo",
+                "completeCountsArePublishedBeforeTheRowEndsAndRefusedStartsKeepThem",
+                "theSameNotificationCancelSurvivesEveryPageAndPhase[28]", "theSameNotificationCancelSurvivesEveryPageAndPhase"),
             "app.hushgram.extension.instagram.download.SaveProgressTest" to listOf(
                 "aSaveShowsItsProgressAtOnceAndCancelStopsIt[28]", "aSaveShowsItsProgressAtOnceAndCancelStopsIt",
                 "belowAndroid13TheCancelReceiverIsRegisteredWithNoFlag", "onAndroid17TheCancelReceiverIsNotExported",

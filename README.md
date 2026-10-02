@@ -113,7 +113,7 @@ Long-press Instagram's icon on your home screen and tap **HushGram settings**. O
   <img src="assets/settings-pause-and-diagnostics.png" alt="HushGram settings: Set when you patched, Pause and Debug logging" width="270">
 </p>
 
-Unreleased source builds also have **Search settings**. Search by a control's label or description in your phone's language, or by its English patch name. Contacts and location setup lead to Disable analytics; Following and Reels find their installed controls. Pause, diagnostics and any running save's Cancel stay available while searching. Clear the search to return to the same sections and choices. Search works offline and doesn't keep a history.
+Unreleased source builds also have **Search settings**. Search by a control's label or description in your phone's language, or by its English patch name. Contacts and location setup lead to Disable analytics. Following and Reels find their installed controls. Pause, diagnostics and any running save's Cancel stay available while searching. Clear the search to return to the same sections and choices. Search works offline. The query clears when settings closes or Android rebuilds the page, and it never becomes stored history.
 
 At the top, a card says whether HushGram is on or paused. Below it:
 
@@ -143,6 +143,8 @@ Clear remembered positions sits below Resume long videos and works even when pla
 Unreleased source builds include Settings backup. Export chooses a JSON file through Android's document picker. Import reads and closes the whole file before applying the installed patches' settings together, reports unsupported keys it skipped, and says when a restart is needed. The complete result remains readable when settings is reopened, until Instagram restarts. Undo restores the previous choices once within 10 seconds. Files larger than 256 KiB or containing more than 512 entries are refused. Accounts, signing keys, Pause and recovery state, onboarding markers and playback history aren't included. Instagram's developer overrides use a separate store and aren't included either.
 
 Unreleased source builds also explain a save that stopped when Instagram closed. After its unfinished files, gallery rows and notification are cleaned up, the next opening says to reopen the media and save again. The full explanation stays in settings for that run. Nothing is retried automatically, and the cleanup ledger keeps only random job markers alongside its existing local resource references.
+
+Unreleased source builds add **Save all** to a carousel's feed menu. It saves up to 32 pages in order, using your current download quality throughout. A larger carousel gets an explanation instead of a partial save. A photo or video type you've switched off counts as skipped. The existing **Download** still saves the displayed page. One **Cancel** stops the current page and the rest, keeping finished files and removing unfinished resources. **Last carousel save** in Downloads keeps every saved, failed and skipped count, including cancellation and lower-quality warnings, until another batch starts or Instagram restarts. It keeps no media addresses or save history.
 
 Pause turns off every feature a switch controls, all at once and without losing your choices. It's the quickest way to tell whether HushGram is behind a problem.
 
@@ -259,7 +261,7 @@ The shipped SBOM still describes only what the bundle carries. The host-contract
 
 To apply every patch to a real build and check the result, run `scripts/verify-all-patches.ps1 -Apk <instagram .apks> -DesktopJar <morphe-desktop jar> -WorkDir <scratch folder>`. It patches without forcing anything, then compares the patched manifest to Meta's. [CONTRIBUTING.md](CONTRIBUTING.md) has the rest.
 
-Verification reads coverage back from the patched APK and writes a separate coverage report. `scripts/patch-coverage-expectations.json` pins required and optional targets to an exact Instagram version and version code. The 449 fixture requires every reviewed target in those three families. A missing required target stops certification even if the family applied; an explicitly optional absence stays visible. Forced runs on unreviewed builds record counts with `reviewed: false`. Schema 3 receipts carry this same input-derived coverage. Older receipts keep their own schema checks and don't certify these new fields.
+Verification reads coverage back from the patched APK and writes a separate coverage report. `scripts/patch-coverage-expectations.json` pins required and optional targets to an exact Instagram version and version code. The 449 fixture requires every reviewed target in those three families. A missing required target stops certification even if the family applied. An explicitly optional absence stays visible. Forced runs on unreviewed builds record counts with `reviewed: false`. Schema 3 receipts carry this same input-derived coverage. Older receipts keep their own schema checks and don't certify these new fields.
 
 ## License
 

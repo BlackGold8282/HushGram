@@ -269,3 +269,12 @@ Clear search	Limpar pesquisa
 No matching settings	Nenhuma configuração correspondente
 Try another word or clear the search.	Tente outra palavra ou limpe a pesquisa.
 Contacts, location setup, analytics	Contatos, configuração de localização, análises
+Save all	Salvar tudo
+Saving a carousel	Salvando um carrossel
+Cancel saving this carousel	Cancelar o salvamento deste carrossel
+Page %1$d of %2$d	Página %1$d de %2$d
+Not saved: a carousel can have at most %1$d pages	Não foi salvo: um carrossel pode ter no máximo %1$d páginas
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Carrossel cancelado. Salvos %1$d. Falhas %2$d. Ignorados %3$d.
+Saved %1$d. Failed %2$d. Skipped %3$d.	Salvos %1$d. Falhas %2$d. Ignorados %3$d.
+%1$d saved in lower quality than on Instagram.	%1$d salvos com qualidade menor que no Instagram.
+Last carousel save	Último carrossel salvo

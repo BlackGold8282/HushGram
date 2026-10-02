@@ -70,6 +70,8 @@ public class SettingsSearchTest {
 
     @After public void close() throws Exception {
         if (controller != null) controller.close();
+        SavesForTests.endAll();
+        SavesForTests.resetCarouselOutcome();
         Utils.awaitBackgroundTasksForTests();
         RuntimeEnvironment.setFontScale(1f);
         PatchFamily.inBuildForTests = null;
@@ -239,18 +241,22 @@ public class SettingsSearchTest {
         assertNotNull(visible(Settings.START_ON_FOLLOWING.key));
     }
 
-    @Test public void frameworkStateRestoresTheQueryAndItsFilteredRows() throws Exception {
+    @Test public void frameworkStateDoesNotRetainTheSearchQuery() throws Exception {
         open(PatchFamily.DISABLE_ANALYTICS, PatchFamily.FOLLOWING_FEED);
         page.searchSettings("location setup");
+        android.os.Bundle state = new android.os.Bundle();
+        page.onSaveInstanceState(state);
+        assertFalse(state.containsKey("hushgram_settings_query"));
         Fragment.SavedState saved = controller.get().getFragmentManager().saveFragmentInstanceState(page);
         controller.get().getFragmentManager().beginTransaction().remove(page).commitNow();
         page = new HushgramPreferenceFragment();
         page.setInitialSavedState(saved);
         controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
         assertNotNull(visible(Settings.DISABLE_ANALYTICS.key));
-        assertNull(visible(Settings.START_ON_FOLLOWING.key));
+        assertNotNull(visible(Settings.START_ON_FOLLOWING.key));
         EditText input = render(visible("hushgram_settings_search")).findViewWithTag("hushgram-settings-search");
-        assertEquals("location setup", input.getText().toString());
+        assertEquals("", input.getText().toString());
+        assertFalse("Android must not serialize the typing field", input.isSaveEnabled());
     }
 
     @Test @Config(qualifiers = "ar-rEG-ldrtl-w320dp-h640dp-xhdpi")
@@ -325,6 +331,91 @@ public class SettingsSearchTest {
                 png.writeTo(out);
             }
         }
+    }
+
+    @Test public void aCarouselKeepsItsCancelIdentityAcrossFilteredPageChanges() throws Exception {
+        open(PatchFamily.VIDEO_DOWNLOAD);
+        page.searchSettings("zzzz-no-match");
+        int id = SavesForTests.beginCarousel(RuntimeEnvironment.getApplication(), 3);
+        try {
+            ShadowLooper.idleMainLooper();
+            Preference running = visible("running_save_" + id);
+            assertEquals("Saving a carousel", running.getTitle());
+            assertTrue(running.getSummary().toString().contains("Page 1 of 3"));
+            View row = render(running);
+            Button cancel = (Button) ((android.view.ViewGroup) row.findViewById(android.R.id.widget_frame)).getChildAt(0);
+            assertEquals("Cancel saving this carousel", cancel.getContentDescription());
+            SavesForTests.page(id, 2, true);
+            SavesForTests.joining(id);
+            ShadowLooper.idleMainLooper();
+            assertSame(running, visible("running_save_" + id));
+            assertTrue(running.getSummary().toString().contains("Page 2 of 3"));
+            assertSame(cancel, ((android.view.ViewGroup) row.findViewById(android.R.id.widget_frame)).getChildAt(0));
+            assertTrue(cancel.performClick());
+            assertTrue(SavesForTests.cancelled(id));
+        } finally {
+            SavesForTests.end(id);
+        }
+    }
+
+    @Test public void aCompleteCarouselOutcomeSurvivesFilteringAndReopeningSettings() throws Exception {
+        open(PatchFamily.VIDEO_DOWNLOAD);
+        page.searchSettings("zzzz-no-match");
+        int id = SavesForTests.beginCarousel(RuntimeEnvironment.getApplication(), 3);
+        SavesForTests.finishCarousel(id, 1, 1, 1, 0, false);
+        ShadowLooper.idleMainLooper();
+        Preference result = visible("hushgram_last_carousel_save");
+        assertNotNull(result);
+        assertEquals("Last carousel save", result.getTitle());
+        assertEquals("Saved 1. Failed 1. Skipped 1.", result.getSummary());
+        page.searchSettings("");
+        assertSame(result, visible("hushgram_last_carousel_save"));
+        controller.get().getFragmentManager().beginTransaction().remove(page).commitNow();
+        page = new HushgramPreferenceFragment();
+        controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+        assertEquals("Saved 1. Failed 1. Skipped 1.", visible("hushgram_last_carousel_save").getSummary());
+        int next = SavesForTests.beginCarousel(RuntimeEnvironment.getApplication(), 2);
+        try {
+            ShadowLooper.idleMainLooper();
+            assertNull(visible("hushgram_last_carousel_save"));
+        } finally {
+            SavesForTests.end(next);
+        }
+    }
+
+    @Test @Config(qualifiers = "ar-rEG-ldrtl-w320dp-h640dp-xhdpi")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aCancelledCarouselShowsEveryCountAndQualityWarningAtLargeText() throws Exception {
+        RuntimeEnvironment.setFontScale(2f);
+        RuntimeEnvironment.getApplication().getApplicationInfo().flags |= ApplicationInfo.FLAG_SUPPORTS_RTL;
+        open(PatchFamily.VIDEO_DOWNLOAD);
+        int id = SavesForTests.beginCarousel(RuntimeEnvironment.getApplication(), 32);
+        SavesForTests.finishCarousel(id, 3, 2, 27, 2, true);
+        ShadowLooper.idleMainLooper();
+        Preference result = visible("hushgram_last_carousel_save");
+        assertNotNull(result);
+        assertEquals(SaveControl.batchOutcome(), result.getSummary());
+        View row = render(result);
+        row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        int width = Math.round(320 * row.getResources().getDisplayMetrics().density);
+        row.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        row.layout(0, 0, width, row.getMeasuredHeight());
+        assertEquals(View.LAYOUT_DIRECTION_RTL, row.getLayoutDirection());
+        android.widget.TextView summary = row.findViewById(android.R.id.summary);
+        assertEquals(result.getSummary(), summary.getText());
+        assertTrue(summary.getLineCount() > 2);
+        capture(row, "carousel-result");
+        int room = summary.getWidth() - summary.getTotalPaddingLeft() - summary.getTotalPaddingRight();
+        for (int line = 0; line < summary.getLineCount(); line++) {
+            assertEquals(0, summary.getLayout().getEllipsisCount(line));
+            // Android 9 Layout.getLineWidth includes the trailing space consumed by wrapping.
+            // getLineMax measures visible text, so invisible whitespace isn't mistaken for clipping.
+            assertTrue("line " + line + " visible width " + summary.getLayout().getLineMax(line) + " in " + room,
+                    summary.getLayout().getLineMax(line) <= room + 0.5f);
+        }
+        assertEquals(summary.getText().length(), summary.getLayout().getLineEnd(summary.getLineCount() - 1));
+        assertTrue("the full outcome is clipped", summary.getLayout().getHeight() <= summary.getHeight());
     }
 
     @Test public void aSaveStartedDuringFilteringKeepsOneWorkingCancelRow() throws Exception {

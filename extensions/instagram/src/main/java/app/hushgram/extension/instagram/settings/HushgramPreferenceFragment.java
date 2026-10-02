@@ -129,6 +129,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private PreferenceCategory downloads;
     @Nullable private PreferenceCategory recovery;
     @Nullable private Row interruptedSaves;
+    @Nullable private Row lastCarouselSave;
 
     /** The rows of the saves running now, by save number. */
     private final Map<Integer, SaveRow> saveRows = new HashMap<>();
@@ -139,7 +140,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Override
     public void onCreate(Bundle state) {
         if (state != null) documentRequest = state.getInt("hushgram_document_request", 0);
-        if (state != null) searchQuery = state.getString("hushgram_settings_query", "");
         super.onCreate(state);
     }
 
@@ -147,7 +147,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     public void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putInt("hushgram_document_request", documentRequest);
-        state.putString("hushgram_settings_query", searchQuery);
     }
 
     @Override
@@ -880,6 +879,22 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         PreferenceCategory group = downloads;
         if (group == null) return;
+        String outcome = SaveControl.batchOutcome();
+        if (outcome != null) {
+            if (lastCarouselSave == null) {
+                lastCarouselSave = new Row(group.getContext());
+                lastCarouselSave.setKey("hushgram_last_carousel_save");
+                lastCarouselSave.setPersistent(false);
+                lastCarouselSave.setSelectable(false);
+                lastCarouselSave.setOrder(Integer.MIN_VALUE / 4);
+                lastCarouselSave.setTitle(L10n.t("Last carousel save"));
+                mark(lastCarouselSave, SettingsIcons.DOWNLOADS);
+            }
+            lastCarouselSave.setSummary(outcome);
+            if (lastCarouselSave.getParent() != group) group.addPreference(lastCarouselSave);
+        } else if (lastCarouselSave != null && lastCarouselSave.getParent() == group) {
+            group.removePreference(lastCarouselSave);
+        }
         List<SaveControl.Running> running = SaveControl.running();
         Set<Integer> now = new HashSet<>();
         for (SaveControl.Running save : running) now.add(save.id);
@@ -919,6 +934,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             row.setDescendantFocusability(android.view.ViewGroup.FOCUS_AFTER_DESCENDANTS);
             EditText field = new EditText(context);
             field.setTag("hushgram-settings-search");
+            field.setSaveEnabled(false);
             field.setSingleLine(true);
             field.setTextSize(16);
             field.setTextColor(ScreenColors.DEFAULT.title);
@@ -1503,7 +1519,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         private static final int FIRST = Integer.MIN_VALUE / 2;
 
         final int id;
-        private final boolean video;
+        private final String cancelDescription;
         private String status;
         @Nullable
         private View bound;
@@ -1511,13 +1527,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         SaveRow(Context context, SaveControl.Running save) {
             super(context);
             id = save.id;
-            video = save.video;
+            cancelDescription = SaveControl.cancelDescription(save);
             status = SaveControl.status(save);
             setKey("running_save_" + save.id);
             setPersistent(false);
             setSelectable(false);
             setOrder(FIRST + save.id);
-            setTitle(video ? L10n.t("Saving a video") : L10n.t("Saving a photo"));
+            setTitle(SaveControl.title(save));
         }
 
         @Override
@@ -1545,7 +1561,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             Button cancel = new Button(getContext());
             cancel.setText(L10n.t("Cancel"));
             // Two saves can be listed at once, so the button says whose it is.
-            cancel.setContentDescription(video ? L10n.t("Cancel saving this video") : L10n.t("Cancel saving this photo"));
+            cancel.setContentDescription(cancelDescription);
             cancel.setAllCaps(false);
             cancel.setTextSize(14);
             ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;

@@ -269,3 +269,12 @@ Clear search	Aramayı temizle
 No matching settings	Eşleşen ayar yok
 Try another word or clear the search.	Başka bir sözcük deneyin veya aramayı temizleyin.
 Contacts, location setup, analytics	Kişiler, konum kurulumu, analiz
+Save all	Tümünü kaydet
+Saving a carousel	Çoklu gönderi kaydediliyor
+Cancel saving this carousel	Bu çoklu gönderinin kaydını iptal et
+Page %1$d of %2$d	%1$d / %2$d sayfa
+Not saved: a carousel can have at most %1$d pages	Kaydedilmedi: çoklu gönderide en fazla %1$d sayfa olabilir
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Çoklu gönderi iptal edildi. Kaydedilen %1$d. Başarısız %2$d. Atlanan %3$d.
+Saved %1$d. Failed %2$d. Skipped %3$d.	Kaydedilen %1$d. Başarısız %2$d. Atlanan %3$d.
+%1$d saved in lower quality than on Instagram.	%1$d öğe Instagram'dakinden daha düşük kalitede kaydedildi.
+Last carousel save	Son çoklu gönderi kaydı
