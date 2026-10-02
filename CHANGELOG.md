@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Imports close the picked file before applying settings and retain the complete result across settings reopening. Saves record a separate one-byte outcome marker, so failed preference writes don't turn completion or Cancel into an interruption.
 * **Instagram:** After an interrupted save, cleanup removes its unfinished resources and the next opening explains how to save again. One opaque marker tracks each save without keeping media or account IDs. Completed and cancelled saves leave no interruption notice; failed cleanup stays pending, including a gallery row whose deletion was refused.
 * **Instagram:** Export and import the installed patches' settings through Android's document picker. Imports validate a bounded typed file before applying values together, report unsupported keys and restart requirements, and offer a one-use Undo for 10 seconds. Failed writes report whether rollback succeeded; private state and history aren't exported.
 * **Instagram:** Following, story size, Meta AI search and bottom-space settings now carry the restart requirements their descriptions already stated. Imported choices and Undo report the same requirements, and complete import feedback stays visible after its toast disappears.

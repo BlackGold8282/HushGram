@@ -102,7 +102,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int IMPORT_CONFIGURATION = 0x4848;
     private int documentRequest;
     private boolean changingConfiguration;
-    @Nullable private String importFeedback;
+    /** Last operation's receipt lasts for this process, including closing/reopening settings. */
+    @Nullable static volatile String importFeedback;
     @Nullable private Row exportConfiguration;
     @Nullable private Row importConfiguration;
     @Nullable private Row undoConfiguration;
@@ -619,9 +620,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 ConfigurationBackup.Result result;
                 if (undo) result = ConfigurationBackup.undo();
                 else {
+                    byte[] bytes;
                     try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
-                        result = ConfigurationBackup.restore(ConfigurationBackup.read(input));
+                        bytes = ConfigurationBackup.read(input);
                     }
+                    // A provider can fail while closing. Finish all document I/O before values
+                    // change, so the failure verdict can truthfully say nothing was applied.
+                    result = ConfigurationBackup.restore(bytes);
                 }
                 if (result == null) showImportFeedback(L10n.t("Undo has expired."));
                 else {
@@ -644,9 +649,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** Android limits toasts to two lines. Keep complete import/rollback/restart feedback readable. */
     private void showImportFeedback(String message) {
+        importFeedback = message;
         Utils.showToastLong(message);
         Utils.runOnMainThread(() -> {
-            importFeedback = message;
             showConfiguration();
         });
     }

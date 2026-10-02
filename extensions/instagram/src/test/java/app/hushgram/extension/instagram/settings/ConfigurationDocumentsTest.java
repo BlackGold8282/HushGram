@@ -39,6 +39,7 @@ public class ConfigurationDocumentsTest {
     private static final Uri DOCUMENT = Uri.parse("content://test-documents/settings.json");
 
     @Before public void setup() {
+        HushgramPreferenceFragment.importFeedback = null;
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
         ConfigurationBackup.forgetUndo();
         Settings.HIDE_ADS.resetToDefault();
@@ -46,6 +47,7 @@ public class ConfigurationDocumentsTest {
 
     @After public void restore() throws Exception {
         Utils.awaitBackgroundTasksForTests();
+        HushgramPreferenceFragment.importFeedback = null;
         ConfigurationBackup.forgetUndo();
         Settings.HIDE_ADS.resetToDefault();
         PatchFamily.inBuildForTests = null;
@@ -163,6 +165,50 @@ public class ConfigurationDocumentsTest {
         } finally {
             Settings.DISABLE_ANALYTICS.resetToDefault();
         }
+    }
+
+    @Test public void aProviderCloseFailureLeavesSettingsAndUndoUntouched() throws Exception {
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(activity);
+            byte[] valid = ConfigurationBackupTest.file(ConfigurationBackupTest.entry(Settings.HIDE_ADS.key, "boolean", false));
+            Shadows.shadowOf(activity.get().getContentResolver()).registerInputStream(DOCUMENT,
+                    new ByteArrayInputStream(valid) {
+                        @Override public void close() throws java.io.IOException {
+                            throw new java.io.IOException("controlled provider close failure");
+                        }
+                    });
+            ShadowActivity.IntentForResult picked = pick(page, activity.get(), "hushgram_import_configuration");
+            Shadows.shadowOf(activity.get()).receiveResult(picked.intent, Activity.RESULT_OK, new Intent().setData(DOCUMENT));
+            finish();
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertFalse(ConfigurationBackup.canUndo());
+            assertEquals("Couldn't use that settings file. Your settings haven't changed.",
+                    page.findPreference("hushgram_import_configuration").getSummary().toString());
+        }
+    }
+
+    @Test public void theCompleteReceiptSurvivesClosingAndReopeningSettings() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
+        Settings.DISABLE_ANALYTICS.resetToDefault();
+        String receipt;
+        try {
+            try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+                HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(activity);
+                Shadows.shadowOf(activity.get().getContentResolver()).registerInputStream(DOCUMENT,
+                        new ByteArrayInputStream(ConfigurationBackupTest.file(
+                                ConfigurationBackupTest.entry(Settings.DISABLE_ANALYTICS.key, "boolean", false))));
+                ShadowActivity.IntentForResult picked = pick(page, activity.get(), "hushgram_import_configuration");
+                Shadows.shadowOf(activity.get()).receiveResult(picked.intent, Activity.RESULT_OK, new Intent().setData(DOCUMENT));
+                finish();
+                receipt = page.findPreference("hushgram_import_configuration").getSummary().toString();
+                assertTrue(receipt.contains("Imported 1 settings. Skipped 0 unsupported keys."));
+                assertTrue(receipt.contains("Restart Instagram to apply these choices."));
+            }
+            try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+                HushgramPreferenceFragment reopened = DownloadSettingsTest.pageIn(activity);
+                assertEquals(receipt, reopened.findPreference("hushgram_import_configuration").getSummary().toString());
+            }
+        } finally { Settings.DISABLE_ANALYTICS.resetToDefault(); }
     }
 
     private static ShadowActivity.IntentForResult pick(HushgramPreferenceFragment page, Activity activity, String key) {

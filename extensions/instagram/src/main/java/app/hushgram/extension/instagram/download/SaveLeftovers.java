@@ -14,6 +14,10 @@ import android.net.Uri;
 import android.provider.MediaStore;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -62,6 +66,7 @@ public final class SaveLeftovers {
     private static final String PENDING = "pending_rows";
     private static final String JOBS = "active_jobs";
     private static final String INTERRUPTED = "interrupted_jobs";
+    private static final String OUTCOMES = "hushgram-save-outcomes";
 
     private static final Object LOCK = new Object();
     private static boolean swept;
@@ -120,10 +125,23 @@ public final class SaveLeftovers {
             Set<String> jobs = new HashSet<>(ledger.getStringSet(JOBS, new HashSet<>()));
             if (jobs.size() >= 64) throw new IllegalStateException("Save cleanup ledger is full");
             String token = UUID.randomUUID().toString();
+            File marker = outcome(application, token);
+            try {
+                if (!marker.getParentFile().mkdirs() && !marker.getParentFile().isDirectory()) throw new IOException();
+                if (!marker.createNewFile()) throw new IOException();
+                try (FileOutputStream file = new FileOutputStream(marker)) {
+                    file.write(0);
+                    file.getFD().sync();
+                }
+            } catch (IOException failure) {
+                marker.delete();
+                throw new IllegalStateException("Could not allocate the save outcome marker", failure);
+            }
             jobs.add(token);
             if (!ledger.edit().putStringSet(JOBS, jobs).commit()) {
                 jobs.remove(token);
-                ledger.edit().putStringSet(JOBS, jobs).commit();
+                terminal(application, token);
+                if (ledger.edit().putStringSet(JOBS, jobs).commit()) marker.delete();
                 throw new IllegalStateException("Could not record the active save");
             }
             return token;
@@ -135,16 +153,56 @@ public final class SaveLeftovers {
         if (token == null) return;
         synchronized (LOCK) {
             try {
+                // Preallocated before the save: finishing needs no new file or preference write.
+                // Keep this terminal bit if preference retirement fails, so a later process can
+                // distinguish an ended job from one Android killed.
+                terminal(application, token);
                 SharedPreferences ledger = application.getSharedPreferences(LEDGER, Context.MODE_PRIVATE);
                 Set<String> jobs = new HashSet<>(ledger.getStringSet(JOBS, new HashSet<>()));
                 if (!jobs.remove(token)) return;
-                SharedPreferences.Editor update = ledger.edit();
-                if (jobs.isEmpty()) update.remove(JOBS);
-                else update.putStringSet(JOBS, jobs);
-                if (!update.commit()) MediaSave.failure(() -> "could not retire an active-save marker", null);
+                // A failed commit can still remove the token from the in-memory map. Retry the
+                // captured remaining set, not a fresh read that would mistake that for success.
+                for (int attempt = 0; attempt < 2; attempt++) {
+                    try {
+                        SharedPreferences.Editor update = ledger.edit();
+                        if (jobs.isEmpty()) update.remove(JOBS);
+                        else update.putStringSet(JOBS, jobs);
+                        if (update.commit()) { outcome(application, token).delete(); return; }
+                    } catch (Throwable failure) {
+                        MediaSave.failure(() -> "could not retire an active-save marker", failure);
+                    }
+                }
+                MediaSave.failure(() -> "could not retire an active-save marker after retry", null);
             } catch (Throwable failure) {
                 MediaSave.failure(() -> "could not retire an active-save marker", failure);
             }
+        }
+    }
+
+    private static File outcome(Context context, String token) {
+        if (!UUID.fromString(token).toString().equals(token)) throw new IllegalArgumentException("Invalid save marker");
+        return new File(new File(context.getFilesDir(), OUTCOMES), token);
+    }
+
+    private static void terminal(Context context, String token) {
+        File marker = outcome(context, token);
+        try (RandomAccessFile file = new RandomAccessFile(marker, "rw")) {
+            file.seek(0);
+            file.write(1);
+            file.getFD().sync();
+        } catch (IOException failure) {
+            // Preference retirement can still settle it. Failure of both paths is logged.
+            MediaSave.failure(() -> "could not record a save's terminal outcome", failure);
+        }
+    }
+
+    private static boolean completed(Context context, String token) throws IOException {
+        File marker = outcome(context, token);
+        if (!marker.exists()) return false; // The previous source format had no outcome marker.
+        try (FileInputStream file = new FileInputStream(marker)) {
+            int state = file.read();
+            if ((state != 0 && state != 1) || file.read() != -1) throw new IOException("Unreadable save outcome");
+            return state == 1;
         }
     }
 
@@ -166,9 +224,21 @@ public final class SaveLeftovers {
                 cleanupFinished = files >= 0 && rows >= 0 && notices >= 0
                         && ledger.getStringSet(PENDING, new HashSet<>()).isEmpty();
                 Set<String> jobs = ledger.getStringSet(JOBS, new HashSet<>());
+                // A process can end between allocating its marker and committing the job. Those
+                // files own no save resources and must not accumulate across failed starts.
+                File[] markers = new File(application.getFilesDir(), OUTCOMES).listFiles();
+                if (markers != null) for (File marker : markers) {
+                    if (marker.isFile() && marker.getName().matches("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}")
+                            && !jobs.contains(marker.getName())) marker.delete();
+                }
                 if (cleanupFinished && !jobs.isEmpty()) {
-                    int count = Math.addExact(ledger.getInt(INTERRUPTED, 0), jobs.size());
-                    cleanupFinished = ledger.edit().remove(JOBS).putInt(INTERRUPTED, count).commit();
+                    int unfinished = 0;
+                    for (String token : jobs) if (!completed(application, token)) unfinished++;
+                    int count = Math.addExact(ledger.getInt(INTERRUPTED, 0), unfinished);
+                    SharedPreferences.Editor update = ledger.edit().remove(JOBS);
+                    if (count > 0) update.putInt(INTERRUPTED, count);
+                    cleanupFinished = update.commit();
+                    if (cleanupFinished) for (String token : jobs) outcome(application, token).delete();
                     if (!cleanupFinished) MediaSave.failure(() -> "could not record the interrupted-save notice", null);
                 }
                 if (files > 0 || rows > 0 || notices > 0) {

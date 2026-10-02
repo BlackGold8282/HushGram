@@ -183,6 +183,114 @@ public class SaveInterruptionTest {
         assertNull(ShadowToast.getTextOfLatestToast());
     }
 
+    @Test public void aTransientRetirementFailureCannotTurnCompletionOrCancelIntoAnInterruption() throws Exception {
+        for (boolean throwing : new boolean[]{false, true}) {
+            for (Downloader.Status terminal : new Downloader.Status[]{Downloader.Status.OK, Downloader.Status.CANCELLED}) {
+                AtomicInteger retirementWrites = new AtomicInteger();
+                SharedPreferences original = ledger();
+                SharedPreferences faulty = (SharedPreferences) Proxy.newProxyInstance(
+                        SharedPreferences.class.getClassLoader(), new Class[]{SharedPreferences.class}, (proxy, method, args) -> {
+                            Object result = method.invoke(original, args);
+                            if (!method.getName().equals("edit")) return result;
+                            SharedPreferences.Editor editor = (SharedPreferences.Editor) result;
+                            boolean[] retires = {false};
+                            return Proxy.newProxyInstance(SharedPreferences.Editor.class.getClassLoader(),
+                                    new Class[]{SharedPreferences.Editor.class}, (wrapped, operation, parameters) -> {
+                                        if (operation.getName().equals("remove") && "active_jobs".equals(parameters[0])) retires[0] = true;
+                                        if (operation.getName().equals("commit") && retires[0]
+                                                && retirementWrites.getAndIncrement() == 0) {
+                                            if (throwing) throw new IllegalStateException("controlled retirement failure");
+                                            return false; // Nothing reached the durable preferences.
+                                        }
+                                        Object value = operation.invoke(editor, parameters);
+                                        return value == editor ? wrapped : value;
+                                    });
+                        });
+                Context wrapped = new ContextWrapper(context) {
+                    @Override public Context getApplicationContext() { return this; }
+                    @Override public SharedPreferences getSharedPreferences(String name, int mode) {
+                        return "hushgram_saves".equals(name) ? faulty : super.getSharedPreferences(name, mode);
+                    }
+                };
+                Thread worker = MediaSave.start(wrapped, true, (writer, progress) -> terminal == Downloader.Status.OK
+                        ? Downloader.Result.ok("video/mp4") : Downloader.Result.fail(terminal, "controlled cancel"));
+                worker.join(10_000);
+                assertFalse(worker.isAlive());
+                assertEquals(2, retirementWrites.get());
+                assertTrue(active().isEmpty());
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                ShadowToast.reset();
+                SaveLeftovers.forgetSweepForTests();
+                notice();
+                assertEquals(0, SaveLeftovers.interruptedCount());
+                assertNull(ShadowToast.getTextOfLatestToast());
+            }
+        }
+    }
+
+    @Test public void exhaustedRetirementWritesStillCannotTurnCompletionOrCancelIntoAnInterruption() throws Exception {
+        for (Downloader.Status terminal : new Downloader.Status[]{Downloader.Status.OK, Downloader.Status.CANCELLED}) {
+            AtomicInteger retirementWrites = new AtomicInteger();
+            SharedPreferences original = ledger();
+            SharedPreferences faulty = (SharedPreferences) Proxy.newProxyInstance(
+                    SharedPreferences.class.getClassLoader(), new Class[]{SharedPreferences.class}, (proxy, method, args) -> {
+                        Object result = method.invoke(original, args);
+                        if (!method.getName().equals("edit")) return result;
+                        SharedPreferences.Editor editor = (SharedPreferences.Editor) result;
+                        boolean[] retires = {false};
+                        return Proxy.newProxyInstance(SharedPreferences.Editor.class.getClassLoader(),
+                                new Class[]{SharedPreferences.Editor.class}, (wrapped, operation, parameters) -> {
+                                    if (operation.getName().equals("remove") && "active_jobs".equals(parameters[0])) retires[0] = true;
+                                    if (operation.getName().equals("commit") && retires[0]) {
+                                        retirementWrites.incrementAndGet();
+                                        return false;
+                                    }
+                                    Object value = operation.invoke(editor, parameters);
+                                    return value == editor ? wrapped : value;
+                                });
+                    });
+            Context wrapped = new ContextWrapper(context) {
+                @Override public Context getApplicationContext() { return this; }
+                @Override public SharedPreferences getSharedPreferences(String name, int mode) {
+                    return "hushgram_saves".equals(name) ? faulty : super.getSharedPreferences(name, mode);
+                }
+            };
+            Thread worker = MediaSave.start(wrapped, true, (writer, progress) -> terminal == Downloader.Status.OK
+                    ? Downloader.Result.ok("video/mp4") : Downloader.Result.fail(terminal, "controlled cancel"));
+            worker.join(10_000);
+            assertFalse(worker.isAlive());
+            assertEquals(2, retirementWrites.get());
+            assertEquals("the original durable marker must still exist for this reproduction", 1, active().size());
+            String token = active().iterator().next();
+            File outcome = new File(new File(context.getFilesDir(), "hushgram-save-outcomes"), token);
+            assertArrayEquals(new byte[]{1}, java.nio.file.Files.readAllBytes(outcome.toPath()));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            ShadowToast.reset();
+            SaveLeftovers.forgetSweepForTests();
+            notice();
+            assertEquals(0, SaveLeftovers.interruptedCount());
+            assertNull(ShadowToast.getTextOfLatestToast());
+            assertTrue(active().isEmpty());
+            assertFalse(outcome.exists());
+        }
+    }
+
+    @Test public void anUnreadableOutcomeNeverGuessesThatAJobWasInterrupted() throws Exception {
+        String token = SaveLeftovers.beginJob(context);
+        File outcome = new File(new File(context.getFilesDir(), "hushgram-save-outcomes"), token);
+        java.nio.file.Files.write(outcome.toPath(), new byte[]{2});
+        SaveLeftovers.forgetSweepForTests();
+        notice();
+        assertEquals(0, SaveLeftovers.interruptedCount());
+        assertEquals(1, active().size());
+        assertNull(ShadowToast.getTextOfLatestToast());
+        java.nio.file.Files.write(outcome.toPath(), new byte[]{0});
+        SaveLeftovers.forgetSweepForTests();
+        notice();
+        assertEquals(1, SaveLeftovers.interruptedCount());
+        assertFalse(outcome.exists());
+    }
+
     @Test public void aFailedCleanupDefersTheNoticeAndKeepsItsOpaqueOwnership() throws Exception {
         SaveLeftovers.beginJob(context);
         ContentValues values = new ContentValues();
