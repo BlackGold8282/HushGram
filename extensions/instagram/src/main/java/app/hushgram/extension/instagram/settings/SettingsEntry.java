@@ -291,6 +291,7 @@ public final class SettingsEntry {
         @Override
         public void onActivityResumed(Activity activity) {
             resumed = new WeakReference<>(activity);
+            SaveLeftovers.showInterrupted(activity);
             followToFront(activity);
             if (openPending) openWhenSettled(activity);
             relabelIfStale(activity);

@@ -140,6 +140,8 @@ Clear remembered positions sits below Resume long videos and works even when pla
 
 Unreleased source builds include Settings backup. Export chooses a JSON file through Android's document picker. Import checks the whole file before applying the installed patches' settings together, reports unsupported keys it skipped, and says when a restart is needed. Undo restores the previous choices once within 10 seconds. Files larger than 256 KiB or containing more than 512 entries are refused. Accounts, signing keys, Pause and recovery state, onboarding markers and playback history aren't included. Instagram's developer overrides use a separate store and aren't included either.
 
+Unreleased source builds also explain a save that stopped when Instagram closed. After its unfinished files, gallery rows and notification are cleaned up, the next opening says to reopen the media and save again. The full explanation stays in settings for that run. Nothing is retried automatically, and the cleanup ledger keeps only random job markers alongside its existing local resource references.
+
 Pause turns off every feature a switch controls, all at once and without losing your choices. It's the quickest way to tell whether HushGram is behind a problem.
 
 If Instagram crashes within a minute of starting three times in a row, HushGram pauses itself and the card says why. Turn it back on from the same screen once you've patched again or left out the patch at fault. When Instagram won't stay open long enough to reach the settings, create an empty file named `hushgram-safe-mode` in `Android/data/com.instagram.android/files` (a computer or a file manager can reach it), and HushGram starts paused until you delete it.

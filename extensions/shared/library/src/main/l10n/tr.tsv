@@ -259,3 +259,8 @@ Couldn't save the settings. The previous values were restored.	Ayarlar kaydedile
 Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Geri alma, ayarların tamamını geri yükleyemedi. Gösterilen değerleri kontrol edin; geri alma seçeneği kullanıldı.
 Couldn't save or fully restore the settings. Check the shown values and try Undo.	Ayarlar kaydedilemedi veya tamamen geri yüklenemedi. Gösterilen değerleri kontrol edip geri almayı deneyin.
 Couldn't start the settings operation. Try again.	Ayar işlemi başlatılamadı. Tekrar deneyin.
+A save stopped. Reopen the media and save again.	Bir kaydetme işlemi durdu. Medyayı yeniden açıp tekrar kaydet.
+%1$d saves stopped. Reopen the media and save again.	%1$d kaydetme işlemi durdu. Medyayı yeniden açıp tekrar kaydet.
+A save was interrupted	Bir kaydetme işlemi kesildi
+%1$d saves were interrupted	%1$d kaydetme işlemi kesildi
+Reopen the media and save again.	Medyayı yeniden açıp tekrar kaydet.

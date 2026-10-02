@@ -259,3 +259,8 @@ Couldn't save the settings. The previous values were restored.	Die Einstellungen
 Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Die Einstellungen konnten nicht vollständig wiederhergestellt werden. Prüfe die angezeigten Werte; Rückgängig wurde bereits verwendet.
 Couldn't save or fully restore the settings. Check the shown values and try Undo.	Die Einstellungen konnten weder gespeichert noch vollständig wiederhergestellt werden. Prüfe die angezeigten Werte und versuche Rückgängig.
 Couldn't start the settings operation. Try again.	Der Einstellungsvorgang konnte nicht gestartet werden. Versuche es erneut.
+A save stopped. Reopen the media and save again.	Ein Speichervorgang wurde gestoppt. Öffne das Medium erneut und speichere es noch einmal.
+%1$d saves stopped. Reopen the media and save again.	%1$d Speichervorgänge wurden gestoppt. Öffne die Medien erneut und speichere sie noch einmal.
+A save was interrupted	Ein Speichervorgang wurde unterbrochen
+%1$d saves were interrupted	%1$d Speichervorgänge wurden unterbrochen
+Reopen the media and save again.	Öffne das Medium erneut und speichere es noch einmal.

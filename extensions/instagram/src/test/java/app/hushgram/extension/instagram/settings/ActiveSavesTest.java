@@ -7,6 +7,7 @@
 package app.hushgram.extension.instagram.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -62,6 +63,7 @@ public class ActiveSavesTest {
     private HushgramPreferenceFragment page;
 
     @Before public void open() {
+        SavesForTests.resetInterruption();
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REEL_DOWNLOAD);
         PauseForTests.resume();
     }
@@ -73,8 +75,10 @@ public class ActiveSavesTest {
         layout();
     }
 
-    @After public void close() {
+    @After public void close() throws Exception {
         SavesForTests.endAll();
+        app.hushgram.extension.shared.Utils.awaitBackgroundTasksForTests();
+        SavesForTests.resetInterruption();
         if (controller != null) controller.close();
         PatchFamily.inBuildForTests = null;
         PauseForTests.resume();
@@ -262,5 +266,33 @@ public class ActiveSavesTest {
         layout();
         TreeSet<String> after = new TreeSet<>(Arrays.asList(prefs.list() == null ? new String[0] : prefs.list()));
         assertEquals("a save stored something", before, after);
+    }
+
+    @Test public void theCompleteInterruptionNoticeStaysReadableWithoutADownloadPatch() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.noneOf(PatchFamily.class);
+        SavesForTests.interrupt(RuntimeEnvironment.getApplication());
+        show();
+        Preference notice = page.findPreference("hushgram_interrupted_saves");
+        assertNotNull(notice);
+        assertEquals("A save was interrupted", String.valueOf(notice.getTitle()));
+        assertEquals("Reopen the media and save again.", String.valueOf(notice.getSummary()));
+        assertFalse(notice.isPersistent());
+        assertFalse(notice.isSelectable());
+        assertTrue(app.hushgram.extension.instagram.download.SaveControl.running().isEmpty());
+        controller.recreate();
+        ShadowLooper.idleMainLooper();
+        page = (HushgramPreferenceFragment) controller.get().getFragmentManager().findFragmentByTag(PAGE_TAG);
+        layout();
+        assertNotNull(page.findPreference("hushgram_interrupted_saves"));
+    }
+
+    @Test @Config(qualifiers = "en-rXA-w390dp-h844dp-night-xhdpi")
+    public void theInterruptionExplanationUsesTheLocalizationCatalog() throws Exception {
+        SavesForTests.interrupt(RuntimeEnvironment.getApplication());
+        show();
+        Preference notice = page.findPreference("hushgram_interrupted_saves");
+        assertNotNull(notice);
+        assertTrue(String.valueOf(notice.getTitle()).startsWith("["));
+        assertTrue(String.valueOf(notice.getSummary()).startsWith("["));
     }
 }

@@ -88,7 +88,7 @@ public final class SaveControl {
         WATCHERS.remove(watcher);
     }
 
-    private static void tell() {
+    static void tell() {
         for (Watcher watcher : WATCHERS) {
             try {
                 watcher.savesChanged();
@@ -172,7 +172,7 @@ public final class SaveControl {
             return removed;
         } catch (Throwable t) {
             MediaSave.failure(() -> "could not take down a stopped save's notification", t);
-            return 0;
+            return -1;
         }
     }
 

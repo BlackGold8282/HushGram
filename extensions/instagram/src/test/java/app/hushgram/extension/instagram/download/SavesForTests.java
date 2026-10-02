@@ -58,6 +58,19 @@ public final class SavesForTests {
         for (Integer id : STARTED.keySet()) end(id);
     }
 
+    /** A job whose process ended before its terminal result, with no network or media identity. */
+    public static void interrupt(Context context) throws Exception {
+        SaveLeftovers.sweepOnce(context);
+        SaveLeftovers.beginJob(context);
+        SaveLeftovers.forgetSweepForTests();
+        SaveLeftovers.showInterrupted(context);
+        app.hushgram.extension.shared.Utils.awaitBackgroundTasksForTests();
+    }
+
+    public static void resetInterruption() {
+        SaveLeftovers.forgetSweepForTests();
+    }
+
     /** The single files a caller hands a save, as addresses alone. A null address is left out. */
     public static List<MediaSave.Rendition> renditions(String... urls) {
         List<MediaSave.Rendition> renditions = new ArrayList<>();

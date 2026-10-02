@@ -259,3 +259,8 @@ Couldn't save the settings. The previous values were restored.	Não foi possíve
 Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Não foi possível restaurar todas as configurações. Confira os valores exibidos; Desfazer já foi usado.
 Couldn't save or fully restore the settings. Check the shown values and try Undo.	Não foi possível salvar ou restaurar todas as configurações. Confira os valores exibidos e tente desfazer.
 Couldn't start the settings operation. Try again.	Não foi possível iniciar a operação de configurações. Tente novamente.
+A save stopped. Reopen the media and save again.	Um salvamento parou. Abra a mídia novamente e salve outra vez.
+%1$d saves stopped. Reopen the media and save again.	%1$d salvamentos pararam. Abra a mídia novamente e salve outra vez.
+A save was interrupted	Um salvamento foi interrompido
+%1$d saves were interrupted	%1$d salvamentos foram interrompidos
+Reopen the media and save again.	Abra a mídia novamente e salve outra vez.

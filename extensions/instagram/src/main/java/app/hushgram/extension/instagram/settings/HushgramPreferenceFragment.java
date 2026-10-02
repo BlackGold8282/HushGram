@@ -59,6 +59,7 @@ import app.hushgram.extension.instagram.media.ResumePlayback;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.SaveControl;
+import app.hushgram.extension.instagram.download.SaveLeftovers;
 import app.hushgram.extension.instagram.download.SaveFolder;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
@@ -112,6 +113,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** The Downloads section, where the running saves are listed, or null when no download patch is in. */
     @Nullable
     private PreferenceCategory downloads;
+    @Nullable private PreferenceCategory recovery;
+    @Nullable private Row interruptedSaves;
 
     /** The rows of the saves running now, by save number. */
     private final Map<Integer, SaveRow> saveRows = new HashMap<>();
@@ -146,6 +149,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     public void onResume() {
         super.onResume();
         SaveControl.watch(saves);
+        SaveLeftovers.showInterrupted(getContext());
         showSaves();
         showClearPositions();
         showConfiguration();
@@ -163,6 +167,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         shownDialogs.clear();
         clearPositions = null;
         exportConfiguration = importConfiguration = undoConfiguration = null;
+        recovery = null;
+        interruptedSaves = null;
         super.onDestroyView();
     }
 
@@ -481,6 +487,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
         // Named for its rows: the screen's own title already says HushGram.
         PreferenceCategory hushgram = category(screen, L10n.t("Pause and diagnostics"));
+        recovery = hushgram;
         hushgram.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause HushGram"),
                 L10n.t("From the next start, every switch but Debug logging acts as if it were off. "
                         + "Changes made when you patched stay in, and your choices stay saved.")), SettingsIcons.PATCHED));
@@ -714,6 +721,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * the saves channel off there wasn't one. A row that stays is changed in place.
      */
     void showSaves() {
+        int stopped = SaveLeftovers.interruptedCount();
+        if (stopped > 0 && recovery != null && interruptedSaves == null) {
+            interruptedSaves = new Row(recovery.getContext());
+            interruptedSaves.setKey("hushgram_interrupted_saves");
+            interruptedSaves.setPersistent(false);
+            interruptedSaves.setSelectable(false);
+            interruptedSaves.setOrder(Integer.MIN_VALUE / 2);
+            interruptedSaves.setTitle(L10n.quantity(stopped,
+                    "A save was interrupted", "%1$d saves were interrupted"));
+            interruptedSaves.setSummary(L10n.t("Reopen the media and save again."));
+            recovery.addPreference(mark(interruptedSaves, SettingsIcons.DOWNLOADS));
+        }
         PreferenceCategory group = downloads;
         if (group == null) return;
         List<SaveControl.Running> running = SaveControl.running();

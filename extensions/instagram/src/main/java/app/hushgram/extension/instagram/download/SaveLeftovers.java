@@ -9,13 +9,16 @@ package app.hushgram.extension.instagram.download;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
+import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Utils;
 
 /**
@@ -54,12 +57,96 @@ public final class SaveLeftovers {
         }
     }
 
-    /** Instagram's own preferences folder holds this file; the key is the only one in it. */
+    /** Private cleanup state. Job markers are random, never media, account or network identities. */
     private static final String LEDGER = "hushgram_saves";
     private static final String PENDING = "pending_rows";
+    private static final String JOBS = "active_jobs";
+    private static final String INTERRUPTED = "interrupted_jobs";
 
     private static final Object LOCK = new Object();
     private static boolean swept;
+    private static boolean cleanupFinished;
+    private static volatile boolean noticeChecked;
+    private static volatile int interrupted;
+    private static int awaitingNotice;
+
+    /** Complete feedback remains available in settings for this process, without a disk history. */
+    public static int interruptedCount() {
+        return interrupted;
+    }
+
+    /** A resumed app or settings page consumes the notice only after cleanup and a durable write. */
+    public static void showInterrupted(Context context) {
+        try {
+            if (context == null || noticeChecked || !Utils.isMainProcess()) return;
+            Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+            Utils.runOnBackgroundThread(() -> {
+                try {
+                    int count;
+                    synchronized (LOCK) {
+                        sweepOnce(application);
+                        if (noticeChecked || !cleanupFinished) return;
+                        SharedPreferences ledger = application.getSharedPreferences(LEDGER, Context.MODE_PRIVATE);
+                        count = Math.max(awaitingNotice, ledger.getInt(INTERRUPTED, 0));
+                        if (count > 0 && !ledger.edit().remove(INTERRUPTED).commit()) {
+                            // commit(false) can still change the in-memory preference map.
+                            awaitingNotice = count;
+                            ledger.edit().putInt(INTERRUPTED, count).commit();
+                            MediaSave.failure(() -> "could not consume the interrupted-save notice", null);
+                            return;
+                        }
+                        noticeChecked = true;
+                        awaitingNotice = 0;
+                        interrupted = count;
+                    }
+                    if (count <= 0) return;
+                    Feedback.show(application, L10n.quantity(application, count,
+                            "A save stopped. Reopen the media and save again.",
+                            "%1$d saves stopped. Reopen the media and save again."), true);
+                    SaveControl.tell();
+                } catch (Throwable failure) {
+                    MediaSave.failure(() -> "could not show the interrupted-save notice", failure);
+                }
+            });
+        } catch (Throwable failure) {
+            MediaSave.failure(() -> "could not start the interrupted-save notice", failure);
+        }
+    }
+
+    /** One logical save, before its first resource or transfer. Failed recording stops the save. */
+    static String beginJob(Context application) {
+        synchronized (LOCK) {
+            SharedPreferences ledger = application.getSharedPreferences(LEDGER, Context.MODE_PRIVATE);
+            Set<String> jobs = new HashSet<>(ledger.getStringSet(JOBS, new HashSet<>()));
+            if (jobs.size() >= 64) throw new IllegalStateException("Save cleanup ledger is full");
+            String token = UUID.randomUUID().toString();
+            jobs.add(token);
+            if (!ledger.edit().putStringSet(JOBS, jobs).commit()) {
+                jobs.remove(token);
+                ledger.edit().putStringSet(JOBS, jobs).commit();
+                throw new IllegalStateException("Could not record the active save");
+            }
+            return token;
+        }
+    }
+
+    /** All normal results, including cancellation and failure, retire the same single marker. */
+    static void finishJob(Context application, String token) {
+        if (token == null) return;
+        synchronized (LOCK) {
+            try {
+                SharedPreferences ledger = application.getSharedPreferences(LEDGER, Context.MODE_PRIVATE);
+                Set<String> jobs = new HashSet<>(ledger.getStringSet(JOBS, new HashSet<>()));
+                if (!jobs.remove(token)) return;
+                SharedPreferences.Editor update = ledger.edit();
+                if (jobs.isEmpty()) update.remove(JOBS);
+                else update.putStringSet(JOBS, jobs);
+                if (!update.commit()) MediaSave.failure(() -> "could not retire an active-save marker", null);
+            } catch (Throwable failure) {
+                MediaSave.failure(() -> "could not retire an active-save marker", failure);
+            }
+        }
+    }
 
     /**
      * Once per process, before the first save makes a file or a row. Every save calls it first, so
@@ -75,11 +162,21 @@ public final class SaveLeftovers {
                 int files = removeWorkFiles(application);
                 int rows = removePendingRows(application);
                 int notices = SaveControl.removeStale(application);
+                SharedPreferences ledger = application.getSharedPreferences(LEDGER, Context.MODE_PRIVATE);
+                cleanupFinished = files >= 0 && rows >= 0 && notices >= 0
+                        && ledger.getStringSet(PENDING, new HashSet<>()).isEmpty();
+                Set<String> jobs = ledger.getStringSet(JOBS, new HashSet<>());
+                if (cleanupFinished && !jobs.isEmpty()) {
+                    int count = Math.addExact(ledger.getInt(INTERRUPTED, 0), jobs.size());
+                    cleanupFinished = ledger.edit().remove(JOBS).putInt(INTERRUPTED, count).commit();
+                    if (!cleanupFinished) MediaSave.failure(() -> "could not record the interrupted-save notice", null);
+                }
                 if (files > 0 || rows > 0 || notices > 0) {
                     MediaSave.info(() -> "removed what a stopped save left: " + files + " work file(s), "
                         + rows + " pending gallery row(s), " + notices + " notification(s)");
                 }
             } catch (Throwable t) {
+                cleanupFinished = false;
                 MediaSave.failure(() -> "could not remove what a stopped save left", t);
             }
         }
@@ -89,6 +186,10 @@ public final class SaveLeftovers {
     static void forgetSweepForTests() {
         synchronized (LOCK) {
             swept = false;
+            cleanupFinished = false;
+            noticeChecked = false;
+            interrupted = 0;
+            awaitingNotice = 0;
         }
     }
 
@@ -126,13 +227,20 @@ public final class SaveLeftovers {
     private static int removeWorkFiles(Context application) {
         File folder = DashSave.workFolder(application);
         File[] files = folder == null ? null : folder.listFiles();
-        if (files == null) return 0;
+        if (files == null) {
+            MediaSave.failure(() -> "could not inspect stopped-save work files", null);
+            return -1;
+        }
 
         int removed = 0;
+        boolean complete = true;
         for (File file : files) {
-            if (!DashSave.inUse(file) && file.delete()) removed++;
+            if (DashSave.inUse(file)) continue;
+            if (file.delete()) removed++;
+            else if (file.exists()) complete = false;
         }
-        return removed;
+        if (!complete) MediaSave.failure(() -> "could not remove every stopped-save work file", null);
+        return complete ? removed : -1;
     }
 
     private static int removePendingRows(Context application) {
@@ -159,7 +267,20 @@ public final class SaveLeftovers {
                 // Only while it's still pending: a row the stopped save had already published is a
                 // finished file that was crossed off too late. MediaStore matches a pending row
                 // when it's named by its own address.
-                removed += resolver.delete(address, MediaStore.MediaColumns.IS_PENDING + "=1", null);
+                int deleted = resolver.delete(address, MediaStore.MediaColumns.IS_PENDING + "=1", null);
+                removed += deleted;
+                if (deleted == 0) {
+                    // Zero also means a provider refused deletion. Cross off only a confirmed
+                    // absent or already-published row; otherwise the next process retries it.
+                    try (Cursor remaining = resolver.query(address,
+                            new String[]{MediaStore.MediaColumns.IS_PENDING}, null, null, null)) {
+                        if (remaining == null) retry.add(row);
+                        else if (remaining.moveToFirst()) {
+                            int column = remaining.getColumnIndex(MediaStore.MediaColumns.IS_PENDING);
+                            if (column < 0 || remaining.getInt(column) != 0) retry.add(row);
+                        }
+                    }
+                }
             } catch (Throwable t) {
                 retry.add(row);
                 MediaSave.failure(() -> "could not remove a pending gallery row a stopped save left", t);
@@ -170,6 +291,7 @@ public final class SaveLeftovers {
         else update.putStringSet(PENDING, retry);
         if (!update.commit()) {
             MediaSave.failure(() -> "could not update the list of pending gallery rows after a sweep", null);
+            return -1;
         }
         return removed;
     }

@@ -738,12 +738,13 @@ public final class MediaSave {
         }
 
         Thread worker = new Thread(() -> {
-            MediaStoreWriter writer = new MediaStoreWriter(application, video, known);
-
+            String marker = null;
             try {
                 // What a save in a process Android ended left behind goes before this one makes
                 // anything. It runs once per process.
                 SaveLeftovers.sweepOnce(application);
+                marker = SaveLeftovers.beginJob(application);
+                MediaStoreWriter writer = new MediaStoreWriter(application, video, known);
 
                 Downloader.Result result = job.run(writer, save);
                 boolean cancelled = result.status == Downloader.Status.CANCELLED;
@@ -757,6 +758,7 @@ public final class MediaSave {
                 failure(() -> "the save failed", t);
                 Feedback.show(application, L10n.t(application, "Download failed"), true);
             } finally {
+                SaveLeftovers.finishJob(application, marker);
                 save.end();
                 IN_FLIGHT.decrementAndGet();
             }

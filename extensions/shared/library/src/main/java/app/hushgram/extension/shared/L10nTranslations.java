@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(518);
+        Map<String, String> table = new HashMap<>(528);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -56,6 +56,10 @@ public final class L10nTranslations {
     }
 
     private static void fillDe0(Map<String, String> table) {
+        table.put("%1$d saves stopped. Reopen the media and save again.",
+                "%1$d Speichervorg\u00e4nge wurden gestoppt. \u00d6ffne die Medien erneut und speichere sie noch einmal.");
+        table.put("%1$d saves were interrupted",
+                "%1$d Speichervorg\u00e4nge wurden unterbrochen");
         table.put("%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.",
                 "%1$s wird zu Datum und Uhrzeit des Speicherns, %2$s zur Nummer des Videos auf Instagram, %3$s zum Namen dessen, der es gepostet hat, und %4$s zum Tag der Ver\u00f6ffentlichung. Was beim Speichern nicht bekannt ist, wird weggelassen, und ein Name ohne eines davon bekommt das Datum angeh\u00e4ngt. Gibt es den Namen im Ordner schon, wird die Uhrzeit des Speicherns angeh\u00e4ngt. Ung\u00fcltige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardnamen %5$s zu verwenden.");
         table.put("%1$s of %2$s",
@@ -78,6 +82,10 @@ public final class L10nTranslations {
                 "Eine Datei namens %1$s in %2$s hat HushGram pausiert.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
                 "Eine abgelaufene Story bleibt stehen, bis du tippst oder wischst. Schalte das aus, um Instagrams Timing zu nutzen.");
+        table.put("A save stopped. Reopen the media and save again.",
+                "Ein Speichervorgang wurde gestoppt. \u00d6ffne das Medium erneut und speichere es noch einmal.");
+        table.put("A save was interrupted",
+                "Ein Speichervorgang wurde unterbrochen");
         table.put("About",
                 "Info");
         table.put("Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.",
@@ -168,6 +176,9 @@ public final class L10nTranslations {
                 "Reel-Wiedergabeverlauf nicht senden");
         table.put("Download",
                 "Herunterladen");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("Download failed",
                 "Download fehlgeschlagen");
         table.put("Download feed photos",
@@ -176,9 +187,6 @@ public final class L10nTranslations {
                 "Feed-Videos herunterladen");
         table.put("Download on reels",
                 "Herunterladen bei Reels");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("Download on stories",
                 "Herunterladen bei Stories");
         table.put("Download quality",
@@ -291,6 +299,9 @@ public final class L10nTranslations {
                 "Instagram kann die Werbe-ID deines Telefons nicht lesen und den Werbediensten von Android nicht mitteilen, welche Anzeigen du gesehen oder angetippt hast. Die Berechtigungen daf\u00fcr fehlen in diesem Build.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram ist dreimal hintereinander innerhalb einer Minute nach dem Start abgest\u00fcrzt oder h\u00e4ngen geblieben, deshalb hat sich HushGram selbst pausiert.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram erf\u00e4hrt nicht, welche Reels du angesehen hast und wie weit. Damit sortiert es deine Reels, und sonst sieht das niemand. Bereits gesehene Reels k\u00f6nnen wieder auftauchen.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -299,9 +310,6 @@ public final class L10nTranslations {
                 "Instagram w\u00e4hlt die Qualit\u00e4t beim Abspielen jedes Videos passend zu deiner Verbindung.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram zeigt den Bildschirm nicht mehr an, der meldet, dass diese Version zu alt ist. Ein gepatchter Build aktualisiert sich nicht von selbst, so bleibt er nutzbar.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
                 "Der Dunkelmodus von Instagram nutzt reines Schwarz statt seines fast schwarzen Graus. Men\u00fcs, Bl\u00e4tter und Schaltfl\u00e4chen behalten ihre eigenen Graut\u00f6ne.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -386,6 +394,8 @@ public final class L10nTranslations {
                 "Hinweis auf abgelaufene Version entfernen");
         table.put("Remove the empty space at the bottom",
                 "Leeren Platz unten entfernen");
+        table.put("Reopen the media and save again.",
+                "\u00d6ffne das Medium erneut und speichere es noch einmal.");
         table.put("Restart Instagram to apply these choices.",
                 "Starte Instagram neu, um diese Werte anzuwenden.");
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
@@ -412,6 +422,9 @@ public final class L10nTranslations {
                 "Videos speichern, die andere Apps \u00f6ffnen k\u00f6nnen");
         table.put("Saved to %1$s",
                 "Gespeichert unter %1$s");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "Gespeichert unter %1$s, in geringerer Qualit\u00e4t als auf Instagram");
         table.put("Saved to the gallery",
@@ -422,9 +435,6 @@ public final class L10nTranslations {
                 "Gespeichert. Starte Instagram neu, um diese \u00c4nderung zu \u00fcbernehmen.");
         table.put("Saving a photo",
                 "Foto wird gespeichert");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Saving a video",
                 "Video wird gespeichert");
         table.put("Saving...",
@@ -535,6 +545,9 @@ public final class L10nTranslations {
                 "Die Frist zum Wiederherstellen ist abgelaufen.");
         table.put("Undo settings import",
                 "Einstellungsimport r\u00fcckg\u00e4ngig machen");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "Bis %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -545,9 +558,6 @@ public final class L10nTranslations {
                 "Gespeicherte Wiedergabepositionen werden aktualisiert...");
         table.put("Version",
                 "Version");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Version %1$s f\u00fcr Instagram %2$s");
         table.put("Video file name",
@@ -589,7 +599,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(518);
+        Map<String, String> table = new HashMap<>(528);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -599,6 +609,10 @@ public final class L10nTranslations {
     }
 
     private static void fillEs0(Map<String, String> table) {
+        table.put("%1$d saves stopped. Reopen the media and save again.",
+                "Se detuvieron %1$d guardados. Vuelve a abrir el contenido y gu\u00e1rdalo otra vez.");
+        table.put("%1$d saves were interrupted",
+                "Se interrumpieron %1$d guardados");
         table.put("%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.",
                 "%1$s se convierte en la fecha y la hora del guardado, %2$s en el n\u00famero del video en Instagram, %3$s en quien lo public\u00f3 y %4$s en el d\u00eda en que se public\u00f3. Lo que el guardado no sabe se omite, y a un nombre sin ninguno de ellos se le a\u00f1ade la fecha. Si el nombre ya est\u00e1 en la carpeta, se le a\u00f1ade al final la hora del guardado. Los caracteres no v\u00e1lidos se convierten en guiones bajos. D\u00e9jalo vac\u00edo para usar el nombre predeterminado, %5$s.");
         table.put("%1$s of %2$s",
@@ -621,6 +635,10 @@ public final class L10nTranslations {
                 "Un archivo llamado %1$s en %2$s paus\u00f3 HushGram.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
                 "Una historia terminada se queda en pantalla hasta que tocas o deslizas. Desact\u00edvalo para usar los tiempos de Instagram.");
+        table.put("A save stopped. Reopen the media and save again.",
+                "Se detuvo un guardado. Vuelve a abrir el contenido y gu\u00e1rdalo otra vez.");
+        table.put("A save was interrupted",
+                "Se interrumpi\u00f3 un guardado");
         table.put("About",
                 "Acerca de");
         table.put("Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.",
@@ -711,6 +729,9 @@ public final class L10nTranslations {
                 "No enviar el historial de reels vistos");
         table.put("Download",
                 "Descargar");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("Download failed",
                 "No se pudo descargar");
         table.put("Download feed photos",
@@ -719,9 +740,6 @@ public final class L10nTranslations {
                 "Descargar videos del feed");
         table.put("Download on reels",
                 "Descargar en los reels");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("Download on stories",
                 "Descargar en las historias");
         table.put("Download quality",
@@ -834,6 +852,9 @@ public final class L10nTranslations {
                 "Instagram no puede leer el ID de publicidad de tu tel\u00e9fono ni decir a los servicios de publicidad de Android qu\u00e9 anuncios viste o tocaste. Los permisos para ello ya no est\u00e1n en esta versi\u00f3n.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Tres veces seguidas, Instagram fall\u00f3 o se congel\u00f3 durante el primer minuto tras iniciarse, as\u00ed que HushGram se paus\u00f3 solo.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram no sabe qu\u00e9 reels viste ni hasta d\u00f3nde llegaste. Con eso ordena tus Reels, y nadie m\u00e1s lo ve. Los reels que ya viste pueden volver a aparecer.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -842,9 +863,6 @@ public final class L10nTranslations {
                 "Instagram elige la calidad mientras se reproduce cada video, seg\u00fan tu conexi\u00f3n.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram deja de mostrar la pantalla que dice que esta versi\u00f3n es demasiado antigua. Una versi\u00f3n parcheada no se actualiza sola, as\u00ed que esto la mantiene usable.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
                 "El modo oscuro de Instagram usa negro puro en lugar de su gris casi negro. Los men\u00fas, las hojas y los botones conservan sus propios grises.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -929,6 +947,8 @@ public final class L10nTranslations {
                 "Quitar el aviso de versi\u00f3n caducada");
         table.put("Remove the empty space at the bottom",
                 "Quitar el espacio vac\u00edo de abajo");
+        table.put("Reopen the media and save again.",
+                "Vuelve a abrir el contenido y gu\u00e1rdalo otra vez.");
         table.put("Restart Instagram to apply these choices.",
                 "Reinicia Instagram para aplicar estas opciones.");
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
@@ -955,6 +975,9 @@ public final class L10nTranslations {
                 "Guardar videos que otras apps puedan abrir");
         table.put("Saved to %1$s",
                 "Se guard\u00f3 en %1$s");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "Se guard\u00f3 en %1$s con menos calidad que en Instagram");
         table.put("Saved to the gallery",
@@ -965,9 +988,6 @@ public final class L10nTranslations {
                 "Guardado. Reinicia Instagram para aplicar este cambio.");
         table.put("Saving a photo",
                 "Guardando una foto");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Saving a video",
                 "Guardando un video");
         table.put("Saving...",
@@ -1078,6 +1098,9 @@ public final class L10nTranslations {
                 "El plazo para restaurar ha terminado.");
         table.put("Undo settings import",
                 "Deshacer la importaci\u00f3n de ajustes");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "Hasta %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -1088,9 +1111,6 @@ public final class L10nTranslations {
                 "Actualizando las posiciones guardadas...");
         table.put("Version",
                 "Versi\u00f3n");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Versi\u00f3n %1$s para Instagram %2$s");
         table.put("Video file name",
@@ -1132,7 +1152,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(518);
+        Map<String, String> table = new HashMap<>(528);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1142,6 +1162,10 @@ public final class L10nTranslations {
     }
 
     private static void fillIn0(Map<String, String> table) {
+        table.put("%1$d saves stopped. Reopen the media and save again.",
+                "%1$d penyimpanan terhenti. Buka kembali media dan simpan lagi.");
+        table.put("%1$d saves were interrupted",
+                "%1$d penyimpanan terputus");
         table.put("%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.",
                 "%1$s diganti dengan tanggal dan waktu penyimpanan, %2$s dengan nomor video di Instagram, %3$s dengan nama pengunggahnya, dan %4$s dengan tanggal unggahnya. Yang tidak diketahui saat menyimpan akan dihilangkan, dan nama tanpa satu pun di antaranya akan ditambahi tanggal. Jika nama itu sudah ada di folder, waktu penyimpanan ditambahkan di akhir. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai nama bawaan, %5$s.");
         table.put("%1$s of %2$s",
@@ -1164,6 +1188,10 @@ public final class L10nTranslations {
                 "File bernama %1$s di %2$s menjeda HushGram.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
                 "Cerita yang sudah selesai tetap di layar sampai Anda mengetuk atau menggeser. Matikan ini untuk memakai waktu Instagram.");
+        table.put("A save stopped. Reopen the media and save again.",
+                "Penyimpanan terhenti. Buka kembali media dan simpan lagi.");
+        table.put("A save was interrupted",
+                "Penyimpanan terputus");
         table.put("About",
                 "Tentang");
         table.put("Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.",
@@ -1254,6 +1282,9 @@ public final class L10nTranslations {
                 "Jangan kirim riwayat tontonan reel");
         table.put("Download",
                 "Unduh");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("Download failed",
                 "Unduhan gagal");
         table.put("Download feed photos",
@@ -1262,9 +1293,6 @@ public final class L10nTranslations {
                 "Unduh video feed");
         table.put("Download on reels",
                 "Unduh di reel");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("Download on stories",
                 "Unduh di cerita");
         table.put("Download quality",
@@ -1377,6 +1405,9 @@ public final class L10nTranslations {
                 "Instagram tidak dapat membaca ID iklan ponselmu atau memberi tahu layanan iklan Android iklan mana yang kamu lihat atau ketuk. Izin untuk itu sudah dihapus dari build ini.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushGram menjeda dirinya sendiri.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram tidak diberi tahu reel mana yang Anda tonton atau sampai mana. Instagram memakainya untuk mengurutkan Reels Anda, dan tidak ada orang lain yang melihatnya. Reel yang sudah Anda tonton bisa muncul lagi.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -1385,9 +1416,6 @@ public final class L10nTranslations {
                 "Instagram memilih kualitas saat setiap video diputar, sesuai koneksi Anda.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram berhenti menampilkan layar yang menyatakan versi ini terlalu lama. Build yang ditambal tidak memperbarui dirinya sendiri, jadi ini membuatnya tetap bisa dipakai.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
                 "Mode gelap Instagram memakai hitam pekat, bukan abu-abu yang hampir hitam. Menu, lembar, dan tombol tetap memakai abu-abunya sendiri.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -1472,6 +1500,8 @@ public final class L10nTranslations {
                 "Hapus popup build kedaluwarsa");
         table.put("Remove the empty space at the bottom",
                 "Hapus ruang kosong di bagian bawah");
+        table.put("Reopen the media and save again.",
+                "Buka kembali media dan simpan lagi.");
         table.put("Restart Instagram to apply these choices.",
                 "Mulai ulang Instagram untuk menerapkan pilihan ini.");
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
@@ -1498,6 +1528,9 @@ public final class L10nTranslations {
                 "Simpan video yang bisa dibuka aplikasi lain");
         table.put("Saved to %1$s",
                 "Disimpan ke %1$s");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "Disimpan ke %1$s dengan kualitas lebih rendah daripada di Instagram");
         table.put("Saved to the gallery",
@@ -1508,9 +1541,6 @@ public final class L10nTranslations {
                 "Tersimpan. Mulai ulang Instagram untuk menerapkan perubahan ini.");
         table.put("Saving a photo",
                 "Menyimpan foto");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Saving a video",
                 "Menyimpan video");
         table.put("Saving...",
@@ -1621,6 +1651,9 @@ public final class L10nTranslations {
                 "Waktu untuk memulihkan telah habis.");
         table.put("Undo settings import",
                 "Batalkan impor pengaturan");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "Hingga %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -1631,9 +1664,6 @@ public final class L10nTranslations {
                 "Memperbarui posisi tersimpan...");
         table.put("Version",
                 "Versi");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Versi %1$s untuk Instagram %2$s");
         table.put("Video file name",
@@ -1675,7 +1705,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(518);
+        Map<String, String> table = new HashMap<>(528);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1685,6 +1715,10 @@ public final class L10nTranslations {
     }
 
     private static void fillPt_rBR0(Map<String, String> table) {
+        table.put("%1$d saves stopped. Reopen the media and save again.",
+                "%1$d salvamentos pararam. Abra a m\u00eddia novamente e salve outra vez.");
+        table.put("%1$d saves were interrupted",
+                "%1$d salvamentos foram interrompidos");
         table.put("%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.",
                 "%1$s representa a data e a hora do salvamento, %2$s o n\u00famero do v\u00eddeo no Instagram, %3$s quem o publicou e %4$s o dia da publica\u00e7\u00e3o. O que n\u00e3o estiver dispon\u00edvel ser\u00e1 omitido, e um nome sem nenhum desses dados receber\u00e1 a data. Se o nome j\u00e1 existir na pasta, a hora do salvamento ser\u00e1 acrescentada ao final. Caracteres inv\u00e1lidos s\u00e3o substitu\u00eddos por sublinhados. Deixe em branco para usar o nome padr\u00e3o, %5$s.");
         table.put("%1$s of %2$s",
@@ -1707,6 +1741,10 @@ public final class L10nTranslations {
                 "Um arquivo chamado %1$s em %2$s pausou o HushGram.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
                 "Um story que terminou fica na tela at\u00e9 voc\u00ea tocar ou deslizar. Desative para usar o tempo do Instagram.");
+        table.put("A save stopped. Reopen the media and save again.",
+                "Um salvamento parou. Abra a m\u00eddia novamente e salve outra vez.");
+        table.put("A save was interrupted",
+                "Um salvamento foi interrompido");
         table.put("About",
                 "Sobre");
         table.put("Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.",
@@ -1797,6 +1835,9 @@ public final class L10nTranslations {
                 "N\u00e3o enviar o hist\u00f3rico de reels assistidos");
         table.put("Download",
                 "Baixar");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Download failed",
                 "Falha no download");
         table.put("Download feed photos",
@@ -1805,9 +1846,6 @@ public final class L10nTranslations {
                 "Baixar v\u00eddeos do feed");
         table.put("Download on reels",
                 "Baixar nos reels");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Download on stories",
                 "Baixar nos stories");
         table.put("Download quality",
@@ -1920,6 +1958,9 @@ public final class L10nTranslations {
                 "O Instagram n\u00e3o consegue ler o ID de publicidade do seu celular nem informar aos servi\u00e7os de an\u00fancios do Android quais an\u00fancios voc\u00ea viu ou tocou. As permiss\u00f5es para isso foram removidas desta vers\u00e3o.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "O Instagram fechou com erro ou travou no primeiro minuto ap\u00f3s iniciar, tr\u00eas vezes seguidas, ent\u00e3o o HushGram foi pausado automaticamente.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "O Instagram n\u00e3o fica sabendo quais reels voc\u00ea assistiu nem at\u00e9 onde. Ele usa isso para ordenar seus Reels, e ningu\u00e9m mais v\u00ea. Reels que voc\u00ea j\u00e1 assistiu podem voltar a aparecer.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -1928,9 +1969,6 @@ public final class L10nTranslations {
                 "O Instagram escolhe a qualidade enquanto cada v\u00eddeo \u00e9 reproduzido, de acordo com sua conex\u00e3o.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "O Instagram para de mostrar a tela que diz que esta vers\u00e3o \u00e9 antiga demais. Uma vers\u00e3o com patches n\u00e3o se atualiza sozinha, ent\u00e3o isso a mant\u00e9m utiliz\u00e1vel.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
                 "O modo escuro do Instagram usa preto puro em vez do cinza quase preto. Menus, pain\u00e9is e bot\u00f5es mant\u00eam os pr\u00f3prios tons de cinza.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -2015,6 +2053,8 @@ public final class L10nTranslations {
                 "Remover aviso de vers\u00e3o expirada");
         table.put("Remove the empty space at the bottom",
                 "Remover o espa\u00e7o vazio embaixo");
+        table.put("Reopen the media and save again.",
+                "Abra a m\u00eddia novamente e salve outra vez.");
         table.put("Restart Instagram to apply these choices.",
                 "Reinicie o Instagram para aplicar essas op\u00e7\u00f5es.");
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
@@ -2041,6 +2081,9 @@ public final class L10nTranslations {
                 "Salvar v\u00eddeos que outros apps conseguem abrir");
         table.put("Saved to %1$s",
                 "Salvo em %1$s");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "Salvo em %1$s com qualidade menor que no Instagram");
         table.put("Saved to the gallery",
@@ -2051,9 +2094,6 @@ public final class L10nTranslations {
                 "Salvo. Reinicie o Instagram para aplicar esta altera\u00e7\u00e3o.");
         table.put("Saving a photo",
                 "Salvando uma foto");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Saving a video",
                 "Salvando um v\u00eddeo");
         table.put("Saving...",
@@ -2164,6 +2204,9 @@ public final class L10nTranslations {
                 "O prazo para restaurar terminou.");
         table.put("Undo settings import",
                 "Desfazer importa\u00e7\u00e3o das configura\u00e7\u00f5es");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "At\u00e9 %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -2174,9 +2217,6 @@ public final class L10nTranslations {
                 "Atualizando posi\u00e7\u00f5es salvas...");
         table.put("Version",
                 "Vers\u00e3o");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Vers\u00e3o %1$s para o Instagram %2$s");
         table.put("Video file name",
@@ -2218,7 +2258,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(518);
+        Map<String, String> table = new HashMap<>(528);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2228,6 +2268,10 @@ public final class L10nTranslations {
     }
 
     private static void fillTr0(Map<String, String> table) {
+        table.put("%1$d saves stopped. Reopen the media and save again.",
+                "%1$d kaydetme i\u015flemi durdu. Medyay\u0131 yeniden a\u00e7\u0131p tekrar kaydet.");
+        table.put("%1$d saves were interrupted",
+                "%1$d kaydetme i\u015flemi kesildi");
         table.put("%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.",
                 "%1$s kaydetme tarihine ve saatine, %2$s videonun Instagram'daki numaras\u0131na, %3$s payla\u015fan ki\u015finin ad\u0131na, %4$s ise payla\u015f\u0131ld\u0131\u011f\u0131 g\u00fcne d\u00f6n\u00fc\u015f\u00fcr. Kaydederken bilinmeyenler d\u0131\u015far\u0131da b\u0131rak\u0131l\u0131r ve bunlar\u0131n hi\u00e7birini i\u00e7ermeyen bir ada tarih eklenir. Ad klas\u00f6rde zaten varsa sonuna kaydetme saati eklenir. Ge\u00e7ersiz karakterler alt \u00e7izgiye d\u00f6n\u00fc\u015f\u00fcr. Varsay\u0131lan %5$s ad\u0131n\u0131 kullanmak i\u00e7in bo\u015f b\u0131rak.");
         table.put("%1$s of %2$s",
@@ -2250,6 +2294,10 @@ public final class L10nTranslations {
                 "%2$s i\u00e7indeki %1$s adl\u0131 bir dosya HushGram'u duraklatt\u0131.");
         table.put("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.",
                 "Biten bir hikaye, dokunana veya kayd\u0131rana kadar ekranda kal\u0131r. Instagram'\u0131n zamanlamas\u0131 i\u00e7in bunu kapat.");
+        table.put("A save stopped. Reopen the media and save again.",
+                "Bir kaydetme i\u015flemi durdu. Medyay\u0131 yeniden a\u00e7\u0131p tekrar kaydet.");
+        table.put("A save was interrupted",
+                "Bir kaydetme i\u015flemi kesildi");
         table.put("About",
                 "Hakk\u0131nda");
         table.put("Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.",
@@ -2340,6 +2388,9 @@ public final class L10nTranslations {
                 "Reel izleme ge\u00e7mi\u015fini g\u00f6nderme");
         table.put("Download",
                 "\u0130ndir");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("Download failed",
                 "\u0130ndirme ba\u015far\u0131s\u0131z oldu");
         table.put("Download feed photos",
@@ -2348,9 +2399,6 @@ public final class L10nTranslations {
                 "Ak\u0131\u015ftaki videolar\u0131 indir");
         table.put("Download on reels",
                 "Reels'te indir");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("Download on stories",
                 "Hikayelerde indir");
         table.put("Download quality",
@@ -2463,6 +2511,9 @@ public final class L10nTranslations {
                 "Instagram telefonunun reklam kimli\u011fini okuyamaz ve Android'in reklam hizmetlerine hangi reklamlar\u0131 g\u00f6rd\u00fc\u011f\u00fcn\u00fc veya dokundu\u011funu bildiremez. Bunlar i\u00e7in gereken izinler bu s\u00fcr\u00fcmden kald\u0131r\u0131ld\u0131.");
         table.put("Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.",
                 "Instagram a\u00e7\u0131ld\u0131ktan sonraki bir dakika i\u00e7inde \u00fcst \u00fcste \u00fc\u00e7 kez \u00e7\u00f6kt\u00fc veya dondu, bu y\u00fczden HushGram kendini duraklatt\u0131.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.",
                 "Instagram hangi reelleri izledi\u011fini ve ne kadar\u0131n\u0131 izledi\u011fini \u00f6\u011frenmez. Reels ak\u0131\u015f\u0131n\u0131 buna g\u00f6re s\u0131ralar ve bunu ba\u015fka kimse g\u00f6rmez. \u0130zledi\u011fin reeller yeniden kar\u015f\u0131na \u00e7\u0131kabilir.");
         table.put("Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.",
@@ -2471,9 +2522,6 @@ public final class L10nTranslations {
                 "Instagram, her video oynat\u0131l\u0131rken kaliteyi ba\u011flant\u0131na g\u00f6re se\u00e7er.");
         table.put("Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.",
                 "Instagram bu s\u00fcr\u00fcm\u00fcn \u00e7ok eski oldu\u011funu s\u00f6yleyen ekran\u0131 art\u0131k g\u00f6stermez. Yamalanm\u0131\u015f bir s\u00fcr\u00fcm kendi kendine g\u00fcncellenmez, bu y\u00fczden bu onu kullan\u0131labilir tutar.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.",
                 "Instagram'\u0131n karanl\u0131k modu, siyaha yak\u0131n grisi yerine saf siyah kullan\u0131r. Men\u00fcler, sayfalar ve d\u00fc\u011fmeler kendi gri tonlar\u0131n\u0131 korur.");
         table.put("Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.",
@@ -2558,6 +2606,8 @@ public final class L10nTranslations {
                 "S\u00fcresi dolan s\u00fcr\u00fcm uyar\u0131s\u0131n\u0131 kald\u0131r");
         table.put("Remove the empty space at the bottom",
                 "Alttaki bo\u015f alan\u0131 kald\u0131r");
+        table.put("Reopen the media and save again.",
+                "Medyay\u0131 yeniden a\u00e7\u0131p tekrar kaydet.");
         table.put("Restart Instagram to apply these choices.",
                 "Bu se\u00e7imleri uygulamak i\u00e7in Instagram'\u0131 yeniden ba\u015flat\u0131n.");
         table.put("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.",
@@ -2584,6 +2634,9 @@ public final class L10nTranslations {
                 "Videolar\u0131 di\u011fer uygulamalar\u0131n a\u00e7abilece\u011fi bi\u00e7imde kaydet");
         table.put("Saved to %1$s",
                 "\u015euraya kaydedildi: %1$s");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Saved to %1$s in lower quality than on Instagram",
                 "\u015euraya Instagram'dakinden d\u00fc\u015f\u00fck kalitede kaydedildi: %1$s");
         table.put("Saved to the gallery",
@@ -2594,9 +2647,6 @@ public final class L10nTranslations {
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Instagram'u yeniden ba\u015flat.");
         table.put("Saving a photo",
                 "Foto\u011fraf kaydediliyor");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Saving a video",
                 "Video kaydediliyor");
         table.put("Saving...",
@@ -2707,6 +2757,9 @@ public final class L10nTranslations {
                 "Geri y\u00fckleme s\u00fcresi doldu.");
         table.put("Undo settings import",
                 "Ayarlar\u0131 i\u00e7e aktarmay\u0131 geri al");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Up to %1$s",
                 "En fazla %1$s");
         table.put("Up to 200 positions, kept for 30 days. Tap to clear them from this device.",
@@ -2717,9 +2770,6 @@ public final class L10nTranslations {
                 "Kaydedilen konumlar g\u00fcncelleniyor...");
         table.put("Version",
                 "S\u00fcr\u00fcm");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Version %1$s for Instagram %2$s",
                 "Instagram %2$s i\u00e7in %1$s s\u00fcr\u00fcm\u00fc");
         table.put("Video file name",

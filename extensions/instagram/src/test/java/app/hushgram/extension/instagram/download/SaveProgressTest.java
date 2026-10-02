@@ -105,11 +105,13 @@ public class SaveProgressTest {
     }
 
     @After
-    public void tearDown() throws IOException {
+    public void tearDown() throws Exception {
         release.countDown();
         server.close();
         MediaSave.policyForTests = null;
         LogBufferManager.clearLogBuffer();
+        app.hushgram.extension.shared.Utils.awaitBackgroundTasksForTests();
+        SaveLeftovers.forgetSweepForTests();
     }
 
     /** A save on the feature's own worker, as a tap starts one, of [path] into the gallery. */
@@ -891,7 +893,18 @@ public class SaveProgressTest {
 
         @Override public Cursor query(Uri uri, String[] projection, String selection,
                 String[] selectionArgs, String sortOrder) {
-            return new MatrixCursor(projection == null ? new String[0] : projection);
+            String[] columns = projection == null ? new String[0] : projection;
+            MatrixCursor cursor = new MatrixCursor(columns);
+            String last = uri.getLastPathSegment();
+            if (last != null && last.matches("[0-9]+")) {
+                ContentValues row = rows.get(ContentUris.parseId(uri));
+                if (row != null) {
+                    Object[] values = new Object[columns.length];
+                    for (int i = 0; i < columns.length; i++) values[i] = row.get(columns[i]);
+                    cursor.addRow(values);
+                }
+            }
+            return cursor;
         }
 
         @Override public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {

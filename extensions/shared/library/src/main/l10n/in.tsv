@@ -259,3 +259,8 @@ Couldn't save the settings. The previous values were restored.	Pengaturan tidak 
 Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Pembatalan tidak dapat memulihkan semua pengaturan. Periksa nilai yang ditampilkan; opsi pembatalan sudah digunakan.
 Couldn't save or fully restore the settings. Check the shown values and try Undo.	Pengaturan tidak dapat disimpan atau dipulihkan sepenuhnya. Periksa nilai yang ditampilkan dan coba batalkan.
 Couldn't start the settings operation. Try again.	Operasi pengaturan tidak dapat dimulai. Coba lagi.
+A save stopped. Reopen the media and save again.	Penyimpanan terhenti. Buka kembali media dan simpan lagi.
+%1$d saves stopped. Reopen the media and save again.	%1$d penyimpanan terhenti. Buka kembali media dan simpan lagi.
+A save was interrupted	Penyimpanan terputus
+%1$d saves were interrupted	%1$d penyimpanan terputus
+Reopen the media and save again.	Buka kembali media dan simpan lagi.

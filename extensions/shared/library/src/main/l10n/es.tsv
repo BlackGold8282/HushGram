@@ -259,3 +259,8 @@ Couldn't save the settings. The previous values were restored.	No se pudieron gu
 Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	No se pudieron restaurar todos los ajustes. Revisa los valores que se muestran; ya se ha usado Deshacer.
 Couldn't save or fully restore the settings. Check the shown values and try Undo.	No se pudieron guardar ni restaurar todos los ajustes. Revisa los valores que se muestran e intenta deshacer.
 Couldn't start the settings operation. Try again.	No se pudo iniciar la operación de ajustes. Inténtalo de nuevo.
+A save stopped. Reopen the media and save again.	Se detuvo un guardado. Vuelve a abrir el contenido y guárdalo otra vez.
+%1$d saves stopped. Reopen the media and save again.	Se detuvieron %1$d guardados. Vuelve a abrir el contenido y guárdalo otra vez.
+A save was interrupted	Se interrumpió un guardado
+%1$d saves were interrupted	Se interrumpieron %1$d guardados
+Reopen the media and save again.	Vuelve a abrir el contenido y guárdalo otra vez.
