@@ -89,15 +89,15 @@ function Confirm-HushgramDevice {
     foreach ($query in $queries) {
         $result = Invoke-HushgramAdbCommand -Adb $Adb -Arguments (@('-s', $serial) + $query) -Invoker $AdbInvoker -DeviceLease $DeviceLease
         if ($result.ExitCode -ne 0) { throw 'Could not verify the selected device identity.' }
-        $answers += (@($result.Output) -join "`n").Trim()
+        $answers += (@($result.Stdout) -join "`n").Trim()
     }
     if ($answers[0] -cne $serial -or $answers[1] -cne $DeviceLease.Record.expectedModel) { throw 'Selected device identity does not match the requested device.' }
     $instructionSets = @{'arm64-v8a'='arm64';'armeabi-v7a'='arm';'x86_64'='x86_64';'x86'='x86'}
     if (-not $instructionSets.ContainsKey($answers[2])) { throw 'Unsupported device instruction set.' }
     if ($serial.StartsWith('emulator-')) {
         $result = Invoke-HushgramAdbCommand -Adb $Adb -Arguments @('-s', $serial, 'emu', 'avd', 'name') -Invoker $AdbInvoker -DeviceLease $DeviceLease
-        if ($result.ExitCode -ne 0 -or @($result.Output).Count -ne 2 -or $result.Output[1] -cne 'OK' -or
-            $result.Output[0] -cne $DeviceLease.Record.expectedAvd) { throw 'Selected emulator profile does not match the requested profile.' }
+        if ($result.ExitCode -ne 0 -or @($result.Stdout).Count -ne 2 -or $result.Stdout[1] -cne 'OK' -or
+            $result.Stdout[0] -cne $DeviceLease.Record.expectedAvd) { throw 'Selected emulator profile does not match the requested profile.' }
     }
     $DeviceLease.InstructionSet = $instructionSets[$answers[2]]
     $DeviceLease.Verified = $true

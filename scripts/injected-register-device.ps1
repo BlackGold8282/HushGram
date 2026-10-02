@@ -30,9 +30,12 @@ function Invoke-HushgramAdbCommand {
         if ($null -eq $result -or $null -eq $result.ExitCode) {
             throw 'The ADB invoker returned no exit code.'
         }
+        $standardOutput = @()
+        if ($result.PSObject.Properties['Stdout']) { $standardOutput = @($result.Stdout) }
         return [pscustomobject]@{
             ExitCode = [int]$result.ExitCode
             Output = @($result.Output | ForEach-Object { "$_" })
+            Stdout = @($standardOutput | ForEach-Object { "$_" })
         }
     }
 
@@ -50,9 +53,11 @@ function Invoke-HushgramAdbCommand {
         $stdout = $process.StandardOutput.ReadToEndAsync()
         $stderr = $process.StandardError.ReadToEndAsync()
         while (-not $process.WaitForExit(30000)) { Update-HushgramDeviceLease $DeviceLease }
-        $output = @(($stdout.GetAwaiter().GetResult() + "`n" + $stderr.GetAwaiter().GetResult()) -split '\r*\n|\r' |
+        $standardOutput = @($stdout.GetAwaiter().GetResult() -split '\r*\n|\r' |
             Where-Object { $_ -ne '' })
-        [pscustomobject]@{ ExitCode = $process.ExitCode; Output = $output }
+        $standardError = @($stderr.GetAwaiter().GetResult() -split '\r*\n|\r' |
+            Where-Object { $_ -ne '' })
+        [pscustomobject]@{ ExitCode = $process.ExitCode; Output = @($standardOutput + $standardError); Stdout = $standardOutput }
     } finally {
         # Keep ownership while a started ADB operation finishes, including an exceptional path.
         if ($started -and -not $process.HasExited) { $process.WaitForExit() }

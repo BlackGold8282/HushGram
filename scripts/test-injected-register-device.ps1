@@ -130,7 +130,7 @@ try {
             'ro.product.cpu.abi' { 'arm64-v8a' }
             default { throw 'Unexpected identity query' }
         }
-        [pscustomobject]@{ExitCode=0;Output=@($answer)}
+        [pscustomobject]@{ExitCode=0;Output=@($answer);Stdout=@($answer)}
     }
     $deviceLease = Enter-HushgramDeviceLease -Serial 'SERIAL' -ExpectedModel 'FixtureDevice' -Directory $leaseDirectory
     $leasePath = Join-Path $leaseDirectory 'SERIAL.json'
@@ -197,7 +197,7 @@ try {
                 'name' { @($Avd,'OK') }
                 default { throw 'Unexpected identity query' }
             }
-            [pscustomobject]@{ExitCode=0;Output=@($answer)}
+            [pscustomobject]@{ExitCode=0;Output=@($answer);Stdout=@($answer)}
         }.GetNewClosure()
     }
     foreach ($invalid in @(@{Serial='OTHER'}, @{Model='OtherDevice'}, @{Abi='unsupported'})) {
@@ -228,13 +228,75 @@ try {
     # which the injected invoker fixtures cannot reproduce at the byte boundary.
     $nativeSource = Join-Path $leaseDirectory 'FakeAdb.cs'
     $nativeAdb = Join-Path $leaseDirectory 'FakeAdb.exe'
-    [IO.File]::WriteAllText($nativeSource, 'class FakeAdb { static int Main(string[] args) { if (args.Length != 3 || args[0] != "-s" || args[1] != "SERIAL" || args[2] != "get-state") return 92; System.Console.Write("FixtureAvd\r\r\nOK\r\r\n"); return 0; } }')
+    $nativeMode = Join-Path $leaseDirectory 'FakeAdb.mode'
+    [IO.File]::WriteAllText($nativeSource, @'
+class FakeAdb {
+    static int Main(string[] args) {
+        if (args.Length < 3 || args[0] != "-s" || (args[1] != "SERIAL" && args[1] != "emulator-9998")) return 92;
+        string command = string.Join(" ", args, 2, args.Length - 2);
+        if (command == "get-state") { System.Console.Write("FixtureAvd\r\r\nOK\r\r\n"); return 0; }
+        string modePath = System.IO.Path.ChangeExtension(System.Reflection.Assembly.GetExecutingAssembly().Location, ".mode");
+        string mode = System.IO.File.Exists(modePath) ? System.IO.File.ReadAllText(modePath) : "";
+        if (mode == "failure") {
+            System.Console.Write("offline\r\n");
+            System.Console.Error.Write("error: device offline\r\n");
+            return 93;
+        }
+        string answer;
+        switch (command) {
+            case "get-serialno": answer = mode == "serial" ? "OTHER" : args[1]; break;
+            case "shell getprop ro.product.model": answer = mode == "model" ? "OtherDevice" : "FixtureDevice"; break;
+            case "shell getprop ro.product.cpu.abi":
+                answer = mode == "abi" ? "unsupported" : args[1] == "SERIAL" ? "arm64-v8a" : "x86_64"; break;
+            case "emu avd name": answer = (mode == "avd" ? "OtherAvd" : "FixtureAvd") + "\r\r\nOK"; break;
+            default: return 92;
+        }
+        System.Console.Write(answer + "\r\r\n");
+        System.Console.Error.Write("* daemon not running; starting now at tcp:5037\r\r\n* daemon started successfully\r\r\n");
+        return 0;
+    }
+}
+'@)
     $compiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
     & $compiler /nologo /target:exe "/out:$nativeAdb" $nativeSource
     Assert-True ($LASTEXITCODE -eq 0) 'The native ADB-output fixture did not compile.'
     $nativeResult = Invoke-HushgramAdbCommand -Adb $nativeAdb -Arguments @('-s','SERIAL','get-state') -DeviceLease $deviceLease
     Assert-True ($nativeResult.ExitCode -eq 0 -and $nativeResult.Output.Count -eq 2 -and $nativeResult.Output[0] -ceq 'FixtureAvd' -and $nativeResult.Output[1] -ceq 'OK') `
         'Native Windows ADB line endings corrupted the emulator identity response.'
+
+    # A daemon startup is successful, but its stderr notices are not identity answers.
+    Confirm-HushgramDevice -Adb $nativeAdb -DeviceLease $deviceLease
+    Assert-True ($deviceLease.Verified -and $deviceLease.InstructionSet -ceq 'arm64') 'Native identity with daemon startup notices was refused.'
+    $nativeIdentity = Invoke-HushgramAdbCommand -Adb $nativeAdb -Arguments @('-s','SERIAL','get-serialno') -DeviceLease $deviceLease
+    Assert-True ($nativeIdentity.Stdout.Count -eq 1 -and $nativeIdentity.Stdout[0] -ceq 'SERIAL') 'Native stderr contaminated the separate identity output.'
+    Assert-True (($nativeIdentity.Output -join "`n") -ceq "SERIAL`n* daemon not running; starting now at tcp:5037`n* daemon started successfully") `
+        'Separating identity stdout dropped combined ADB diagnostics.'
+
+    function Assert-NativeIdentityRefused {
+        param($Lease, [string]$Mode)
+        [IO.File]::WriteAllText($nativeMode, $Mode)
+        try {
+            $denied = $false
+            try { Confirm-HushgramDevice -Adb $nativeAdb -DeviceLease $Lease }
+            catch { $denied = $true }
+            Assert-True ($denied -and -not $Lease.Verified -and $null -eq $Lease.InstructionSet) "Native $Mode identity failure retained verification."
+            $denied = $false
+            try { [void](Invoke-HushgramAdbCommand -Adb fake-adb -Arguments @('-s',$Lease.Record.serial,'install','fixture.apk') -Invoker $unleased.Invoker -DeviceLease $Lease) }
+            catch { $denied = $true }
+            Assert-True ($denied -and $unleased.State.Calls.Count -eq 0) "Native $Mode identity failure permitted an install."
+        } finally { [IO.File]::Delete($nativeMode) }
+    }
+    foreach ($mode in @('serial','model','abi')) { Assert-NativeIdentityRefused -Lease $deviceLease -Mode $mode }
+    Assert-NativeIdentityRefused -Lease $deviceLease -Mode failure
+    [IO.File]::WriteAllText($nativeMode, 'failure')
+    try {
+        $nativeFailure = Invoke-HushgramAdbCommand -Adb $nativeAdb -Arguments @('-s','SERIAL','get-serialno') -DeviceLease $deviceLease
+        Assert-True ($nativeFailure.ExitCode -eq 93 -and ($nativeFailure.Stdout -join "`n") -ceq 'offline' -and
+            ($nativeFailure.Output -join "`n") -ceq "offline`nerror: device offline") 'Native failure lost its exit code or stdout/stderr diagnostics.'
+        Assert-True ((Format-HushgramAdbFailure -Message 'Could not query fixture' -Result $nativeFailure) -ceq
+            'Could not query fixture (ADB exit 93). Output: offline; error: device offline') 'Native failure formatting lost combined diagnostics.'
+    } finally { [IO.File]::Delete($nativeMode) }
+    Confirm-HushgramDevice -Adb $nativeAdb -DeviceLease $deviceLease
 
     $emulatorLease = Enter-HushgramDeviceLease -Serial emulator-9998 -ExpectedModel FixtureDevice -ExpectedAvd FixtureAvd -Directory $leaseDirectory
     try {
@@ -244,6 +306,9 @@ try {
         Assert-True ($denied -and -not $emulatorLease.Verified) 'The wrong emulator profile was accepted.'
         Confirm-HushgramDevice -Adb fake-adb -DeviceLease $emulatorLease -AdbInvoker (New-IdentityInvoker -Serial emulator-9998 -Abi x86_64)
         Assert-True ($emulatorLease.Verified -and $emulatorLease.InstructionSet -ceq 'x86_64') 'The correct emulator profile was refused.'
+        Confirm-HushgramDevice -Adb $nativeAdb -DeviceLease $emulatorLease
+        Assert-True ($emulatorLease.Verified -and $emulatorLease.InstructionSet -ceq 'x86_64') 'Native emulator identity with daemon startup notices was refused.'
+        Assert-NativeIdentityRefused -Lease $emulatorLease -Mode avd
     } finally { Exit-HushgramDeviceLease $emulatorLease }
     $wrongOwner = Enter-HushgramDeviceLease -Serial OWNER -ExpectedModel FixtureDevice -Directory $leaseDirectory
     $ownerPath = $wrongOwner.Path

@@ -6,6 +6,8 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Tooling:** Device identity checks read ADB's standard output separately from diagnostic messages. A successful daemon startup no longer rejects the selected phone or emulator, while command failures keep their full diagnostics and invalid identities still refuse installation.
+
 * **Tooling:** Prepare source version 0.0.4 with the audit corrections. The published release and source index remain at 0.0.3.
 
 * **Instagram:** A failed sign-in notice dismissal asks for a retry without claiming that storage was restored. Its earlier message could make that claim even when the write landed and rollback failed. All five translations carry the corrected feedback.
