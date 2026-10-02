@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Direct MetaConfig discovery now verifies the native editor and navigation objects reach the presenter, refusing overwritten values and unsafe branch entries before changing the app.
 * **Tooling:** Export the English catalog and translations as Crowdin-compatible JSON, then validate complete or explicit partial local imports before replacing a table. Unchanged round trips retain exact bytes; format, escape, plural and input limits are checked. Imports coordinate through owned locks; unrelated editors must stop writing the destination during an import. Hosted translation approval remains separate.
 * **Instagram:** Save recovery can retire an already-removed Samsung gallery row even when its next delete reports no access. It requires a successful exact-row query; pending or unreadable rows stay queued for cleanup, and published files are kept.
 * **Instagram:** Open MetaConfig overrides from HushGram's Developer section without enabling Home long press or changing a flag. Unsupported or signed-out screens keep settings open with an explanation; successful navigation closes them.

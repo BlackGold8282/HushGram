@@ -14,7 +14,14 @@ import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -75,17 +82,17 @@ internal fun BytecodePatchContext.findOverrideEditor(): OverrideEditor {
             ref?.toString()?.startsWith("$MODAL->") == true
         } != false) editorRefuse("native session accessor doesn't support modal activities")
 
-    val factory = (maxOf(0, newEditor - 8) until newEditor).mapNotNull { index ->
+    val (factoryIndex, factory) = (maxOf(0, newEditor - 8) until newEditor).mapNotNull { index ->
         if (code[index].opcode != Opcode.INVOKE_STATIC) null
         else ((code[index] as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
             it.parameterTypes.map(Any::toString) == listOf(ACTIVITY, session) && it.returnType.startsWith("L")
-        }
+        }?.let { index to it }
     }.singleOrNull() ?: editorRefuse("override branch has no unique navigation factory")
-    val present = (title + 1 until minOf(code.size, title + 10)).mapNotNull { index ->
+    val (presentIndex, present) = (title + 1 until minOf(code.size, title + 16)).mapNotNull { index ->
         if (code[index].opcode != Opcode.INVOKE_STATIC) null
         else ((code[index] as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
             it.parameterTypes.map(Any::toString) == listOf(FRAGMENT, factory.returnType) && it.returnType == "V"
-        }
+        }?.let { index to it }
     }.singleOrNull() ?: editorRefuse("override branch has no unique navigation presenter")
     for (reference in listOf(factory, present)) {
         val owner = classDefBy(reference.definingClass)
@@ -94,12 +101,83 @@ internal fun BytecodePatchContext.findOverrideEditor(): OverrideEditor {
                     AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags)
             }) editorRefuse("native navigation reference isn't public static")
     }
+    branch.requireNativeObjects(code, factoryIndex, newEditor, presentIndex, fragment)
     // Refuse a missing bridge before the Home handler can be changed.
     overrideStub()
     return OverrideEditor("$IG_ACTIVITY->${getter.name}()$session", factory.toString(), fragment, present.toString())
 }
 
 private fun Method.isPublicInstance() = AccessFlags.PUBLIC.isSet(accessFlags) && !AccessFlags.STATIC.isSet(accessFlags)
+
+private enum class NativeObject { NAVIGATION, NEW_EDITOR, EDITOR }
+
+/** Prove that one native straight-line branch presents its initialized editor and factory result. */
+private fun Method.requireNativeObjects(code: List<Instruction>, factory: Int, editor: Int, present: Int, fragment: String) {
+    val addresses = IntArray(code.size + 1)
+    code.forEachIndexed { index, instruction -> addresses[index + 1] = addresses[index] + instruction.codeUnits }
+    fun entersBranch(address: Int) = address > addresses[factory] && address <= addresses[present]
+    for ((index, instruction) in code.withIndex()) {
+        if (index in factory..present) {
+            if (instruction is OffsetInstruction || instruction.opcode in setOf(
+                    Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.THROW,
+                )) editorRefuse("native override object flow isn't straight-line")
+        } else if (instruction is OffsetInstruction) {
+            val target = addresses[index] + instruction.codeOffset
+            if (entersBranch(target)) editorRefuse("another branch enters native override object flow")
+            if (instruction.opcode == Opcode.PACKED_SWITCH || instruction.opcode == Opcode.SPARSE_SWITCH) {
+                val payload = addresses.indexOf(target).takeIf { it in code.indices }?.let { code[it] as? SwitchPayload }
+                    ?: editorRefuse("native branch has an unreadable switch")
+                if (payload.switchElements.any { entersBranch(addresses[index] + it.offset) }) {
+                    editorRefuse("a switch enters native override object flow")
+                }
+            }
+        }
+    }
+    if (implementation!!.tryBlocks.any { block -> block.exceptionHandlers.any { entersBranch(it.handlerCodeAddress) } }) {
+        editorRefuse("an exception handler enters native override object flow")
+    }
+    val result = code.getOrNull(factory + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT } as? OneRegisterInstruction
+        ?: editorRefuse("native navigation factory result isn't retained")
+    val objects = mutableMapOf(result.registerA to NativeObject.NAVIGATION)
+    for (index in factory + 2..present) {
+        val instruction = code[index]
+        if (index == present) {
+            val args = instruction.nativeArguments()
+            if (args.size != 2 || objects[args[0]] != NativeObject.EDITOR || objects[args[1]] != NativeObject.NAVIGATION) {
+                editorRefuse("native presenter doesn't receive the constructed editor and factory result")
+            }
+            break
+        }
+        if (instruction.opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)) {
+            val move = instruction as TwoRegisterInstruction
+            val origin = objects[move.registerB]
+            objects.remove(move.registerA)
+            if (origin != null) objects[move.registerA] = origin
+            continue
+        }
+        if (instruction.opcode == Opcode.CHECK_CAST) continue
+        if (instruction.opcode.setsRegister()) {
+            val written = (instruction as OneRegisterInstruction).registerA
+            objects.remove(written)
+            if (instruction.opcode.setsWideRegister()) objects.remove(written + 1)
+        }
+        if (index == editor) objects[(instruction as OneRegisterInstruction).registerA] = NativeObject.NEW_EDITOR
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        if (instruction.opcode in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) &&
+            reference?.definingClass == fragment && reference.name == "<init>" && reference.parameterTypes.isEmpty()
+        ) {
+            val receiver = instruction.nativeArguments().singleOrNull()
+            if (objects[receiver] != NativeObject.NEW_EDITOR) editorRefuse("native editor constructor has another receiver")
+            objects.replaceAll { _, origin -> if (origin == NativeObject.NEW_EDITOR) NativeObject.EDITOR else origin }
+        }
+    }
+}
+
+private fun Instruction.nativeArguments(): List<Int> = when (this) {
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    else -> editorRefuse("native call has unreadable argument registers")
+}
 
 private fun BytecodePatchContext.overrideStub() = mutableClassDefBy(OVERRIDE_BRIDGE).methods.singleOrNull {
     it.name == "openOverridesNative" && it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;") &&

@@ -68,6 +68,70 @@ class OverrideEditorTest {
         }
     }
 
+    @Test fun signatureMatchesWithoutTheSameNativeObjectsRefuseBeforeMutation() {
+        val show = "invoke-static { v1, v0 }, $native->present($androidFragment$navigation)V"
+        val cases = mapOf<String, (String) -> String>(
+            "discarded result" to { it.replace("move-result-object v0", "move-result-object v0\nconst/4 v0, 0x0") },
+            "missing result" to { it.replace("move-result-object v0", "nop") },
+            "wrong navigator" to { it.replace(show, show.replace("v1, v0", "v1, v2")) },
+            "wrong fragment" to { it.replace(show, show.replace("v1, v0", "v2, v0")) },
+            "uninitialized fragment" to { it.replace("invoke-direct { v1 }, $fragment-><init>()V", "nop") },
+            "wide overwrite" to { it.replace(show, "const-wide v0, 0x0\n$show") },
+            "early return" to { it.replace(show, "return-void\n$show") },
+            "conditional flow" to { it.replace(show, "if-eqz v4, :show\n:show\n$show") },
+            "incoming jump" to { "if-eqz v4, :show\n" + it.replace(show, ":show\n$show") },
+            "incoming switch" to {
+                "packed-switch v4, :choices\n" + it.replace(show, ":show\n$show") +
+                    "\n:choices\n.packed-switch 0x0\n:show\n.end packed-switch"
+            },
+        )
+        for ((case, alter) in cases) {
+            val patch = PatchContexts.of(classes(alterBranch = alter))
+            val failure = runCatching { patch.fillOverrideEditor(patch.findOverrideEditor()) }.exceptionOrNull()
+            assertTrue(case, failure?.message?.startsWith("Open developer options: ") == true)
+            assertTrue(case, patch.bridge().implementation!!.instructions.none { it.opcode == Opcode.NEW_INSTANCE })
+        }
+    }
+
+    @Test fun exceptionEdgesCannotEnterAfterNativeObjectsWereCreated() {
+        val show = "invoke-static { v1, v0 }, $native->present($androidFragment$navigation)V"
+        val classes = classes(alterBranch = { it.replace(show, "move-exception v2\n$show") }).map { clazz ->
+            if (clazz.type != native) clazz else clazz(native, methods = clazz.methods.map { method ->
+                if (method.name != "branch") method else {
+                    val implementation = method.implementation!!
+                    val code = implementation.instructions.toList()
+                    val handler = code.takeWhile { it.opcode != Opcode.MOVE_EXCEPTION }.sumOf { it.codeUnits }
+                    ImmutableMethod(method.definingClass, method.name, method.parameters, method.returnType,
+                        method.accessFlags, method.annotations, method.hiddenApiRestrictions,
+                        ImmutableMethodImplementation(implementation.registerCount, code,
+                            listOf(ImmutableTryBlock(0, code.first().codeUnits,
+                                listOf(ImmutableExceptionHandler("Ljava/lang/Exception;", handler)))), implementation.debugItems))
+                }
+            })
+        }
+        assertEquals(1, classes.single { it.type == native }.methods.single { it.name == "branch" }.implementation!!.tryBlocks.size)
+        val patch = PatchContexts.of(classes)
+        val failure = runCatching { patch.fillOverrideEditor(patch.findOverrideEditor()) }.exceptionOrNull()
+        assertTrue(failure?.message?.startsWith("Open developer options: ") == true)
+        assertTrue(patch.bridge().implementation!!.instructions.none { it.opcode == Opcode.NEW_INSTANCE })
+    }
+
+    @Test fun nativeObjectAliasesCanMoveWithoutChangingTheirOrigins() {
+        val show = "invoke-static { v1, v0 }, $native->present($androidFragment$navigation)V"
+        val patch = PatchContexts.of(classes(alterBranch = {
+            it.replace(show, """
+                move-object v4, v0
+                const/4 v0, 0x0
+                move-object v3, v1
+                const/4 v1, 0x0
+                invoke-static { v3, v4 }, $native->present($androidFragment$navigation)V
+            """.trimIndent())
+        }))
+        val editor = patch.findOverrideEditor()
+        patch.fillOverrideEditor(editor)
+        assertEditor(patch, editor)
+    }
+
     @Test fun everyDeclaredHostBuildSuppliesTheDirectOverrideEditor() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
@@ -117,7 +181,7 @@ class OverrideEditorTest {
 
     private fun classes(title: String = OVERRIDE_TITLE, editorName: String = "QuickExperimentEditFragment",
                         constructorFlags: Int = public, factoryFlags: Int = static, modalSupport: Boolean = true,
-                        extraGetter: Boolean = false): List<ClassDef> = listOf(
+                        extraGetter: Boolean = false, alterBranch: (String) -> String = { it }): List<ClassDef> = listOf(
         clazz(user, supertype = session),
         clazz(main, methods = listOf(method(main, "session", emptyList(), session, 2, public, """
             const/4 v0, 0x0
@@ -130,7 +194,7 @@ class OverrideEditorTest {
             fields = listOf(ImmutableField(fragment, "__redex_internal_original_name", "Ljava/lang/String;", static,
                 ImmutableStringEncodedValue(editorName), null, null))),
         clazz(native, methods = listOf(
-            branch(native, title),
+            branch(native, title, alterBranch),
             method(native, "factory", listOf(activity, session), navigation, 3, factoryFlags, "const/4 v0, 0x0\nreturn-object v0"),
             method(native, "present", listOf(androidFragment, navigation), "V", 2, static, "return-void"),
         )), bridgeClass(),
@@ -139,7 +203,8 @@ class OverrideEditorTest {
     private fun bridgeClass() = clazz(OVERRIDE_BRIDGE, methods = listOf(method(OVERRIDE_BRIDGE, "openOverridesNative",
         listOf("Ljava/lang/Object;"), "I", 2, static, "const/4 v0, 0x0\nreturn v0")))
 
-    private fun branch(owner: String, title: String = OVERRIDE_TITLE) = method(owner, "branch", emptyList(), "V", 5, static, """
+    private fun branch(owner: String, title: String = OVERRIDE_TITLE, alter: (String) -> String = { it }) =
+        method(owner, "branch", emptyList(), "V", 5, static, alter("""
         invoke-static { v0, v1 }, $native->factory($activity$session)$navigation
         move-result-object v0
         new-instance v1, $fragment
@@ -155,7 +220,7 @@ class OverrideEditorTest {
         invoke-virtual { v1, v2 }, $androidFragment->setArguments(Landroid/os/Bundle;)V
         invoke-static { v1, v0 }, $native->present($androidFragment$navigation)V
         return-void
-    """.trimIndent())
+    """.trimIndent()))
 
     private fun clazz(type: String, supertype: String = "Ljava/lang/Object;", fields: List<ImmutableField> = emptyList(),
                       methods: List<Method> = emptyList()): ClassDef = ImmutableClassDef(type, public, supertype, null, null, null, fields, methods)
