@@ -171,8 +171,53 @@ public final class ResumePlayback {
     private static final AtomicBoolean AGED = new AtomicBoolean();
     @Nullable
     private static ResumePoints points;
+    /** The only Undo copy is in this process. Every access is under POINTS_LOCK. */
+    @Nullable private static Map<String, ResumePoints.Point> clearedPoints;
+    @Nullable private static ResumePoints clearedStore;
+    private static long undoUntil;
+    public static final long UNDO_WINDOW_MS = 10_000;
 
     private ResumePlayback() {
+    }
+
+    /** Called on a worker by Settings, independently of the playback switch or Pause. */
+    public static void clearHistory() {
+        synchronized (POINTS_LOCK) {
+            clearedPoints = null;
+            clearedStore = null;
+            ResumePoints store = points();
+            if (store == null) throw new IllegalStateException("Resume store unavailable");
+            Map<String, ResumePoints.Point> snapshot = store.clear(System.currentTimeMillis());
+            PLAYERS.clear();
+            clearedPoints = snapshot;
+            clearedStore = store;
+            undoUntil = SystemClock.elapsedRealtime() + UNDO_WINDOW_MS;
+            Utils.runOnMainThreadDelayed(ResumePlayback::canUndoHistory, UNDO_WINDOW_MS);
+        }
+    }
+
+    /** Expiry releases the snapshot even when nobody taps Undo. */
+    public static boolean canUndoHistory() {
+        synchronized (POINTS_LOCK) {
+            if (clearedPoints != null && SystemClock.elapsedRealtime() >= undoUntil) {
+                clearedPoints = null;
+                clearedStore = null;
+            }
+            return clearedPoints != null;
+        }
+    }
+
+    /** Consumes Undo before writing. An old queued seek stays cancelled even after Undo. */
+    public static boolean undoHistory() {
+        synchronized (POINTS_LOCK) {
+            if (!canUndoHistory()) return false;
+            Map<String, ResumePoints.Point> snapshot = clearedPoints;
+            ResumePoints store = clearedStore;
+            clearedPoints = null;
+            clearedStore = null;
+            store.restore(snapshot, System.currentTimeMillis());
+            return true;
+        }
     }
 
     // ------------------------------------------------------------------ what the patch fills in
@@ -352,56 +397,61 @@ public final class ResumePlayback {
 
     /** The resume itself, once Instagram's start is done: the seek, unless something moved first. */
     static void resume(Object player, State state, String videoId, int target, int length) {
-        try {
-            if (!on()) return;
-            Facts facts = readFacts(player);
-            if (facts == null || !videoId.equals(facts.videoId) || !PLAYERS.isCurrent(player, state)) {
-                skipped(MOVED_ON);
-                return;
-            }
-            if (!PLAYERS.beginSeek(state)) {
-                skipped(SEEKED_FIRST);
-                return;
-            }
-            boolean sought;
+        // Clear and the final seek are serialized, so a cleared queued restore cannot race through.
+        synchronized (POINTS_LOCK) {
             try {
-                sought = access.seek(player, target);
-            } finally {
-                PLAYERS.endSeek(state);
+                if (!on()) return;
+                Facts facts = readFacts(player);
+                if (facts == null || !videoId.equals(facts.videoId) || !PLAYERS.isCurrent(player, state)) {
+                    skipped(MOVED_ON);
+                    return;
+                }
+                if (!PLAYERS.beginSeek(state)) {
+                    skipped(SEEKED_FIRST);
+                    return;
+                }
+                boolean sought;
+                try {
+                    sought = access.seek(player, target);
+                } finally {
+                    PLAYERS.endSeek(state);
+                }
+                if (!sought) {
+                    HookStatus.missingMember(FAMILY, "method", "IgVideoPlayerImpl", "the seek");
+                    return;
+                }
+                HookStatus.bound(FAMILY, "resume seek");
+                count(RESUMED);
+                log(() -> "Resume long videos: resumed at " + clock(target) + " of " + clock(length));
+            } catch (Throwable failure) {
+                HookStatus.threw(FAMILY, "resume", failure);
             }
-            if (!sought) {
-                HookStatus.missingMember(FAMILY, "method", "IgVideoPlayerImpl", "the seek");
-                return;
-            }
-            HookStatus.bound(FAMILY, "resume seek");
-            count(RESUMED);
-            log(() -> "Resume long videos: resumed at " + clock(target) + " of " + clock(length));
-        } catch (Throwable failure) {
-            HookStatus.threw(FAMILY, "resume", failure);
         }
     }
 
     /** Saves where [player]'s video is, or forgets its point when it's at the end. [why] goes in the log. */
     static void remember(Object player, long now, String why) {
-        Facts facts = readFacts(player);
-        if (facts == null) return;
-        int length = readDuration(player);
-        if (skipReason(facts, length) != null) return;
-        int at = readPosition(player);
-        if (at == NOT_PATCHED_TIME || at < 0) return;
-        ResumePoints store = points();
-        if (store == null) return;
-        if (at >= length - END_MARGIN_MS) {
-            if (store.remove(facts.videoId, now)) {
-                count(CLEARED);
-                log(() -> "Resume long videos: forgot a point at the end of " + clock(length));
+        synchronized (POINTS_LOCK) {
+            Facts facts = readFacts(player);
+            if (facts == null) return;
+            int length = readDuration(player);
+            if (skipReason(facts, length) != null) return;
+            int at = readPosition(player);
+            if (at == NOT_PATCHED_TIME || at < 0) return;
+            ResumePoints store = points();
+            if (store == null) return;
+            if (at >= length - END_MARGIN_MS) {
+                if (store.remove(facts.videoId, now)) {
+                    count(CLEARED);
+                    log(() -> "Resume long videos: forgot a point at the end of " + clock(length));
+                }
+            } else if (at >= MIN_SAVED_MS) {
+                store.put(facts.videoId, at, now);
+                count(SAVED);
+                log(() -> "Resume long videos: saved " + clock(at) + " of " + clock(length) + " at " + why);
+            } else {
+                log(() -> "Resume long videos: stopped at " + clock(at) + " of " + clock(length) + ", too early to save");
             }
-        } else if (at >= MIN_SAVED_MS) {
-            store.put(facts.videoId, at, now);
-            count(SAVED);
-            log(() -> "Resume long videos: saved " + clock(at) + " of " + clock(length) + " at " + why);
-        } else {
-            log(() -> "Resume long videos: stopped at " + clock(at) + " of " + clock(length) + ", too early to save");
         }
     }
 
@@ -674,6 +724,9 @@ public final class ResumePlayback {
         PLAYERS.clear();
         synchronized (POINTS_LOCK) {
             points = null;
+            clearedPoints = null;
+            clearedStore = null;
+            undoUntil = 0;
         }
         AGED.set(false);
         access = PATCHED;

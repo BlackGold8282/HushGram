@@ -116,6 +116,52 @@ final class ResumePoints {
         return points.size();
     }
 
+    /** Clears this file durably and returns only the bounded, unexpired in-memory Undo snapshot. */
+    synchronized Map<String, Point> clear(long now) {
+        dropExpired(now);
+        Map<String, Point> snapshot = new LinkedHashMap<>(points);
+        if (!commitPoints(Collections.emptyMap())) {
+            boolean rolledBack = commitPoints(points);
+            throw new IllegalStateException("Could not clear resume points; rollback " + rolledBack);
+        }
+        points.clear();
+        return snapshot;
+    }
+
+    /** Restores the snapshot without replacing newer positions or extending their retention. */
+    synchronized void restore(Map<String, Point> snapshot, long now) {
+        dropExpired(now);
+        LinkedHashMap<String, Point> restored = new LinkedHashMap<>();
+        for (Map.Entry<String, Point> entry : snapshot.entrySet()) {
+            if (!expired(entry.getValue(), now)) restored.put(entry.getKey(), entry.getValue());
+        }
+        for (Map.Entry<String, Point> entry : points.entrySet()) {
+            restored.remove(entry.getKey());
+            restored.put(entry.getKey(), entry.getValue());
+        }
+        Iterator<String> oldest = restored.keySet().iterator();
+        while (restored.size() > MAX_POINTS && oldest.hasNext()) {
+            oldest.next();
+            oldest.remove();
+        }
+        if (!commitPoints(restored)) {
+            boolean rolledBack = commitPoints(points);
+            throw new IllegalStateException("Could not restore resume points; rollback " + rolledBack);
+        }
+        points.clear();
+        points.putAll(restored);
+    }
+
+    /** Used by clear, Undo and rollback. This private file contains no other settings. */
+    private boolean commitPoints(Map<String, Point> contents) {
+        SharedPreferences.Editor edit = store.edit().clear();
+        for (Map.Entry<String, Point> entry : contents.entrySet()) {
+            Point point = entry.getValue();
+            edit.putString(entry.getKey(), encode(point.positionMs, point.savedAt));
+        }
+        return edit.commit();
+    }
+
     /**
      * Reads the file the first time. A value that doesn't parse, a point past its age, and the
      * oldest points past the limit (a file written by a build that kept more) are removed from it.

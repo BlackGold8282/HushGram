@@ -55,6 +55,7 @@ import java.util.Set;
 
 import app.hushgram.extension.instagram.download.DownloadQuality;
 import app.hushgram.extension.instagram.media.PlaybackQuality;
+import app.hushgram.extension.instagram.media.ResumePlayback;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.SaveControl;
@@ -93,6 +94,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable
     private Preference statusCard;
 
+    @Nullable private Row clearPositions;
+    private boolean changingPositions;
+
     /** The page's dialogs that may still be on screen, which would outlive it. */
     private final List<Dialog> shownDialogs = new ArrayList<>();
 
@@ -122,6 +126,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         super.onResume();
         SaveControl.watch(saves);
         showSaves();
+        showClearPositions();
     }
 
     @Override
@@ -134,6 +139,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     public void onDestroyView() {
         for (Dialog dialog : new ArrayList<>(shownDialogs)) dialog.dismiss();
         shownDialogs.clear();
+        clearPositions = null;
         super.onDestroyView();
     }
 
@@ -317,6 +323,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS, L10n.t("Resume long videos"),
                         L10n.t("Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. "
                                 + "Live videos and ads start as usual.")));
+                clearPositions = new Row(context);
+                clearPositions.setKey("hushgram_clear_resume_points");
+                clearPositions.setPersistent(false);
+                clearPositions.actsAtOnce = true;
+                clearPositions.setOnPreferenceClickListener(p -> {
+                    changePositions();
+                    return true;
+                });
+                playback.addPreference(clearPositions);
+                showClearPositions();
             }
             if (build.contains(PatchFamily.PLAYBACK_QUALITY)) {
                 playback.addPreference(toggle(context, Settings.DEFAULT_PLAYBACK_QUALITY, L10n.t("Default playback quality"),
@@ -470,6 +486,52 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             return true;
         });
         about.addPreference(mark(licenses, SettingsIcons.LICENSE));
+    }
+
+    /** Clear remains available when playback is off or paused; it never reads media identities. */
+    private void showClearPositions() {
+        Row row = clearPositions;
+        if (row == null) return;
+        boolean undo = ResumePlayback.canUndoHistory();
+        row.setEnabled(!changingPositions);
+        row.setTitle(changingPositions ? L10n.t("Updating remembered positions...")
+                : undo ? L10n.t("Undo cleared positions") : L10n.t("Clear remembered positions"));
+        row.setSummary(undo
+                ? L10n.t("You can restore the cleared positions once within 10 seconds.")
+                : L10n.t("Up to 200 positions, kept for 30 days. Tap to clear them from this device."));
+    }
+
+    /** Disk commits run on the existing worker, with immediate feedback and no confirmation. */
+    private void changePositions() {
+        if (changingPositions) return;
+        boolean undo = ResumePlayback.canUndoHistory();
+        changingPositions = true;
+        showClearPositions();
+        if (!Utils.runOnBackgroundThread(() -> {
+            try {
+                if (undo) {
+                    boolean restored = ResumePlayback.undoHistory();
+                    Utils.showToastShort(restored ? L10n.t("Remembered playback positions restored.")
+                            : L10n.t("Undo has expired."));
+                } else {
+                    ResumePlayback.clearHistory();
+                    Utils.showToastShort(L10n.t("You cleared the remembered playback positions."));
+                }
+            } catch (Exception failure) {
+                Logger.printException(() -> "Could not update resume history", failure);
+                Utils.showToastLong(L10n.t("Could not update the remembered playback positions."));
+            } finally {
+                Utils.runOnMainThread(() -> {
+                    changingPositions = false;
+                    showClearPositions();
+                    Utils.runOnMainThreadDelayed(this::showClearPositions, ResumePlayback.UNDO_WINDOW_MS);
+                });
+            }
+        })) {
+            changingPositions = false;
+            showClearPositions();
+            Utils.showToastLong(L10n.t("Could not update the remembered playback positions."));
+        }
     }
 
     /**
