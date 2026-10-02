@@ -20,20 +20,26 @@ import app.hushgram.extension.shared.settings.HushgramPause;
  * to the next reel reads it, and so does every auto scroll switch Instagram draws. Where the answer
  * comes from is a server choice: a value kept in memory, which every start forgets; a timer you set
  * when you turn it on; or a saved preference, which Instagram itself clears whenever you leave
- * Reels in one setup. The patch passes every answer of that method, and of the saved preference's
- * getter, through {@link #answer}, and hands each choice made with Instagram's own switches that
- * turn it on or off to {@link #chosen}.
+ * Reels in one setup. The patch passes every answer of that method through {@link #answer}, every
+ * answer of the saved preference's getter through {@link #saved}, and hands each choice made with
+ * Instagram's own switches that turn it on or off to {@link #chosen}.
  *
- * <p>HushGram keeps the last choice ({@link Settings#REEL_AUTO_SCROLL_ON}). An answer of on is
- * remembered as on, and turning auto scroll off with one of Instagram's switches is remembered as
- * off. While the switch is on, Instagram's "off" is answered with what's remembered, so auto scroll
- * stays on across restarts and leaving Reels until you turn it off, and Instagram's own switches
- * show that answer. The memory follows Instagram while the switch is off too, so turning the switch
- * on later goes by your latest choice.
+ * <p>HushGram keeps the last choice ({@link Settings#REEL_AUTO_SCROLL_ON}). The check answering on
+ * is remembered as on, and turning auto scroll off with one of Instagram's switches is remembered
+ * as off. While the switch is on, Instagram's "off" is answered with what's remembered, so auto
+ * scroll stays on across restarts and leaving Reels until you turn it off, and Instagram's own
+ * switches show that answer. The memory follows Instagram while the switch is off too, so turning
+ * the switch on later goes by your latest choice.
+ *
+ * <p>The saved preference's own "on" is never remembered. In the memory and timer setups Instagram
+ * doesn't go by it, and turning auto scroll off there doesn't clear it, so an old "on" saved by the
+ * Reels tab's long press would otherwise turn auto scroll back on as soon as anything read it. Where
+ * Instagram does go by the preference, the check reads it through the getter, so its "on" still
+ * reaches {@link #answer} that way.
  *
  * <p>Paused, before the settings are read, or when anything goes wrong, Instagram's answer stands
  * and nothing is remembered. {@link #answer} runs every time the scroller checks, so it reads a
- * saved value and writes only when the choice changes. Neither hook throws.
+ * saved value and writes only when the choice changes. No hook throws.
  */
 public final class ReelAutoScroll {
     /** Where the last choice is kept: {@link Settings#REEL_AUTO_SCROLL_ON} outside tests. */
@@ -59,10 +65,10 @@ public final class ReelAutoScroll {
     }
 
     /**
-     * Injected at every return of Instagram's check of whether auto scroll is on in Reels, and of
-     * the saved auto scroll preference's getter, with Instagram's answer as an int (non-zero is
-     * yes). Answers yes when Instagram does, and while the switch is on, also when auto scroll was
-     * last left on. Otherwise answers what Instagram did.
+     * Injected at every return of Instagram's check of whether auto scroll is on in Reels, with
+     * Instagram's answer as an int (non-zero is yes). Answers yes when Instagram does, remembering
+     * it, and while the switch is on, also when auto scroll was last left on. Otherwise answers what
+     * Instagram did.
      */
     public static boolean answer(int instagram) {
         return answer(instagram, ReelAutoScroll::learning, ReelAutoScroll::switchedOn, SAVED);
@@ -84,6 +90,27 @@ public final class ReelAutoScroll {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REEL_AUTO_SCROLL, "auto scroll answer", failure);
             return scrolling;
+        }
+    }
+
+    /**
+     * Injected at every return of the saved auto scroll preference's getter, with the saved value as
+     * an int (non-zero is on). Answers on when the preference is, and while the switch is on, also
+     * when auto scroll was last left on, so the Reels tab's long press offers to turn off what's on.
+     * Remembers nothing: see the class notes.
+     */
+    public static boolean saved(int instagram) {
+        return saved(instagram, ReelAutoScroll::switchedOn, SAVED);
+    }
+
+    static boolean saved(int instagram, BooleanSupplier on, Memory memory) {
+        boolean stored = instagram != 0;
+        try {
+            HookStatus.invoked(FamilyNames.REEL_AUTO_SCROLL);
+            return stored || (on.getAsBoolean() && memory.on());
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_AUTO_SCROLL, "auto scroll saved", failure);
+            return stored;
         }
     }
 

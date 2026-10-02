@@ -633,12 +633,12 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->bind(Ljava/lang/
 # too, right after it saves its choice, so the handler's second rule is shared-call: once there and
 # in no other method holding the marker. That action (0XvB.F5o on 449) loads no string of its own,
 # so it rests on KeepReelsAutoScrollHookTest. Every answer of the saved auto scroll preference's
-# getter passes through ReelAutoScroll.answer: the getter loads no string, so it's the one static
-# method answering a boolean in the class whose initializer loads the preference's key (0CRG on
-# 449), and calls answer once. The plugin's check of whether auto scroll is on (0CrH.A01 on 449)
+# getter passes through ReelAutoScroll.saved, which remembers nothing: the getter loads no string,
+# so it's the one static method answering a boolean in the class whose initializer loads the
+# preference's key (0CRG on 449), and calls saved once. The plugin's check of whether auto scroll is on (0CrH.A01 on 449)
 # calls answer at each of its four returns, which no rule here counts, so it rests on the same
 # test, which checks on the 449 fixture that every return passes through answer. Left out, auto
 # scroll goes back to Instagram's rules; twice or elsewhere, it isn't the hook the patch wrote.
 start-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->chosen(I)V in instance (Landroidx/fragment/app/FragmentActivity;Lcom/instagram/common/session/UserSession;L*;Lkotlin/jvm/functions/Function0;IJZ)V holding android_purge_26_q3_ClipsOptInAutoscrollPluginImpl_handleAutoscrollModeClick
 shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->chosen(I)V in instance (Landroidx/fragment/app/FragmentActivity;Lcom/instagram/common/session/UserSession;L*;Lkotlin/jvm/functions/Function0;IJZ)V holding android_purge_26_q3_ClipsOptInAutoscrollPluginImpl_handleAutoscrollModeClick
-shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->answer(I)Z in static (L*;)Z class-holding preference_clips_auto_scroll_enabled
+shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->saved(I)Z in static (L*;)Z class-holding preference_clips_auto_scroll_enabled

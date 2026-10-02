@@ -50,7 +50,7 @@ class KeepReelsAutoScrollHookTest {
     private val clickParameters = listOf(
         "Landroidx/fragment/app/FragmentActivity;", session, "Lfixture/Logger;", "Lkotlin/jvm/functions/Function0;", "I", "J", "Z",
     )
-    private val hooks = setOf(AUTO_SCROLL_ANSWER, AUTO_SCROLL_CHOSEN)
+    private val hooks = setOf(AUTO_SCROLL_ANSWER, AUTO_SCROLL_SAVED, AUTO_SCROLL_CHOSEN)
 
     /** The hooks the patch writes are in the ReelAutoScroll the bundle ships, public and static. */
     @Test
@@ -79,7 +79,7 @@ class KeepReelsAutoScrollHookTest {
         val code = check.code()
         val off = code.indices.filter { code[it].opcode == Opcode.RETURN }[1]
         assertEquals("the branch to the second return lands on its answer", off - 2, check.targetOf(4))
-        assertEveryReturnAnswered("the getter", context.method(preference, "enabled"), returns = 1)
+        assertEveryReturnAnswered("the getter", context.method(preference, "enabled"), returns = 1, filter = AUTO_SCROLL_SAVED)
 
         val click = context.method(plugin, "handle")
         assertEquals("the stand-in handler's choice is in v28", 28, click.implementation!!.registerCount - 1)
@@ -186,7 +186,7 @@ class KeepReelsAutoScrollHookTest {
                 assertTrue("${bundle.name}: no branch in the check lands on a return's answer",
                     checkCode.indices.filter { checkCode[it].opcode == Opcode.RETURN }.any { it - 2 in check.jumpTargets() })
                 assertTrue("${bundle.name}: the check still reads the getter", checkCode.any { it.calls(getter) })
-                assertEveryReturnAnswered("${bundle.name}: the getter", context.method(getter), returns = 1)
+                assertEveryReturnAnswered("${bundle.name}: the getter", context.method(getter), returns = 1, filter = AUTO_SCROLL_SAVED)
                 val click = context.mutableClassDefBy(plugin.type).methods.single { AUTOSCROLL_MODE_CLICK in it.markers() }
                 assertChoiceFirst(bundle.name, click)
 
@@ -204,19 +204,21 @@ class KeepReelsAutoScrollHookTest {
     }
 
     /**
-     * Each return is the end of the answer call and its result, on the return's register; the
-     * answer is called once per return; nothing lands between the answer and its return.
+     * Each return is the end of a [filter] call and its result, on the return's register; the
+     * filter is called once per return and no other hook is called; nothing lands between the
+     * filter and its return.
      */
-    private fun assertEveryReturnAnswered(what: String, method: MutableMethod, returns: Int?) {
+    private fun assertEveryReturnAnswered(what: String, method: MutableMethod, returns: Int?, filter: String = AUTO_SCROLL_ANSWER) {
         val code = method.code()
         val at = code.indices.filter { code[it].opcode == Opcode.RETURN }
         assertTrue("$what: no returns", at.isNotEmpty())
         if (returns != null) assertEquals("$what: returns", returns, at.size)
-        assertEquals("$what: answer calls", at.size, code.count { it.referenceText() == AUTO_SCROLL_ANSWER })
+        assertEquals("$what: $filter calls", at.size, code.count { it.referenceText() == filter })
+        assertEquals("$what: other hooks", 0, code.count { it.referenceText() in hooks - filter })
         val targets = method.jumpTargets()
         for (index in at) {
             val register = (code[index] as OneRegisterInstruction).registerA
-            assertEquals("$what: the answer before return $index", AUTO_SCROLL_ANSWER, code[index - 2].referenceText())
+            assertEquals("$what: the filter before return $index", filter, code[index - 2].referenceText())
             assertEquals("$what: the answer's register at $index", listOf(register), code[index - 2].arguments())
             assertEquals("$what: the result at $index", Opcode.MOVE_RESULT, code[index - 1].opcode)
             assertEquals("$what: the result's register at $index", register, (code[index - 1] as OneRegisterInstruction).registerA)

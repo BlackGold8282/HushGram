@@ -35,6 +35,7 @@ private const val PATCH = "Keep Reels auto scroll on"
 
 internal const val REEL_AUTO_SCROLL = "$EXTENSION_PACKAGE/reels/ReelAutoScroll;"
 internal const val AUTO_SCROLL_ANSWER = "$REEL_AUTO_SCROLL->answer(I)Z"
+internal const val AUTO_SCROLL_SAVED = "$REEL_AUTO_SCROLL->saved(I)Z"
 internal const val AUTO_SCROLL_CHOSEN = "$REEL_AUTO_SCROLL->chosen(I)V"
 
 /**
@@ -63,9 +64,10 @@ private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
  *
  * Instagram 449's auto scroll plugin answers whether auto scroll is on from memory, a timer or a
  * saved preference, as its server says, and every reader (the scroller and each auto scroll switch)
- * asks the plugin. Each of its answers, and each answer of the saved preference's getter, passes
- * through the extension. The plugin's handler for its switches hands the extension the choice first
- * thing, and so does the Reels tab's long-press action, right after it saves its choice.
+ * asks the plugin. Each of its answers passes through the extension, and so does each answer of the
+ * saved preference's getter, through a hook of its own that remembers nothing. The plugin's handler
+ * for its switches hands the extension the choice first thing, and so does the Reels tab's
+ * long-press action, right after it saves its choice.
  *
  * Every method is found by Instagram's own markers, strings and kept class names, and everything is
  * found and checked before anything changes, so a build that differs stops the patch naming what
@@ -101,7 +103,7 @@ internal class MethodSite(val definingClass: String, val name: String, val param
 internal class ReelAutoScrollSites(
     /** The plugin's check of whether auto scroll is on: every return is answered. */
     val isActive: MethodSite,
-    /** The saved preference's getter: every return is answered. */
+    /** The saved preference's getter: every return goes through [AUTO_SCROLL_SAVED]. */
     val getter: MethodSite,
     /** The plugin's handler for its switches, and the register of its choice, read first thing. */
     val click: MethodSite,
@@ -218,9 +220,9 @@ internal fun BytecodePatchContext.findReelAutoScroll(): ReelAutoScrollSites {
 
 /**
  * The handler's choice goes to [AUTO_SCROLL_CHOSEN] first thing, and the long-press action's right
- * after it saves it. Then every return of the check and of the getter passes its answer through
- * [AUTO_SCROLL_ANSWER], at the return's own label, so a branch straight to a return passes through
- * it too.
+ * after it saves it. Then every return of the check passes its answer through [AUTO_SCROLL_ANSWER],
+ * and every return of the getter through [AUTO_SCROLL_SAVED], at the return's own label, so a branch
+ * straight to a return passes through it too.
  */
 internal fun BytecodePatchContext.keepReelAutoScroll(sites: ReelAutoScrollSites) {
     mutable(sites.click).addInstructions(
@@ -232,7 +234,7 @@ internal fun BytecodePatchContext.keepReelAutoScroll(sites: ReelAutoScrollSites)
         "invoke-static/range { v${sites.toggleChoice} .. v${sites.toggleChoice} }, $AUTO_SCROLL_CHOSEN",
     )
     mutable(sites.isActive).filterEveryBooleanReturn(PATCH, AUTO_SCROLL_ANSWER)
-    mutable(sites.getter).filterEveryBooleanReturn(PATCH, AUTO_SCROLL_ANSWER)
+    mutable(sites.getter).filterEveryBooleanReturn(PATCH, AUTO_SCROLL_SAVED)
 }
 
 private fun BytecodePatchContext.mutable(site: MethodSite): MutableMethod =

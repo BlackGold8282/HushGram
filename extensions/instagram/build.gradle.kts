@@ -261,6 +261,8 @@ tasks.register("verifyAndroidBoundaries") {
                 "anOnAnswerIsRememberedAndOutlivesInstagramsOff[28]", "anOnAnswerIsRememberedAndOutlivesInstagramsOff",
                 "turningItOffIsRemembered[28]", "turningItOffIsRemembered",
                 "turningItOnWaitsForInstagram[28]", "turningItOnWaitsForInstagram",
+                "aStaleSavedOnDoesNotTurnItBackOn[28]", "aStaleSavedOnDoesNotTurnItBackOn",
+                "theSavedPreferenceIsAnsweredButNeverRemembered[28]", "theSavedPreferenceIsAnsweredButNeverRemembered",
                 "nothingIsWrittenWhenTheChoiceIsUnchanged[28]", "nothingIsWrittenWhenTheChoiceIsUnchanged",
                 "offPausedAndUnreadyKeepInstagramsAnswer[28]", "offPausedAndUnreadyKeepInstagramsAnswer",
                 "aThrowingSwitchOrMemoryKeepsInstagramsAnswerAndIsReported[28]", "aThrowingSwitchOrMemoryKeepsInstagramsAnswerAndIsReported"),

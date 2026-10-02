@@ -106,6 +106,59 @@ public class ReelAutoScrollTest {
         assertFalse(ReelAutoScroll.answer(0));
     }
 
+    /**
+     * The Reels tab's long press saved on, auto scroll was turned off with the plugin's switch
+     * where Instagram goes by memory or a timer, and nothing cleared the saved preference. Reading
+     * it, as the long press does, answers Instagram's own on but remembers nothing, so the off stands.
+     */
+    @Test
+    public void aStaleSavedOnDoesNotTurnItBackOn() {
+        ReelAutoScroll.chosen(1);
+        assertTrue("the plugin turns it on", ReelAutoScroll.answer(1));
+        assertTrue(Settings.REEL_AUTO_SCROLL_ON.savedValue());
+
+        ReelAutoScroll.chosen(0);
+        assertFalse(Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        assertTrue("the getter keeps Instagram's saved on", ReelAutoScroll.saved(1));
+        assertFalse("a saved on isn't remembered", Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        assertFalse("so the plugin's off stands", ReelAutoScroll.answer(0));
+        assertTrue(ReelAutoScroll.saved(1));
+        assertFalse(ReelAutoScroll.answer(0));
+        assertFalse(Settings.REEL_AUTO_SCROLL_ON.savedValue());
+    }
+
+    /**
+     * The getter answers on when the saved preference is on, and while the switch is on, when
+     * auto scroll was last left on. It never writes. Paused or unready, the preference stands.
+     */
+    @Test
+    public void theSavedPreferenceIsAnsweredButNeverRemembered() {
+        CountingMemory memory = new CountingMemory(false);
+        assertFalse(ReelAutoScroll.saved(0, () -> true, memory));
+        assertTrue(ReelAutoScroll.saved(1, () -> true, memory));
+        assertTrue("any non-zero is on", ReelAutoScroll.saved(0x7f, () -> true, memory));
+        assertFalse(memory.on);
+        memory.on = true;
+        assertTrue("left on answers for a cleared preference", ReelAutoScroll.saved(0, () -> true, memory));
+        assertFalse("switch off, the preference stands", ReelAutoScroll.saved(0, () -> false, memory));
+        assertTrue(ReelAutoScroll.saved(1, () -> false, memory));
+        assertEquals(0, memory.writes);
+
+        Settings.REEL_AUTO_SCROLL_ON.save(true);
+        assertTrue(ReelAutoScroll.saved(0));
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse(ReelAutoScroll.saved(0));
+        assertTrue(ReelAutoScroll.saved(1));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            assertFalse(ReelAutoScroll.saved(0));
+            assertTrue(ReelAutoScroll.saved(1));
+        });
+        assertTrue(Settings.REEL_AUTO_SCROLL_ON.savedValue());
+    }
+
     /** The hot path writes only when the choice changes. */
     @Test
     public void nothingIsWrittenWhenTheChoiceIsUnchanged() {
@@ -187,10 +240,16 @@ public class ReelAutoScrollTest {
             throw new IllegalStateException("settings went away");
         }, () -> true, new CountingMemory(false)));
         ReelAutoScroll.chosen(0, () -> true, broken);
+        assertFalse(ReelAutoScroll.saved(0, () -> true, broken));
+        assertTrue(ReelAutoScroll.saved(1, () -> true, broken));
+        assertFalse(ReelAutoScroll.saved(0, () -> {
+            throw new IllegalStateException("settings went away");
+        }, new CountingMemory(true)));
 
         String missing = HookStatus.missing(FamilyNames.REEL_AUTO_SCROLL).toString();
         assertTrue(missing, missing.contains("'auto scroll answer'"));
         assertTrue(missing, missing.contains("'auto scroll choice'"));
+        assertTrue(missing, missing.contains("'auto scroll saved'"));
         assertTrue(missing, missing.contains(IllegalStateException.class.getName()));
     }
 }
