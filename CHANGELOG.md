@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Save recovery can retire an already-removed Samsung gallery row even when its next delete reports no access. It requires a successful exact-row query; pending or unreadable rows stay queued for cleanup, and published files are kept.
 * **Instagram:** Open MetaConfig overrides from HushGram's Developer section without enabling Home long press or changing a flag. Unsupported or signed-out screens keep settings open with an explanation; successful navigation closes them.
 * **Instagram:** Save all keeps a carousel's ordered pages in one cancellable job, with the same download quality throughout and a 32-page limit. The current-page Download stays available. Downloads keeps the complete saved, failed and skipped counts for this process, including cancellation and lower-quality warnings. Cancel keeps finished files and removes unfinished resources.
 * **Instagram:** Search installed settings by their translated labels and descriptions or English patch names, including contacts, location setup, Following and Reels. Pause, recovery and running saves' Cancel remain available. Clearing restores the same controls and choices, and filtering leaves the live Cancel button in place as progress changes. Search stays offline. Queries stay in the open page and aren't serialized when Android rebuilds it.

@@ -206,7 +206,11 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.download.MediaSaveTest" to listOf(
                 "onAndroid9ASaveWritesTheFileIntoTheFolderItself"),
             "app.hushgram.extension.instagram.download.SaveInterruptionTest" to listOf(
-                "sdk28InterruptedSaveRemovesItsHiddenStorageFileBeforeNotice"),
+                "sdk28InterruptedSaveRemovesItsHiddenStorageFileBeforeNotice",
+                "anInaccessibleAbsentRowRetiresAfterAnExactQuery[30]", "anInaccessibleAbsentRowRetiresAfterAnExactQuery",
+                "anInaccessiblePublishedRowIsKeptButItsStaleLedgerRetires[30]", "anInaccessiblePublishedRowIsKeptButItsStaleLedgerRetires",
+                "aDeleteExceptionNeverAcknowledgesAStillPendingRow[30]", "aDeleteExceptionNeverAcknowledgesAStillPendingRow",
+                "aDeleteExceptionWithUnknownQueryStateKeepsTheRetryRecord[30]", "aDeleteExceptionWithUnknownQueryStateKeepsTheRetryRecord"),
             "app.hushgram.extension.instagram.settings.SettingsSearchTest" to listOf(
                 "clearingRestoresTheOriginalObjectsOrderAndChoices[28]", "clearingRestoresTheOriginalObjectsOrderAndChoices",
                 "hiddenRowsStillSynchronizeStoredChangesAndParentAvailability[28]", "hiddenRowsStillSynchronizeStoredChangesAndParentAvailability",
