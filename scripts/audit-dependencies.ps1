@@ -34,23 +34,27 @@ $libraries = @($allGraphs.libraries | Sort-Object purl -Unique)
 Write-Host "[dependencies] Checking $($libraries.Count) unique resolved packages against OSV and publisher supplements."
 $findings = @(Get-SbomAdvisories -Sbom ([pscustomobject]@{ Libraries = $libraries }))
 foreach ($finding in $findings) {
-    $locations = @($allGraphs | Where-Object { $finding.Purl -cin @($_.libraries.purl) } |
+    $origins = @($allGraphs | Where-Object { $finding.Purl -cin @($_.libraries.purl) })
+    $locations = @($origins |
         ForEach-Object { "$($_.scope) $($_.owner) $($_.configuration)" })
     Add-Member -InputObject $finding -NotePropertyName Graphs -NotePropertyValue $locations
+    Add-Member -InputObject $finding -NotePropertyName Scopes -NotePropertyValue @($origins.scope | Sort-Object -Unique)
 }
 $shippedFindings = @($findings | Where-Object { @($_.Graphs | Where-Object { $_.StartsWith('shipped ') }).Count })
-$toolFindings = @($findings | Where-Object { @($_.Graphs | Where-Object { -not $_.StartsWith('shipped ') }).Count })
 $shippedExceptions = @(Read-AdvisoryExceptions -Path (Join-Path $PSScriptRoot 'advisory-exceptions.txt'))
-$toolExceptions = @(Read-AdvisoryExceptions -Path (Join-Path $PSScriptRoot 'dependency-advisory-exceptions.txt'))
-$shippedVerdict = Test-AdvisoryFindings -Findings $shippedFindings -Exceptions $shippedExceptions
-$toolVerdict = Test-AdvisoryFindings -Findings $toolFindings -Exceptions $toolExceptions `
-    -Subject 'the audited tooling scopes' -ExceptionsLabel 'scripts/dependency-advisory-exceptions.txt'
-$valid = $shippedVerdict.Valid -and $toolVerdict.Valid
-$reason = @($shippedVerdict.Reason, $toolVerdict.Reason | Where-Object { $_ }) -join ' '
+$toolExceptions = @(Read-AdvisoryExceptions -Path (Join-Path $PSScriptRoot 'dependency-advisory-exceptions.txt') -Scoped)
+$verdicts = [ordered]@{ shipped = Test-AdvisoryFindings -Findings $shippedFindings -Exceptions $shippedExceptions }
+foreach ($scope in @('settings-plugin', 'project-plugin', 'build', 'test', 'host-contract')) {
+    $scopeFindings = @($findings | Where-Object { $scope -cin $_.Scopes })
+    $verdicts[$scope] = Test-AdvisoryFindings -Findings $scopeFindings -Exceptions $toolExceptions -Scope $scope `
+        -Subject "the $scope scope" -ExceptionsLabel 'scripts/dependency-advisory-exceptions.txt'
+}
+$valid = @($verdicts.Values | Where-Object { -not $_.Valid }).Count -eq 0
+$reason = @($verdicts.Values.Reason | Where-Object { $_ }) -join ' '
 if (-not $OutputPath) { $OutputPath = Join-Path $Root 'build/reports/dependencies/advisories.json' }
 $report = [ordered]@{ schemaVersion = 1; checkedAt = [datetime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
     hostMeaning = 'Locally resolved patcher contract only. Not proof of installed Manager/Desktop versions or exploit reachability.'
-    graphs = $allGraphs; findings = $findings; valid = $valid; reason = $reason }
+    graphs = $allGraphs; findings = $findings; scopeVerdicts = $verdicts; valid = $valid; reason = $reason }
 $directory = Split-Path -Parent ([IO.Path]::GetFullPath($OutputPath))
 New-Item -ItemType Directory -Path $directory -Force | Out-Null
 $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $OutputPath -Encoding UTF8

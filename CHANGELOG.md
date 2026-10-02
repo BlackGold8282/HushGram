@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Require project-plugin graphs in imported dependency reports and bind each advisory exception to one reviewed tooling scope. Per-scope verdicts keep the same library's other uses visible.
+
 * **Instagram:** Diagnostic reports show matched/expected patch targets and fixed missing-target labels for Disable analytics, Sanitize sharing links and Start on x86 devices. The counts describe patch-time code matches, not live request suppression.
 * **Tooling:** Fixture verification and schema 3 release receipts read those counts from the patched APK. Required targets are pinned to the exact fixture and a missing one stops certification even when its patch applied. Optional absences stay visible; forced runs on unreviewed builds record counts without certifying them. Historical receipts keep their original schema checks.
 

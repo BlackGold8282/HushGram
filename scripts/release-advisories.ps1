@@ -49,10 +49,13 @@ function Read-AdvisoryExceptions {
         Blank lines and # comments are ignored. A line in any other shape stops the run, naming
         it, rather than being skipped: a skipped exception would fail the release for a reason
         nobody could see in the file.
+        -Scoped requires a reviewed tooling scope before each line. The same advisory in another
+        scope needs its own review; payload exceptions keep the original format.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Path,
-        [datetime]$Today = [datetime]::Today
+        [datetime]$Today = [datetime]::Today,
+        [switch]$Scoped
     )
 
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
@@ -65,6 +68,13 @@ function Read-AdvisoryExceptions {
         $number++
         $text = ([string]$line).Trim()
         if (-not $text -or $text.StartsWith('#')) { continue }
+        $scope = 'shipped'
+        if ($Scoped) {
+            $prefix = [regex]::Match($text, '^(?<scope>settings-plugin|project-plugin|build|test|host-contract)\s+(?<line>.+)$')
+            if (-not $prefix.Success) { throw "Line $number of $Path has no reviewed tooling scope: $text" }
+            $scope = $prefix.Groups['scope'].Value
+            $text = $prefix.Groups['line'].Value
+        }
         $shape = [regex]::Match($text,
             '^(?<id>[A-Za-z][A-Za-z0-9]*-[A-Za-z0-9._-]+)\s+(?<package>[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+)\s+(?<until>\S+)\s+(?<reason>.*\S)$')
         if (-not $shape.Success) {
@@ -86,7 +96,7 @@ function Read-AdvisoryExceptions {
             throw ("Line $number of $Path accepts $advisory for $package without saying why. Give the reason it " +
                 "doesn't apply to what the bundle does with the library: $text")
         }
-        if (-not $seen.Add("$advisory $package")) {
+        if (-not $seen.Add("$scope $advisory $package")) {
             throw "Line $number of $Path accepts $advisory for $package a second time."
         }
         $entries.Add([pscustomobject]@{
@@ -96,6 +106,7 @@ function Read-AdvisoryExceptions {
             Reason   = $reason
             Line     = $number
             Expired  = $until -lt $Today
+            Scope    = $scope
         })
     }
     # No comma wrap: an empty list comes back as nothing, and every caller writes @(...).
@@ -293,7 +304,7 @@ function Read-DependencyGraphs {
             $libraries[[string]$library.purl] = $library
         }
     }
-    foreach ($scope in @('settings-plugin', 'build', 'test', 'host-contract')) {
+    foreach ($scope in $scopes) {
         if (-not @($report.graphs | Where-Object scope -CEQ $scope).Count) {
             throw "The dependency graph report omits the $scope scope."
         }
@@ -347,11 +358,16 @@ function Test-AdvisoryFindings {
         [object[]]$Findings = @(),
         [object[]]$Exceptions = @(),
         [string]$Subject = 'what the bundle carries',
-        [string]$ExceptionsLabel = 'scripts/advisory-exceptions.txt'
+        [string]$ExceptionsLabel = 'scripts/advisory-exceptions.txt',
+        [ValidateSet('shipped', 'settings-plugin', 'project-plugin', 'build', 'test', 'host-contract')]
+        [string]$Scope = 'shipped'
     )
 
     $findingsIn = @(@($Findings) | Where-Object { $null -ne $_ })
-    $exceptionsIn = @(@($Exceptions) | Where-Object { $null -ne $_ })
+    # Legacy payload exceptions have no Scope. They can only cover shipment.
+    $exceptionsIn = @(@($Exceptions) | Where-Object {
+        $null -ne $_ -and ($_.Scope -ceq $Scope -or ($Scope -ceq 'shipped' -and -not $_.Scope))
+    })
     $refused = New-Object System.Collections.Generic.List[string]
     $excused = New-Object System.Collections.Generic.List[string]
     $minor = New-Object System.Collections.Generic.List[string]

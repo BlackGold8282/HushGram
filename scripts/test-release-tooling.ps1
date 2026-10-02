@@ -1355,6 +1355,15 @@ try {
     ) }
     $graphJson = $graphDocument | ConvertTo-Json -Depth 8
     Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value $graphJson
+
+    foreach ($scope in @('settings-plugin', 'project-plugin', 'build', 'test', 'host-contract')) {
+        $variant = $graphJson | ConvertFrom-Json
+        $variant.graphs = @($variant.graphs | Where-Object { $_.scope -cne $scope })
+        Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value ($variant | ConvertTo-Json -Depth 8)
+        Assert-Throws { Read-DependencyGraphs -Path $graphFile } "*omits the $scope scope*" `
+            "An imported report without $scope passed the dependency gate."
+    }
+    Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value $graphJson
     $graphs = Read-DependencyGraphs -Path $graphFile
     Assert-True ($graphs.Graphs.Count -eq 5 -and $graphs.Libraries.Count -eq 1) `
         'Resolved scopes were lost, or a package shared by graphs was queried repeatedly.'
@@ -1412,6 +1421,30 @@ try {
         $scoped.Reason -like '*scripts/dependency-advisory-exceptions.txt*' -and
         $scoped.Reason -notlike '*what the bundle carries*') `
         'Tooling findings were described as shipped libraries or directed to payload exceptions.'
+
+    $scopedList = Join-Path $advisoryRoot 'scoped-exceptions.txt'
+    $line = 'GHSA-qp49-qgx5-5m26 org.bouncycastle:bcprov-jdk18on 2026-10-15 reviewed parser not reachable'
+    Set-Content -LiteralPath $scopedList -Value "settings-plugin $line"
+    $exceptions = @(Read-AdvisoryExceptions -Path $scopedList -Scoped -Today $today)
+    Assert-True ((Test-AdvisoryFindings -Findings $controls -Exceptions $exceptions -Scope 'settings-plugin').Valid) `
+        'The scope-specific exception did not cover its reviewed settings-plugin use.'
+    foreach ($scope in @('project-plugin', 'build', 'test', 'host-contract', 'shipped')) {
+        Assert-True (-not (Test-AdvisoryFindings -Findings $controls -Exceptions $exceptions -Scope $scope).Valid) `
+            "A settings-plugin exception leaked into $scope."
+    }
+    $stale = Test-AdvisoryFindings -Findings @() -Exceptions $exceptions -Scope 'settings-plugin'
+    Assert-True (-not $stale.Valid -and $stale.Stale.Count -eq 1) 'An unmatched scoped exception passed.'
+    $expired = @(Read-AdvisoryExceptions -Path $scopedList -Scoped -Today ([datetime]'2026-10-16'))
+    Assert-True (-not (Test-AdvisoryFindings -Findings $controls -Exceptions $expired -Scope 'settings-plugin').Valid) `
+        'An expired scoped exception passed.'
+    Set-Content -LiteralPath $scopedList -Value @("settings-plugin $line", "test $line")
+    Assert-True (@(Read-AdvisoryExceptions -Path $scopedList -Scoped -Today $today).Count -eq 2) `
+        'Independent reviews for the same advisory in two scopes were rejected as duplicates.'
+    foreach ($prefix in @('', 'all ', 'shipped ')) {
+        Set-Content -LiteralPath $scopedList -Value "$prefix$line"
+        Assert-Throws { Read-AdvisoryExceptions -Path $scopedList -Scoped -Today $today } '*no reviewed tooling scope*' `
+            'An unscoped or unknown-scope tooling exception was accepted.'
+    }
     # The affected settings/UTP versions from the 2026-10-01 live audit must still fail.
     $osvAnswers = @{
         'pkg:maven/io.netty/netty-handler@4.1.110.Final' = '{"vulns":[{"id":"GHSA-c4c3-7fpv-j4q5","aliases":["CVE-2026-75595"],"database_specific":{"severity":"CRITICAL"}}]}'
