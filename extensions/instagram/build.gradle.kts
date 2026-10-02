@@ -415,9 +415,13 @@ tasks.register("verifyAndroidBoundaries") {
                 "aPendingRowSweepRetriesAfterTheGalleryThrows"),
             "app.hushgram.extension.instagram.misc.InstagramSignatureTest" to listOf(
                 "thisAppStillGetsInstagramsTwoCertificates[28]", "thisAppStillGetsInstagramsTwoCertificates",
+                "aRecordThatOnlyNamesThisAppSeedsNoSigners[28]", "aRecordThatOnlyNamesThisAppSeedsNoSigners",
                 "aSameKeyThreadsGetsThreadsMetaCertificate[28]", "aSameKeyThreadsGetsThreadsMetaCertificate",
                 "aSameKeyFacebookOrMessengerGetsFacebooksMetaCertificate[28]", "aSameKeyFacebookOrMessengerGetsFacebooksMetaCertificate",
                 "ownSignersAreReadFromPackageManagerWhenNotSeenYet[28]", "ownSignersAreReadFromPackageManagerWhenNotSeenYet",
+                "aMissingSigningInfoIsReadAgainFromPackageManager[28]", "aMissingSigningInfoIsReadAgainFromPackageManager",
+                "anOldSignaturesEntryDoesNotOutlastARotation[28]", "anOldSignaturesEntryDoesNotOutlastARotation",
+                "aMissingSigningInfoThatCantBeReadAgainGivesNoTrust[28]", "aMissingSigningInfoThatCantBeReadAgainGivesNoTrust",
                 "aRotatedFamilyAppIsJudgedByItsCurrentSigner[28]", "aRotatedFamilyAppIsJudgedByItsCurrentSigner",
                 "severalSignersHaveToMatchExactly[28]", "severalSignersHaveToMatchExactly",
                 "aFamilyAppWithAnotherKeyIsLeftToInstagram[28]", "aFamilyAppWithAnotherKeyIsLeftToInstagram",

@@ -164,6 +164,30 @@ public class InstagramSignatureTest {
         InstagramSignature.ownSigners = null;
         assertEquals(signers, InstagramSignature.originalSigners(thisApp()));
         assertNull(InstagramSignature.ownSigners);
+
+        // Nor with only the old signatures array, which after a rotation holds the oldest signer.
+        PackageInfo signaturesOnly = thisApp();
+        signaturesOnly.signatures = new Signature[]{OUR_KEY};
+        assertEquals(signers, InstagramSignature.originalSigners(signaturesOnly));
+        assertNull(InstagramSignature.ownSigners);
+    }
+
+    /**
+     * A record that only names this app, with no ApplicationInfo for the uid check, gets the same
+     * answer but seeds nothing: anyone can build one. The family check reads this build's signers
+     * from PackageManager instead, so the record's key earns a family app no trust.
+     */
+    @Test
+    public void aRecordThatOnlyNamesThisAppSeedsNoSigners() {
+        PackageInfo named = new PackageInfo();
+        named.packageName = "com.instagram.android";
+        named.signingInfo = signingInfo(new Signature[]{OTHER_KEY}, null);
+        assertEquals(2, InstagramSignature.originalSigners(named).size());
+        assertNull("a name-only record seeds this build's signers", InstagramSignature.ownSigners);
+
+        packages.installPackage(thisApp(OUR_KEY));
+        assertNull("the name-only record's key", InstagramSignature.originalSigners(family(InstagramSignature.THREADS, OTHER_KEY)));
+        assertNotNull("this build's real key", InstagramSignature.originalSigners(family(InstagramSignature.THREADS, OUR_KEY)));
     }
 
     // -- Family apps signed with this build's key --------------------------------------------------
@@ -191,13 +215,56 @@ public class InstagramSignatureTest {
         assertNotNull(InstagramSignature.ownSigners);
     }
 
-    /** Without SigningInfo, the old signatures array stands in. */
+    /** A record without SigningInfo is read again from PackageManager, which confirms this key. */
     @Test
-    public void theSignaturesArrayStandsInForAMissingSigningInfo() {
+    public void aMissingSigningInfoIsReadAgainFromPackageManager() {
         seeOwnSigners(OUR_KEY);
+        packages.installPackage(family(InstagramSignature.THREADS, OUR_KEY));
         PackageInfo threads = family(InstagramSignature.THREADS);
         threads.signatures = new Signature[]{OUR_KEY};
         assertNotNull(InstagramSignature.originalSigners(threads));
+    }
+
+    /**
+     * Without SigningInfo, Android fills the signatures array with the oldest signer of a rotated
+     * app. A Threads that rotated away from this build's key still shows it there, and
+     * PackageManager's current signer is what counts.
+     */
+    @Test
+    public void anOldSignaturesEntryDoesNotOutlastARotation() {
+        seeOwnSigners(OUR_KEY);
+        PackageInfo installed = family(InstagramSignature.THREADS);
+        installed.signingInfo = signingInfo(new Signature[]{OTHER_KEY}, new Signature[]{OUR_KEY, OTHER_KEY});
+        packages.installPackage(installed);
+        PackageInfo threads = family(InstagramSignature.THREADS);
+        threads.signatures = new Signature[]{OUR_KEY};
+        assertNull(InstagramSignature.originalSigners(threads));
+        String line = trustLine();
+        assertTrue(line, line.contains("family app with another key 1"));
+    }
+
+    /** A record without SigningInfo that can't be read again earns no trust, whatever its signatures say. */
+    @Test
+    public void aMissingSigningInfoThatCantBeReadAgainGivesNoTrust() {
+        seeOwnSigners(OUR_KEY);
+        PackageInfo threads = family(InstagramSignature.THREADS);
+        threads.signatures = new Signature[]{OUR_KEY};
+
+        // Before HushGram's start there's no context to ask.
+        Object[] answer = {"unanswered"};
+        SettingsContextRule.withoutContext(() -> answer[0] = InstagramSignature.originalSigners(threads));
+        assertNull(answer[0]);
+
+        // PackageManager doesn't know it: the failure is reported, and nothing is trusted.
+        assertNull(InstagramSignature.originalSigners(threads));
+        String missing = HookStatus.missing(FamilyNames.RESTORE_TRUST).toString();
+        assertTrue(missing, missing.contains(InstagramSignature.FAMILY_HOOK));
+
+        // PackageManager knows the package but not its signers.
+        packages.installPackage(family(InstagramSignature.THREADS));
+        assertNull(InstagramSignature.originalSigners(threads));
+        String line = trustLine();
+        assertTrue(line, line.contains("family app with another key 2"));
     }
 
     /** A family app judged by its current signer: rotated to this key, it's ours; away from it, it isn't. */
@@ -238,6 +305,8 @@ public class InstagramSignatureTest {
         seeOwnSigners(OUR_KEY);
         for (String name : new String[]{InstagramSignature.THREADS, InstagramSignature.FACEBOOK, InstagramSignature.MESSENGER}) {
             assertNull(name, InstagramSignature.originalSigners(family(name, OTHER_KEY)));
+            // A record with no signers is read again, and PackageManager has none either.
+            packages.installPackage(family(name));
             assertNull(name + " with no signers", InstagramSignature.originalSigners(family(name)));
         }
         String line = trustLine();

@@ -53,6 +53,13 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * signers. Instagram's own rules then judge it as they'd judge Meta's signed app. Any other
  * package, any other signer, and anything that can't be read keep Instagram's own path.
  *
+ * <p>Current means the newest signer. When Instagram asks only for the old signatures array,
+ * Android fills it with the oldest certificate of an app's signing history, so a Threads that
+ * rotated away from this build's key would still show that key there. A family app's record
+ * without SigningInfo is read again from PackageManager with its signing certificates, and if
+ * that can't be done it isn't trusted. This build's own signers come only from a record the uid
+ * proved is this app, or from PackageManager, never from one that only carries its name.
+ *
  * <p>Only an app signed with the same key as this build is trusted, and that key is the user's
  * own: nobody else can sign an app to it. A build that still carries Meta's key, like a Root
  * Mount install, steps aside, and a Meta-signed install of these apps is left to Instagram's own
@@ -187,16 +194,20 @@ public final class InstagramSignature {
             // The name is a compile-time constant: this can run while content providers start,
             // before HushGram has a context, and Hook status reads no setting.
             HookStatus.invoked(FamilyNames.RESTORE_TRUST);
-            rememberOwnSigners(info);
+            // Only a record the uid proved is this app vouches for its signers. One that only
+            // carries the name could be built by anyone, so the family check reads them from
+            // PackageManager instead.
+            if (isThisAppByUid(info)) rememberOwnSigners(info);
             return instagram();
         }
         return familyApp(info);
     }
 
     /**
-     * Keeps this build's real signers from [info], the system's PackageInfo for this app, before
-     * the answer replaces them, for the family app check. Never throws, so the answer for this app
-     * stays what it always was.
+     * Keeps this build's real current signers from [info], the system's PackageInfo for this app,
+     * before the answer replaces them, for the family app check. A record without SigningInfo
+     * keeps nothing, so the check reads them from PackageManager. Never throws, so the answer for
+     * this app stays what it always was.
      */
     private static void rememberOwnSigners(PackageInfo info) {
         if (ownSigners != null) return;
@@ -216,10 +227,14 @@ public final class InstagramSignature {
             if (info == null || metaSignersFor(info.packageName) == null) return null;
             Signature[] ours = ownSigners;
             if (ours == null) {
-                ours = copyOf(ownSignersFromPackageManager());
+                ours = copyOf(signersFromPackageManager(null));
                 ownSigners = ours;
             }
-            return familySigners(info.packageName, currentSigners(info), ours);
+            Signature[] theirs = currentSigners(info);
+            // Without SigningInfo the system filled only the signatures array, which holds the
+            // oldest signer of a rotated app, so the package is read again for its current one.
+            if (theirs == null) theirs = signersFromPackageManager(info.packageName);
+            return familySigners(info.packageName, theirs, ours);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.RESTORE_TRUST, FAMILY_HOOK, failure);
             return null;
@@ -280,33 +295,34 @@ public final class InstagramSignature {
 
     /**
      * The current signers in [info]: the APK's signers from its SigningInfo, which are the newest
-     * after a rotation and every signer when there are several, or the old signatures array when
-     * there's no SigningInfo. Null when it carries neither.
+     * after a rotation and every signer when there are several. Null without SigningInfo. The old
+     * signatures array never stands in: after a rotation it holds the oldest signer.
      */
     @Nullable
     static Signature[] currentSigners(@Nullable PackageInfo info) {
         if (info == null) return null;
         SigningInfo signing = info.signingInfo;
-        if (signing != null) {
-            Signature[] current = signing.getApkContentsSigners();
-            if (current != null && current.length > 0) return current;
-        }
-        return info.signatures;
+        if (signing == null) return null;
+        Signature[] current = signing.getApkContentsSigners();
+        return current == null || current.length == 0 ? null : current;
     }
 
     /**
-     * This build's current signers, read straight from PackageManager, which the patch doesn't
-     * touch. Null without a context. Utils.getContext logs when there's none yet, so a hook that
-     * runs before HushGram's start doesn't ask it.
+     * The current signers of [packageName], or of this build when it's null, read straight from
+     * PackageManager with their signing certificates, which the patch doesn't touch. Null without
+     * a context. Utils.getContext logs when there's none yet, so a hook that runs before
+     * HushGram's start doesn't ask it.
      */
     @Nullable
-    private static Signature[] ownSignersFromPackageManager() throws PackageManager.NameNotFoundException {
+    private static Signature[] signersFromPackageManager(@Nullable String packageName)
+            throws PackageManager.NameNotFoundException {
         if (!Utils.settingsReady()) return null;
         Context context = Utils.getContext();
         if (context == null) return null;
         PackageManager packages = context.getPackageManager();
         if (packages == null) return null;
-        return currentSigners(packages.getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNING_CERTIFICATES));
+        String name = packageName == null ? context.getPackageName() : packageName;
+        return currentSigners(packages.getPackageInfo(name, PackageManager.GET_SIGNING_CERTIFICATES));
     }
 
     /** A copy of [signers], or null when there are none, so an empty read is tried again later. */
@@ -346,8 +362,17 @@ public final class InstagramSignature {
      */
     static boolean isThisApp(PackageInfo info) {
         if (info == null || info.packageName == null) return false;
+        if (info.applicationInfo == null || Process.isIsolated()) return PACKAGE.equals(info.packageName);
+        return isThisAppByUid(info);
+    }
+
+    /**
+     * Whether the uid proves that [info] is the running app. It can't without an ApplicationInfo,
+     * or in an isolated process, where [isThisApp] goes by the name alone.
+     */
+    private static boolean isThisAppByUid(PackageInfo info) {
+        if (info == null || info.packageName == null || Process.isIsolated()) return false;
         ApplicationInfo app = info.applicationInfo;
-        if (app == null || Process.isIsolated()) return PACKAGE.equals(info.packageName);
-        return app.uid == Process.myUid() && info.packageName.equals(app.packageName);
+        return app != null && app.uid == Process.myUid() && info.packageName.equals(app.packageName);
     }
 }
