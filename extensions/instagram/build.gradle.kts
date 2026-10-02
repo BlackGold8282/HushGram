@@ -214,7 +214,10 @@ tasks.register("verifyAndroidBoundaries") {
                 "offPausedAndUnreadyLeaveInstagramsAnswers[28]", "offPausedAndUnreadyLeaveInstagramsAnswers",
                 "aThrowingSwitchLeavesInstagramsAnswersAndIsReported[28]", "aThrowingSwitchLeavesInstagramsAnswersAndIsReported",
                 "rightToLeftPutsTheLabelAtTheLeftEnd[28]", "rightToLeftPutsTheLabelAtTheLeftEnd",
-                "twiceTheTextSizeStillFits[28]", "twiceTheTextSizeStillFits"),
+                "twiceTheTextSizeStillFits[28]", "twiceTheTextSizeStillFits",
+                "aContainerWithNoRoomPutsTheWholeLabelOnTheViewAboveIt[28]",
+                "aContainerWithNoRoomPutsTheWholeLabelOnTheViewAboveIt",
+                "aBarSetBeforeItsLayoutGetsItsLabelOnceLaidOut[28]", "aBarSetBeforeItsLayoutGetsItsLabelOnceLaidOut"),
             "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
                 "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch",
                 "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause"),

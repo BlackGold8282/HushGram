@@ -36,6 +36,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.shadows.ShadowLooper;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -396,6 +397,107 @@ public class ReelSeekBarTest {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) assertNull(bar.getStateDescription());
     }
 
+    /**
+     * Instagram 449's scrubber container is a FrameLayout hardly taller than its bar, in a Litho
+     * host with room to spare. A label inside the container was cut in half on a phone, so it goes
+     * on the host's overlay, whole, above the end of the track, and neither view gets a child.
+     */
+    @Test
+    public void aContainerWithNoRoomPutsTheWholeLabelOnTheViewAboveIt() {
+        float density = context().getResources().getDisplayMetrics().density;
+        FrameLayout host = new FrameLayout(context());
+        FrameLayout container = container();
+        host.addView(container, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                Math.round(16 * density), Gravity.BOTTOM));
+        SeekBar bar = new SeekBar(context());
+        bar.setPadding(30, 0, 40, 0);
+        bar.setMax(55_000);
+        container.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                Math.round(10 * density), Gravity.BOTTOM));
+        layout(host);
+
+        ReelSeekBar.progress(bar, 10_000);
+        layout(host);
+        ReelSeekBar.progress(bar, 10_500);
+
+        TextView label = ReelTimeLabel.labelOf(bar);
+        assertEquals("the container's children", 1, container.getChildCount());
+        assertEquals("the host's children", 1, host.getChildCount());
+        assertNotNull(label.getParent());
+        assertNotSame(container, label.getParent());
+        assertNotSame(host, label.getParent());
+        assertEquals(View.VISIBLE, label.getVisibility());
+        assertEquals("0:10 / 0:55", label.getText().toString());
+        assertTrue("the container had room for it", label.getHeight() + gap(context()) > bar.getTop() + bar.getPaddingTop());
+        assertEquals("the track's end", container.getLeft() + bar.getRight() - bar.getPaddingRight(), label.getRight());
+        assertEquals("above the track", container.getTop() + bar.getTop() + bar.getPaddingTop() - gap(context()), label.getBottom());
+        assertTrue("inside the host", label.getTop() >= 0);
+        assertFits(label);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            assertEquals("0:10 of 0:55", String.valueOf(bar.getStateDescription()));
+        }
+    }
+
+    /**
+     * Instagram can give a bar its length and position before laying it out, and with autoplay held
+     * nothing moves it again. The label comes with the bar's first layout all the same, and with
+     * the switch off it doesn't.
+     */
+    @Test
+    public void aBarSetBeforeItsLayoutGetsItsLabelOnceLaidOut() {
+        FrameLayout container = container();
+        SeekBar bar = new SeekBar(context());
+        bar.setPadding(30, 20, 40, 0);
+        bar.setMax(55_000);
+        bar.setProgress(10_000);
+        container.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
+
+        ReelSeekBar.progress(bar, 10_000);
+        TextView label = ReelTimeLabel.labelOf(bar);
+        assertEquals("not laid out yet", View.GONE, label.getVisibility());
+
+        layout(container);
+        ShadowLooper.idleMainLooper();
+        layout(container);
+
+        assertEquals(View.VISIBLE, label.getVisibility());
+        assertEquals("0:10 / 0:55", label.getText().toString());
+        assertSame(container, label.getParent());
+        assertFits(label);
+
+        // Off, a later layout of the bar brings nothing back.
+        Settings.REEL_SEEK_BAR.save(false);
+        ReelSeekBar.progress(bar, 11_000);
+        assertEquals(View.GONE, label.getVisibility());
+        bar.requestLayout();
+        layout(container);
+        ShadowLooper.idleMainLooper();
+        assertEquals("off", View.GONE, label.getVisibility());
+    }
+
+    /** With no view near the bar tall enough for the whole label, there's no label rather than a cut-off one. */
+    @Test
+    public void noRoomAnywhereMeansNoLabel() {
+        float density = context().getResources().getDisplayMetrics().density;
+        FrameLayout container = container();
+        SeekBar bar = new SeekBar(context());
+        bar.setPadding(30, 0, 40, 0);
+        bar.setMax(55_000);
+        container.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                Math.round(10 * density), Gravity.BOTTOM));
+        layout(container, Math.round(16 * density));
+
+        ReelSeekBar.progress(bar, 10_000);
+
+        TextView label = ReelTimeLabel.labelOf(bar);
+        assertNotNull(label);
+        assertEquals(View.GONE, label.getVisibility());
+        assertNull("the label went nowhere", label.getParent());
+        assertEquals("the container's children", 1, container.getChildCount());
+        assertTrue(HookStatus.missing(FamilyNames.REEL_SEEK_BAR).toString(), HookStatus.missing(FamilyNames.REEL_SEEK_BAR).isEmpty());
+    }
+
     private static Context context() {
         return RuntimeEnvironment.getApplication();
     }
@@ -420,12 +522,16 @@ public class ReelSeekBarTest {
     }
 
     private static void layout(ViewGroup root) {
-        root.measure(View.MeasureSpec.makeMeasureSpec(WIDTH, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(HEIGHT, View.MeasureSpec.EXACTLY));
-        root.layout(0, 0, WIDTH, HEIGHT);
+        layout(root, HEIGHT);
     }
 
-    /** One line, nothing cut off: the text's widest line fits inside the label's padding. */
+    private static void layout(ViewGroup root, int height) {
+        root.measure(View.MeasureSpec.makeMeasureSpec(WIDTH, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, WIDTH, height);
+    }
+
+    /** One line, nothing cut off: the text's widest line and its full height fit inside the label's padding. */
     private static void assertFits(TextView label) {
         Layout layout = label.getLayout();
         assertNotNull("the label has no layout", layout);
@@ -433,6 +539,7 @@ public class ReelSeekBarTest {
         assertEquals(0, layout.getEllipsisCount(0));
         float room = label.getWidth() - label.getTotalPaddingLeft() - label.getTotalPaddingRight();
         assertTrue("the text needs " + layout.getLineMax(0) + " px, the label has " + room, layout.getLineMax(0) <= room);
-        assertTrue("the label has no height", label.getHeight() > 0);
+        int tall = label.getHeight() - label.getTotalPaddingTop() - label.getTotalPaddingBottom();
+        assertTrue("the text needs " + layout.getHeight() + " px of height, the label has " + tall, layout.getHeight() <= tall);
     }
 }

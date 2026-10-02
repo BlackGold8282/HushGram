@@ -9,6 +9,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -36,15 +38,18 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *
  * <p>Instagram's reel seek bar keeps the reel's position and length in milliseconds as its
  * progress and max, and every change of either reaches its onProgressChanged, where
- * {@link #update} runs. The label is a TextView made once for each bar and kept with it:
+ * {@link #update} runs. The label is a TextView made once for each bar and kept with it, and it
+ * goes in the nearest view that has room for all of it above the bar's track:
  * <ul>
- *   <li>When the bar's parent is a FrameLayout (Instagram's attached scrubber container), the
- *       label is a child of that parent. TalkBack reads it, and it takes no touches, so a drag
- *       that starts on it still reaches the bar.</li>
- *   <li>Any other parent, such as the Litho host of the newer scrubber, lays out only what it put
- *       there itself, so the label goes on that parent's overlay, which draws over the parent
- *       without joining its children and never takes a touch. TalkBack can't reach an overlay,
- *       so on Android 11 and up the bar itself carries the label's words as its state.</li>
+ *   <li>When that's the bar's own parent and a FrameLayout, the label is a child of it. TalkBack
+ *       reads it, and it takes no touches, so a drag that starts on it still reaches the bar.</li>
+ *   <li>Otherwise it goes on the overlay of the bar's parent or of a view further up, which draws
+ *       over that view without joining its children and never takes a touch. A Litho host lays
+ *       out only what it put there itself, and Instagram 449's scrubber container, a FrameLayout,
+ *       is hardly taller than the bar, so a child label there was cut in half on a phone.
+ *       TalkBack can't reach an overlay, so on Android 11 and up the bar itself carries the
+ *       label's words as its state.</li>
+ *   <li>When no view near the bar has the room, there's no label rather than a cut-off one.</li>
  * </ul>
  *
  * <p>The label follows the bar: hidden while the bar is hidden, faded with it, and hidden while
@@ -64,8 +69,17 @@ final class ReelTimeLabel {
     /** How many views up from the bar the reel's tag is looked for. */
     private static final int TAG_REACH = 8;
 
+    /**
+     * How many views up from the bar, its parent first, one with room for the label is looked for.
+     * On 449 the scrubber container has none and the Litho host holding it has plenty.
+     */
+    private static final int HOST_REACH = 4;
+
     /** The space between the label and the bar's track, and around the label's text. */
     private static final float GAP_DP = 4f;
+
+    /** Runs the label's update after the layout pass that asked for it. */
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
     /** Each bar's label. Both are weak: the label's parent leads back to the bar. */
     private static final Map<SeekBar, WeakReference<TextView>> LABELS = new WeakHashMap<>();
@@ -79,10 +93,25 @@ final class ReelTimeLabel {
         int width;
         /** The text on the label now, or null after it starts over. */
         String text;
-        /** The parent whose overlay holds the label, or null when it's a child. */
+        /** The view whose overlay holds the label, or null when it's a child. */
         WeakReference<ViewGroup> overlay;
         /** Whether the bar carries the label's words as its state description. */
         boolean described;
+    }
+
+    /** The view the label goes in, where the bar is in that view, and whether the label is its child. */
+    private static final class Host {
+        final ViewGroup view;
+        final int barLeft;
+        final int barTop;
+        final boolean child;
+
+        Host(ViewGroup view, int barLeft, int barTop, boolean child) {
+            this.view = view;
+            this.barLeft = barLeft;
+            this.barTop = barTop;
+            this.child = child;
+        }
     }
 
     private ReelTimeLabel() {
@@ -104,7 +133,7 @@ final class ReelTimeLabel {
                 if (label != null) hide(bar, label);
                 return;
             }
-            if (label == null) label = create(bar);
+            if (label == null) label = create(bar, on);
             show(bar, (ViewGroup) parent, label, progress, max);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek bar time", failure);
@@ -140,7 +169,7 @@ final class ReelTimeLabel {
         return Math.max(0, Math.min(progress, max));
     }
 
-    private static TextView create(SeekBar bar) {
+    private static TextView create(SeekBar bar, BooleanSupplier on) {
         Context context = bar.getContext();
         float density = context.getResources().getDisplayMetrics().density;
         int gap = Math.round(GAP_DP * density);
@@ -163,6 +192,12 @@ final class ReelTimeLabel {
         synchronized (LABELS) {
             LABELS.put(bar, new WeakReference<>(label));
         }
+        // Instagram can give a bar its length and position before laying it out, and with autoplay
+        // held (Tap to play) nothing moves the bar again, so on a phone 2 of 10 reels got no label.
+        // Each layout of the bar shows the label again for where the bar is now. It runs after the
+        // layout pass, since the label can be added to the bar's parent.
+        bar.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                MAIN.post(() -> update(bar, bar.getProgress(), on)));
         return label;
     }
 
@@ -175,41 +210,74 @@ final class ReelTimeLabel {
             state.text = null;
             state.width = widthFor(label, max);
         }
-        attach(parent, label, state);
-        if (state.overlay == null && state.described) undescribe(bar, state);
         String text = text(progress, max);
-        if (!text.equals(state.text)) {
+        boolean changed = !text.equals(state.text);
+        if (changed) {
             state.text = text;
-            String words = L10n.f("%1$s of %2$s", time(played(progress, max)), time(max));
             label.setText(text);
-            label.setContentDescription(words);
-            if (state.overlay != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                bar.setStateDescription(words);
-                state.described = true;
-            }
+            label.setContentDescription(L10n.f("%1$s of %2$s", time(played(progress, max)), time(max)));
         }
-        boolean laidOut = bar.getWidth() > 0 && bar.getHeight() > 0;
-        if (laidOut) place(bar, parent, label, state);
-        label.setVisibility(laidOut && bar.getVisibility() == View.VISIBLE && !bar.isPressed() ? View.VISIBLE : View.GONE);
+        Host host = bar.getWidth() > 0 && bar.getHeight() > 0 ? hostFor(bar, parent, label, state.width) : null;
+        if (host == null) {
+            // Not laid out yet, or nowhere near the bar has room for all of the label.
+            hide(bar, label);
+            return;
+        }
+        attach(host, label, state);
+        if (state.overlay == null) {
+            if (state.described) undescribe(bar, state);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && (changed || !state.described)) {
+            bar.setStateDescription(label.getContentDescription());
+            state.described = true;
+        }
+        place(bar, host, label, state);
+        label.setVisibility(bar.getVisibility() == View.VISIBLE && !bar.isPressed() ? View.VISIBLE : View.GONE);
         label.setAlpha(bar.getAlpha());
     }
 
-    /** Puts the label in [parent], as a child of a FrameLayout or on any other parent's overlay. */
-    private static void attach(ViewGroup parent, TextView label, State state) {
-        if (parent instanceof FrameLayout) {
-            if (label.getParent() == parent && state.overlay == null) return;
+    /**
+     * The nearest view, the bar's parent first, with room above the bar's track for the whole label
+     * and the gap under it, or null when none within {@link #HOST_REACH} has it.
+     */
+    private static Host hostFor(SeekBar bar, ViewGroup parent, TextView label, int width) {
+        label.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int needed = label.getMeasuredHeight() + Math.round(GAP_DP * bar.getResources().getDisplayMetrics().density);
+        int left = bar.getLeft();
+        int top = bar.getTop();
+        ViewGroup view = parent;
+        for (int i = 0; i < HOST_REACH; i++) {
+            int room = top + bar.getPaddingTop();
+            // A child is laid out inside the FrameLayout's padding; an overlay draws over all of the view.
+            if (i == 0 && view instanceof FrameLayout && room - view.getPaddingTop() >= needed) {
+                return new Host(view, left, top, true);
+            }
+            if (room >= needed) return new Host(view, left, top, false);
+            ViewParent up = view.getParent();
+            if (!(up instanceof ViewGroup)) return null;
+            left += view.getLeft();
+            top += view.getTop();
+            view = (ViewGroup) up;
+        }
+        return null;
+    }
+
+    /** Puts the label in [host]: a child of the bar's FrameLayout, or on the view's overlay. */
+    private static void attach(Host host, TextView label, State state) {
+        if (host.child) {
+            if (label.getParent() == host.view && state.overlay == null) return;
             detach(label, state);
-            parent.addView(label, new FrameLayout.LayoutParams(
+            host.view.addView(label, new FrameLayout.LayoutParams(
                     state.width, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.END));
             return;
         }
-        ViewGroup host = state.overlay == null ? null : state.overlay.get();
-        if (host == parent && label.getParent() != null) return;
+        ViewGroup current = state.overlay == null ? null : state.overlay.get();
+        if (current == host.view && label.getParent() != null) return;
         detach(label, state);
         // A width of its own, so a new text redraws the label without asking for a new layout.
         label.setLayoutParams(new ViewGroup.LayoutParams(state.width, ViewGroup.LayoutParams.WRAP_CONTENT));
-        parent.getOverlay().add(label);
-        state.overlay = new WeakReference<>(parent);
+        host.view.getOverlay().add(label);
+        state.overlay = new WeakReference<>(host.view);
     }
 
     private static void detach(TextView label, State state) {
@@ -225,10 +293,11 @@ final class ReelTimeLabel {
      * where the bar fills from the right. Layout parameters change only when the place does, so
      * playback doesn't ask the reel for a new layout on every tick.
      */
-    private static void place(SeekBar bar, ViewGroup parent, TextView label, State state) {
+    private static void place(SeekBar bar, Host host, TextView label, State state) {
         int gap = Math.round(GAP_DP * bar.getResources().getDisplayMetrics().density);
         boolean rtl = bar.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
-        if (state.overlay == null) {
+        if (host.child) {
+            ViewGroup parent = host.view;
             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) label.getLayoutParams();
             int bottom = (parent.getHeight() - parent.getPaddingBottom() - bar.getBottom())
                     + bar.getHeight() - bar.getPaddingTop() + gap;
@@ -255,8 +324,10 @@ final class ReelTimeLabel {
         label.measure(View.MeasureSpec.makeMeasureSpec(state.width, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         int height = label.getMeasuredHeight();
-        int left = rtl ? bar.getLeft() + bar.getPaddingLeft() : bar.getRight() - bar.getPaddingRight() - state.width;
-        int top = Math.max(0, bar.getTop() + bar.getPaddingTop() - gap - height);
+        int left = rtl
+                ? host.barLeft + bar.getPaddingLeft()
+                : host.barLeft + bar.getWidth() - bar.getPaddingRight() - state.width;
+        int top = Math.max(0, host.barTop + bar.getPaddingTop() - gap - height);
         label.layout(left, top, left + state.width, top + height);
     }
 
