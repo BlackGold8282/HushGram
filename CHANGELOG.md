@@ -2,24 +2,18 @@
 
 Every HushGram release, newest first.
 
-## Unreleased
+## 0.0.3 (2026-10-01)
 
+* **Instagram:** HushGram 0.0.3 adds fourteen patches, for 35 in all, and still targets Instagram 449.0.0.52.84 (build 385511871, arm64-v8a) on Android 9 and newer.
 * **Tooling:** The release tooling's own tests pass while a release is being prepared. Their copy of the checkout left the bug form on the published version and their index commit dropped the CHANGELOG's earlier releases, so the source commit of every release after the first was refused.
 * **Instagram:** Tapping an expired Undo for remembered positions reports its expiration and leaves newly remembered positions intact, even when the settings row hasn't refreshed yet.
-
 * **Instagram:** Clear remembered positions deletes the local playback history and cancels pending restores, even while playback is off or paused. Undo restores its bounded snapshot once within 10 seconds; a restart discards it, and newly remembered positions take precedence.
-
 * **Instagram:** Only accounts you follow, Ring size and Playback quality explain which parent switch enables them while it is off. Their saved choices stay intact, and shared Download quality remains available.
-
 * **Tooling:** Require project-plugin graphs in imported dependency reports and bind each advisory exception to one reviewed tooling scope. Per-scope verdicts keep the same library's other uses visible.
-
 * **Instagram:** Diagnostic reports show matched/expected patch targets and fixed missing-target labels for Disable analytics, Sanitize sharing links and Start on x86 devices. The counts describe patch-time code matches, not live request suppression.
 * **Tooling:** Fixture verification and schema 3 release receipts read those counts from the patched APK. Required targets are pinned to the exact fixture and a missing one stops certification even when its patch applied. Optional absences stay visible; forced runs on unreviewed builds record counts without certifying them. Historical receipts keep their original schema checks.
-
 * **Tooling:** AGP's host test tools use Netty 4.1.138, and the settings plugin uses JDOM 2.0.6.1 and jose4j 0.9.7, removing the affected versions found by the dependency audit. These libraries aren't in the shipped extension payload.
-
 * **Tooling:** The dependency audit reports the resolved settings, plugin, build, test and host-contract graphs separately from the shipped SBOM. Missing dependencies stop it. OSV results include a reviewed publisher supplement for Guava, whose settings-plugin copy and shared-extension test graphs now resolve to 33.7.2. Host contracts don't certify an installed Manager or Desktop.
-
 * **Instagram:** The Before you sign in notice and the README's sign-in advice stick to what's known. They used to call a Root Mount install the lowest-risk path and say an older account is treated better, which nobody outside Meta can show. Now they say a re-signed Instagram can't pass Google's Play Store check whatever the patches do, that a Root Mount install keeps the sign-in you already have, that updating over the top with the same key keeps Instagram's data, and that a spare account keeps yours out of it. The notice is updated in all five translations.
 * **Instagram:** The HushGram settings row at the top of Settings and activity wraps its title onto a second line at a large text size or in a long translation, instead of cutting it off at the edge. At 200% text in a narrow window even the English title used to lose its last letters.
 * **Instagram:** `Turn off double tap to like` has two switches under it, On posts and On reels, both on to start. Turn one off and a double tap likes there again while the other stays held back, so you can keep double tap to like on posts and still not like a reel by accident. With the main switch off, both are greyed out and every double tap likes as it used to. Asked for in #6.

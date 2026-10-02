@@ -1,7 +1,7 @@
 ![HushGram. Keep the moments. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.2-E1306C" alt="Version 0.0.2">
+  <img src="https://img.shields.io/badge/version-0.0.3-E1306C" alt="Version 0.0.3">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Instagram-449.0.0.52.84-E1306C" alt="Instagram 449.0.0.52.84">
@@ -62,7 +62,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 
 ## Patches
 
-There are 35 patches for `com.instagram.android`, checked against Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The fourteen newest, Show if a profile follows you, Remove the empty space at the bottom, Hide the Repost button, Story ring size, Hide group buttons on the share sheet, Pure black dark mode, Open developer options, Start on x86 devices, Keep the reel speed, Hide suggested posts, Hide Meta AI, Hide the Explore grid, Start Home on Following and Hide suggested stories, come after v0.0.2 and go out with the next release.
+There are 35 patches for `com.instagram.android`, checked against Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The fourteen newest, Show if a profile follows you, Remove the empty space at the bottom, Hide the Repost button, Story ring size, Hide group buttons on the share sheet, Pure black dark mode, Open developer options, Start on x86 devices, Keep the reel speed, Hide suggested posts, Hide Meta AI, Hide the Explore grid, Start Home on Following and Hide suggested stories, are new in v0.0.3.
 
 | Patch | What it does |
 |---|---|
@@ -132,11 +132,11 @@ At the top, a card says whether HushGram is on or paused. Below it:
 - **Pause and diagnostics** has the Pause switch, Debug logging, and the diagnostic report. Copy a quick report, or save the full one to Download/Morphe (on Android 9, a Download/Morphe folder inside Instagram's own folder, and the message says where). Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it.
 - **About** shows the version and the licenses, with a link to this page.
 
-Unreleased source builds also show patch-time target coverage for Disable analytics, Sanitize sharing links and Start on x86 devices in the diagnostic report. Each shows matched/expected counts and fixed labels for missing targets. These describe the code the patch found, not which live requests Instagram sends.
+The diagnostic report also shows patch-time target coverage for Disable analytics, Sanitize sharing links and Start on x86 devices. Each shows matched/expected counts and fixed labels for missing targets. These describe the code the patch found, not which live requests Instagram sends.
 
-In unreleased source builds, Only accounts you follow, Ring size and Playback quality are disabled while their parent switch is off. Each explains which switch enables it. Turning the parent back on restores your saved choice. Download quality remains available for every download surface.
+Only accounts you follow, Ring size and Playback quality are disabled while their parent switch is off. Each explains which switch enables it. Turning the parent back on restores your saved choice. Download quality remains available for every download surface.
 
-Unreleased source builds also offer Clear remembered positions below Resume long videos, even when playback is off or paused. It deletes the local history of up to 200 positions kept for 30 days and cancels pending restores. Tap the same row within 10 seconds to undo once. Restarting Instagram discards Undo. The history stays in its own private file, outside the settings registry and diagnostic reports.
+Clear remembered positions sits below Resume long videos and works even when playback is off or paused. It deletes the local history of up to 200 positions kept for 30 days and cancels pending restores. Tap the same row within 10 seconds to undo once. Restarting Instagram discards Undo. The history stays in its own private file, outside the settings registry and diagnostic reports.
 
 Pause turns off every feature a switch controls, all at once and without losing your choices. It's the quickest way to tell whether HushGram is behind a problem.
 
