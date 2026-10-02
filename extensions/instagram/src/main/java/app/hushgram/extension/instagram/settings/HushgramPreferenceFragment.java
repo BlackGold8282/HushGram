@@ -1630,15 +1630,24 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /**
      * Lets a row's title and summary wrap to as many lines as they need. Android draws a row's
      * title on one line and cuts its summary at ten.
+     *
+     * <p>Every line starts at the row's start edge. In a right-to-left layout, English text is a
+     * left-to-right paragraph, which the row's start gravity sets flush left inside a text block
+     * that sits on the right, so a wrapped summary looked left-aligned beside one-line titles on
+     * the right. Left to right, the start edge is the left, as before.
      */
     static void showAllText(View row) {
         TextView title = row.findViewById(android.R.id.title);
         if (title != null) {
             title.setSingleLine(false);
             title.setMaxLines(Integer.MAX_VALUE);
+            title.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         }
         TextView summary = row.findViewById(android.R.id.summary);
-        if (summary != null) summary.setMaxLines(Integer.MAX_VALUE);
+        if (summary != null) {
+            summary.setMaxLines(Integer.MAX_VALUE);
+            summary.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        }
     }
 
     /** A section title, which a screen reader announces as a heading. */
