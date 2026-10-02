@@ -211,6 +211,13 @@ once-call Lapp/hushgram/extension/instagram/stories/StoryTime;->label(J)Ljava/la
 # relativeHeader(). The builder is the one static method taking a Context, the session, a reel and
 # a story item that holds "timestamp" on 449, and it reads the flag once.
 once-call Lapp/hushgram/extension/instagram/stories/StoryTime;->relativeHeader(I)Z in static (Landroid/content/Context;Lcom/instagram/common/session/UserSession;L*;Lcom/instagram/model/reels/ReelItem;)L*; holding timestamp
+# Loop a story answers the read of Instagram's own story loop flag through loop(), right after it
+# in the story viewer's private check of whether a story item plays again. The check holds no
+# string, so the rule names one only the viewer holds on 449, and of the viewer's three instance
+# methods taking a story item and answering a boolean, it's the one that asks the item whether
+# it's an ad (EWC on 449). Left out, a finished story moves on; twice or elsewhere, it isn't the
+# answer the patch wrote.
+once-call Lapp/hushgram/extension/instagram/stories/StoryLoop;->loop(I)Z in instance (Lcom/instagram/model/reels/ReelItem;)Z calling instance Lcom/instagram/model/reels/ReelItem;->EWC()Z class-holding ReelViewerFragment.onCurrentActiveItemBound
 # Restore trust on re-signed builds puts its call first in the package signer reader, which its
 # fingerprint picks by the SigningInfo and PackageInfo calls it makes. The reader holds no string,
 # so the rule holds the old signatures array it reads, which 28 methods read on 449. Of

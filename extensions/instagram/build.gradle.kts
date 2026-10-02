@@ -328,6 +328,14 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.StoryTimeSettingsTest" to listOf(
                 "missingPatchHasNoStoryTimeSwitch[28]", "missingPatchHasNoStoryTimeSwitch",
                 "storyTimeSwitchStartsOnUnderStoriesPersistsAndHonorsPause[28]", "storyTimeSwitchStartsOnUnderStoriesPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.stories.StoryLoopTest" to listOf(
+                "onEveryStoryLoops[28]", "onEveryStoryLoops",
+                "offPausedAndUnreadyKeepInstagramsAnswer[28]", "offPausedAndUnreadyKeepInstagramsAnswer",
+                "loopWinsOverStopWhileItsLooping[28]", "loopWinsOverStopWhileItsLooping",
+                "withoutTheLoopPatchStopHoldsAsBefore[28]", "withoutTheLoopPatchStopHoldsAsBefore"),
+            "app.hushgram.extension.instagram.settings.StoryLoopSettingsTest" to listOf(
+                "missingPatchHasNoStoryLoopSwitch[28]", "missingPatchHasNoStoryLoopSwitch",
+                "storyLoopSwitchStartsOnUnderStoriesPersistsAndHonorsPause[28]", "storyLoopSwitchStartsOnUnderStoriesPersistsAndHonorsPause"),
             "app.hushgram.extension.instagram.settings.OverrideNavigationTest" to listOf(
                 "missingPatchHasNoNativeAction[28]", "missingPatchHasNoNativeAction",
                 "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[28]", "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery",

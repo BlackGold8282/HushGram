@@ -398,6 +398,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             stories.add(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
                     L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.")));
         }
+        if (build.contains(PatchFamily.STORY_LOOP)) {
+            stories.add(toggle(context, Settings.LOOP_STORIES, L10n.t("Loop a story"),
+                    L10n.t("A story plays again from the start when it ends, until you tap or swipe to move on. "
+                            + "Ads still move on. With Stop Story auto-advance on too, stories loop.")));
+        }
         if (build.contains(PatchFamily.STORY_TIME)) {
             stories.add(toggle(context, Settings.SHOW_STORY_TIME, L10n.t("Show a story's exact time"),
                     L10n.t("A story's header shows the date and time it was posted, like Oct 2, 3:45 PM, instead of "

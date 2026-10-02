@@ -25,12 +25,14 @@ public final class StoryAdvance {
 
     /**
      * True keeps the finished story on screen. False while the switch is off, HushGram is paused
-     * or the settings aren't ready. Never throws.
+     * or the settings aren't ready, and while Loop a story is looping stories, since a looping
+     * video never gets here and a photo has to reach the place where Instagram starts it over.
+     * Never throws.
      */
     public static boolean hold() {
         try {
             HookStatus.invoked(FamilyNames.STORY_AUTO_ADVANCE);
-            return Utils.settingsReady() && Settings.BLOCK_STORY_AUTO_ADVANCE.get();
+            return Utils.settingsReady() && Settings.BLOCK_STORY_AUTO_ADVANCE.get() && !StoryLoop.takesOver();
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.STORY_AUTO_ADVANCE, "story finished", failure);
             return false;

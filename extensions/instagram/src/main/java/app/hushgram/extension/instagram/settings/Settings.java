@@ -98,6 +98,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_show_story_time", TRUE);
 
     /**
+     * A story plays again from the start when it ends, instead of the viewer moving on
+     * ({@link app.hushgram.extension.instagram.stories.StoryLoop}). While it's on it wins over
+     * {@link #BLOCK_STORY_AUTO_ADVANCE}. The patch is off in the default selection, so a build that
+     * has it asked for it, and the switch starts on.
+     */
+    public static final BooleanSetting LOOP_STORIES =
+            new BooleanSetting("hushgram_loop_stories", TRUE);
+
+    /**
      * The stories you watch, which Instagram posts to media/seen/ to put you on their viewer lists.
      * Held back, you stay off them. Replies and reactions still show you.
      */

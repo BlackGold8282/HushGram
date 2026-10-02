@@ -102,6 +102,8 @@ Instagram isn't told which reels you watched or how far into them you got. It ra
 Reels	Reels
 Stop Story auto-advance	Hikayelerin otomatik geçişini durdur
 A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.	Biten bir hikaye, dokunana veya kaydırana kadar ekranda kalır. Instagram'ın zamanlaması için bunu kapat.
+Loop a story	Hikayeyi döngüde oynat
+A story plays again from the start when it ends, until you tap or swipe to move on. Ads still move on. With Stop Story auto-advance on too, stories loop.	Bir hikaye bittiğinde, geçmek için dokunana ya da kaydırana kadar baştan yeniden oynar. Reklamlar yine geçer. Hikayelerin otomatik geçişini durdur da açıksa hikayeler döngüde oynar.
 Show a story's exact time	Hikayenin tam zamanını göster
 A story's header shows the date and time it was posted, like Oct 2, 3:45 PM, instead of how long ago. It follows your phone's language and 12 or 24-hour setting.	Hikayenin üst kısmı, ne kadar önce paylaşıldığı yerine paylaşıldığı tarihi ve saati gösterir, örneğin 2 Eki 15:45. Telefonunun dilini ve 12 ya da 24 saat ayarını izler.
 Stories	Hikayeler

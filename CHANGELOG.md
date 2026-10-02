@@ -6,6 +6,7 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Instagram:** New patch, `Loop a story`, off until you pick it in Manager. A story plays again from the start when it ends, until you tap or swipe, through the loop Instagram is already trying out. Ads still move on. With Stop Story auto-advance on too, stories loop. Its switch is under Stories. It hasn't been tried on a phone yet. Asked for in #1, and piko had it first.
 * **Instagram:** New patch, `Show a story's exact time`, off until you pick it in Manager. A story's header says when it was posted, like Oct 2, 3:45 PM, instead of 3h, in your phone's language and with its 12 or 24-hour setting. Its switch is under Stories. It hasn't been tried on a phone yet. Asked for in #1, and piko had it first.
 * **Instagram:** New patch, `Stop Reels scrolling`, off until you pick it in Manager. A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones, so you stay on the reel you opened. Its switch is under Reels, and a change takes a restart. Instagram's own auto scroll still moves on when a reel ends if you've turned it on. It hasn't been tried on a phone yet.
 * **Instagram:** New patch, `Stop swipe to create`, off until you pick it in Manager. A sideways swipe on Home no longer slides the camera in. The + button and every other way into the camera still work, and a swipe back out of the camera does too. Its switch is under Feed. It hasn't been tried on a phone yet.
