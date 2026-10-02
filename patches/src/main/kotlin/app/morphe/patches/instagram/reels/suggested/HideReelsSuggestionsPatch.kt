@@ -148,6 +148,11 @@ internal fun BytecodePatchContext.findReelsSuggestions(): ReelsSuggestionSites {
     val netegoReturn = returns.singleOrNull()
         ?: refuse("expected $where to return one item made from a $unitType, found ${returns.size}")
     val item = (code[netegoReturn] as OneRegisterInstruction).registerA
+    // The unit is the call's first argument only in a static call; an instance call's first is its receiver.
+    val call = code[netegoReturn - 2].opcode
+    if (call != Opcode.INVOKE_STATIC && call != Opcode.INVOKE_STATIC_RANGE) {
+        refuse("$where makes its netego item with ${call.name}, not a static call")
+    }
     val unit = code[netegoReturn - 2].argumentRegisters().firstOrNull() ?: refuse("$where makes its netego item with no arguments")
     if (unit == item) refuse("$where writes the netego item over its unit before returning it")
     if (netegoReturn in converter.jumpTargets()) refuse("something in $where jumps to the return of its netego item")

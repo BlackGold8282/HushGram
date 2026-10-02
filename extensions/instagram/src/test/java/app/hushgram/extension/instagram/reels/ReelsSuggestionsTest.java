@@ -4,9 +4,12 @@
  */
 package app.hushgram.extension.instagram.reels;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -147,6 +150,9 @@ public class ReelsSuggestionsTest {
         assertSame(item, ReelsSuggestions.filter(item));
         assertSame(item, ReelsSuggestions.filter(item));
         assertTrue(FeedFilterCounters.report().toString(), FeedFilterCounters.report().isEmpty());
+        List<String> missing = HookStatus.missing(FamilyNames.REELS_SUGGESTIONS);
+        assertEquals(missing.toString(), 1, missing.size());
+        assertTrue(missing.toString(), missing.get(0).contains(Kindless.class.getName()));
     }
 
     /** A reader or a switch that throws keeps the item and says which hook threw. */

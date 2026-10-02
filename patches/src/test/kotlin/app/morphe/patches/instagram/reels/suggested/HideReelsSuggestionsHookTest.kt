@@ -99,6 +99,7 @@ class HideReelsSuggestionsHookTest {
             classes(madeFrom = "Lfixture/OtherUnit;") to "expected $converter->convert to return one item made from a $unit, found 0",
             classes(netegoReturns = 2) to "expected $converter->convert to return one item made from a $unit, found 2",
             classes(madeInto = 0) to "writes the netego item over its unit before returning it",
+            classes(madeByInstance = true) to "makes its netego item with invoke-virtual, not a static call",
             classes(jumpToNetegoReturn = true) to "something in $converter->convert jumps to the return of its netego item",
             classes(locals = 2) to "needs 2",
         )
@@ -227,9 +228,15 @@ class HideReelsSuggestionsHookTest {
         netegoReturns: Int = 1,
         madeInto: Int = 1,
         jumpToNetegoReturn: Boolean = false,
+        madeByInstance: Boolean = false,
         locals: Int = 4,
     ): List<ClassDef> {
-        val fromUnit = "invoke-static { v0, p1 }, $items->fromUnit($madeFrom$session)$item"
+        // An instance call's first register is its receiver, so the unit isn't where a static call keeps it.
+        val fromUnit = if (madeByInstance) {
+            "invoke-virtual { v0, v0, p1 }, $items->fromUnit($madeFrom$session)$item"
+        } else {
+            "invoke-static { v0, p1 }, $items->fromUnit($madeFrom$session)$item"
+        }
         val firstItem = if (netegoReturns > 1) {
             "new-instance v0, $unit\n$fromUnit\nmove-result-object v1"
         } else {
