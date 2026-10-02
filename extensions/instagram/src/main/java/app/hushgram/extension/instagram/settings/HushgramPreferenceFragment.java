@@ -347,6 +347,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. "
                             + "Slide the lock off, or hold the edge and let go, to go back to normal speed.")));
         }
+        if (build.contains(PatchFamily.REEL_SEEK_BAR)) {
+            reels.add(toggle(context, Settings.REEL_SEEK_BAR, L10n.t("Keep a seek bar"),
+                    L10n.t("Instagram's seek bar stays under every reel, short ones too, with the time played and "
+                            + "the reel's length above it. Ads keep Instagram's own rules.")));
+        }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"));
             for (Preference row : reels) section.addPreference(row);

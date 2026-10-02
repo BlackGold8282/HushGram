@@ -282,6 +282,17 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_keep_reel_speed", TRUE);
 
     /**
+     * Instagram's seek bar stays under every ordinary reel, short ones too, with the time played
+     * and the reel's length above it
+     * ({@link app.hushgram.extension.instagram.reels.ReelSeekBar}). The bar is decided as each reel
+     * is shown, so a change shows from the next reels; the time follows the switch at once. The
+     * patch is off in the default selection, so a build that has it asked for it, and the switch
+     * starts on.
+     */
+    public static final BooleanSetting REEL_SEEK_BAR =
+            new BooleanSetting("hushgram_reel_seek_bar", TRUE);
+
+    /**
      * Download in the menu of anyone's story, photo or video, saving it through the save pipeline
      * below. Instagram's own menu offers a save only on your own stories.
      */

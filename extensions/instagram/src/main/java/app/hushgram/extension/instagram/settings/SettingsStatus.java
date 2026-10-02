@@ -148,6 +148,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean reelSeekBar() {
+        return false;
+    }
+
     public static boolean storyDownload() {
         return false;
     }

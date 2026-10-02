@@ -590,3 +590,21 @@ once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->keepSta
 # that converter, twelve on 449, which no rule here counts, so it rests on
 # HideReelsSuggestionsHookTest, which checks on the 449 fixture that every return passes through it.
 once-call Lapp/hushgram/extension/instagram/reels/ReelsSuggestions;->netego(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object; in static (L*;Lcom/instagram/common/session/UserSession;)LX/*; holding android_purge_26_q2_ClipsItemExt_toClipsItemCombined
+
+# Keep a seek bar on Reels answers the shortest ordinary reel that gets a seek bar through
+# ReelSeekBar.minSeconds, at each of the three reads of that server value, and the hidden kind of
+# bar through ReelSeekBar.lazy at its one read. The check of whether a reel gets the bar (03vg.A0M
+# on 449, the one method loading its marker below) reads the ordinary minimum in the same place as
+# the ads' minimum, so the patch gives the ordinary branch its own read and answers only that one:
+# a call there and in two other methods, so shared-call. The seek bar row's state (06Yw.A00 on 449)
+# does the same with the hidden kind, the only call to lazy, so once-call. The other two reads of
+# the minimum (03vg.A0L and 0AJj.A00 on 449) hold no string to pick them by, so they rest on
+# ReelSeekBarHookTest, which checks on the 449 fixture that every read is answered and that each
+# ad branch still reads Instagram's own value. The seek bar's onProgressChanged, the one method of
+# its shape reading the bar's listener field, hands the bar and its position to ReelSeekBar.progress
+# first thing, once. Left out, short reels go back to Instagram's rules or the time label never
+# shows; twice or elsewhere, it isn't the hook the patch wrote.
+shared-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->minSeconds(J)J in static (Lcom/instagram/common/session/UserSession;JZZ)Z holding android_purge_26_q2_ClipsExperimentUtil_shouldShowAttachedScrubber
+once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->lazy(I)Z in static (Lcom/instagram/clips/intf/ClipsViewerConfig;L*;L*;Lcom/instagram/common/session/UserSession;Z)L*; holding android_purge_26_q3_ClipsScrubberRowUseCase_getUiState
+start-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->progress(Landroid/widget/SeekBar;I)V in instance (Landroid/widget/SeekBar;IZ)V holding Lcom/instagram/ui/mediaactions/VideoScrubberSeekBar;->A00:Landroid/widget/SeekBar$OnSeekBarChangeListener;
+once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->progress(Landroid/widget/SeekBar;I)V in instance (Landroid/widget/SeekBar;IZ)V holding Lcom/instagram/ui/mediaactions/VideoScrubberSeekBar;->A00:Landroid/widget/SeekBar$OnSeekBarChangeListener;
