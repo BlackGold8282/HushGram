@@ -328,6 +328,32 @@ public class CarouselSaveTest {
         assertSame(nativeOptions, VideoDownload.allow(nativeOptions, MediaBridge.DOWNLOAD));
     }
 
+    /** On a phone an all-photo carousel with the photo switch off offered Save all, which then saved nothing. */
+    @Test public void saveAllIsOfferedOnlyWhenAPageWouldSave() {
+        ArrayList<Object> rows = new ArrayList<>();
+        MediaBridge.post = Arrays.asList(page(false, "/a.jpg", "1"), page(false, "/b.jpg", "2"));
+        Settings.DOWNLOAD_PHOTOS.save(false);
+        VideoDownload.offerAll(new Object(), rows);
+        assertTrue("photos off, yet an all-photo carousel offered Save all", rows.isEmpty());
+        Settings.DOWNLOAD_PHOTOS.save(true);
+        VideoDownload.offerAll(new Object(), rows);
+        assertEquals(Collections.singletonList(MediaBridge.ALL), rows);
+
+        rows.clear();
+        MediaBridge.post = Arrays.asList(page(false, "/c.jpg", "3"), page(true, "/d.mp4", "4"));
+        Settings.DOWNLOAD_PHOTOS.save(false);
+        VideoDownload.offerAll(new Object(), rows);
+        assertEquals("its video page still saves", Collections.singletonList(MediaBridge.ALL), rows);
+
+        rows.clear();
+        MediaBridge.post = Arrays.asList(page(true, "/e.mp4", "5"), page(true, "/f.mp4", "6"));
+        Settings.DOWNLOAD_VIDEOS.save(false);
+        Settings.DOWNLOAD_PHOTOS.save(true);
+        VideoDownload.offerAll(new Object(), rows);
+        assertTrue("a video's cover isn't a photo to save", rows.isEmpty());
+        assertEquals("nothing was fetched to decide", 0, server.hits("/e.mp4") + server.hits("/a.jpg"));
+    }
+
     @Test public void exhaustedPreferenceRetirementDoesNotTurnTheBatchIntoAnInterruption() throws Exception {
         Context wrapped = withRetirementFailure();
         CompletableFuture<MediaSave.BatchResult> ended = new CompletableFuture<>();

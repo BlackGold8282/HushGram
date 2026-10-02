@@ -6,6 +6,8 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Instagram:** Save all only shows on a carousel when at least one page would save with your Downloads switches. An all-photo carousel used to offer it with Download feed photos off, then report every page as skipped.
+
 * **Tooling:** Device identity checks read ADB's standard output separately from diagnostic messages. A successful daemon startup no longer rejects the selected phone or emulator, while command failures keep their full diagnostics and invalid identities still refuse installation.
 
 * **Tooling:** Prepare source version 0.0.4 with the audit corrections. The published release and source index remain at 0.0.3.

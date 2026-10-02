@@ -66,14 +66,17 @@ public final class VideoDownload {
         }
     }
 
-    /** A carousel gets its own action before the builder splits into your own and others' rows. */
+    /**
+     * A carousel gets its own action before the builder splits into your own and others' rows,
+     * when at least one page would save with the switches as they are.
+     */
     public static void offerAll(Object menu, ArrayList<?> rows) {
         try {
             HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
             if (menu == null || rows == null || !videos() && !photos()) return;
             Object post = InstagramMedia.feedMenuMedia(menu);
             List<?> pages = post == null ? null : InstagramMedia.carouselMedia(post);
-            if (pages == null || pages.size() < 2) return;
+            if (pages == null || pages.size() < 2 || !anySaves(pages)) return;
             Object option = allOption();
             if (option != null) InstagramMedia.addSaveAllRow(menu, rows, option, L10n.t("Save all"));
         } catch (Throwable failure) {
@@ -246,6 +249,14 @@ public final class VideoDownload {
 
     /** What a tap on Download saves of [media]. */
     enum Save { VIDEO, PHOTO, NONE }
+
+    /** Whether Save all would save any of [pages]: an all-photo carousel with the photo switch off saves nothing. */
+    static boolean anySaves(List<?> pages) {
+        for (Object page : pages) {
+            if (what(page) != Save.NONE) return true;
+        }
+        return false;
+    }
 
     /** What a tap on Download saves of [media], a post or a carousel page, with the switches as they are. */
     static Save what(Object media) {
