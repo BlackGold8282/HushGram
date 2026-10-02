@@ -461,7 +461,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
 
-        if (build.contains(PatchFamily.FRIENDSHIP_STATUS) || build.contains(PatchFamily.PROFILE_SUGGESTIONS)) {
+        if (build.contains(PatchFamily.FRIENDSHIP_STATUS) || build.contains(PatchFamily.PROFILE_SUGGESTIONS)
+                || build.contains(PatchFamily.PROFILE_HIGHLIGHTS)) {
             PreferenceCategory profiles = category(screen, L10n.t("Profiles"));
             if (build.contains(PatchFamily.FRIENDSHIP_STATUS)) {
                 profiles.addPreference(toggle(context, Settings.SHOW_FRIENDSHIP_STATUS, L10n.t("Show if a profile follows you"),
@@ -477,6 +478,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 profiles.addPreference(toggle(context, Settings.HIDE_PROFILE_SUGGESTIONS, L10n.t("Hide suggested people"),
                         L10n.t("Takes Suggested for you and the Discover people button off profiles, yours included. "
                                 + "Bios, counts, posts and follower lists stay.")));
+            }
+            if (build.contains(PatchFamily.PROFILE_HIGHLIGHTS)) {
+                profiles.addPreference(toggle(context, Settings.HIDE_HIGHLIGHTS, L10n.t("Hide highlights"),
+                        L10n.t("Takes the row of story highlights off profiles, yours included. Bios, counts and "
+                                + "posts stay, and so does Add to highlight on your stories.")));
             }
         }
 

@@ -117,6 +117,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean profileHighlights() {
+        return false;
+    }
+
     public static boolean reelsSuggestions() {
         return false;
     }

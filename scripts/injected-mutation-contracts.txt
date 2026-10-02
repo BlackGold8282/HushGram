@@ -600,6 +600,13 @@ once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->inlineR
 once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->chainingButton(Landroid/view/View;)V in instance (L*;L*;L*;L*;Ljava/lang/Integer;Ljava/util/List;Ljava/util/List;I)V holding No\ssuggested\sViewBinder\sto\sbind\ssuggested\susers
 once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->keepStandaloneRow()I in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V class-holding ProfileHeaderBinderGroup.bindView ProfileHeaderBinderGroup.createView
 
+# Hide highlights asks ProfileHighlights before the same row list (0BNk.buildRowViewTypes on 449)
+# adds the row of story highlights, in place of its read of the tray's row type. It's called once
+# there and nowhere else. Left out, the highlights come back; twice or elsewhere, it isn't the hook
+# the patch wrote. HideHighlightsHookTest checks on the 449 fixture where it lands, with and
+# without Hide suggested people on profiles in the same method.
+once-call Lapp/hushgram/extension/instagram/profile/ProfileHighlights;->keepTray()I in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V class-holding ProfileHeaderBinderGroup.bindView ProfileHeaderBinderGroup.createView
+
 # Hide suggested accounts in Reels hands the item Instagram's Reels converter makes from a netego
 # unit, with the unit's type, to ReelsSuggestions.netego before it's returned (03TH.A02 on 449,
 # the one static method loading the trace name below), once. Its filter() runs at every return of

@@ -38,6 +38,7 @@ public final class FamilyNames {
     public static final String BOTTOM_SPACE = "Remove the empty space at the bottom";
     public static final String FRIENDSHIP_STATUS = "Show if a profile follows you";
     public static final String PROFILE_SUGGESTIONS = "Hide suggested people on profiles";
+    public static final String PROFILE_HIGHLIGHTS = "Hide highlights";
     public static final String COMMENT_COPY = "Copy comment";
     public static final String COMMENT_PHOTO = "Save comment photo";
     public static final String REEL_DECLUTTER = "Clean up Reels";

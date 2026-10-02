@@ -236,6 +236,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_profile_suggestions", TRUE);
 
     /**
+     * The row of story highlights on profiles
+     * ({@link app.hushgram.extension.instagram.profile.ProfileHighlights}). Read each time Instagram
+     * lays out a profile's header, so a change shows on the next profile opened. Off to start.
+     */
+    public static final BooleanSetting HIDE_HIGHLIGHTS =
+            new BooleanSetting("hushgram_hide_highlights", FALSE);
+
+    /**
      * The cards of accounts and creators to follow that Instagram puts between reels
      * ({@link app.hushgram.extension.instagram.reels.ReelsSuggestions}). Read as each page of
      * reels arrives, so a change shows from the next page.
