@@ -238,7 +238,10 @@ tasks.register("verifyAndroidBoundaries") {
                 "theReportSaysWhyTheProcessWentAwayLastTime", "repeatedExportsEachGetTheirOwnDownloadsEntry",
                 "reportRowAndChooserNameTheFolderThatTheWriterUses[28]", "reportRowAndChooserNameTheFolderThatTheWriterUses[29]", "reportRowAndChooserNameTheFolderThatTheWriterUses"),
             "app.hushgram.extension.instagram.download.MediaSaveTest" to listOf(
-                "onAndroid9ASaveWritesTheFileIntoTheFolderItself"),
+                "onAndroid9ASaveWritesTheFileIntoTheFolderItself",
+                "onAndroid9OverlappingSavesOwnSeparateWorkFilesAndLedgerRows",
+                "onAndroid9ARefusedLedgerRemovesOnlyItsReservedWorkFile",
+                "onAndroid9ConcurrentCommitsKeepEveryCompletedFile"),
             "app.hushgram.extension.instagram.download.SaveInterruptionTest" to listOf(
                 "sdk28InterruptedSaveRemovesItsHiddenStorageFileBeforeNotice",
                 "anInaccessibleAbsentRowRetiresAfterAnExactQuery[30]", "anInaccessibleAbsentRowRetiresAfterAnExactQuery",

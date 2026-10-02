@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Concurrent Android 9 saves keep separate hidden files and cleanup identities. Cancelling one leaves the other's bytes alone, and completed saves take different final names. A refused cleanup record removes its reserved file without touching finished media.
+
 * **Instagram:** Turning HushGram back on from its status card saves in the background instead of blocking settings. Both recovery controls stay disabled until the write finishes, duplicate taps are ignored, and failures leave the saved Pause choice visible for retry. Closing settings during recovery leaves detached controls alone.
 
 * **Tooling:** Troubleshooting now checks the Instagram build and other enabled patch sources before blaming a changed app. Report #11 succeeded after its other source was removed. Signing-conflict guidance explains which updates preserve data and that removing a differently signed app deletes its local data.
