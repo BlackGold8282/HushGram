@@ -49,6 +49,21 @@ public final class DeveloperOptions {
     static OverrideExchange.Parameter getOverrideParameterNative(Object parameter) { return null; }
 
     /**
+     * Typed writer boundaries filled from Instagram's own override editor. The table is the signed-in
+     * manager's native table or null. Each setter answers 1 only after the typed native call it
+     * makes, and 0 while unfilled or for anything that isn't the native table. Nothing here reaches
+     * a string import, a whole-table wipe or a reload.
+     */
+    static Object getOverrideTableNative(Object manager) { return null; }
+    static int setOverrideBooleanNative(Object table, long id, int value) { return 0; }
+    static int setOverrideLongNative(Object table, long id, long value) { return 0; }
+    static int setOverrideDoubleNative(Object table, long id, double value) { return 0; }
+    static int setOverrideStringNative(Object table, long id, String value) { return 0; }
+    static int removeOverrideNative(Object table, long id) { return 0; }
+    /** The value type Instagram's own decoder reads from a parameter ID, or 0 while unfilled. */
+    static int getOverrideTypeNative(long id) { return 0; }
+
+    /**
      * Injected first thing in the Home tab's long press. Answers 1 while the switch is on, and the
      * patch opens the developer options and ends the press. Otherwise 0, and the long press does
      * what it did. Never throws, and never waits for the settings: before they're ready it's 0.

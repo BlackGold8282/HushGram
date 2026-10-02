@@ -66,6 +66,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_open_developer_options", TRUE);
 
     /**
+     * Shows Import and Restore for native overrides. Off by default, and deliberately not a patch
+     * switch: Pause and a settings import never turn it on.
+     */
+    public static final BooleanSetting ALLOW_OVERRIDE_IMPORT =
+            new BooleanSetting("hushgram_allow_override_import", FALSE);
+
+    /**
      * The reels you watch, and how far into each you got, which Instagram posts to
      * clips/write_seen_state/ to rank your Reels. Nobody else sees it. Held back, reels you've
      * watched may come back.

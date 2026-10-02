@@ -64,6 +64,7 @@ import app.hushgram.extension.instagram.download.DownloadQuality;
 import app.hushgram.extension.instagram.media.PlaybackQuality;
 import app.hushgram.extension.instagram.media.ResumePlayback;
 import app.hushgram.extension.instagram.misc.OverrideExchange;
+import app.hushgram.extension.instagram.misc.OverrideImport;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.SaveControl;
@@ -112,6 +113,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int IMPORT_CONFIGURATION = 0x4848;
     private static final int EXPORT_OVERRIDES = 0x4849;
     private static final int VALIDATE_OVERRIDES = 0x484a;
+    private static final int IMPORT_OVERRIDES = 0x484b;
     private int documentRequest;
     private boolean changingConfiguration;
     private boolean changingOverrides;
@@ -123,6 +125,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable private Row exportOverrides;
     @Nullable private Row validateOverrides;
     @Nullable static volatile String overrideExportFeedback, overrideValidationFeedback;
+    /** Shown only while Allow importing overrides is on; absent rows can't be found or searched. */
+    @Nullable private Row importOverrides, restoreOverrides;
+    @Nullable private PreferenceCategory developerSection;
+    @Nullable static volatile String overrideImportFeedback, overrideRestoreFeedback;
 
     private String searchQuery = "";
     @Nullable private SearchRow search;
@@ -538,15 +544,37 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             exportOverrides.setPersistent(false);
             exportOverrides.setTitle(L10n.t("Export overrides"));
             exportOverrides.setSummary(L10n.t("Save this signed-in session's overrides for the exact Instagram build and schema."));
-            exportOverrides.setOnPreferenceClickListener(row -> { pickOverrides(false); return true; });
+            exportOverrides.setOnPreferenceClickListener(row -> { pickOverrides(EXPORT_OVERRIDES); return true; });
             developer.addPreference(exportOverrides);
             validateOverrides = new Row(context);
             validateOverrides.setKey("hushgram_validate_overrides");
             validateOverrides.setPersistent(false);
             validateOverrides.setTitle(L10n.t("Validate an overrides file"));
             validateOverrides.setSummary(L10n.t("Check a saved file against this session's typed schema. Validation applies nothing."));
-            validateOverrides.setOnPreferenceClickListener(row -> { pickOverrides(true); return true; });
+            validateOverrides.setOnPreferenceClickListener(row -> { pickOverrides(VALIDATE_OVERRIDES); return true; });
             developer.addPreference(validateOverrides);
+            developer.addPreference(toggle(context, Settings.ALLOW_OVERRIDE_IMPORT,
+                    L10n.t("Allow importing overrides"),
+                    L10n.t("Shows Import and Restore for overrides. An import changes Instagram's native flags for "
+                            + "this signed-in session.")));
+            developerSection = developer;
+            importOverrides = new Row(context);
+            importOverrides.setKey("hushgram_import_overrides");
+            importOverrides.setPersistent(false);
+            importOverrides.setTitle(L10n.t("Import overrides"));
+            importOverrides.setSummary(L10n.t("Apply a file exported from this session and build through Instagram's "
+                    + "own override editor. The current overrides are saved for Restore first."));
+            importOverrides.setOnPreferenceClickListener(row -> { pickOverrides(IMPORT_OVERRIDES); return true; });
+            restoreOverrides = new Row(context);
+            restoreOverrides.setKey("hushgram_restore_overrides");
+            restoreOverrides.setPersistent(false);
+            restoreOverrides.setTitle(L10n.t("Restore previous overrides"));
+            restoreOverrides.setSummary(L10n.t("Put back the overrides saved before the last import for this session and build."));
+            restoreOverrides.setOnPreferenceClickListener(row -> { exchangeOverrides(null, 0); return true; });
+            if (Settings.ALLOW_OVERRIDE_IMPORT.get()) {
+                developer.addPreference(importOverrides);
+                developer.addPreference(restoreOverrides);
+            }
         }
 
         if (build.contains(PatchFamily.RESTORE_TRUST) || build.contains(PatchFamily.REMOVE_AD_ID)
@@ -713,12 +741,29 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     @Override protected void updateUIToSettingValues() {
         restoreSearchRows();
-        try { super.updateUIToSettingValues(); } finally { filterSettings(); }
+        try { super.updateUIToSettingValues(); } finally { showOverrideImport(); filterSettings(); }
     }
 
     @Override protected void updateUIAvailability() {
         restoreSearchRows();
-        try { super.updateUIAvailability(); } finally { filterSettings(); }
+        try { super.updateUIAvailability(); } finally { showOverrideImport(); filterSettings(); }
+    }
+
+    /** Import and Restore exist on the page, and in search, only while their switch is on. */
+    private void showOverrideImport() {
+        PreferenceCategory group = developerSection;
+        if (group == null || importOverrides == null || restoreOverrides == null) return;
+        boolean allowed = Settings.ALLOW_OVERRIDE_IMPORT.get();
+        List<Preference> rows = searchableRows.get(group);
+        for (Row row : new Row[]{importOverrides, restoreOverrides}) {
+            if (allowed) {
+                if (rows != null && !rows.contains(row)) rows.add(row);
+                if (row.getParent() != group) group.addPreference(row);
+            } else {
+                if (rows != null) rows.remove(row);
+                if (row.getParent() == group) group.removePreference(row);
+            }
+        }
     }
 
     private static String searchText(CharSequence text) {
@@ -780,6 +825,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             validateOverrides.setEnabled(!busy);
             if (overrideValidationFeedback != null) validateOverrides.setSummary(overrideValidationFeedback);
         }
+        if (importOverrides != null) {
+            importOverrides.setEnabled(!busy);
+            if (overrideImportFeedback != null) importOverrides.setSummary(overrideImportFeedback);
+        }
+        if (restoreOverrides != null) {
+            restoreOverrides.setEnabled(!busy);
+            if (overrideRestoreFeedback != null) restoreOverrides.setSummary(overrideRestoreFeedback);
+        }
         filterSettings();
     }
 
@@ -799,17 +852,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
-    private void pickOverrides(boolean validating) {
+    private void pickOverrides(int request) {
         if (documentRequest != 0 || changingConfiguration || changingOverrides) return;
-        documentRequest = validating ? VALIDATE_OVERRIDES : EXPORT_OVERRIDES;
+        documentRequest = request;
         showConfiguration();
-        Intent picker = new Intent(validating ? Intent.ACTION_OPEN_DOCUMENT : Intent.ACTION_CREATE_DOCUMENT)
+        boolean exporting = request == EXPORT_OVERRIDES;
+        Intent picker = new Intent(exporting ? Intent.ACTION_CREATE_DOCUMENT : Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType("application/json");
-        if (!validating) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-overrides.json");
+        if (exporting) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-overrides.json");
         try { startActivityForResult(picker, documentRequest); }
         catch (ActivityNotFoundException | SecurityException failure) {
             documentRequest = 0;
-            overrideFeedback(validating, L10n.t("No document picker is available. Overrides haven't changed."));
+            overrideFeedback(request, L10n.t("No document picker is available. Overrides haven't changed."));
             showConfiguration();
         }
     }
@@ -817,27 +871,30 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Override
     public void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
-        if (request != documentRequest || (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION
-                && request != EXPORT_OVERRIDES && request != VALIDATE_OVERRIDES)) return;
+        boolean overrides = request == EXPORT_OVERRIDES || request == VALIDATE_OVERRIDES || request == IMPORT_OVERRIDES;
+        if (request != documentRequest || (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION && !overrides)) return;
         documentRequest = 0;
         if (result != Activity.RESULT_OK) { showConfiguration(); return; }
         Uri uri = data == null ? null : data.getData();
         if (uri == null || !"content".equals(uri.getScheme())) {
-            if (request == EXPORT_OVERRIDES || request == VALIDATE_OVERRIDES) {
-                overrideFeedback(request == VALIDATE_OVERRIDES, L10n.t("Couldn't use that overrides document. Native overrides haven't changed."));
+            if (overrides) {
+                overrideFeedback(request, L10n.t("Couldn't use that overrides document. Native overrides haven't changed."));
             } else Utils.showToastLong(L10n.t("Couldn't use that settings file. Your settings haven't changed."));
             showConfiguration();
             return;
         }
-        if (request == EXPORT_OVERRIDES || request == VALIDATE_OVERRIDES) {
-            exchangeOverrides(uri, request == VALIDATE_OVERRIDES);
+        if (overrides) {
+            exchangeOverrides(uri, request);
             return;
         }
         if (request == IMPORT_CONFIGURATION) changeConfiguration(uri, false);
         else exportConfiguration(uri);
     }
 
-    private void exchangeOverrides(Uri uri, boolean validating) {
+    /** Request 0 is Restore, which reads HushGram's saved copy instead of a document. */
+    private void exchangeOverrides(@Nullable Uri uri, int request) {
+        if (request == 0 && (documentRequest != 0 || changingConfiguration || changingOverrides)) return;
+        boolean validating = request == VALIDATE_OVERRIDES;
         Context context = getContext();
         Activity activity = getActivity();
         if (context == null || activity == null) { showConfiguration(); return; }
@@ -845,36 +902,70 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         showConfiguration();
         if (!Utils.runOnBackgroundThread(() -> {
             try {
-                if (validating) {
+                if (request == 0) {
+                    overrideFeedback(0, overrideOutcome(OverrideImport.restore(activity), true));
+                } else if (request == IMPORT_OVERRIDES) {
+                    byte[] bytes;
+                    try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
+                        bytes = OverrideExchange.read(input);
+                    }
+                    // The document is closed before the first native call, so a provider failure
+                    // can't follow a write.
+                    overrideFeedback(request, overrideOutcome(OverrideImport.apply(activity, bytes), false));
+                } else if (validating) {
                     byte[] bytes;
                     try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
                         bytes = OverrideExchange.read(input);
                     }
                     int count = OverrideExchange.validate(bytes, OverrideExchange.capture(activity));
-                    overrideFeedback(true, L10n.f("Validated %1$d overrides only. Nothing was applied.", count));
+                    overrideFeedback(request, L10n.f("Validated %1$d overrides only. Nothing was applied.", count));
                 } else {
                     byte[] bytes = OverrideExchange.export(OverrideExchange.capture(activity));
                     try (java.io.OutputStream output = context.getContentResolver().openOutputStream(uri, "wt")) {
                         if (output == null) throw new java.io.IOException();
                         output.write(bytes);
                     }
-                    overrideFeedback(false, L10n.t("Overrides exported for this Instagram build and schema."));
+                    overrideFeedback(request, L10n.t("Overrides exported for this Instagram build and schema."));
                 }
+            } catch (OverrideImport.RestoreFirst failure) {
+                Logger.printInfo(() -> "Override import refused until Restore runs");
+                overrideFeedback(request, L10n.t("An earlier import still needs Restore previous overrides. Nothing changed."));
             } catch (Exception failure) {
                 Logger.printInfo(() -> "Override document operation failed without native writes");
-                overrideFeedback(validating, validating
+                overrideFeedback(request, request == 0
+                        ? L10n.t("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.")
+                        : request == IMPORT_OVERRIDES
+                        ? L10n.t("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.")
+                        : validating
                         ? L10n.t("Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.")
                         : L10n.t("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed."));
             } finally { configurationFinished(); }
         })) {
             changingOverrides = false;
-            overrideFeedback(validating, L10n.t("Couldn't start the override operation. Try again. Nothing changed."));
+            overrideFeedback(request, L10n.t("Couldn't start the override operation. Try again. Nothing changed."));
             showConfiguration();
         }
     }
 
-    private void overrideFeedback(boolean validating, String message) {
-        if (validating) overrideValidationFeedback = message;
+    private static String overrideOutcome(OverrideImport.Result result, boolean restoring) {
+        switch (result.outcome) {
+            case UNCHANGED: return restoring
+                    ? L10n.t("The current overrides already match the saved copy. Nothing changed.")
+                    : L10n.t("This file matches the current overrides. Nothing changed.");
+            case APPLIED: return restoring
+                    ? L10n.t("Previous overrides restored. Restart Instagram to apply them.")
+                    : L10n.f("Imported %1$d override changes. Restart Instagram to apply them.", result.changes);
+            case ROLLED_BACK: return L10n.t("Instagram didn't keep the change, so the overrides were put back as they were.");
+            default: return L10n.t("Instagram didn't keep the change and the overrides couldn't be confirmed. "
+                    + "Use Restore previous overrides, then restart Instagram.");
+        }
+    }
+
+    /** Request 0 is Restore. */
+    private void overrideFeedback(int request, String message) {
+        if (request == VALIDATE_OVERRIDES) overrideValidationFeedback = message;
+        else if (request == IMPORT_OVERRIDES) overrideImportFeedback = message;
+        else if (request == 0) overrideRestoreFeedback = message;
         else overrideExportFeedback = message;
         Utils.showToastLong(message);
         Utils.runOnMainThread(this::showConfiguration);

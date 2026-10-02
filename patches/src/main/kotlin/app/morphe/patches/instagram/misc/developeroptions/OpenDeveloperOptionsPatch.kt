@@ -58,9 +58,11 @@ val openDeveloperOptionsPatch = bytecodePatch(
         // Resolve the editor before changing either entry point.
         val editor = findOverrideEditor()
         val reader = findOverrideReader(editor)
+        val writer = findOverrideWriter(reader.model)
         openOnLongPress(findOptionsOpener())
         fillOverrideEditor(editor)
         fillOverrideReader(reader, editor)
+        fillOverrideWriter(writer, reader.model)
         enableStatus("developerOptions")
     }
 }

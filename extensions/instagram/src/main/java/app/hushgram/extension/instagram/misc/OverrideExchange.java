@@ -27,7 +27,7 @@ import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.SettingsJson;
 
-/** A read-only native override snapshot. This class has no writer or cache-reload operation. */
+/** A read-only native override snapshot. This class has no writer or cache-reload operation; see OverrideImport. */
 public final class OverrideExchange {
     public static final int MAX_BYTES = 512 * 1024;
     private static final int MAX_PARAMETERS = 65536, MAX_OVERRIDES = 4096;
@@ -51,6 +51,10 @@ public final class OverrideExchange {
         private final Map<Long, Parameter> parameters = new TreeMap<>();
         private final Map<Integer, String> configs = new HashMap<>();
         private final String overrides;
+        /** Set by capture only: the resolved store, its manager and its bytes (null when absent). */
+        File file;
+        Object manager;
+        byte[] raw;
 
         Snapshot(String version, long code, List<Parameter> schema, byte[] nativeBytes) throws IOException {
             if (version == null || version.isEmpty() || version.length() > 64 || code <= 0 || schema == null
@@ -78,7 +82,7 @@ public final class OverrideExchange {
                 for (byte value : digest.digest()) identity.append(String.format(java.util.Locale.ROOT, "%02x", value & 255));
                 hash = identity.toString();
                 JSONObject nativeValues = parse(nativeBytes);
-                checkOverrides(nativeValues, this);
+                checkOverrides(nativeValues, this, null);
                 overrides = nativeValues.toString();
             } catch (Exception failure) { throw invalid(); }
         }
@@ -103,10 +107,15 @@ public final class OverrideExchange {
             for (Object entry : nativeSchema) parameters.add(DeveloperOptions.getOverrideParameterNative(entry));
             PackageInfo host = activity.getPackageManager().getPackageInfo(HOST, 0);
             byte[] bytes = "{}".getBytes(StandardCharsets.UTF_8);
-            if (file.exists()) {
+            boolean present = file.exists();
+            if (present) {
                 try (InputStream input = new FileInputStream(file)) { bytes = read(input); }
             }
-            return new Snapshot(host.versionName, host.getLongVersionCode(), parameters, bytes);
+            Snapshot snapshot = new Snapshot(host.versionName, host.getLongVersionCode(), parameters, bytes);
+            snapshot.file = file;
+            snapshot.manager = manager;
+            snapshot.raw = present ? bytes : null;
+            return snapshot;
         } catch (Throwable failure) {
             // Native exceptions can carry a session path or value. Never retain their causes.
             throw invalid();
@@ -127,6 +136,11 @@ public final class OverrideExchange {
 
     /** Return only a count. Validation has no path to a native writer, file output or cache reload. */
     public static int validate(byte[] file, Snapshot snapshot) throws IOException {
+        return validated(file, snapshot, null);
+    }
+
+    /** {@link #validate}, also collecting each override's value by parameter key into values. */
+    static int validated(byte[] file, Snapshot snapshot, Map<Long, String> values) throws IOException {
         if (snapshot == null) throw invalid();
         try {
             JSONObject root = parse(file);
@@ -138,7 +152,7 @@ public final class OverrideExchange {
                     || !(host.get("code") instanceof Integer || host.get("code") instanceof Long) || host.getLong("code") != snapshot.code
                     || schema.length() != 2 || !snapshot.hash.equals(schema.get("sha256")) || !(schema.get("parameters") instanceof Integer)
                     || schema.getInt("parameters") != snapshot.parameters.size()) throw invalid();
-            return checkOverrides(root.getJSONObject("overrides"), snapshot);
+            return checkOverrides(root.getJSONObject("overrides"), snapshot, values);
         } catch (JSONException | IllegalArgumentException failure) { throw invalid(); }
     }
 
@@ -155,12 +169,27 @@ public final class OverrideExchange {
         }
     }
 
+    /** The native file's override values by parameter key, checked the same way an export is. */
+    static Map<Long, String> values(byte[] nativeBytes, Snapshot snapshot) throws IOException {
+        Map<Long, String> values = new TreeMap<>();
+        try { checkOverrides(parse(nativeBytes), snapshot, values); }
+        catch (JSONException | RuntimeException failure) { throw invalid(); }
+        return values;
+    }
+
+    static Parameter parameter(Snapshot snapshot, long key) { return snapshot.parameters.get(key); }
+    static boolean sameSchema(Snapshot one, Snapshot other) {
+        return one.version.equals(other.version) && one.code == other.code && one.hash.equals(other.hash);
+    }
+    static long hostCode(Snapshot snapshot) { return snapshot.code; }
+
     private static JSONObject parse(byte[] bytes) throws IOException {
         try { return SettingsJson.parseObject(bytes, LIMITS); }
         catch (Exception failure) { throw invalid(); }
     }
 
-    private static int checkOverrides(JSONObject values, Snapshot snapshot) throws IOException, JSONException {
+    private static int checkOverrides(JSONObject values, Snapshot snapshot, Map<Long, String> collected)
+            throws IOException, JSONException {
         Set<Long> seen = new HashSet<>();
         for (java.util.Iterator<String> keys = values.keys(); keys.hasNext();) {
             String label = keys.next();
@@ -179,6 +208,7 @@ public final class OverrideExchange {
                 Parameter parameter = snapshot.parameters.get(key(config, index));
                 if (parameter == null || !parameter.name.equals(parts[1]) || !seen.add(key(config, index)) || seen.size() > MAX_OVERRIDES) throw invalid();
                 String value = parts[2];
+                if (collected != null) collected.put(key(config, index), value);
                 if ("__NULL_VALUE__".equals(value)) continue;
                 switch (parameter.type) {
                     case 1: if (!"true".equals(value) && !"false".equals(value)) throw invalid(); break;
@@ -199,7 +229,7 @@ public final class OverrideExchange {
         return seen.size();
     }
 
-    private static long key(int config, int index) { return ((long) config << 14) | index; }
+    static long key(int config, int index) { return ((long) config << 14) | index; }
     private static boolean name(String value) {
         return value != null && value.length() <= 256 && value.indexOf(':') < 0
                 && value.chars().noneMatch(character -> character < 32 || character == 127);
