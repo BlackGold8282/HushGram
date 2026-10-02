@@ -203,6 +203,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_FRIENDSHIP_STATUS =
             new BooleanSetting("hushgram_show_friendship_status", TRUE);
 
+    /** An explicit Copy action for original comment text. Off until enabled. */
+    public static final BooleanSetting COPY_COMMENTS =
+            new BooleanSetting("hushgram_copy_comments", FALSE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);

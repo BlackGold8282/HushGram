@@ -416,6 +416,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
 
+        if (build.contains(PatchFamily.COMMENT_COPY)) {
+            PreferenceCategory comments = category(screen, L10n.t("Comments"));
+            comments.addPreference(toggle(context, Settings.COPY_COMMENTS, L10n.t("Copy comment"),
+                    L10n.t("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.")));
+        }
+
         if (build.contains(PatchFamily.FRIENDSHIP_STATUS)) {
             PreferenceCategory profiles = category(screen, L10n.t("Profiles"));
             profiles.addPreference(toggle(context, Settings.SHOW_FRIENDSHIP_STATUS, L10n.t("Show if a profile follows you"),

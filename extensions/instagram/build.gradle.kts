@@ -184,6 +184,15 @@ tasks.register("verifyAndroidBoundaries") {
     inputs.dir(results)
     doLast {
         val required = mapOf(
+            "app.hushgram.extension.instagram.comment.CommentCopyTest" to listOf(
+                "explicitTapCopiesTheOriginalVerbatimAndMarksItSensitive[28]", "explicitTapCopiesTheOriginalVerbatimAndMarksItSensitive",
+                "immutableAndRepeatedMenusKeepStockIdentityAndOnlyOneOwnedRow[28]", "immutableAndRepeatedMenusKeepStockIdentityAndOnlyOneOwnedRow",
+                "offPausedUnreadyAndUnsupportedMenusAreUntouched[28]", "offPausedUnreadyAndUnsupportedMenusAreUntouched",
+                "emptyTextGetsNoRowAndWhitespaceIsNeverTrimmed[28]", "emptyTextGetsNoRowAndWhitespaceIsNeverTrimmed",
+                "discoveryAndClipboardFailuresReturnToNativeDismissal[28]", "discoveryAndClipboardFailuresReturnToNativeDismissal"),
+            "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
+                "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch",
+                "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause"),
             "app.hushgram.extension.instagram.settings.OverrideNavigationTest" to listOf(
                 "missingPatchHasNoNativeAction[28]", "missingPatchHasNoNativeAction",
                 "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[28]", "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery",
@@ -266,6 +275,7 @@ dependencies {
     compileOnly(project(":extensions:shared:library"))
     compileOnly(libs.annotation)
     testImplementation(project(":extensions:shared:library"))
+    compileOnly(libs.kotlin.stdlib)
     testImplementation(libs.kotlin.stdlib)
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")

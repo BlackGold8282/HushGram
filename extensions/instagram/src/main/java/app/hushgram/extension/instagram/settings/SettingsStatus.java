@@ -108,6 +108,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean commentCopy() {
+        return false;
+    }
+
     public static boolean followingFeed() {
         return false;
     }

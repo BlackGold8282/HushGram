@@ -555,3 +555,7 @@ once-call Lapp/hushgram/extension/instagram/misc/BottomSpace;->navigationBarHeig
 # FriendshipStatusHookTest checks on the 449 fixture that each lands right after its call.
 once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->besidePronouns(Ljava/lang/Object;Ljava/lang/Object;)V in static (Landroid/content/Context;Landroid/view/View;*)V holding bindFullName
 once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->inPlaceOfPronouns(Ljava/lang/Object;Ljava/lang/Object;)V in static (Landroid/content/Context;Landroid/view/View;*)V holding bindFullName
+
+# Copy is added after the common renderer's popup guards, once before its stock list iteration.
+# The renderer holds no string; its class holds the matching selection-dismissal marker.
+once-call Lapp/hushgram/extension/instagram/comment/CommentCopy;->rows(Ljava/util/List;Ljava/lang/Object;Landroid/content/Context;)Ljava/util/List; in instance (L*;L*;L*;Ljava/util/List;F)V class-holding select_comment_screen_comment_unselect_tap_

@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Add an optional Copy action to the common comment menu, with an off-by-default Comments switch. An explicit tap copies the original text, including literal markup and line breaks, and uses Instagram's own menu dismissal.
+
 * **Instagram:** Default playback quality is included in Manager's simple mode. Its initial Auto choice leaves playback unchanged; patches that change behavior immediately remain opt-in.
 * **Tooling:** Accept reordered numbered arguments within mixed translation formats while keeping bare arguments in their original order. Changed types, indices and argument counts still stop the import.
 * **Instagram:** Direct MetaConfig discovery now verifies the native editor and navigation objects reach the presenter, refusing overwritten values and unsafe branch entries before changing the app.

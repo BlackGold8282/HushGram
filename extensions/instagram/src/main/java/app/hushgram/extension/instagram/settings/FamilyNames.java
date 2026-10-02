@@ -37,6 +37,7 @@ public final class FamilyNames {
     public static final String REPOST_BUTTON = "Hide the Repost button";
     public static final String BOTTOM_SPACE = "Remove the empty space at the bottom";
     public static final String FRIENDSHIP_STATUS = "Show if a profile follows you";
+    public static final String COMMENT_COPY = "Copy comment";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";
