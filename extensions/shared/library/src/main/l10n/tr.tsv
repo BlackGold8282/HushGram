@@ -229,6 +229,8 @@ Takes For you out of the picker at the top of Home, so Home stays on Following o
 Profiles	Profiller
 Show if a profile follows you	Bir profilin seni takip edip etmediğini göster
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Birinin profilinde adının yanına, zamirleri varsa onlardan sonra, Seni takip ediyor ya da Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
+Mark who doesn't follow you back	Seni geri takip etmeyenleri işaretle
+On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Kendi Takip edilenler listende, seni geri takip etmeyen her hesabın adından sonra Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
 Follows you	Seni takip ediyor
 Doesn't follow you	Seni takip etmiyor
 Hide suggested people	Önerilen kişileri gizle

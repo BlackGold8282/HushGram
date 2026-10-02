@@ -567,6 +567,12 @@ once-call Lapp/hushgram/extension/instagram/misc/BottomSpace;->navigationBarHeig
 # FriendshipStatusHookTest checks on the 449 fixture that each lands right after its call.
 once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->besidePronouns(Ljava/lang/Object;Ljava/lang/Object;)V in static (Landroid/content/Context;Landroid/view/View;*)V holding bindFullName
 once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->inPlaceOfPronouns(Ljava/lang/Object;Ljava/lang/Object;)V in static (Landroid/content/Context;Landroid/view/View;*)V holding bindFullName
+# Its second switch hands each row of a follow list to FollowingList right after the row binder's
+# static call fills the row in (0CRR.bindView on 449, the one method loading Kotlin's message for
+# its FollowRowState cast below). The hook is called once there and nowhere else. Left out, your
+# Following list gets no marks; twice or elsewhere, it isn't the hook the patch wrote.
+# FollowingListHookTest checks on the 449 fixture that it lands right after the call.
+once-call Lapp/hushgram/extension/instagram/profile/FollowingList;->row(Ljava/lang/Object;ILandroid/view/View;Ljava/lang/Object;)V in instance (ILandroid/view/View;Ljava/lang/Object;Ljava/lang/Object;)V holding null\scannot\sbe\scast\sto\snon-null\stype\scom.instagram.user.userlist.adapter.FollowRowState
 
 # Copy is added after the common renderer's popup guards, once before its stock list iteration.
 # The renderer holds no string; its class holds the matching selection-dismissal marker.

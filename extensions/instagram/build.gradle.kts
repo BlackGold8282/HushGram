@@ -207,6 +207,14 @@ tasks.register("verifyAndroidBoundaries") {
                 "offPausedAndUnreadyLeaveInstagramsAnswers[28]", "offPausedAndUnreadyLeaveInstagramsAnswers",
                 "aButtonHiddenEarlierComesBackWhenTheSwitchGoesOff[28]", "aButtonHiddenEarlierComesBackWhenTheSwitchGoesOff",
                 "aButtonThatThrowsIsLeftAndReported[28]", "aButtonThatThrowsIsLeftAndReported"),
+            "app.hushgram.extension.instagram.profile.FollowingListTest" to listOf(
+                "ownFollowingListMarksOnlyWhoDoesNotFollowBack[28]", "ownFollowingListMarksOnlyWhoDoesNotFollowBack",
+                "aRowWithNoNameShowsTheMarkOnItsOwn[28]", "aRowWithNoNameShowsTheMarkOnItsOwn",
+                "anUnknownAnswerStaysUnmarked[28]", "anUnknownAnswerStaysUnmarked",
+                "otherListsStayUnmarked[28]", "otherListsStayUnmarked",
+                "offPausedAndUnreadyKeepInstagramsRow[28]", "offPausedAndUnreadyKeepInstagramsRow",
+                "aThrowingReaderOrSwitchKeepsTheRowAndIsReported[28]", "aThrowingReaderOrSwitchKeepsTheRowAndIsReported",
+                "aRecycledRowLosesItsStaleMark[28]", "aRecycledRowLosesItsStaleMark"),
             "app.hushgram.extension.instagram.reels.ReelsSuggestionsTest" to listOf(
                 "offPausedAndUnreadyKeepEveryItem[28]", "offPausedAndUnreadyKeepEveryItem",
                 "aThrowingReaderOrSwitchKeepsTheItemAndIsReported[28]", "aThrowingReaderOrSwitchKeepsTheItemAndIsReported"),
@@ -221,6 +229,9 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
                 "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch",
                 "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.settings.FollowingListSettingsTest" to listOf(
+                "missingPatchHasNoFollowingListSwitch[28]", "missingPatchHasNoFollowingListSwitch",
+                "followingListSwitchStartsOffPersistsAndHonorsPause[28]", "followingListSwitchStartsOffPersistsAndHonorsPause"),
             "app.hushgram.extension.instagram.settings.OverrideNavigationTest" to listOf(
                 "missingPatchHasNoNativeAction[28]", "missingPatchHasNoNativeAction",
                 "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[28]", "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery",

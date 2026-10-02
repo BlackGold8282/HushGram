@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(606);
+        Map<String, String> table = new HashMap<>(610);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -377,6 +377,8 @@ public final class L10nTranslations {
                 "Link abgelaufen. \u00d6ffne den Inhalt neu und versuche es noch einmal");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Sperre ein Reel auf 2x (Rand gedr\u00fcckt halten, dann nach unten wischen), dann laufen auch die n\u00e4chsten Reels mit 2x. Wische die Sperre weg oder halte den Rand und lass los, um zur normalen Geschwindigkeit zur\u00fcckzukehren.");
+        table.put("Mark who doesn't follow you back",
+                "Markieren, wer dir nicht zur\u00fcckfolgt");
         table.put("Meta AI",
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
@@ -411,6 +413,8 @@ public final class L10nTranslations {
                 "Bei Beitr\u00e4gen");
         table.put("On reels",
                 "Bei Reels");
+        table.put("On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.",
+                "Zeigt in deiner eigenen Gefolgt-Liste Folgt dir nicht hinter dem Namen jedes Kontos, das dir nicht zur\u00fcckfolgt. Es erscheint erst etwas, wenn Instagram es gepr\u00fcft hat.");
         table.put("Only accounts you follow",
                 "Nur Konten, denen du folgst");
         table.put("Open MetaConfig overrides",
@@ -419,13 +423,13 @@ public final class L10nTranslations {
                 "Links im externen Browser \u00f6ffnen");
         table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
                 "\u00d6ffnet Instagrams eigenen Flag-Editor. Eine falsche \u00dcberschreibung kann Teile von Instagram unbrauchbar machen.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "\u00d6ffnet die eigenen Entwickleroptionen von Instagram, in denen sich seine Server-Flags ansehen und \u00e4ndern lassen. Ein falsches Flag kann Teile von Instagram lahmlegen, bis du es dort zur\u00fccksetzt.");
         table.put("Overrides exported for this Instagram build and schema.",
                 "\u00dcberschreibungen f\u00fcr diese Instagram-Version und dieses Schema exportiert.");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("Page %1$d of %2$d",
                 "Seite %1$d von %2$d");
         table.put("Pause HushGram",
@@ -542,13 +546,13 @@ public final class L10nTranslations {
                 "Stories");
         table.put("Stories in the row at the top of Home from accounts you don't follow, and the accounts Instagram suggests there. Stories from accounts you follow stay.",
                 "Stories in der Leiste oben auf der Startseite von Konten, denen du nicht folgst, und die Konten, die Instagram dort vorschl\u00e4gt. Stories von Konten, denen du folgst, bleiben.");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Story ring size",
                 "Gr\u00f6\u00dfe der Story-Ringe");
         table.put("Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.",
                 "Entfernt \u201eF\u00fcr dich\u201c aus der Auswahl oben auf der Startseite, damit sie bei \u201eGefolgt\u201c oder \u201eFavoriten\u201c bleibt. Funktioniert zusammen mit \u201eStartseite mit Gefolgt \u00f6ffnen\u201c. Starte Instagram nach einer \u00c4nderung neu.");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
                 "Entfernt Reels aus der Tab-Leiste. Reels in deinem Feed und Reels, die dir jemand schickt, \u00f6ffnen sich weiterhin. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("Takes Repost and its count off posts and reels, so nothing gets reposted to your followers by mistake. Share still sends a post or reel to someone.",
@@ -665,13 +669,13 @@ public final class L10nTranslations {
                 "Du kannst die gel\u00f6schten Wiedergabepositionen innerhalb von 10 Sekunden einmal wiederherstellen.");
         table.put("You cleared the remembered playback positions.",
                 "Du hast die gespeicherten Wiedergabepositionen gel\u00f6scht.");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("You paused HushGram.",
                 "Du hast HushGram pausiert.");
         table.put("the pure black dark mode",
                 "der rein schwarze Dunkelmodus");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("the re-signed build fix",
                 "der Fix f\u00fcr neu signierte Builds");
         table.put("the removed advertising ID permissions",
@@ -681,7 +685,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(606);
+        Map<String, String> table = new HashMap<>(610);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1012,6 +1016,8 @@ public final class L10nTranslations {
                 "El enlace expir\u00f3. Vuelve a abrir el contenido e int\u00e9ntalo de nuevo");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Bloquea un reel a 2x (mant\u00e9n pulsado el borde y desliza hacia abajo) y los siguientes reels tambi\u00e9n se reproducen a 2x. Desliza el bloqueo para quitarlo, o mant\u00e9n pulsado el borde y suelta, para volver a la velocidad normal.");
+        table.put("Mark who doesn't follow you back",
+                "Marcar a quien no te sigue");
         table.put("Meta AI",
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
@@ -1046,6 +1052,8 @@ public final class L10nTranslations {
                 "En publicaciones");
         table.put("On reels",
                 "En reels");
+        table.put("On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.",
+                "En tu propia lista de Seguidos, a\u00f1ade No te sigue despu\u00e9s del nombre de cada cuenta que no te sigue. No se muestra nada hasta que Instagram lo haya comprobado.");
         table.put("Only accounts you follow",
                 "Solo cuentas que sigues");
         table.put("Open MetaConfig overrides",
@@ -1054,13 +1062,13 @@ public final class L10nTranslations {
                 "Abrir enlaces en el navegador externo");
         table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
                 "Abre el editor nativo de opciones de Instagram. Una anulaci\u00f3n incorrecta puede impedir que funcionen partes de Instagram.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Abre las opciones de desarrollador propias de Instagram, donde se pueden ver y cambiar sus indicadores del servidor. Un indicador incorrecto puede romper partes de Instagram hasta que lo restablezcas ah\u00ed.");
         table.put("Overrides exported for this Instagram build and schema.",
                 "Valores personalizados exportados para esta versi\u00f3n y este esquema de Instagram.");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("Page %1$d of %2$d",
                 "P\u00e1gina %1$d de %2$d");
         table.put("Pause HushGram",
@@ -1177,13 +1185,13 @@ public final class L10nTranslations {
                 "Historias");
         table.put("Stories in the row at the top of Home from accounts you don't follow, and the accounts Instagram suggests there. Stories from accounts you follow stay.",
                 "Las historias de la fila de arriba de Inicio de cuentas que no sigues, y las cuentas que Instagram sugiere ah\u00ed. Las historias de las cuentas que sigues se quedan.");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Story ring size",
                 "Tama\u00f1o de los anillos de historias");
         table.put("Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.",
                 "Quita Para ti del selector de arriba de Inicio, para que Inicio se quede en Seguidos o Favoritos. Funciona con Abrir Inicio en Seguidos activado. Reinicia Instagram despu\u00e9s de cambiarlo.");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
                 "Quita Reels de la barra de pesta\u00f1as. Los reels de tu feed y los que te env\u00edan se siguen abriendo. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("Takes Repost and its count off posts and reels, so nothing gets reposted to your followers by mistake. Share still sends a post or reel to someone.",
@@ -1300,13 +1308,13 @@ public final class L10nTranslations {
                 "Puedes restaurar las posiciones borradas una sola vez durante 10 segundos.");
         table.put("You cleared the remembered playback positions.",
                 "Borraste las posiciones de reproducci\u00f3n guardadas.");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("You paused HushGram.",
                 "Pausaste HushGram.");
         table.put("the pure black dark mode",
                 "el modo oscuro negro puro");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("the re-signed build fix",
                 "el arreglo para la nueva firma");
         table.put("the removed advertising ID permissions",
@@ -1316,7 +1324,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(606);
+        Map<String, String> table = new HashMap<>(610);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1647,6 +1655,8 @@ public final class L10nTranslations {
                 "Tautan kedaluwarsa. Buka ulang kontennya lalu coba lagi");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Kunci reel di 2x (tahan tepinya, lalu geser ke bawah) dan reels berikutnya juga diputar di 2x. Geser kuncinya untuk melepasnya, atau tahan tepinya lalu lepaskan, untuk kembali ke kecepatan normal.");
+        table.put("Mark who doesn't follow you back",
+                "Tandai yang tidak mengikuti balik kamu");
         table.put("Meta AI",
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
@@ -1681,6 +1691,8 @@ public final class L10nTranslations {
                 "Di postingan");
         table.put("On reels",
                 "Di reel");
+        table.put("On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.",
+                "Di daftar Mengikuti milikmu sendiri, menambahkan Tidak mengikuti kamu setelah nama setiap akun yang tidak mengikuti balik kamu. Tidak ada yang muncul sampai Instagram memeriksanya.");
         table.put("Only accounts you follow",
                 "Hanya akun yang kamu ikuti");
         table.put("Open MetaConfig overrides",
@@ -1689,13 +1701,13 @@ public final class L10nTranslations {
                 "Buka tautan di browser eksternal");
         table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
                 "Membuka editor flag bawaan Instagram. Penggantian yang salah dapat merusak beberapa bagian Instagram.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Membuka opsi pengembang milik Instagram sendiri, tempat flag servernya bisa dilihat dan diubah. Flag yang salah bisa merusak sebagian Instagram sampai kamu mengaturnya ulang di sana.");
         table.put("Overrides exported for this Instagram build and schema.",
                 "Nilai pengganti diekspor untuk versi dan skema Instagram ini.");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("Page %1$d of %2$d",
                 "Halaman %1$d dari %2$d");
         table.put("Pause HushGram",
@@ -1812,13 +1824,13 @@ public final class L10nTranslations {
                 "Cerita");
         table.put("Stories in the row at the top of Home from accounts you don't follow, and the accounts Instagram suggests there. Stories from accounts you follow stay.",
                 "Cerita di baris atas Beranda dari akun yang tidak kamu ikuti, dan akun yang disarankan Instagram di sana. Cerita dari akun yang kamu ikuti tetap ada.");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Story ring size",
                 "Ukuran lingkaran cerita");
         table.put("Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.",
                 "Menghapus Untuk Anda dari pemilih di bagian atas Beranda, jadi Beranda tetap di Mengikuti atau Favorit. Berfungsi saat Buka Beranda di Mengikuti aktif. Mulai ulang Instagram setelah mengubahnya.");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
                 "Menghapus Reels dari bilah tab. Reels di feed kamu dan reels yang dikirim orang lain tetap bisa dibuka. Mulai ulang Instagram setelah mengubahnya.");
         table.put("Takes Repost and its count off posts and reels, so nothing gets reposted to your followers by mistake. Share still sends a post or reel to someone.",
@@ -1935,13 +1947,13 @@ public final class L10nTranslations {
                 "Kamu dapat memulihkan posisi yang dihapus satu kali dalam 10 detik.");
         table.put("You cleared the remembered playback positions.",
                 "Kamu menghapus posisi pemutaran tersimpan.");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("You paused HushGram.",
                 "Anda menjeda HushGram.");
         table.put("the pure black dark mode",
                 "mode gelap hitam pekat");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("the re-signed build fix",
                 "perbaikan build yang ditandatangani ulang");
         table.put("the removed advertising ID permissions",
@@ -1951,7 +1963,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(606);
+        Map<String, String> table = new HashMap<>(610);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2282,6 +2294,8 @@ public final class L10nTranslations {
                 "Link expirado. Reabra o item e tente novamente");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Trave um reel em 2x (segure a borda e deslize para baixo) e os pr\u00f3ximos reels tamb\u00e9m tocam em 2x. Deslize a trava para tir\u00e1-la, ou segure a borda e solte, para voltar \u00e0 velocidade normal.");
+        table.put("Mark who doesn't follow you back",
+                "Marcar quem n\u00e3o segue voc\u00ea de volta");
         table.put("Meta AI",
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
@@ -2316,6 +2330,8 @@ public final class L10nTranslations {
                 "Em publica\u00e7\u00f5es");
         table.put("On reels",
                 "Em reels");
+        table.put("On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.",
+                "Na sua pr\u00f3pria lista Seguindo, adiciona N\u00e3o segue voc\u00ea depois do nome de cada conta que n\u00e3o segue voc\u00ea de volta. Nada aparece at\u00e9 o Instagram verificar.");
         table.put("Only accounts you follow",
                 "S\u00f3 contas que voc\u00ea segue");
         table.put("Open MetaConfig overrides",
@@ -2324,13 +2340,13 @@ public final class L10nTranslations {
                 "Abrir links no navegador externo");
         table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
                 "Abre o editor nativo de op\u00e7\u00f5es do Instagram. Uma substitui\u00e7\u00e3o incorreta pode impedir o funcionamento de partes do Instagram.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Abre as op\u00e7\u00f5es do desenvolvedor do pr\u00f3prio Instagram, onde as flags do servidor podem ser vistas e alteradas. Uma flag errada pode quebrar partes do Instagram at\u00e9 voc\u00ea redefini-la l\u00e1.");
         table.put("Overrides exported for this Instagram build and schema.",
                 "Valores personalizados exportados para esta vers\u00e3o e este esquema do Instagram.");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Page %1$d of %2$d",
                 "P\u00e1gina %1$d de %2$d");
         table.put("Pause HushGram",
@@ -2447,13 +2463,13 @@ public final class L10nTranslations {
                 "Stories");
         table.put("Stories in the row at the top of Home from accounts you don't follow, and the accounts Instagram suggests there. Stories from accounts you follow stay.",
                 "Stories na fileira do topo do In\u00edcio de contas que voc\u00ea n\u00e3o segue, e as contas que o Instagram sugere ali. Stories das contas que voc\u00ea segue continuam l\u00e1.");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Story ring size",
                 "Tamanho dos an\u00e9is dos stories");
         table.put("Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.",
                 "Tira Para voc\u00ea do seletor no topo do In\u00edcio, para o In\u00edcio ficar em Seguindo ou Favoritos. Funciona com Abrir o In\u00edcio em Seguindo ligado. Reinicie o Instagram depois de mudar.");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
                 "Tira o Reels da barra de abas. Os reels do seu feed e os que mandam para voc\u00ea continuam abrindo. Reinicie o Instagram depois de mudar.");
         table.put("Takes Repost and its count off posts and reels, so nothing gets reposted to your followers by mistake. Share still sends a post or reel to someone.",
@@ -2570,13 +2586,13 @@ public final class L10nTranslations {
                 "Voc\u00ea pode restaurar as posi\u00e7\u00f5es apagadas uma vez em at\u00e9 10 segundos.");
         table.put("You cleared the remembered playback positions.",
                 "Voc\u00ea apagou as posi\u00e7\u00f5es de reprodu\u00e7\u00e3o salvas.");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("You paused HushGram.",
                 "Voc\u00ea pausou o HushGram.");
         table.put("the pure black dark mode",
                 "o modo escuro preto puro");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("the re-signed build fix",
                 "a corre\u00e7\u00e3o para vers\u00e3o reassinada");
         table.put("the removed advertising ID permissions",
@@ -2586,7 +2602,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(606);
+        Map<String, String> table = new HashMap<>(610);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2917,6 +2933,8 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131n\u0131n s\u00fcresi doldu. \u00d6\u011feyi yeniden a\u00e7\u0131p tekrar dene");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
                 "Bir reel'i 2x'te kilitle (kenar\u0131n\u0131 bas\u0131l\u0131 tut, sonra a\u015fa\u011f\u0131 kayd\u0131r), sonraki reels'ler de 2x oynar. Normal h\u0131za d\u00f6nmek i\u00e7in kilidi kayd\u0131r\u0131p kald\u0131r ya da kenar\u0131 bas\u0131l\u0131 tutup b\u0131rak.");
+        table.put("Mark who doesn't follow you back",
+                "Seni geri takip etmeyenleri i\u015faretle");
         table.put("Meta AI",
                 "Meta AI");
         table.put("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.",
@@ -2951,6 +2969,8 @@ public final class L10nTranslations {
                 "G\u00f6nderilerde");
         table.put("On reels",
                 "Reel'lerde");
+        table.put("On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.",
+                "Kendi Takip edilenler listende, seni geri takip etmeyen her hesab\u0131n ad\u0131ndan sonra Seni takip etmiyor ekler. Instagram kontrol edene kadar hi\u00e7bir \u015fey g\u00f6r\u00fcnmez.");
         table.put("Only accounts you follow",
                 "Yaln\u0131zca takip etti\u011fin hesaplar");
         table.put("Open MetaConfig overrides",
@@ -2959,13 +2979,13 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131lar\u0131 harici taray\u0131c\u0131da a\u00e7");
         table.put("Opens Instagram's native flag editor. A wrong override can break parts of Instagram.",
                 "Instagram'\u0131n kendi bayrak d\u00fczenleyicisini a\u00e7ar. Yanl\u0131\u015f bir ge\u00e7ersiz k\u0131lma Instagram'\u0131n baz\u0131 b\u00f6l\u00fcmlerini bozabilir.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.",
                 "Instagram'\u0131n kendi geli\u015ftirici se\u00e7eneklerini a\u00e7ar. Orada sunucu bayraklar\u0131 g\u00f6r\u00fclebilir ve de\u011fi\u015ftirilebilir. Yanl\u0131\u015f bir bayrak, sen orada s\u0131f\u0131rlayana kadar Instagram'\u0131n baz\u0131 b\u00f6l\u00fcmlerini bozabilir.");
         table.put("Overrides exported for this Instagram build and schema.",
                 "Ge\u00e7ersiz k\u0131lmalar bu Instagram s\u00fcr\u00fcm\u00fc ve \u015femas\u0131 i\u00e7in d\u0131\u015fa aktar\u0131ld\u0131.");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("Page %1$d of %2$d",
                 "%1$d / %2$d sayfa");
         table.put("Pause HushGram",
@@ -3082,13 +3102,13 @@ public final class L10nTranslations {
                 "Hikayeler");
         table.put("Stories in the row at the top of Home from accounts you don't follow, and the accounts Instagram suggests there. Stories from accounts you follow stay.",
                 "Ana Sayfa'n\u0131n \u00fcst\u00fcndeki s\u0131rada, takip etmedi\u011fin hesaplar\u0131n hikayeleri ve Instagram'\u0131n orada \u00f6nerdi\u011fi hesaplar. Takip etti\u011fin hesaplar\u0131n hikayeleri kal\u0131r.");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Story ring size",
                 "Hik\u00e2ye halkas\u0131 boyutu");
         table.put("Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.",
                 "Senin i\u00e7in'i Ana Sayfa'n\u0131n \u00fcst\u00fcndeki se\u00e7iciden kald\u0131r\u0131r, b\u00f6ylece Ana Sayfa Takip Edilenler'de veya Favoriler'de kal\u0131r. Ana Sayfa'y\u0131 Takip Edilenler ile a\u00e7 a\u00e7\u0131kken \u00e7al\u0131\u015f\u0131r. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.",
                 "Reels'i sekme \u00e7ubu\u011fundan kald\u0131r\u0131r. Ak\u0131\u015f\u0131ndaki reels'ler ve sana g\u00f6nderilen reels'ler a\u00e7\u0131lmaya devam eder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("Takes Repost and its count off posts and reels, so nothing gets reposted to your followers by mistake. Share still sends a post or reel to someone.",
@@ -3205,13 +3225,13 @@ public final class L10nTranslations {
                 "Silinen konumlar\u0131 10 saniye i\u00e7inde bir kez geri y\u00fckleyebilirsiniz.");
         table.put("You cleared the remembered playback positions.",
                 "Kaydedilen oynatma konumlar\u0131n\u0131 sildiniz.");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("You paused HushGram.",
                 "HushGram'u duraklatt\u0131n.");
         table.put("the pure black dark mode",
                 "saf siyah karanl\u0131k mod");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("the re-signed build fix",
                 "yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("the removed advertising ID permissions",

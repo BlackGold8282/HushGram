@@ -447,6 +447,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 profiles.addPreference(toggle(context, Settings.SHOW_FRIENDSHIP_STATUS, L10n.t("Show if a profile follows you"),
                         L10n.t("Adds Follows you or Doesn't follow you beside the name on someone's profile, after "
                                 + "their pronouns if they've set any. Nothing shows until Instagram has checked.")));
+                profiles.addPreference(toggle(context, Settings.MARK_FOLLOWING_LIST, L10n.t("Mark who doesn't follow you back"),
+                        L10n.t("On your own Following list, adds Doesn't follow you after the name of each account that "
+                                + "doesn't follow you back. Nothing shows until Instagram has checked.")));
             }
             if (build.contains(PatchFamily.PROFILE_SUGGESTIONS)) {
                 profiles.addPreference(toggle(context, Settings.HIDE_PROFILE_SUGGESTIONS, L10n.t("Hide suggested people"),

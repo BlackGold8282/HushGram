@@ -229,6 +229,8 @@ Takes For you out of the picker at the top of Home, so Home stays on Following o
 Profiles	Profile
 Show if a profile follows you	Zeigen, ob ein Profil dir folgt
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Zeigt Folgt dir oder Folgt dir nicht neben dem Namen im Profil einer Person, hinter den Pronomen, falls angegeben. Es erscheint erst etwas, wenn Instagram es geprüft hat.
+Mark who doesn't follow you back	Markieren, wer dir nicht zurückfolgt
+On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Zeigt in deiner eigenen Gefolgt-Liste Folgt dir nicht hinter dem Namen jedes Kontos, das dir nicht zurückfolgt. Es erscheint erst etwas, wenn Instagram es geprüft hat.
 Follows you	Folgt dir
 Doesn't follow you	Folgt dir nicht
 Hide suggested people	Vorgeschlagene Personen ausblenden

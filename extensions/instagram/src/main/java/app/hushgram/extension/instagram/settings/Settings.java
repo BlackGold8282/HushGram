@@ -204,6 +204,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_show_friendship_status", TRUE);
 
     /**
+     * Doesn't follow you on the rows of your own Following list
+     * ({@link app.hushgram.extension.instagram.profile.FollowingList}). Off to start. Read each time
+     * Instagram binds a row of a follow list.
+     */
+    public static final BooleanSetting MARK_FOLLOWING_LIST =
+            new BooleanSetting("hushgram_mark_following_list", FALSE);
+
+    /**
      * Suggested for you and the Discover people button on profiles
      * ({@link app.hushgram.extension.instagram.profile.ProfileSuggestions}). Read each time Instagram
      * builds or binds a profile's header, so off or paused, the suggestions are back on the next one.
