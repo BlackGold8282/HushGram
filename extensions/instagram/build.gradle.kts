@@ -174,6 +174,66 @@ tasks.withType<Test>().configureEach {
     dependsOn(verifyBouncyCastleTestGraph)
 }
 
+// A filtered run or robolectric.enabledSdks can silently omit a platform. The matrix's actual
+// behavioral cases must all have passed, including the dialog cases that assert SDK_INT itself.
+tasks.register("verifyAndroidBoundaries") {
+    group = "verification"
+    description = "Requires passing Android 9/17 settings, recovery, storage and Cancel cases."
+    dependsOn("testDebugUnitTest")
+    val results = layout.buildDirectory.dir("test-results/testDebugUnitTest")
+    inputs.dir(results)
+    doLast {
+        val required = mapOf(
+            "app.hushgram.extension.instagram.settings.SettingsDialogBoundaryTest" to listOf(
+                "sdk28DialogKeepsLegacyBarsOutsideLargeTextContent", "sdk37DialogKeepsSystemBarsOutsideLargeTextContent",
+                "sdk28DialogMirrorsItsLargeTextHeader", "sdk37DialogMirrorsItsLargeTextHeader"),
+            "app.hushgram.extension.instagram.settings.SettingsEntryOpenTest" to listOf(
+                "movesToAScreenInstagramOpensOverIt[28]", "movesToAScreenInstagramOpensOverIt",
+                "staysClosedOnceThePersonClosedIt[28]", "staysClosedOnceThePersonClosedIt"),
+            "app.hushgram.extension.instagram.settings.SettingsScreenRowLayoutTest" to listOf(
+                "theTitleWrapsAtTwiceTheTextSize[28]", "theTitleWrapsAtTwiceTheTextSize",
+                "rightToLeftPutsTheMarkOnTheRight[28]", "rightToLeftPutsTheMarkOnTheRight"),
+            "app.hushgram.extension.shared.settings.HushgramPauseTest" to listOf(
+                "android9CountsOnlyTheHandlersMark", "android11CountsCrashesNativeCrashesAndHangsButNotBeingSwipedAway"),
+            "app.hushgram.extension.shared.settings.preference.LogBufferManagerExportTest" to listOf(
+                "android9SavesTheReportInInstagramsOwnFolder", "noExitOnRecordMeansNoLastExitSection[28]",
+                "theReportSaysWhyTheProcessWentAwayLastTime", "repeatedExportsEachGetTheirOwnDownloadsEntry"),
+            "app.hushgram.extension.instagram.download.MediaSaveTest" to listOf(
+                "onAndroid9ASaveWritesTheFileIntoTheFolderItself"),
+            "app.hushgram.extension.instagram.download.SaveInterruptionTest" to listOf(
+                "sdk28InterruptedSaveRemovesItsHiddenStorageFileBeforeNotice"),
+            "app.hushgram.extension.instagram.download.SaveProgressTest" to listOf(
+                "aSaveShowsItsProgressAtOnceAndCancelStopsIt[28]", "aSaveShowsItsProgressAtOnceAndCancelStopsIt",
+                "belowAndroid13TheCancelReceiverIsRegisteredWithNoFlag", "onAndroid17TheCancelReceiverIsNotExported",
+                "aFinishedSaveTakesItsNotificationAwayAndLeavesNoRowPending", "startingInstagramRemovesWhatAStoppedSaveLeft",
+                "aPendingRowSweepRetriesAfterTheGalleryThrows")
+        )
+        val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+        factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true)
+        factory.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD, "")
+        factory.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
+        for ((suiteName, names) in required) {
+            val file = results.get().file("TEST-$suiteName.xml").asFile
+            if (!file.isFile) throw GradleException("Missing Android boundary results: $suiteName. Run the unfiltered tests.")
+            val suite = factory.newDocumentBuilder().parse(file).documentElement
+            for (attribute in listOf("failures", "errors", "skipped")) {
+                if (suite.getAttribute(attribute).toIntOrNull() != 0) {
+                    throw GradleException("Android boundary suite $suiteName has $attribute=${suite.getAttribute(attribute)}.")
+                }
+            }
+            val cases = suite.getElementsByTagName("testcase")
+            for (name in names) {
+                val matching = (0 until cases.length).map { cases.item(it) as org.w3c.dom.Element }
+                    .filter { it.getAttribute("name") == name }
+                if (matching.size != 1 || listOf("failure", "error", "skipped").any {
+                        matching.singleOrNull()?.getElementsByTagName(it)?.length != 0
+                    }) throw GradleException("Android boundary case did not pass exactly once: $suiteName.$name")
+            }
+        }
+        logger.lifecycle("Verified Android API 28/37 boundary cases with the Instagram 449 target SDK (36).")
+    }
+}
+
 dependencies {
     compileOnly(project(":extensions:shared:library"))
     compileOnly(libs.annotation)

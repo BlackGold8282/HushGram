@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Android 9 and Android 17 regression cases exercise settings opening, large text, right-to-left layout, system bars, recovery, diagnostic export, storage and save cancellation with Instagram 449's target SDK 36. The local push check refuses missing or skipped boundary cases, including cleanup of Android 9's hidden unfinished files without deleting finished media.
 * **Instagram:** Imports close the picked file before applying settings and retain the complete result across settings reopening. Saves record a separate one-byte outcome marker, so failed preference writes don't turn completion or Cancel into an interruption.
 * **Instagram:** After an interrupted save, cleanup removes its unfinished resources and the next opening explains how to save again. One opaque marker tracks each save without keeping media or account IDs. Completed and cancelled saves leave no interruption notice; failed cleanup stays pending, including a gallery row whose deletion was refused.
 * **Instagram:** Export and import the installed patches' settings through Android's document picker. Imports validate a bounded typed file before applying values together, report unsupported keys and restart requirements, and offer a one-use Undo for 10 seconds. Failed writes report whether rollback succeeded; private state and history aren't exported.

@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 /** Three crashed starts in a row, the marker file and the way back, for Pause HushGram. */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30)
+@Config(sdk = {28, 30, 37})
 public class HushgramPauseTest {
     private Context context;
     private File record;
@@ -41,6 +41,7 @@ public class HushgramPauseTest {
 
     @Before public void setUp() {
         context = RuntimeEnvironment.getApplication();
+        context.getApplicationInfo().targetSdkVersion = 36; // Instagram 449's target on every runtime.
         Utils.setContext(context);
         HushgramPause.resetForTests();
         record = new File(context.getFilesDir(), HushgramPause.START_RECORD_NAME);
@@ -166,7 +167,7 @@ public class HushgramPauseTest {
                 .build());
     }
 
-    @Test @Config(sdk = 30)
+    @Test @Config(sdk = {30, 37})
     public void android11CountsCrashesNativeCrashesAndHangsButNotBeingSwipedAway() {
         exited(5101, ApplicationExitInfo.REASON_CRASH, 11_000);
         exited(5102, ApplicationExitInfo.REASON_CRASH_NATIVE, 12_000);
@@ -186,7 +187,7 @@ public class HushgramPauseTest {
         assertFalse(HushgramPause.diedYoungFromACrash(context, "not a pid"));
     }
 
-    @Test @Config(sdk = 30)
+    @Test @Config(sdk = {30, 37})
     public void android11ReadsTheCrashOffTheFirstRecordSinceTheStart() {
         // Held open behind "keeps stopping": Android wrote the crash down at 30 s and the kill
         // that ended the dialog five minutes later. The first record is the crash.

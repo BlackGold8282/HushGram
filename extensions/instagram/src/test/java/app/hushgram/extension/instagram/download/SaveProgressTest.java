@@ -96,6 +96,7 @@ public class SaveProgressTest {
             }
         };
         context = RuntimeEnvironment.getApplication();
+        context.getApplicationInfo().targetSdkVersion = 36;
         // A save of one file reads its policy through MediaSave, as every save does.
         MediaSave.policyForTests = policy;
         gallery = Robolectric.setupContentProvider(Gallery.class, MediaStore.AUTHORITY);
@@ -182,13 +183,14 @@ public class SaveProgressTest {
     }
 
     @Test
+    @Config(sdk = {28, 30, 37})
     public void aSaveShowsItsProgressAtOnceAndCancelStopsIt() throws Exception {
         cancelFromTheNotification();
     }
 
     /** From Android 13 the receiver isn't exported: the button still reaches it. */
     @Test
-    @Config(sdk = 34)
+    @Config(sdk = {34, 37})
     public void cancelReachesTheSaveOnAndroid14Too() throws Exception {
         cancelFromTheNotification();
     }
@@ -366,8 +368,15 @@ public class SaveProgressTest {
         }
     }
 
+    @Test @Config(sdk = 37)
+    public void onAndroid17TheCancelReceiverIsNotExported() {
+        assertEquals(37, android.os.Build.VERSION.SDK_INT);
+        assertEquals(java.util.Collections.singletonList(Context.RECEIVER_NOT_EXPORTED), receiverRegistrations());
+    }
+
     /** Below Android 13 there's no flag to give, and the token keeps other apps' broadcasts out. */
     @Test
+    @Config(sdk = {28, 30})
     public void belowAndroid13TheCancelReceiverIsRegisteredWithNoFlag() {
         assertEquals(java.util.Collections.singletonList(-1), receiverRegistrations());
     }
@@ -394,6 +403,7 @@ public class SaveProgressTest {
     }
 
     @Test
+    @Config(sdk = {30, 37})
     public void aFinishedSaveTakesItsNotificationAwayAndLeavesNoRowPending() throws Exception {
         long size = 8 * MIB;
         server.serveGenerated("/whole.mp4", "video/mp4", MP4_HEAD, size, Long.MAX_VALUE, null);
@@ -518,6 +528,7 @@ public class SaveProgressTest {
      * start in another of Instagram's processes are left alone.
      */
     @Test
+    @Config(sdk = {30, 37})
     public void startingInstagramRemovesWhatAStoppedSaveLeft() throws Exception {
         File folder = DashSave.workFolder(context);
         File partial = new File(folder, "video1.part");
@@ -808,6 +819,7 @@ public class SaveProgressTest {
     }
 
     @Test
+    @Config(sdk = {30, 37})
     public void aPendingRowSweepRetriesAfterTheGalleryThrows() {
         Uri row = row(1);
         SaveLeftovers.pending(context, row);

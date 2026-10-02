@@ -13,6 +13,8 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
 
@@ -75,6 +77,45 @@ public class SaveInterruptionTest {
         SaveLeftovers.showInterrupted(context);
         Utils.awaitBackgroundTasksForTests();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
+    }
+
+    @Test @Config(sdk = 28)
+    public void sdk28InterruptedSaveRemovesItsHiddenStorageFileBeforeNotice() throws Exception {
+        assertEquals(28, Build.VERSION.SDK_INT);
+        context.getApplicationInfo().targetSdkVersion = 36;
+        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "Instagram");
+        assertTrue(folder.mkdirs() || folder.isDirectory());
+        File hidden = File.createTempFile(MediaStoreWriter.LEGACY_PENDING_PREFIX, ".mp4", folder);
+        File finished = File.createTempFile("finished-", ".mp4", folder);
+        // Android paths are rooted with '/', unlike the Windows backing files Robolectric uses.
+        String root = hidden.toPath().getRoot().toString();
+        String hiddenPath = hidden.getAbsolutePath().replace(File.separatorChar, '/');
+        String finishedPath = finished.getAbsolutePath().replace(File.separatorChar, '/');
+        if (root.matches("[A-Za-z]:[\\\\/]")) {
+            hiddenPath = hiddenPath.substring(2);
+            finishedPath = finishedPath.substring(2);
+        }
+        Uri hiddenUri = new Uri.Builder().scheme("file").path(hiddenPath).build();
+        Uri finishedUri = new Uri.Builder().scheme("file").path(finishedPath).build();
+        assertEquals(hidden.getCanonicalFile(), new File(Uri.parse(hiddenUri.toString()).getPath()).getCanonicalFile());
+        try {
+            SaveLeftovers.beginJob(context);
+            assertTrue(SaveLeftovers.pending(context, hiddenUri));
+            // A rename can beat the ledger cross-off. Finished media must survive that stale entry.
+            assertTrue(SaveLeftovers.pending(context, finishedUri));
+            SaveLeftovers.forgetSweepForTests();
+            notice();
+
+            assertFalse(hidden.exists());
+            assertTrue(finished.exists());
+            assertTrue(active().isEmpty());
+            assertFalse(ledger().contains("pending_rows"));
+            assertEquals(1, SaveLeftovers.interruptedCount());
+            assertEquals("A save stopped. Reopen the media and save again.", ShadowToast.getTextOfLatestToast());
+        } finally {
+            hidden.delete();
+            finished.delete();
+        }
     }
 
     @Test public void oneKilledJobWithSeveralResourcesProducesOneConsumedNotice() throws Exception {

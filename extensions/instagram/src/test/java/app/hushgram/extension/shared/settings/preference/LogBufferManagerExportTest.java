@@ -24,6 +24,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 
 import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -39,9 +40,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE, sdk = 30)
+@Config(manifest = Config.NONE, sdk = {30, 37})
 public class LogBufferManagerExportTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+    @Before public void hostTarget() {
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+    }
+    @Config(sdk = {28, 30, 37})
     @Test public void noExitOnRecordMeansNoLastExitSection() {
         // Android has kept no exit for this process yet, so the section has to be absent rather
         // than empty or guessed at.

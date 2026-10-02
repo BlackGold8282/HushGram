@@ -20,6 +20,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,9 +40,12 @@ import app.hushgram.extension.shared.Utils;
  */
 @RunWith(RobolectricTestRunner.class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = 34)
+@Config(sdk = {28, 34, 37})
 public class SettingsScreenRowLayoutTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+    @Before public void hostTarget() {
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+    }
 
     @After
     public void tearDown() throws Exception {

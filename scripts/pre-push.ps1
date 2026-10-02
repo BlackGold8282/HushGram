@@ -300,7 +300,7 @@ try {
     $localProperties = Join-Path $Root 'local.properties'
     if (Test-Path -LiteralPath $localProperties) { Copy-Item -LiteralPath $localProperties -Destination $gate }
     $gradle = Join-Path $gate $(if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'gradlew.bat' } else { 'gradlew' })
-    & $gradle -p $gate --console=plain :patches:test :extensions:instagram:testDebugUnitTest `
+    & $gradle -p $gate --console=plain :patches:test :extensions:instagram:testDebugUnitTest :extensions:instagram:verifyAndroidBoundaries `
         :extensions:instagram:lint :extensions:shared:library:lint
     if ($LASTEXITCODE -ne 0) { Stop-Push 'tests or lint failed' }
 
