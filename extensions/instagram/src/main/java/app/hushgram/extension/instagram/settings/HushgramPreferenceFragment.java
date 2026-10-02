@@ -831,6 +831,21 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 L10n.isolate(NumberFormat.getPercentInstance().format(size.percent() / 100.0)));
     }
 
+    @Override
+    protected void updatePreferenceAvailability(Preference preference, Setting<?> setting) {
+        super.updatePreferenceAvailability(preference, setting);
+        if (setting == Settings.ONLY_FOLLOWING) {
+            preference.setSummary(setting.isAvailable()
+                    ? L10n.t("Takes For you out of the picker at the top of Home, so Home stays on Following or "
+                            + "Favorites. Works with Start Home on Following on. Restart Instagram after changing it.")
+                    : L10n.t("Turn on Start Home on Following to use this choice."));
+        } else if (preference instanceof PlaybackQualityRow) {
+            ((PlaybackQualityRow) preference).showSummary();
+        } else if (preference instanceof StoryRingRow) {
+            ((StoryRingRow) preference).showSummary();
+        }
+    }
+
     /** The quality rows' and the ring size's summaries are sentences of their own rather than the chosen entry. */
     @Override
     protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
@@ -1294,7 +1309,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (PlaybackQuality candidate : PlaybackQuality.values()) {
                 if (candidate.name().equals(getValue())) quality = candidate;
             }
-            setSummary(playbackQualitySummary(quality));
+            setSummary(Settings.PLAYBACK_QUALITY.isAvailable()
+                    ? playbackQualitySummary(quality)
+                    : L10n.t("Turn on Default playback quality to use this choice."));
         }
 
         @Override
@@ -1337,7 +1354,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (StoryRingSize candidate : StoryRingSize.values()) {
                 if (candidate.name().equals(getValue())) size = candidate;
             }
-            summary = storyRingSummary(size);
+            summary = Settings.STORY_RING_SCALE.isAvailable()
+                    ? storyRingSummary(size)
+                    : L10n.t("Turn on Story ring size to use this choice.");
             setSummary(summary);
         }
 

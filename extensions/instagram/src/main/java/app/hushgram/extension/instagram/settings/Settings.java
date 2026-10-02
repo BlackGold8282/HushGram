@@ -139,7 +139,7 @@ public class Settings extends BaseSettings {
      * isn't a switch: the switch above it is.
      */
     public static final EnumSetting<StoryRingSize> STORY_RING_SCALE =
-            new EnumSetting<>("hushgram_story_ring_size", StoryRingSize.INSTAGRAM);
+            new EnumSetting<>("hushgram_story_ring_size", StoryRingSize.INSTAGRAM, parent(STORY_RING));
 
     /**
      * Home opening on the Following feed, with Instagram's For you and Following picker at its top,
@@ -154,7 +154,7 @@ public class Settings extends BaseSettings {
      * away until you choose this.
      */
     public static final BooleanSetting ONLY_FOLLOWING =
-            new BooleanSetting("hushgram_only_following", FALSE);
+            new BooleanSetting("hushgram_only_following", FALSE, parent(START_ON_FOLLOWING));
 
     /**
      * Meta AI in the search bars: the Search tab's ("Search with Meta AI") and the one at the top of
@@ -316,7 +316,7 @@ public class Settings extends BaseSettings {
      * patch changes nothing until a quality is chosen. It isn't a switch: the switch above it is.
      */
     public static final EnumSetting<PlaybackQuality> PLAYBACK_QUALITY =
-            new EnumSetting<>("hushgram_playback_quality", PlaybackQuality.AUTO);
+            new EnumSetting<>("hushgram_playback_quality", PlaybackQuality.AUTO, parent(DEFAULT_PLAYBACK_QUALITY));
 
     // ---- Downloads -------------------------------------------------------------------------
     // What every save reads when it starts (app.hushgram.extension.instagram.download), ported

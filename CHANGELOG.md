@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Only accounts you follow, Ring size and Playback quality explain which parent switch enables them while it is off. Their saved choices stay intact, and shared Download quality remains available.
+
 * **Tooling:** Require project-plugin graphs in imported dependency reports and bind each advisory exception to one reviewed tooling scope. Per-scope verdicts keep the same library's other uses visible.
 
 * **Instagram:** Diagnostic reports show matched/expected patch targets and fixed missing-target labels for Disable analytics, Sanitize sharing links and Start on x86 devices. The counts describe patch-time code matches, not live request suppression.

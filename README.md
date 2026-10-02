@@ -130,9 +130,11 @@ At the top, a card says whether HushGram is on or paused. Below it:
 - **Developer** holds the switch for Open developer options.
 - **Set when you patched** lists what was fixed at patch time and can't be switched off here, such as the re-signed build fix, the removed advertising ID and the pure black dark mode.
 - **Pause and diagnostics** has the Pause switch, Debug logging, and the diagnostic report. Copy a quick report, or save the full one to Download/Morphe (on Android 9, a Download/Morphe folder inside Instagram's own folder, and the message says where). Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it.
+- **About** shows the version and the licenses, with a link to this page.
 
 Unreleased source builds also show patch-time target coverage for Disable analytics, Sanitize sharing links and Start on x86 devices in the diagnostic report. Each shows matched/expected counts and fixed labels for missing targets. These describe the code the patch found, not which live requests Instagram sends.
-- **About** shows the version and the licenses, with a link to this page.
+
+In unreleased source builds, Only accounts you follow, Ring size and Playback quality are disabled while their parent switch is off. Each explains which switch enables it. Turning the parent back on restores your saved choice. Download quality remains available for every download surface.
 
 Pause turns off every feature a switch controls, all at once and without losing your choices. It's the quickest way to tell whether HushGram is behind a problem.
 

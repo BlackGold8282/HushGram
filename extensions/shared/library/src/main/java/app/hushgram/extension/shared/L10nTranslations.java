@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(456);
+        Map<String, String> table = new HashMap<>(462);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -480,6 +480,12 @@ public final class L10nTranslations {
                 "Versuche es noch einmal oder kehre zu Instagram zur\u00fcck.");
         table.put("Turn off double tap to like",
                 "Doppeltippen zum Liken ausschalten");
+        table.put("Turn on Default playback quality to use this choice.",
+                "Aktiviere \u201eStandard-Wiedergabequalit\u00e4t\u201c, um diese Auswahl zu nutzen.");
+        table.put("Turn on Start Home on Following to use this choice.",
+                "Aktiviere \u201eStartseite mit Gefolgt \u00f6ffnen\u201c, um diese Auswahl zu nutzen.");
+        table.put("Turn on Story ring size to use this choice.",
+                "Aktiviere \u201eGr\u00f6\u00dfe der Story-Ringe\u201c, um diese Auswahl zu nutzen.");
         table.put("Up to %1$s",
                 "Bis %1$s");
         table.put("Updates",
@@ -523,7 +529,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(456);
+        Map<String, String> table = new HashMap<>(462);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -957,6 +963,12 @@ public final class L10nTranslations {
                 "Int\u00e9ntalo de nuevo o vuelve a Instagram.");
         table.put("Turn off double tap to like",
                 "Desactivar tocar dos veces para dar Me gusta");
+        table.put("Turn on Default playback quality to use this choice.",
+                "Activa \u00abCalidad de reproducci\u00f3n predeterminada\u00bb para usar esta opci\u00f3n.");
+        table.put("Turn on Start Home on Following to use this choice.",
+                "Activa \u00abAbrir Inicio en Siguiendo\u00bb para usar esta opci\u00f3n.");
+        table.put("Turn on Story ring size to use this choice.",
+                "Activa \u00abTama\u00f1o de los anillos de historias\u00bb para usar esta opci\u00f3n.");
         table.put("Up to %1$s",
                 "Hasta %1$s");
         table.put("Updates",
@@ -1000,7 +1012,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(456);
+        Map<String, String> table = new HashMap<>(462);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1434,6 +1446,12 @@ public final class L10nTranslations {
                 "Coba lagi, atau kembali ke Instagram.");
         table.put("Turn off double tap to like",
                 "Matikan ketuk dua kali untuk menyukai");
+        table.put("Turn on Default playback quality to use this choice.",
+                "Aktifkan Kualitas pemutaran default untuk menggunakan pilihan ini.");
+        table.put("Turn on Start Home on Following to use this choice.",
+                "Aktifkan Mulai Beranda di Mengikuti untuk menggunakan pilihan ini.");
+        table.put("Turn on Story ring size to use this choice.",
+                "Aktifkan Ukuran lingkaran cerita untuk menggunakan pilihan ini.");
         table.put("Up to %1$s",
                 "Hingga %1$s");
         table.put("Updates",
@@ -1477,7 +1495,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(456);
+        Map<String, String> table = new HashMap<>(462);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1911,6 +1929,12 @@ public final class L10nTranslations {
                 "Tente novamente ou volte para o Instagram.");
         table.put("Turn off double tap to like",
                 "Desativar toque duplo para curtir");
+        table.put("Turn on Default playback quality to use this choice.",
+                "Ative Qualidade de reprodu\u00e7\u00e3o padr\u00e3o para usar esta op\u00e7\u00e3o.");
+        table.put("Turn on Start Home on Following to use this choice.",
+                "Ative Iniciar a p\u00e1gina inicial em Seguindo para usar esta op\u00e7\u00e3o.");
+        table.put("Turn on Story ring size to use this choice.",
+                "Ative Tamanho do c\u00edrculo dos stories para usar esta op\u00e7\u00e3o.");
         table.put("Up to %1$s",
                 "At\u00e9 %1$s");
         table.put("Updates",
@@ -1954,7 +1978,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(456);
+        Map<String, String> table = new HashMap<>(462);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2388,6 +2412,12 @@ public final class L10nTranslations {
                 "Tekrar dene veya Instagram'a geri d\u00f6n.");
         table.put("Turn off double tap to like",
                 "Be\u011fenmek i\u00e7in \u00e7ift dokunmay\u0131 kapat");
+        table.put("Turn on Default playback quality to use this choice.",
+                "Bu se\u00e7imi kullanmak i\u00e7in Varsay\u0131lan oynatma kalitesi se\u00e7ene\u011fini a\u00e7\u0131n.");
+        table.put("Turn on Start Home on Following to use this choice.",
+                "Bu se\u00e7imi kullanmak i\u00e7in Ana sayfay\u0131 Takip edilenler ile ba\u015flat se\u00e7ene\u011fini a\u00e7\u0131n.");
+        table.put("Turn on Story ring size to use this choice.",
+                "Bu se\u00e7imi kullanmak i\u00e7in Hik\u00e2ye halkas\u0131 boyutu se\u00e7ene\u011fini a\u00e7\u0131n.");
         table.put("Up to %1$s",
                 "En fazla %1$s");
         table.put("Updates",
