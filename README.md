@@ -200,7 +200,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 
 ### Package conflict or App not installed
 
-The Play Store Instagram is still on the phone. Android won't replace an app signed with Meta's key by one signed with yours. Uninstall it, then install the patched one.
+Android won't replace an installed app with one signed by a different key. For an update, use the same signing key as the installed build so its data stays. A Root Mount install keeps the Play Store app's existing sign-in. Switching to a standard re-signed install requires removing the differently signed app, which deletes its local data. Save anything you need and make sure you can sign in again before doing that.
 
 ### Unsupported Version
 
@@ -208,7 +208,9 @@ Morphe Manager says this when your Instagram file isn't the build these patches 
 
 ### Patching stops on one patch
 
-Instagram changed the part that patch looks for. Leave that patch out to get a working build now, and please open an issue naming the patch and your Instagram version.
+First check that you're patching Instagram 449.0.0.52.84, build 385511871. If several patch sources are enabled, try HushGram alone. In [#11](https://github.com/SysAdminDoc/HushGram/issues/11), Disable analytics, Remove build expired popup and View stories anonymously all applied once the other source was removed.
+
+If a patch still fails with HushGram alone on that build, please open an issue naming the patch, your patcher's version and the error. On an unchecked Instagram build, leave the failing patch out until that build has been checked.
 
 ## Your Instagram account
 
