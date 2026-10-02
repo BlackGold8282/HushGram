@@ -207,6 +207,9 @@ tasks.register("verifyAndroidBoundaries") {
                 "offPausedAndUnreadyLeaveInstagramsAnswers[28]", "offPausedAndUnreadyLeaveInstagramsAnswers",
                 "aButtonHiddenEarlierComesBackWhenTheSwitchGoesOff[28]", "aButtonHiddenEarlierComesBackWhenTheSwitchGoesOff",
                 "aButtonThatThrowsIsLeftAndReported[28]", "aButtonThatThrowsIsLeftAndReported"),
+            "app.hushgram.extension.instagram.reels.ReelsSuggestionsTest" to listOf(
+                "offPausedAndUnreadyKeepEveryItem[28]", "offPausedAndUnreadyKeepEveryItem",
+                "aThrowingReaderOrSwitchKeepsTheItemAndIsReported[28]", "aThrowingReaderOrSwitchKeepsTheItemAndIsReported"),
             "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
                 "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch",
                 "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause"),

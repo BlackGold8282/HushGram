@@ -211,6 +211,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_PROFILE_SUGGESTIONS =
             new BooleanSetting("hushgram_hide_profile_suggestions", TRUE);
 
+    /**
+     * The cards of accounts and creators to follow that Instagram puts between reels
+     * ({@link app.hushgram.extension.instagram.reels.ReelsSuggestions}). Read as each page of
+     * reels arrives, so a change shows from the next page.
+     */
+    public static final BooleanSetting HIDE_REELS_SUGGESTIONS =
+            new BooleanSetting("hushgram_hide_reels_suggestions", TRUE);
+
     /** An explicit Copy action for original comment text. Off until enabled. */
     public static final BooleanSetting COPY_COMMENTS =
             new BooleanSetting("hushgram_copy_comments", FALSE);

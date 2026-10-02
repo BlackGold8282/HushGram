@@ -302,6 +302,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("The rows of suggested reels between posts in your home feed. A reel someone you "
                             + "follow posts stays.")));
         }
+        if (build.contains(PatchFamily.REELS_SUGGESTIONS)) {
+            reels.add(toggle(context, Settings.HIDE_REELS_SUGGESTIONS, L10n.t("Hide suggested accounts"),
+                    L10n.t("The cards of people and creators to follow that Instagram puts between reels. "
+                            + "Every reel still plays.")));
+        }
         if (build.contains(PatchFamily.REEL_DECLUTTER)) {
             reels.add(toggle(context, Settings.HIDE_REEL_FOLLOW_BUTTON, L10n.t("Hide the Follow button"),
                     L10n.t("The Follow button beside a reel's author. Their profile still has one.")));

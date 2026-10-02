@@ -43,6 +43,7 @@ public final class FamilyNames {
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";
     public static final String REELS_TAB = "Hide the Reels tab";
+    public static final String REELS_SUGGESTIONS = "Hide suggested accounts in Reels";
     public static final String KEEP_REEL_SPEED = "Keep the reel speed";
     public static final String STORY_DOWNLOAD = "Download any story";
     public static final String VIDEO_DOWNLOAD = "Download any video";

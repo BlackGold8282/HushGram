@@ -583,3 +583,10 @@ once-call Lapp/hushgram/extension/instagram/comment/CommentCopy;->rows(Ljava/uti
 once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->inlineRow(I)I in instance (L*;L*;L*;L*;Ljava/lang/Integer;Ljava/util/List;Ljava/util/List;I)V holding No\ssuggested\sViewBinder\sto\sbind\ssuggested\susers
 once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->chainingButton(Landroid/view/View;)V in instance (L*;L*;L*;L*;Ljava/lang/Integer;Ljava/util/List;Ljava/util/List;I)V holding No\ssuggested\sViewBinder\sto\sbind\ssuggested\susers
 once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->keepStandaloneRow()I in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V class-holding ProfileHeaderBinderGroup.bindView ProfileHeaderBinderGroup.createView
+
+# Hide suggested accounts in Reels hands the item Instagram's Reels converter makes from a netego
+# unit, with the unit's type, to ReelsSuggestions.netego before it's returned (03TH.A02 on 449,
+# the one static method loading the trace name below), once. Its filter() runs at every return of
+# that converter, twelve on 449, which no rule here counts, so it rests on
+# HideReelsSuggestionsHookTest, which checks on the 449 fixture that every return passes through it.
+once-call Lapp/hushgram/extension/instagram/reels/ReelsSuggestions;->netego(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object; in static (L*;Lcom/instagram/common/session/UserSession;)LX/*; holding android_purge_26_q2_ClipsItemExt_toClipsItemCombined
