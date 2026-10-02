@@ -111,6 +111,63 @@ class CopyCommentHookTest {
         refusesFlow(nativeClasses("GetterReceiver", getterFlow = "receiver"))
     }
 
+    @Test fun aNearbyOriginalKeyCannotAuthorizeAReadOfTranslation() {
+        refusesFlow(nativeClasses("NearbyKey", parserFlow = "nearby-translation"))
+    }
+
+    @Test fun nativeEqualsDiscriminatorAndReturnedObjectAliasesStaySupported() {
+        for (flow in listOf("return-alias", "return-joined", "early-null")) {
+            val patch = PatchContexts.of(nativeClasses("NativeParser", parserFlow = "equals", converterFlow = flow) + extension())
+            val menu = patch.findCommentMenu()
+            assertEquals("originalNativeParser", menu.text.name)
+            patch.applyCommentMenu(menu)
+            assertWiring(patch, menu)
+        }
+    }
+
+    @Test fun aDiscriminatorCannotCompareTheTranslationKeyInstead() {
+        refusesFlow(nativeClasses("WrongKey", parserFlow = "equals-translation"))
+    }
+
+    @Test fun comparingAnotherValueToTextCannotEstablishTheCurrentFieldName() {
+        refusesFlow(nativeClasses("ValueCompared", parserFlow = "equals-value"))
+    }
+
+    @Test fun nativeReaderBoundariesMustReturnTheirReadFromTheSameReceiverAndAdvanceExactlyOnce() {
+        for (flow in listOf("helper-wrong-receiver", "helper-overwrite", "helper-no-advance",
+                "helper-extra-advance", "helper-advance-before-name", "helper-bypass", "advance-after-key")) {
+            refusesFlow(nativeClasses("ReaderBoundary", parserFlow = flow))
+        }
+    }
+
+    @Test fun aBranchCannotBypassTheOriginalKeyDiscriminator() {
+        refusesFlow(nativeClasses("KeyBypass", parserFlow = "equals-bypass"))
+    }
+
+    @Test fun anOverwrittenEqualityResultCannotAuthorizeOriginalText() {
+        refusesFlow(nativeClasses("KeyResult", parserFlow = "equals-result"))
+    }
+
+    @Test fun anOriginalObjectCannotBeDiscardedForATranslatedObject() {
+        refusesFlow(nativeClasses("Discarded", converterFlow = "discard"))
+    }
+
+    @Test fun everyReturnedObjectMustCarryTheVerifiedOriginalText() {
+        refusesFlow(nativeClasses("OtherReturn", converterFlow = "other-return"))
+    }
+
+    @Test fun aReturnedObjectCannotBypassInitialization() {
+        refusesFlow(nativeClasses("Uninitialized", converterFlow = "uninitialized"))
+    }
+
+    @Test fun anOverwriteCannotReplaceTheVerifiedReturnedObject() {
+        refusesFlow(nativeClasses("ObjectOverwrite", converterFlow = "return-overwrite"))
+    }
+
+    @Test fun aConstructorExceptionCannotReturnAnUninitializedObject() {
+        refusesFlow(nativeClasses("InitHandler", converterFlow = "return-handler"))
+    }
+
     private fun refusesFlow(native: List<ClassDef>) {
         val classes = native + extension()
         val patch = PatchContexts.of(classes)
@@ -125,6 +182,7 @@ class CopyCommentHookTest {
         val checked = mutableSetOf<String>()
         for (version in versions) for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
             val anchors = (FixtureDex.classesHolding(bundle, COMMENT_SELECT) +
+                FixtureDex.classesHolding(bundle, JSON_ROOT_FIELD) +
                 FixtureDex.classesHolding(bundle, "CopyText") + FixtureDex.classesHolding(bundle, COMMENT_LEGACY))
                 .distinctBy { it.type }
             val selects = anchors.flatMap { it.methods }.filter { COMMENT_SELECT in it.strings() &&
@@ -219,7 +277,8 @@ class CopyCommentHookTest {
                               rowFlags: Int = public, dismiss: Int = 1, guards: Boolean = true,
                               rowTypeFlags: Int = public or AccessFlags.ABSTRACT.value, labelFlags: Int = public,
                               constructorFlow: String = "alias", converterFlow: String = "direct",
-                              getterFlow: String = "alias", styleTypeFlags: Int = public or AccessFlags.ABSTRACT.value): List<ClassDef> {
+                              getterFlow: String = "alias", styleTypeFlags: Int = public or AccessFlags.ABSTRACT.value,
+                              parserFlow: String = "direct"): List<ClassDef> {
         fun t(name: String) = "Ltest/$salt$name;"
         val raw = t("Raw")
         val value = t("Value")
@@ -232,6 +291,10 @@ class CopyCommentHookTest {
         val controller = t("Controller")
         val renderer = t("Renderer")
         val wrapper = t("Callback")
+        val json = t("Json")
+        val reader = t("Reader")
+        val token = t("Token")
+        val expected = t("Expected")
         fun field(owner: String, name: String, type: String, flags: Int = public) =
             ImmutableField(owner, name, type, flags, null, null, null)
         fun constructor(owner: String, parameters: List<String>, body: String, flags: Int = public) =
@@ -250,12 +313,24 @@ class CopyCommentHookTest {
         }
         val beforeRead = if (converterFlow == "branch")
             "const-string v2, \"translated\"\nif-eqz p0, :build" else if (converterFlow == "handler")
-            "const-string v2, \"translated\"" else ""
+            "const-string v2, \"translated\"" else if (converterFlow == "early-null") "if-eqz p0, :unsupported" else ""
         val afterRead = when (converterFlow) {
             "branch" -> ":build"
             "handler" -> "goto :build\nmove-exception v1\n:build"
             "alias" -> "move-object v1, v2\nconst/4 v2, 0x0"
             else -> ""
+        }
+        val returnFlow = when (converterFlow) {
+            "discard" -> "new-instance v1, $view\nconst-string v2, \"translated\"\ninvoke-direct { v1, p0, v2, v3 }, $view-><init>($raw$STRING$STRING)V\nreturn-object v1"
+            "discard-raw" -> "new-instance v1, $view\nconst/4 v0, 0x0\nconst-string v2, \"translated\"\ninvoke-direct { v1, v0, v2, v3 }, $view-><init>($raw$STRING$STRING)V\nreturn-object v1"
+            "other-return" -> "if-eqz p0, :original\nnew-instance v1, $view\nconst-string v2, \"translated\"\ninvoke-direct { v1, p0, v2, v3 }, $view-><init>($raw$STRING$STRING)V\nreturn-object v1\n:original\nreturn-object v0"
+            "uninitialized" -> "new-instance v1, $view\nreturn-object v1"
+            "return-overwrite" -> "const/4 v0, 0x0\nreturn-object v0"
+            "return-alias" -> "move-object v1, v0\nconst/4 v0, 0x0\ncheck-cast v1, $view\nreturn-object v1"
+            "return-joined" -> "if-eqz p0, :other\nmove-object v1, v0\ngoto :done\n:other\nmove-object v1, v0\n:done\ncheck-cast v1, $view\nreturn-object v1"
+            "early-null" -> "return-object v0\n:unsupported\nconst/4 v0, 0x0\nreturn-object v0"
+            "return-handler" -> "return-object v0\nmove-exception v1\nreturn-object v0"
+            else -> "return-object v0"
         }
         var conversion = method(t("Converter"), "convert", listOf(raw), view, 5, static, """
             $beforeRead
@@ -265,11 +340,13 @@ class CopyCommentHookTest {
             new-instance v0, $view
             const-string v3, "translated"
             invoke-direct { v0, p0, ${if (converterFlow == "alias") "v1" else "v2"}, v3 }, $view-><init>($raw$STRING$STRING)V
-            return-object v0
+            $returnFlow
         """)
-        if (converterFlow == "handler") {
+        if (converterFlow in setOf("handler", "return-handler")) {
             val code = conversion.code()
-            val read = code.indexOfFirst { it.call()?.definingClass == raw }
+            val read = code.indexOfFirst { it.call()?.let { call ->
+                if (converterFlow == "handler") call.definingClass == raw else call.definingClass == view && call.name == "<init>"
+            } == true }
             val handler = code.indexOfFirst { it.opcode == Opcode.MOVE_EXCEPTION }
             fun address(at: Int) = code.take(at).sumOf { it.codeUnits }
             conversion = ImmutableMethod(conversion.definingClass, conversion.name, conversion.parameters,
@@ -277,7 +354,102 @@ class CopyCommentHookTest {
                 ImmutableMethodImplementation(5, code, listOf(ImmutableTryBlock(address(read), code[read].codeUnits,
                     listOf(ImmutableExceptionHandler("Ljava/lang/Exception;", address(handler))))), null))
         }
+        val parserRead = """
+                const-string v0, "$textKey"
+                ${if (parserFlow == "equals-translation") "const-string v0, \"text_translation\"" else ""}
+                ${if (parserFlow == "equals-bypass") "if-eqz p0, :read" else ""}
+                invoke-static { p0 }, $reader->${if (parserFlow == "equals-value") "text" else "key"}($json)$STRING
+                move-result-object v1
+                ${if (parserFlow == "nearby-translation") "const-string v3, \"text_translation\"" else ""}
+                ${if (parserFlow == "advance-after-key") "invoke-virtual { p0 }, $json->next()$token" else ""}
+                invoke-virtual { v1, ${if (parserFlow == "nearby-translation") "v3" else "v0"} }, $STRING->equals($OBJECT)Z
+                move-result v1
+                ${if (parserFlow == "equals-result") "const/4 v1, 0x1" else ""}
+                if-eqz v1, :empty
+                :read
+                invoke-static { p0 }, $reader->text($json)$STRING
+            """.trimIndent()
+        val keyHelper = """
+            ${if (parserFlow == "helper-bypass") "if-eqz p0, :done" else ""}
+            ${if (parserFlow == "helper-wrong-receiver") "const/4 v1, 0x0" else ""}
+            ${if (parserFlow == "helper-advance-before-name") "invoke-virtual { p0 }, $json->next()$token" else ""}
+            invoke-virtual { ${if (parserFlow == "helper-wrong-receiver") "v1" else "p0"} }, $json->name()$STRING
+            move-result-object v0
+            if-eqz v0, :bad
+            ${if (parserFlow == "helper-no-advance") "" else "invoke-virtual { p0 }, $json->next()$token"}
+            ${if (parserFlow == "helper-extra-advance") "invoke-virtual { p0 }, $json->next()$token" else ""}
+            ${if (parserFlow == "helper-overwrite") "const-string v0, \"text\"" else ""}
+            :done
+            return-object v0
+            :bad
+            const/4 v0, 0x0
+            throw v0
+        """
         return listOf(
+            clazz(token, flags = public or AccessFlags.ENUM.value or AccessFlags.FINAL.value, superclass = "Ljava/lang/Enum;",
+                fields = listOf(field(token, "FIELD", token, static), field(token, "STRING", token, static)), methods = listOf(
+                    constructor(token, listOf(STRING, "I"), "invoke-direct { p0, p1, p2 }, Ljava/lang/Enum;-><init>(${STRING}I)V\nreturn-void"),
+                    method(token, "<clinit>", emptyList(), "V", 3, static, """
+                        const-string v1, "FIELD_NAME"
+                        const/4 v2, 0x0
+                        new-instance v0, $token
+                        invoke-direct { v0, v1, v2 }, $token-><init>(${STRING}I)V
+                        sput-object v0, $token->FIELD:$token
+                        const-string v1, "VALUE_STRING"
+                        const/4 v2, 0x1
+                        new-instance v0, $token
+                        invoke-direct { v0, v1, v2 }, $token-><init>(${STRING}I)V
+                        sput-object v0, $token->STRING:$token
+                        return-void
+                    """))),
+            clazz(json, flags = public or AccessFlags.ABSTRACT.value,
+                fields = listOf(field(json, "token", token), field(json, "name", STRING), field(json, "value", STRING)),
+                methods = listOf(
+                    method(json, "name", emptyList(), STRING, 2, public, "iget-object v0, p0, $json->name:$STRING\nreturn-object v0"),
+                    method(json, "next", emptyList(), token, 2, public, "sget-object v0, $token->STRING:$token\niput-object v0, p0, $json->token:$token\nreturn-object v0"),
+                    ImmutableMethod(json, "current", emptyList(), token, public or AccessFlags.ABSTRACT.value, null, null, null),
+                    method(json, "value", emptyList(), STRING, 3, public, """
+                        iget-object v0, p0, $json->token:$token
+                        sget-object v1, $token->STRING:$token
+                        if-eq v0, v1, :value
+                        sget-object v1, $token->FIELD:$token
+                        if-eq v0, v1, :name
+                        const/4 v0, 0x0
+                        return-object v0
+                        :name
+                        iget-object v0, p0, $json->name:$STRING
+                        return-object v0
+                        :value
+                        iget-object v0, p0, $json->value:$STRING
+                        return-object v0
+                    """))),
+            clazz(expected, fields = listOf(field(expected, "name", STRING))),
+            clazz(t("Root"), methods = listOf(method(t("Root"), "unwrap", listOf(json, expected), OBJECT, 7, static, """
+                iget-object v4, p1, $expected->name:$STRING
+                invoke-virtual { p0 }, $json->next()$token
+                move-result-object v0
+                sget-object v1, $token->FIELD:$token
+                if-eq v0, v1, :name
+                const-string v0, "$JSON_ROOT_FIELD"
+                const/4 v0, 0x0
+                throw v0
+                :name
+                invoke-virtual { p0 }, $json->name()$STRING
+                move-result-object v3
+                invoke-virtual { v4, v3 }, $STRING->equals($OBJECT)Z
+                move-result v0
+                if-nez v0, :matched
+                const-string v0, "$JSON_ROOT_MISMATCH"
+                const/4 v0, 0x0
+                throw v0
+                :matched
+                invoke-virtual { p0 }, $json->next()$token
+                return-object p0
+            """))),
+            // A bare Reader(String) call has no implementation proving a native JSON boundary.
+            clazz(reader, methods = listOf(method(reader, "key", listOf(json), STRING, 3, static, keyHelper),
+                method(reader, "text", listOf(json), STRING, 2, static,
+                    "invoke-virtual { p0 }, $json->value()$STRING\nmove-result-object v0\nreturn-object v0"))),
             clazz(raw, flags = iface, methods = listOf(
                 ImmutableMethod(raw, "original", emptyList(), STRING, iface, null, null, null),
                 ImmutableMethod(raw, "gif", emptyList(), giphy, iface, null, null, null))),
@@ -296,13 +468,15 @@ class CopyCommentHookTest {
                     iput-object p3, p0, $view->translated$salt:$STRING
                     return-void
                 """))),
-            clazz(t("Parser"), methods = listOf(method(t("Parser"), "unsafeParseFromJson", emptyList(), OBJECT, 4, static, """
-                const-string v0, "$textKey"
-                invoke-static { v0 }, Ltest/Reader;->text($STRING)$STRING
+            clazz(t("Parser"), methods = listOf(method(t("Parser"), "unsafeParseFromJson", listOf(json), OBJECT, 5, static, """
+                $parserRead
                 move-result-object v2
                 new-instance v0, $value
                 const-string v3, "translated"
                 invoke-direct { v0, v2, v3 }, $value-><init>($STRING$STRING)V
+                return-object v0
+                :empty
+                const/4 v0, 0x0
                 return-object v0
             """))),
             clazz(t("Converter"), methods = listOf(conversion)),

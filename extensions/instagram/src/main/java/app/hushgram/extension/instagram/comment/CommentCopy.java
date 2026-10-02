@@ -39,7 +39,6 @@ public final class CommentCopy {
             HookStatus.invoked(FamilyNames.COMMENT_COPY);
             if (rows == null || context == null || comment == null || !enabled()) return rows;
             String text = nativeRows.text(comment);
-            if (text == null || text.isEmpty()) return rows;
             int owned = 0;
             CopyAction existing = null;
             for (Object row : rows) {
@@ -48,6 +47,14 @@ public final class CommentCopy {
                     owned++;
                     existing = (CopyAction) callback;
                 }
+            }
+            if (text == null || text.isEmpty()) {
+                if (owned == 0) return rows;
+                List<Object> cleaned = new ArrayList<>(rows.size() - owned);
+                for (Object row : rows) {
+                    if (!(nativeRows.callback(row) instanceof CopyAction)) cleaned.add(row);
+                }
+                return cleaned;
             }
             if (owned == 1 && text.equals(existing.text)) return rows;
             Object copy = nativeRows.row(new CopyAction(text, context));

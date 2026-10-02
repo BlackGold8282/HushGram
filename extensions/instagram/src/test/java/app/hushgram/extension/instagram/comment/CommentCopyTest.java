@@ -113,6 +113,37 @@ public class CommentCopyTest {
         assertEquals(" \n ", clipboard().getPrimaryClip().getItemAt(0).getText().toString());
     }
 
+    @Test public void emptyOrNullCurrentTextRemovesStaleOwnedRowsFromImmutableMenus() {
+        List<?> first = CommentCopy.rows(stock, new String[]{"first"}, context, nativeRows);
+        List<?> duplicated = Collections.unmodifiableList(Arrays.asList(first.get(1), stock.get(0), first.get(1)));
+        for (String text : new String[]{"", null}) {
+            List<?> cleaned = CommentCopy.rows(duplicated, new String[]{text}, context, nativeRows);
+            assertEquals(1, cleaned.size());
+            assertSame(stock.get(0), cleaned.get(0));
+            assertSame(cleaned, CommentCopy.rows(cleaned, new String[]{text}, context, nativeRows));
+            assertEquals(3, duplicated.size());
+            assertEquals("first", ((CommentCopy.CopyAction) ((Row) first.get(1)).callback).text);
+        }
+        assertFalse(clipboard().hasPrimaryClip());
+        assertEquals(1, nativeRows.created);
+    }
+
+    @Test public void staleMenusAreUntouchedWhileOffPausedOrUnreadyAndFailuresRemainContained() {
+        List<?> first = CommentCopy.rows(stock, new String[]{"first"}, context, nativeRows);
+        Settings.COPY_COMMENTS.save(false);
+        assertSame(first, CommentCopy.rows(first, new String[]{""}, context, nativeRows));
+        Settings.COPY_COMMENTS.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertSame(first, CommentCopy.rows(first, new String[]{null}, context, nativeRows));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertSame(first, CommentCopy.rows(first, new String[]{""}, context, nativeRows)));
+        nativeRows.fail = true;
+        assertSame(first, CommentCopy.rows(first, new String[]{""}, context, nativeRows));
+        assertFalse(clipboard().hasPrimaryClip());
+        assertSame(stock, CommentCopy.rows(stock, new Object(), context, new FakeNative()));
+    }
+
     @Test public void discoveryAndClipboardFailuresReturnToNativeDismissal() {
         nativeRows.fail = true;
         assertSame(stock, CommentCopy.rows(stock, new String[]{"text"}, context, nativeRows));

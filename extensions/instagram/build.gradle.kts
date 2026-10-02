@@ -200,7 +200,9 @@ tasks.register("verifyAndroidBoundaries") {
                 "immutableAndRepeatedMenusKeepStockIdentityAndOnlyOneOwnedRow[28]", "immutableAndRepeatedMenusKeepStockIdentityAndOnlyOneOwnedRow",
                 "offPausedUnreadyAndUnsupportedMenusAreUntouched[28]", "offPausedUnreadyAndUnsupportedMenusAreUntouched",
                 "emptyTextGetsNoRowAndWhitespaceIsNeverTrimmed[28]", "emptyTextGetsNoRowAndWhitespaceIsNeverTrimmed",
-                "discoveryAndClipboardFailuresReturnToNativeDismissal[28]", "discoveryAndClipboardFailuresReturnToNativeDismissal"),
+                "discoveryAndClipboardFailuresReturnToNativeDismissal[28]", "discoveryAndClipboardFailuresReturnToNativeDismissal",
+                "emptyOrNullCurrentTextRemovesStaleOwnedRowsFromImmutableMenus[28]", "emptyOrNullCurrentTextRemovesStaleOwnedRowsFromImmutableMenus",
+                "staleMenusAreUntouchedWhileOffPausedOrUnreadyAndFailuresRemainContained[28]", "staleMenusAreUntouchedWhileOffPausedOrUnreadyAndFailuresRemainContained"),
             "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
                 "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch",
                 "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause"),
