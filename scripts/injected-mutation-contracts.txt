@@ -659,3 +659,19 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->bind(Ljava/lang/
 start-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->chosen(I)V in instance (Landroidx/fragment/app/FragmentActivity;Lcom/instagram/common/session/UserSession;L*;Lkotlin/jvm/functions/Function0;IJZ)V holding android_purge_26_q3_ClipsOptInAutoscrollPluginImpl_handleAutoscrollModeClick
 shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->chosen(I)V in instance (Landroidx/fragment/app/FragmentActivity;Lcom/instagram/common/session/UserSession;L*;Lkotlin/jvm/functions/Function0;IJZ)V holding android_purge_26_q3_ClipsOptInAutoscrollPluginImpl_handleAutoscrollModeClick
 shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->saved(I)Z in static (L*;)Z class-holding preference_clips_auto_scroll_enabled
+#
+# Stop Reels scrolling hands the Reels pager to ReelScrolling.pager right after the Reels viewer's
+# onViewCreated stores it (06Bw on 449, the one method of its shape holding the setup marker below),
+# and on a 0 turns the pager's input off. AndroidX's ViewPager2.setUserInputEnabled passes every
+# value through ReelScrolling.userInput first, so Instagram can't turn a Reels pager's input back
+# on. The setter loads no string, so its rules name the field it stores the value in. Both touch
+# handlers of the pull-down layout around the Reels viewer ask ReelScrolling.pull first, each picked
+# by the trace name it loads. Left out, Reels scroll and pull as before; twice or elsewhere, it isn't
+# the hook the patch wrote. StopReelsScrollingHookTest checks on the 449 fixture where each lands.
+once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pager(Ljava/lang/Object;)I in instance (Landroid/view/View;Landroid/os/Bundle;)V holding android_purge_26_q3_ClipsViewPagerImpl_setupView
+start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->userInput(Ljava/lang/Object;I)I in instance (Z)V holding Landroidx/viewpager2/widget/ViewPager2;->A0A:Z
+once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->userInput(Ljava/lang/Object;I)I in instance (Z)V holding Landroidx/viewpager2/widget/ViewPager2;->A0A:Z
+start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onInterceptTouchEvent
+shared-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onInterceptTouchEvent
+start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onTouchEvent
+shared-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onTouchEvent

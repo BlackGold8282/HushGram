@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(666);
+        Map<String, String> table = new HashMap<>(670);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -91,6 +91,8 @@ public final class L10nTranslations {
                 "Ein Speichervorgang wurde unterbrochen");
         table.put("A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.",
                 "Ein seitliches Wischen auf der Startseite \u00f6ffnet die Kamera nicht mehr. Die Schaltfl\u00e4che + und alle anderen Wege zur Kamera funktionieren weiterhin.");
+        table.put("A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram after changing it.",
+                "Ein Wischen in Reels f\u00fchrt nicht mehr zum n\u00e4chsten Reel, und Herunterziehen l\u00e4dt keine neuen. Das ge\u00f6ffnete Reel l\u00e4uft weiter. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("About",
                 "Info");
         table.put("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.",
@@ -175,11 +177,11 @@ public final class L10nTranslations {
                 "HushGram-Einstellungen konnten nicht exportiert werden. Versuche eine andere Datei.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "Die \u00dcberschreibungen konnten nicht exportiert werden. Die ausgew\u00e4hlte Datei ist m\u00f6glicherweise unvollst\u00e4ndig. Instagrams \u00dcberschreibungen wurden nicht ge\u00e4ndert.");
-        table.put("Couldn't hide this notice. Try again.",
-                "Dieser Hinweis konnte nicht ausgeblendet werden. Versuche es noch einmal.");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Couldn't hide this notice. Try again.",
+                "Dieser Hinweis konnte nicht ausgeblendet werden. Versuche es noch einmal.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "Die \u00dcberschreibungen konnten nicht importiert werden. Pr\u00fcfe die Datei und \u00f6ffne die Einstellungen auf der Startseite, w\u00e4hrend du angemeldet bist. Es wurde nichts ge\u00e4ndert.");
         table.put("Couldn't put back the diagnostic data. Try again.",
@@ -298,11 +300,11 @@ public final class L10nTranslations {
                 "Hinweise zum Erstellen und Werbung ausblenden");
         table.put("Hide friends' activity and comment previews",
                 "Aktivit\u00e4t von Freunden und Kommentarvorschau ausblenden");
-        table.put("Hide group buttons",
-                "Gruppen-Schaltfl\u00e4chen ausblenden");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Hide group buttons",
+                "Gruppen-Schaltfl\u00e4chen ausblenden");
         table.put("Hide highlights",
                 "Highlights ausblenden");
         table.put("Hide suggested accounts",
@@ -421,11 +423,11 @@ public final class L10nTranslations {
                 "Videos, Chats und Bilder von dir aus Meta AI, die Instagram in deinen Home-Feed setzt.");
         table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
                 "MetaConfig ist auf diesem Bildschirm nicht verf\u00fcgbar. \u00d6ffne die HushGram-Einstellungen auf der Startseite, w\u00e4hrend du angemeldet bist.");
-        table.put("Much larger",
-                "Viel gr\u00f6\u00dfer");
     }
 
     private static void fillDe3(Map<String, String> table) {
+        table.put("Much larger",
+                "Viel gr\u00f6\u00dfer");
         table.put("Much smaller",
                 "Viel kleiner");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -544,11 +546,11 @@ public final class L10nTranslations {
                 "Gespeichert unter %1$s, in geringerer Qualit\u00e4t als auf Instagram");
         table.put("Saved to the gallery",
                 "In der Galerie gespeichert");
-        table.put("Saved to the gallery in lower quality than on Instagram",
-                "In der Galerie gespeichert, in geringerer Qualit\u00e4t als auf Instagram");
     }
 
     private static void fillDe4(Map<String, String> table) {
+        table.put("Saved to the gallery in lower quality than on Instagram",
+                "In der Galerie gespeichert, in geringerer Qualit\u00e4t als auf Instagram");
         table.put("Saved. Restart Instagram to apply this change.",
                 "Gespeichert. Starte Instagram neu, um diese \u00c4nderung zu \u00fcbernehmen.");
         table.put("Saving a carousel",
@@ -591,6 +593,8 @@ public final class L10nTranslations {
                 "Startseite mit \u201eGefolgt\u201c \u00f6ffnen");
         table.put("Stays in while paused",
                 "Bleibt w\u00e4hrend der Pause aktiv");
+        table.put("Stop Reels scrolling",
+                "Scrollen in Reels stoppen");
         table.put("Stop Story auto-advance",
                 "Automatisches Weiterschalten von Stories stoppen");
         table.put("Stop swipe to create",
@@ -665,13 +669,13 @@ public final class L10nTranslations {
                 "Diese Datei entspricht den aktuellen \u00dcberschreibungen. Es wurde nichts ge\u00e4ndert.");
         table.put("Try again, or go back to Instagram.",
                 "Versuche es noch einmal oder kehre zu Instagram zur\u00fcck.");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Try another word or clear the search.",
                 "Versuche einen anderen Begriff oder l\u00f6sche die Suche.");
         table.put("Turn off double tap to like",
                 "Doppeltippen zum Liken ausschalten");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Turn on Default playback quality to use this choice.",
                 "Aktiviere \u201eStandard-Wiedergabequalit\u00e4t\u201c, um diese Auswahl zu nutzen.");
         table.put("Turn on Start Home on Following to use this choice.",
@@ -741,7 +745,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(666);
+        Map<String, String> table = new HashMap<>(670);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -786,6 +790,8 @@ public final class L10nTranslations {
                 "Se interrumpi\u00f3 un guardado");
         table.put("A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.",
                 "Deslizar de lado en Inicio ya no abre la c\u00e1mara. El bot\u00f3n + y las dem\u00e1s formas de abrir la c\u00e1mara siguen funcionando.");
+        table.put("A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram after changing it.",
+                "Deslizar en Reels ya no pasa al siguiente reel, y tirar hacia abajo no carga otros nuevos. El reel que abriste se sigue reproduciendo. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("About",
                 "Acerca de");
         table.put("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.",
@@ -870,11 +876,11 @@ public final class L10nTranslations {
                 "No se pudieron exportar los ajustes de HushGram. Prueba otro archivo.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "No se pudieron exportar los valores personalizados. El archivo elegido podr\u00eda estar incompleto. Los valores de Instagram no han cambiado.");
-        table.put("Couldn't hide this notice. Try again.",
-                "No se pudo ocultar este aviso. Int\u00e9ntalo de nuevo.");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Couldn't hide this notice. Try again.",
+                "No se pudo ocultar este aviso. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "No se pudieron importar los valores personalizados. Comprueba el archivo y abre los ajustes desde Inicio con la sesi\u00f3n iniciada. Nada ha cambiado.");
         table.put("Couldn't put back the diagnostic data. Try again.",
@@ -993,11 +999,11 @@ public final class L10nTranslations {
                 "Ocultar las etiquetas de creaci\u00f3n y promoci\u00f3n");
         table.put("Hide friends' activity and comment previews",
                 "Ocultar la actividad de amigos y la vista previa de comentarios");
-        table.put("Hide group buttons",
-                "Ocultar botones de grupo");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Hide group buttons",
+                "Ocultar botones de grupo");
         table.put("Hide highlights",
                 "Ocultar historias destacadas");
         table.put("Hide suggested accounts",
@@ -1116,11 +1122,11 @@ public final class L10nTranslations {
                 "Los videos, chats e im\u00e1genes tuyas de Meta AI que Instagram pone en tu feed de inicio.");
         table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
                 "MetaConfig no est\u00e1 disponible en esta pantalla. Abre los ajustes de HushGram desde Inicio con la sesi\u00f3n iniciada.");
-        table.put("Much larger",
-                "Mucho m\u00e1s grande");
     }
 
     private static void fillEs3(Map<String, String> table) {
+        table.put("Much larger",
+                "Mucho m\u00e1s grande");
         table.put("Much smaller",
                 "Mucho m\u00e1s peque\u00f1o");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1239,11 +1245,11 @@ public final class L10nTranslations {
                 "Se guard\u00f3 en %1$s con menos calidad que en Instagram");
         table.put("Saved to the gallery",
                 "Se guard\u00f3 en la galer\u00eda");
-        table.put("Saved to the gallery in lower quality than on Instagram",
-                "Se guard\u00f3 en la galer\u00eda con menos calidad que en Instagram");
     }
 
     private static void fillEs4(Map<String, String> table) {
+        table.put("Saved to the gallery in lower quality than on Instagram",
+                "Se guard\u00f3 en la galer\u00eda con menos calidad que en Instagram");
         table.put("Saved. Restart Instagram to apply this change.",
                 "Guardado. Reinicia Instagram para aplicar este cambio.");
         table.put("Saving a carousel",
@@ -1286,6 +1292,8 @@ public final class L10nTranslations {
                 "Abrir Inicio en Seguidos");
         table.put("Stays in while paused",
                 "Se mantiene durante la pausa");
+        table.put("Stop Reels scrolling",
+                "Detener el desplazamiento en Reels");
         table.put("Stop Story auto-advance",
                 "Detener el avance autom\u00e1tico de historias");
         table.put("Stop swipe to create",
@@ -1360,13 +1368,13 @@ public final class L10nTranslations {
                 "Este archivo coincide con los valores actuales. Nada ha cambiado.");
         table.put("Try again, or go back to Instagram.",
                 "Int\u00e9ntalo de nuevo o vuelve a Instagram.");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Try another word or clear the search.",
                 "Prueba otra palabra o borra la b\u00fasqueda.");
         table.put("Turn off double tap to like",
                 "Desactivar tocar dos veces para dar Me gusta");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Turn on Default playback quality to use this choice.",
                 "Activa \u00abCalidad de reproducci\u00f3n predeterminada\u00bb para usar esta opci\u00f3n.");
         table.put("Turn on Start Home on Following to use this choice.",
@@ -1436,7 +1444,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(666);
+        Map<String, String> table = new HashMap<>(670);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1481,6 +1489,8 @@ public final class L10nTranslations {
                 "Penyimpanan terputus");
         table.put("A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.",
                 "Menggeser ke samping di Beranda tidak lagi membuka kamera. Tombol + dan cara lain untuk membuka kamera tetap berfungsi.");
+        table.put("A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram after changing it.",
+                "Menggeser di Reels tidak lagi pindah ke reel berikutnya, dan menarik ke bawah tidak memuat reel baru. Reel yang kamu buka tetap diputar. Mulai ulang Instagram setelah mengubahnya.");
         table.put("About",
                 "Tentang");
         table.put("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.",
@@ -1565,11 +1575,11 @@ public final class L10nTranslations {
                 "Pengaturan HushGram tidak dapat diekspor. Coba file lain.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "Nilai pengganti tidak dapat diekspor. Berkas yang dipilih mungkin tidak lengkap. Nilai pengganti Instagram tidak berubah.");
-        table.put("Couldn't hide this notice. Try again.",
-                "Pemberitahuan ini tidak dapat disembunyikan. Coba lagi.");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Couldn't hide this notice. Try again.",
+                "Pemberitahuan ini tidak dapat disembunyikan. Coba lagi.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "Nilai pengganti tidak dapat diimpor. Periksa berkas dan buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.");
         table.put("Couldn't put back the diagnostic data. Try again.",
@@ -1688,11 +1698,11 @@ public final class L10nTranslations {
                 "Sembunyikan label ajakan membuat dan promosi");
         table.put("Hide friends' activity and comment previews",
                 "Sembunyikan aktivitas teman dan pratinjau komentar");
-        table.put("Hide group buttons",
-                "Sembunyikan tombol grup");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Hide group buttons",
+                "Sembunyikan tombol grup");
         table.put("Hide highlights",
                 "Sembunyikan sorotan");
         table.put("Hide suggested accounts",
@@ -1811,11 +1821,11 @@ public final class L10nTranslations {
                 "Video, chat, dan gambar dirimu dari Meta AI yang dimasukkan Instagram ke feed beranda kamu.");
         table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
                 "MetaConfig tidak tersedia di layar ini. Buka pengaturan HushGram dari Beranda saat sudah masuk.");
-        table.put("Much larger",
-                "Jauh lebih besar");
     }
 
     private static void fillIn3(Map<String, String> table) {
+        table.put("Much larger",
+                "Jauh lebih besar");
         table.put("Much smaller",
                 "Jauh lebih kecil");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1934,11 +1944,11 @@ public final class L10nTranslations {
                 "Disimpan ke %1$s dengan kualitas lebih rendah daripada di Instagram");
         table.put("Saved to the gallery",
                 "Disimpan ke galeri");
-        table.put("Saved to the gallery in lower quality than on Instagram",
-                "Disimpan ke galeri dengan kualitas lebih rendah daripada di Instagram");
     }
 
     private static void fillIn4(Map<String, String> table) {
+        table.put("Saved to the gallery in lower quality than on Instagram",
+                "Disimpan ke galeri dengan kualitas lebih rendah daripada di Instagram");
         table.put("Saved. Restart Instagram to apply this change.",
                 "Tersimpan. Mulai ulang Instagram untuk menerapkan perubahan ini.");
         table.put("Saving a carousel",
@@ -1981,6 +1991,8 @@ public final class L10nTranslations {
                 "Buka Beranda di Mengikuti");
         table.put("Stays in while paused",
                 "Tetap aktif saat dijeda");
+        table.put("Stop Reels scrolling",
+                "Hentikan gulir Reels");
         table.put("Stop Story auto-advance",
                 "Hentikan cerita maju otomatis");
         table.put("Stop swipe to create",
@@ -2055,13 +2067,13 @@ public final class L10nTranslations {
                 "Berkas ini sama dengan nilai pengganti saat ini. Tidak ada yang berubah.");
         table.put("Try again, or go back to Instagram.",
                 "Coba lagi, atau kembali ke Instagram.");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Try another word or clear the search.",
                 "Coba kata lain atau hapus pencarian.");
         table.put("Turn off double tap to like",
                 "Matikan ketuk dua kali untuk menyukai");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Turn on Default playback quality to use this choice.",
                 "Aktifkan Kualitas pemutaran default untuk menggunakan pilihan ini.");
         table.put("Turn on Start Home on Following to use this choice.",
@@ -2131,7 +2143,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(666);
+        Map<String, String> table = new HashMap<>(670);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2176,6 +2188,8 @@ public final class L10nTranslations {
                 "Um salvamento foi interrompido");
         table.put("A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.",
                 "Deslizar para o lado no In\u00edcio n\u00e3o abre mais a c\u00e2mera. O bot\u00e3o + e as outras formas de abrir a c\u00e2mera continuam funcionando.");
+        table.put("A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram after changing it.",
+                "Deslizar no Reels n\u00e3o leva mais ao pr\u00f3ximo reel, e puxar para baixo n\u00e3o carrega novos. O reel que voc\u00ea abriu continua tocando. Reinicie o Instagram depois de mudar.");
         table.put("About",
                 "Sobre");
         table.put("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.",
@@ -2260,11 +2274,11 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel exportar as configura\u00e7\u00f5es do HushGram. Tente outro arquivo.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "N\u00e3o foi poss\u00edvel exportar os valores personalizados. O arquivo escolhido pode estar incompleto. Os valores do Instagram n\u00e3o mudaram.");
-        table.put("Couldn't hide this notice. Try again.",
-                "N\u00e3o foi poss\u00edvel ocultar este aviso. Tente novamente.");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Couldn't hide this notice. Try again.",
+                "N\u00e3o foi poss\u00edvel ocultar este aviso. Tente novamente.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "N\u00e3o foi poss\u00edvel importar os valores personalizados. Confira o arquivo e abra as configura\u00e7\u00f5es pela p\u00e1gina inicial com a sess\u00e3o iniciada. Nada mudou.");
         table.put("Couldn't put back the diagnostic data. Try again.",
@@ -2383,11 +2397,11 @@ public final class L10nTranslations {
                 "Ocultar as etiquetas de cria\u00e7\u00e3o e promo\u00e7\u00e3o");
         table.put("Hide friends' activity and comment previews",
                 "Ocultar a atividade de amigos e a pr\u00e9via de coment\u00e1rios");
-        table.put("Hide group buttons",
-                "Ocultar bot\u00f5es de grupo");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Hide group buttons",
+                "Ocultar bot\u00f5es de grupo");
         table.put("Hide highlights",
                 "Ocultar destaques");
         table.put("Hide suggested accounts",
@@ -2506,11 +2520,11 @@ public final class L10nTranslations {
                 "Os v\u00eddeos, chats e imagens suas da Meta AI que o Instagram coloca no seu feed inicial.");
         table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
                 "O MetaConfig n\u00e3o est\u00e1 dispon\u00edvel nesta tela. Abra as configura\u00e7\u00f5es do HushGram pela p\u00e1gina inicial com a sess\u00e3o iniciada.");
-        table.put("Much larger",
-                "Bem maior");
     }
 
     private static void fillPt_rBR3(Map<String, String> table) {
+        table.put("Much larger",
+                "Bem maior");
         table.put("Much smaller",
                 "Bem menor");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -2629,11 +2643,11 @@ public final class L10nTranslations {
                 "Salvo em %1$s com qualidade menor que no Instagram");
         table.put("Saved to the gallery",
                 "Salvo na galeria");
-        table.put("Saved to the gallery in lower quality than on Instagram",
-                "Salvo na galeria com qualidade menor que no Instagram");
     }
 
     private static void fillPt_rBR4(Map<String, String> table) {
+        table.put("Saved to the gallery in lower quality than on Instagram",
+                "Salvo na galeria com qualidade menor que no Instagram");
         table.put("Saved. Restart Instagram to apply this change.",
                 "Salvo. Reinicie o Instagram para aplicar esta altera\u00e7\u00e3o.");
         table.put("Saving a carousel",
@@ -2676,6 +2690,8 @@ public final class L10nTranslations {
                 "Abrir o In\u00edcio em Seguindo");
         table.put("Stays in while paused",
                 "O que continua ativo na pausa");
+        table.put("Stop Reels scrolling",
+                "Parar a rolagem no Reels");
         table.put("Stop Story auto-advance",
                 "Parar o avan\u00e7o autom\u00e1tico dos stories");
         table.put("Stop swipe to create",
@@ -2750,13 +2766,13 @@ public final class L10nTranslations {
                 "Este arquivo corresponde aos valores atuais. Nada mudou.");
         table.put("Try again, or go back to Instagram.",
                 "Tente novamente ou volte para o Instagram.");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Try another word or clear the search.",
                 "Tente outra palavra ou limpe a pesquisa.");
         table.put("Turn off double tap to like",
                 "Desativar toque duplo para curtir");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Turn on Default playback quality to use this choice.",
                 "Ative Qualidade de reprodu\u00e7\u00e3o padr\u00e3o para usar esta op\u00e7\u00e3o.");
         table.put("Turn on Start Home on Following to use this choice.",
@@ -2826,7 +2842,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(666);
+        Map<String, String> table = new HashMap<>(670);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2871,6 +2887,8 @@ public final class L10nTranslations {
                 "Bir kaydetme i\u015flemi kesildi");
         table.put("A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.",
                 "Ana sayfada yana kayd\u0131rmak art\u0131k kameray\u0131 a\u00e7maz. + d\u00fc\u011fmesi ve kameraya giden di\u011fer yollar \u00e7al\u0131\u015fmaya devam eder.");
+        table.put("A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram after changing it.",
+                "Reels'te kayd\u0131rmak art\u0131k sonraki reel'e ge\u00e7mez, a\u015fa\u011f\u0131 \u00e7ekmek de yenilerini y\u00fcklemez. A\u00e7t\u0131\u011f\u0131n reel oynamaya devam eder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("About",
                 "Hakk\u0131nda");
         table.put("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.",
@@ -2955,11 +2973,11 @@ public final class L10nTranslations {
                 "HushGram ayarlar\u0131 d\u0131\u015fa aktar\u0131lamad\u0131. Ba\u015fka bir dosya deneyin.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "Ge\u00e7ersiz k\u0131lmalar d\u0131\u015fa aktar\u0131lamad\u0131. Se\u00e7ilen dosya eksik olabilir. Instagram'\u0131n ge\u00e7ersiz k\u0131lmalar\u0131 de\u011fi\u015fmedi.");
-        table.put("Couldn't hide this notice. Try again.",
-                "Bu bildirim gizlenemedi. Tekrar dene.");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Couldn't hide this notice. Try again.",
+                "Bu bildirim gizlenemedi. Tekrar dene.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "Ge\u00e7ersiz k\u0131lmalar i\u00e7e aktar\u0131lamad\u0131. Dosyay\u0131 denetleyin ve oturum a\u00e7\u0131kken Ana Sayfa'dan ayarlar\u0131 a\u00e7\u0131n. Hi\u00e7bir \u015fey de\u011fi\u015fmedi.");
         table.put("Couldn't put back the diagnostic data. Try again.",
@@ -3078,11 +3096,11 @@ public final class L10nTranslations {
                 "Olu\u015fturma ve tan\u0131t\u0131m etiketlerini gizle");
         table.put("Hide friends' activity and comment previews",
                 "Arkada\u015f etkinli\u011fini ve yorum \u00f6nizlemesini gizle");
-        table.put("Hide group buttons",
-                "Grup d\u00fc\u011fmelerini gizle");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Hide group buttons",
+                "Grup d\u00fc\u011fmelerini gizle");
         table.put("Hide highlights",
                 "\u00d6ne \u00e7\u0131kanlar\u0131 gizle");
         table.put("Hide suggested accounts",
@@ -3201,11 +3219,11 @@ public final class L10nTranslations {
                 "Instagram'\u0131n ana ak\u0131\u015f\u0131na koydu\u011fu Meta AI videolar\u0131, sohbetleri ve senin g\u00f6rsellerin.");
         table.put("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.",
                 "MetaConfig bu ekranda kullan\u0131lam\u0131yor. Oturum a\u00e7\u0131kken Ana Sayfa'dan HushGram ayarlar\u0131n\u0131 a\u00e7\u0131n.");
-        table.put("Much larger",
-                "\u00c7ok daha b\u00fcy\u00fck");
     }
 
     private static void fillTr3(Map<String, String> table) {
+        table.put("Much larger",
+                "\u00c7ok daha b\u00fcy\u00fck");
         table.put("Much smaller",
                 "\u00c7ok daha k\u00fc\u00e7\u00fck");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -3324,11 +3342,11 @@ public final class L10nTranslations {
                 "\u015euraya Instagram'dakinden d\u00fc\u015f\u00fck kalitede kaydedildi: %1$s");
         table.put("Saved to the gallery",
                 "Galeriye kaydedildi");
-        table.put("Saved to the gallery in lower quality than on Instagram",
-                "Galeriye Instagram'dakinden d\u00fc\u015f\u00fck kalitede kaydedildi");
     }
 
     private static void fillTr4(Map<String, String> table) {
+        table.put("Saved to the gallery in lower quality than on Instagram",
+                "Galeriye Instagram'dakinden d\u00fc\u015f\u00fck kalitede kaydedildi");
         table.put("Saved. Restart Instagram to apply this change.",
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Instagram'u yeniden ba\u015flat.");
         table.put("Saving a carousel",
@@ -3371,6 +3389,8 @@ public final class L10nTranslations {
                 "Ana Sayfa'y\u0131 Takip Edilenler ile a\u00e7");
         table.put("Stays in while paused",
                 "Duraklat\u0131lsa da devrede kal\u0131r");
+        table.put("Stop Reels scrolling",
+                "Reels'te kayd\u0131rmay\u0131 durdur");
         table.put("Stop Story auto-advance",
                 "Hikayelerin otomatik ge\u00e7i\u015fini durdur");
         table.put("Stop swipe to create",
@@ -3445,13 +3465,13 @@ public final class L10nTranslations {
                 "Bu dosya ge\u00e7erli ge\u00e7ersiz k\u0131lmalarla ayn\u0131. Hi\u00e7bir \u015fey de\u011fi\u015fmedi.");
         table.put("Try again, or go back to Instagram.",
                 "Tekrar dene veya Instagram'a geri d\u00f6n.");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Try another word or clear the search.",
                 "Ba\u015fka bir s\u00f6zc\u00fck deneyin veya aramay\u0131 temizleyin.");
         table.put("Turn off double tap to like",
                 "Be\u011fenmek i\u00e7in \u00e7ift dokunmay\u0131 kapat");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Turn on Default playback quality to use this choice.",
                 "Bu se\u00e7imi kullanmak i\u00e7in Varsay\u0131lan oynatma kalitesi se\u00e7ene\u011fini a\u00e7\u0131n.");
         table.put("Turn on Start Home on Following to use this choice.",

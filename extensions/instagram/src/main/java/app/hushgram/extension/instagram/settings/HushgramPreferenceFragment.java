@@ -369,6 +369,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Once you turn on Instagram's auto scroll in Reels, it stays on after a restart or after "
                             + "you leave Reels, until you turn it off.")));
         }
+        if (build.contains(PatchFamily.REEL_SCROLLING)) {
+            reels.add(toggle(context, Settings.STOP_REELS_SCROLLING, L10n.t("Stop Reels scrolling"),
+                    L10n.t("A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new "
+                            + "ones. The reel you opened still plays. Restart Instagram after changing it.")));
+        }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"));
             for (Preference row : reels) section.addPreference(row);

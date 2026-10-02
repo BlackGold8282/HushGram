@@ -6,6 +6,7 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Instagram:** New patch, `Stop Reels scrolling`, off until you pick it in Manager. A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones, so you stay on the reel you opened. Its switch is under Reels, and a change takes a restart. Instagram's own auto scroll still moves on when a reel ends if you've turned it on. It hasn't been tried on a phone yet.
 * **Instagram:** New patch, `Stop swipe to create`, off until you pick it in Manager. A sideways swipe on Home no longer slides the camera in. The + button and every other way into the camera still work, and a swipe back out of the camera does too. Its switch is under Feed. It hasn't been tried on a phone yet.
 * **Instagram:** New patch, `Hide highlights`, off until you pick it in Manager. The row of story highlights goes from profiles, yours and other people's. Its switch is under Profiles. Bios, counts and posts stay, and so does Add to highlight on your stories. It hasn't been tried on a phone yet.
 * **Instagram:** New patch, `Save comment photo`, off until you pick it in Manager. When a comment has a photo of its own, its menu gets a Save row that saves the largest size Instagram sent for that photo. It goes through the same downloader as Download, with your save folder and its Cancel button. A GIF, a video, a photo still uploading and the post itself don't get the row. Its switch is under Comments next to Copy comment and starts off. It hasn't been tried on a phone yet. Asked for in #1.

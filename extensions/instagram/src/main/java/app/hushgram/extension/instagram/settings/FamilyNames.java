@@ -50,6 +50,7 @@ public final class FamilyNames {
     public static final String KEEP_REEL_SPEED = "Keep the reel speed";
     public static final String REEL_SEEK_BAR = "Keep a seek bar on Reels";
     public static final String REEL_AUTO_SCROLL = "Keep Reels auto scroll on";
+    public static final String REEL_SCROLLING = "Stop Reels scrolling";
     public static final String STORY_DOWNLOAD = "Download any story";
     public static final String VIDEO_DOWNLOAD = "Download any video";
     public static final String TAP_TO_PLAY = "Tap to play";

@@ -347,6 +347,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_keep_reel_auto_scroll", TRUE);
 
     /**
+     * A finger can't move the Reels viewer on to the next reel, and a pull down doesn't load new
+     * ones ({@link app.hushgram.extension.instagram.reels.ReelScrolling}). A viewer turns its pager
+     * off as it opens, so a change takes a restart. Off to start.
+     */
+    public static final BooleanSetting STOP_REELS_SCROLLING =
+            new BooleanSetting("hushgram_stop_reels_scrolling", FALSE, true);
+
+    /**
      * Whether auto scroll in Reels was last left on, as
      * {@link app.hushgram.extension.instagram.reels.ReelAutoScroll} last saw it. It isn't a switch:
      * a pause doesn't change it, and a settings backup leaves it out.

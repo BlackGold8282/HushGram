@@ -239,6 +239,15 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.SwipeToCreateSettingsTest" to listOf(
                 "missingPatchHasNoSwipeSwitch[28]", "missingPatchHasNoSwipeSwitch",
                 "swipeSwitchStartsOffPersistsAndHonorsPause[28]", "swipeSwitchStartsOffPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.reels.ReelScrollingTest" to listOf(
+                "withTheSwitchOnAReelsPagerStaysPut[28]", "withTheSwitchOnAReelsPagerStaysPut",
+                "otherPagersAreLeftAlone[28]", "otherPagersAreLeftAlone",
+                "aPagerSetUpWhileOffIsHeldOnceOn[28]", "aPagerSetUpWhileOffIsHeldOnceOn",
+                "offPausedAndUnreadyKeepReelsScrolling[28]", "offPausedAndUnreadyKeepReelsScrolling",
+                "aThrowingSwitchKeepsReelsScrollingAndIsReported[28]", "aThrowingSwitchKeepsReelsScrollingAndIsReported"),
+            "app.hushgram.extension.instagram.settings.ReelScrollingSettingsTest" to listOf(
+                "missingPatchHasNoReelScrollingSwitch[28]", "missingPatchHasNoReelScrollingSwitch",
+                "reelScrollingSwitchStartsOffPersistsAndHonorsPause[28]", "reelScrollingSwitchStartsOffPersistsAndHonorsPause"),
             "app.hushgram.extension.instagram.profile.FollowingListTest" to listOf(
                 "ownFollowingListMarksOnlyWhoDoesNotFollowBack[28]", "ownFollowingListMarksOnlyWhoDoesNotFollowBack",
                 "aRowWithNoNameShowsTheMarkOnItsOwn[28]", "aRowWithNoNameShowsTheMarkOnItsOwn",
