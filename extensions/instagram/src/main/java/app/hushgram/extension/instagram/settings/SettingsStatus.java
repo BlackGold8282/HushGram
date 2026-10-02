@@ -121,6 +121,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean swipeToCreate() {
+        return false;
+    }
+
     public static boolean reelsSuggestions() {
         return false;
     }

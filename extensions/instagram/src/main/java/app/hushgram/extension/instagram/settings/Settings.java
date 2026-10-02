@@ -244,6 +244,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_highlights", FALSE);
 
     /**
+     * A sideways swipe on Home that would open the camera
+     * ({@link app.hushgram.extension.instagram.feed.SwipeToCreate}). Read at each step of a swipe,
+     * so a change shows on the next one. Off to start.
+     */
+    public static final BooleanSetting STOP_SWIPE_TO_CREATE =
+            new BooleanSetting("hushgram_stop_swipe_to_create", FALSE);
+
+    /**
      * The cards of accounts and creators to follow that Instagram puts between reels
      * ({@link app.hushgram.extension.instagram.reels.ReelsSuggestions}). Read as each page of
      * reels arrives, so a change shows from the next page.

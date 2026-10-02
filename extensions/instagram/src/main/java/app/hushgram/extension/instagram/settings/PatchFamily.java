@@ -59,6 +59,7 @@ public enum PatchFamily {
             Settings.HIDE_SUGGESTED_POSTS, Settings.HIDE_THREADS_POSTS),
     FOLLOWING_FEED(FamilyNames.FOLLOWING_FEED, "followingFeed", null, Settings.START_ON_FOLLOWING,
             Settings.ONLY_FOLLOWING),
+    SWIPE_TO_CREATE(FamilyNames.SWIPE_TO_CREATE, "swipeToCreate", null, Settings.STOP_SWIPE_TO_CREATE),
     META_AI(FamilyNames.META_AI, "metaAi", null, Settings.HIDE_META_AI_SEARCH, Settings.HIDE_META_AI_POSTS),
     EXPLORE_GRID(FamilyNames.EXPLORE_GRID, "exploreGrid", null, Settings.HIDE_EXPLORE_GRID),
     SHARE_SHEET(FamilyNames.SHARE_SHEET, "shareSheet", null, Settings.HIDE_SHARE_SHEET_GROUP),

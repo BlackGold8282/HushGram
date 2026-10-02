@@ -31,6 +31,7 @@ public final class FamilyNames {
     public static final String FEED_REELS = "Hide Reels in the feed";
     public static final String FEED_SUGGESTIONS = "Hide suggested posts";
     public static final String FOLLOWING_FEED = "Start Home on Following";
+    public static final String SWIPE_TO_CREATE = "Stop swipe to create";
     public static final String META_AI = "Hide Meta AI";
     public static final String EXPLORE_GRID = "Hide the Explore grid";
     public static final String SHARE_SHEET = "Hide group buttons on the share sheet";

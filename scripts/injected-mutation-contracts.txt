@@ -293,6 +293,13 @@ shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in (
 # Its second switch hands the picker's list of feeds to limitPicker just before the same list build
 # freezes it, once. Left out, For you stays in the picker; twice or elsewhere, it isn't that list.
 once-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->limitPicker(Ljava/util/List;)V in (L*;I)Ljava/lang/Object; holding FeedPickerStateManager feedPickerStateManager
+# Stop swipe to create hands every move of Home's sliding container to SwipeToCreate.hold right
+# after the move's animate flag is read, in the container's setInternalPosition. It loads no string,
+# and setPosition has the same shape and reads the same flag, so the rule picks it as the one also
+# calling setEndPanelExtraParameter (both names Instagram keeps). It's called once there and nowhere
+# else. Left out, a swipe opens the camera again; twice or elsewhere, it isn't the hook the patch
+# wrote. StopSwipeToCreateHookTest checks on the 449 fixture where it lands and what it's handed.
+once-call Lapp/hushgram/extension/instagram/feed/SwipeToCreate;->hold(FFLjava/lang/String;)I in instance (Lcom/instagram/ui/swipenavigation/container/PositionConfig;)V calling instance Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->setEndPanelExtraParameter(Lcom/instagram/ui/swipenavigation/container/PositionConfig;)V holding Lcom/instagram/ui/swipenavigation/container/PositionConfig;->A0F:Z
 #
 # Hide suggested stories asks hideTray() first thing in Home's story tray row build, the one method
 # holding "MainFeedStoryTrayBinderGroup.buildRowViewTypes", and nowhere else. It passes each item

@@ -266,7 +266,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
         boolean suggestions = build.contains(PatchFamily.FEED_SUGGESTIONS);
         boolean following = build.contains(PatchFamily.FOLLOWING_FEED);
-        PreferenceCategory feed = suggestions || following ? category(screen, L10n.t("Feed")) : null;
+        boolean swipe = build.contains(PatchFamily.SWIPE_TO_CREATE);
+        PreferenceCategory feed = suggestions || following || swipe ? category(screen, L10n.t("Feed")) : null;
         if (following) {
             feed.addPreference(toggle(context, Settings.START_ON_FOLLOWING, L10n.t("Start Home on Following"),
                     L10n.t("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, "
@@ -283,6 +284,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "accounts you follow stay.")));
             feed.addPreference(toggle(context, Settings.HIDE_THREADS_POSTS, L10n.t("Hide Threads posts"),
                     L10n.t("The posts, accounts and communities from Threads that Instagram mixes into your feed.")));
+        }
+        if (swipe) {
+            feed.addPreference(toggle(context, Settings.STOP_SWIPE_TO_CREATE, L10n.t("Stop swipe to create"),
+                    L10n.t("A sideways swipe on Home no longer opens the camera. The + button and every other way "
+                            + "into the camera still work.")));
         }
 
         if (build.contains(PatchFamily.META_AI)) {

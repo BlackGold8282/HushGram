@@ -231,6 +231,14 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.ProfileHighlightsSettingsTest" to listOf(
                 "missingPatchHasNoHighlightsSwitch[28]", "missingPatchHasNoHighlightsSwitch",
                 "highlightsSwitchStartsOffPersistsAndHonorsPause[28]", "highlightsSwitchStartsOffPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.feed.SwipeToCreateTest" to listOf(
+                "withTheSwitchOnASwipeTowardTheCameraIsHeld[28]", "withTheSwitchOnASwipeTowardTheCameraIsHeld",
+                "everyOtherMoveGoesOn[28]", "everyOtherMoveGoesOn",
+                "offPausedAndUnreadyLetTheSwipeGo[28]", "offPausedAndUnreadyLetTheSwipeGo",
+                "aThrowingSwitchLetsTheSwipeGoAndIsReported[28]", "aThrowingSwitchLetsTheSwipeGoAndIsReported"),
+            "app.hushgram.extension.instagram.settings.SwipeToCreateSettingsTest" to listOf(
+                "missingPatchHasNoSwipeSwitch[28]", "missingPatchHasNoSwipeSwitch",
+                "swipeSwitchStartsOffPersistsAndHonorsPause[28]", "swipeSwitchStartsOffPersistsAndHonorsPause"),
             "app.hushgram.extension.instagram.profile.FollowingListTest" to listOf(
                 "ownFollowingListMarksOnlyWhoDoesNotFollowBack[28]", "ownFollowingListMarksOnlyWhoDoesNotFollowBack",
                 "aRowWithNoNameShowsTheMarkOnItsOwn[28]", "aRowWithNoNameShowsTheMarkOnItsOwn",
