@@ -1663,6 +1663,13 @@ function ConvertTo-PreReleaseText([string]$Relative, [string]$Text) {
         if ($unreleased.Success) { return $Text.Insert($unreleased.Index + $unreleased.Length, "`n$section") }
         return $Text.Insert($dated.Index, "## Unreleased`n`n$section")
     }
+    # The bug form names the version the index publishes, which is the source's own only while no
+    # newer version is being prepared. With no index the check wants the source's, so a release's
+    # source commit (version bumped, index still on the last release) was refused here.
+    if ($Relative -eq $bugFormRelative) {
+        return [regex]::Replace($Text, '(?m)^(\s*placeholder:\s*HushGram )\d+(?:\.\d+)+( on Instagram )',
+            ('${1}' + $preReleaseVersion + '${2}'))
+    }
     if ($Relative -ne 'README.md' -or $Text -match "(?i)\bThere's no release yet\b") { return $Text }
     $released = '(?im)^[^\r\n]*\blatest (?:published )?release is (?:still )?\[?v\d[^\r\n]*(?=\r?$)'
     Assert-True ($Text -match $released) ("This checkout's README says neither that there's no release yet nor " +
@@ -1672,7 +1679,7 @@ function ConvertTo-PreReleaseText([string]$Relative, [string]$Text) {
 function Copy-PreReleaseFile([string]$Relative, [string]$To) {
     $destination = Join-Path $To $Relative
     New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
-    if ($Relative -notin @('CHANGELOG.md', 'README.md')) {
+    if ($Relative -notin @('CHANGELOG.md', 'README.md', $bugFormRelative)) {
         Copy-Item -LiteralPath (Join-Path $Root $Relative) -Destination $destination
         return
     }
@@ -1688,6 +1695,9 @@ foreach ($heading in @("## $preReleaseVersion (2026-10-01)", "## v$preReleaseVer
 }
 $turned = ConvertTo-PreReleaseText 'README.md' "# HushGram`r`n`r`nThe latest release is [v$preReleaseVersion](https://x).`r`n`r`nMore.`r`n"
 Assert-True ($turned -eq "# HushGram`r`n`r`n$preReleaseSentence`r`n`r`nMore.`r`n") "A README with CRLF endings wasn't turned back: $turned"
+$turned = ConvertTo-PreReleaseText $bugFormRelative "    attributes:`r`n      placeholder: HushGram 0.0.0 on Instagram 1.2.3`r`n"
+Assert-True ($turned -ceq "    attributes:`r`n      placeholder: HushGram $preReleaseVersion on Instagram 1.2.3`r`n") `
+    "A bug form naming the published version wasn't turned to the version being built: $turned"
 try {
     foreach ($relative in $factsFiles) { Copy-PreReleaseFile $relative $factsRoot }
 
@@ -2693,8 +2703,14 @@ try {
         "with $($releaseNames.Count) patches. Add it to Morphe Manager with " +
         "[this link](https://morphe.software/add-source?github=$([Uri]::EscapeDataString($slugHere)))."))
     Set-Content -LiteralPath $readmePath -Encoding UTF8 -NoNewline -Value $readmeText
-    Set-Content -LiteralPath (Join-Path $releaseRepo 'CHANGELOG.md') -Encoding UTF8 -NoNewline -Value (
-        "# Changelog`n`n## $releaseVersionHere (2026-09-30)`n`n* **Instagram:** Every change, one line each.`n")
+    # The versions released before this one stay, as a release keeps them: the check holds the
+    # CHANGELOG to every version it described at the tag, and once HushGram has a release that's
+    # more than the one being dated here.
+    $releaseChangelogPath = Join-Path $releaseRepo 'CHANGELOG.md'
+    $releasedBefore = [regex]::Match((Get-Content -LiteralPath $releaseChangelogPath -Raw), '(?ms)^##\s+(?!Unreleased\b).*\z')
+    Set-Content -LiteralPath $releaseChangelogPath -Encoding UTF8 -NoNewline -Value (
+        "# Changelog`n`n## $releaseVersionHere (2026-09-30)`n`n* **Instagram:** Every change, one line each.`n" +
+        $(if ($releasedBefore.Success) { "`n" + $releasedBefore.Value } else { '' }))
     Invoke-FixtureGit -Root $releaseRepo -Arguments @('add', '-A') | Out-Null
     Invoke-FixtureGit -Root $releaseRepo -Arguments @('commit', '-m', 'index', '--quiet') | Out-Null
 

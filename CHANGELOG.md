@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** The release tooling's own tests pass while a release is being prepared. Their copy of the checkout left the bug form on the published version and their index commit dropped the CHANGELOG's earlier releases, so the source commit of every release after the first was refused.
 * **Instagram:** Tapping an expired Undo for remembered positions reports its expiration and leaves newly remembered positions intact, even when the settings row hasn't refreshed yet.
 
 * **Instagram:** Clear remembered positions deletes the local playback history and cancels pending restores, even while playback is off or paused. Undo restores its bounded snapshot once within 10 seconds; a restart discards it, and newly remembered positions take precedence.
