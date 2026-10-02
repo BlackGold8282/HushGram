@@ -342,7 +342,20 @@ tasks.register("verifyAndroidBoundaries") {
                 "aSaveShowsItsProgressAtOnceAndCancelStopsIt[28]", "aSaveShowsItsProgressAtOnceAndCancelStopsIt",
                 "belowAndroid13TheCancelReceiverIsRegisteredWithNoFlag", "onAndroid17TheCancelReceiverIsNotExported",
                 "aFinishedSaveTakesItsNotificationAwayAndLeavesNoRowPending", "startingInstagramRemovesWhatAStoppedSaveLeft",
-                "aPendingRowSweepRetriesAfterTheGalleryThrows")
+                "aPendingRowSweepRetriesAfterTheGalleryThrows"),
+            "app.hushgram.extension.instagram.misc.InstagramSignatureTest" to listOf(
+                "thisAppStillGetsInstagramsTwoCertificates[28]", "thisAppStillGetsInstagramsTwoCertificates",
+                "aSameKeyThreadsGetsThreadsMetaCertificate[28]", "aSameKeyThreadsGetsThreadsMetaCertificate",
+                "aSameKeyFacebookOrMessengerGetsFacebooksMetaCertificate[28]", "aSameKeyFacebookOrMessengerGetsFacebooksMetaCertificate",
+                "ownSignersAreReadFromPackageManagerWhenNotSeenYet[28]", "ownSignersAreReadFromPackageManagerWhenNotSeenYet",
+                "aRotatedFamilyAppIsJudgedByItsCurrentSigner[28]", "aRotatedFamilyAppIsJudgedByItsCurrentSigner",
+                "severalSignersHaveToMatchExactly[28]", "severalSignersHaveToMatchExactly",
+                "aFamilyAppWithAnotherKeyIsLeftToInstagram[28]", "aFamilyAppWithAnotherKeyIsLeftToInstagram",
+                "anyOtherPackageIsLeftToInstagram[28]", "anyOtherPackageIsLeftToInstagram",
+                "aMetaSignedBuildLeavesFamilyAppsToInstagram[28]", "aMetaSignedBuildLeavesFamilyAppsToInstagram",
+                "unknownOwnSignersGiveNoTrust[28]", "unknownOwnSignersGiveNoTrust",
+                "aThrowingSignerIsReportedAndLeftToInstagram[28]", "aThrowingSignerIsReportedAndLeftToInstagram",
+                "aThrowingPackageManagerIsReportedAndLeftToInstagram[28]", "aThrowingPackageManagerIsReportedAndLeftToInstagram")
         )
         val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
         factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true)
