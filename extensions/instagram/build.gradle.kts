@@ -232,6 +232,16 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.FollowingListSettingsTest" to listOf(
                 "missingPatchHasNoFollowingListSwitch[28]", "missingPatchHasNoFollowingListSwitch",
                 "followingListSwitchStartsOffPersistsAndHonorsPause[28]", "followingListSwitchStartsOffPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.reels.ReelAutoScrollTest" to listOf(
+                "anOnAnswerIsRememberedAndOutlivesInstagramsOff[28]", "anOnAnswerIsRememberedAndOutlivesInstagramsOff",
+                "turningItOffIsRemembered[28]", "turningItOffIsRemembered",
+                "turningItOnWaitsForInstagram[28]", "turningItOnWaitsForInstagram",
+                "nothingIsWrittenWhenTheChoiceIsUnchanged[28]", "nothingIsWrittenWhenTheChoiceIsUnchanged",
+                "offPausedAndUnreadyKeepInstagramsAnswer[28]", "offPausedAndUnreadyKeepInstagramsAnswer",
+                "aThrowingSwitchOrMemoryKeepsInstagramsAnswerAndIsReported[28]", "aThrowingSwitchOrMemoryKeepsInstagramsAnswerAndIsReported"),
+            "app.hushgram.extension.instagram.settings.ReelAutoScrollSettingsTest" to listOf(
+                "missingPatchHasNoAutoScrollSwitch[28]", "missingPatchHasNoAutoScrollSwitch",
+                "autoScrollSwitchStartsOnPersistsAndHonorsPause[28]", "autoScrollSwitchStartsOnPersistsAndHonorsPause"),
             "app.hushgram.extension.instagram.settings.OverrideNavigationTest" to listOf(
                 "missingPatchHasNoNativeAction[28]", "missingPatchHasNoNativeAction",
                 "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[28]", "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery",

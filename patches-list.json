@@ -744,6 +744,43 @@
       "options": []
     },
     {
+      "name": "Keep Reels auto scroll on",
+      "description": "Once you turn on Instagram's auto scroll in Reels, it stays on after Instagram restarts or you leave Reels, until you turn it off yourself.",
+      "category": "Interface",
+      "use": false,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "449.0.0.52.84"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "449.0.0.52.84",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385511871
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Keep a seek bar on Reels",
       "description": "Keeps Instagram's seek bar under every reel, short ones too, with the time played and the reel's length above it, like 0:10 / 0:55. Ads keep Instagram's own rules.",
       "category": "Interface",

@@ -152,6 +152,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean reelAutoScroll() {
+        return false;
+    }
+
     public static boolean storyDownload() {
         return false;
     }

@@ -352,6 +352,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Instagram's seek bar stays under every reel, short ones too, with the time played and "
                             + "the reel's length above it. Ads keep Instagram's own rules.")));
         }
+        if (build.contains(PatchFamily.REEL_AUTO_SCROLL)) {
+            reels.add(toggle(context, Settings.KEEP_REEL_AUTO_SCROLL, L10n.t("Keep auto scroll on"),
+                    L10n.t("Once you turn on Instagram's auto scroll in Reels, it stays on after a restart or after "
+                            + "you leave Reels, until you turn it off.")));
+        }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"));
             for (Preference row : reels) section.addPreference(row);

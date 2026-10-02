@@ -301,6 +301,24 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_reel_seek_bar", TRUE);
 
     /**
+     * Instagram's auto scroll in Reels stays the way you last set it after a restart and after
+     * you leave Reels ({@link app.hushgram.extension.instagram.reels.ReelAutoScroll}). Read each
+     * time Instagram asks whether auto scroll is on, so a change shows from the next reel. The
+     * patch is off in the default selection, so a build that has it asked for it, and the switch
+     * starts on.
+     */
+    public static final BooleanSetting KEEP_REEL_AUTO_SCROLL =
+            new BooleanSetting("hushgram_keep_reel_auto_scroll", TRUE);
+
+    /**
+     * Whether auto scroll in Reels was last left on, as
+     * {@link app.hushgram.extension.instagram.reels.ReelAutoScroll} last saw it. It isn't a switch:
+     * a pause doesn't change it, and a settings backup leaves it out.
+     */
+    public static final BooleanSetting REEL_AUTO_SCROLL_ON =
+            new BooleanSetting("hushgram_reel_auto_scroll_on", FALSE, false, false);
+
+    /**
      * Download in the menu of anyone's story, photo or video, saving it through the save pipeline
      * below. Instagram's own menu offers a save only on your own stories.
      */
