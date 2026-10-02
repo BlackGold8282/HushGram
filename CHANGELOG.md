@@ -6,6 +6,7 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Instagram:** Show if a profile follows you no longer fails as a whole when an Instagram build changes how its follow lists are drawn. The profile label still goes in, and Mark who doesn't follow you back is left out of settings, with a warning in the patch log and a line in the diagnostic report.
 * **Tooling:** The translation scripts stop straight away on Python older than 3.12 with one line naming the version they need. On Python 3.11 under Windows, every import used to fail with "destination changed after validation", which pointed at the wrong problem.
 * **Instagram:** When Open MetaConfig overrides can't open (signed out, or a screen without Instagram's editor), its row now keeps the whole reason under it, since Android cuts the toast to two lines and dropped the part about signing in.
 * **Instagram:** Show if a profile follows you has a second switch under Profiles, Mark who doesn't follow you back, which starts off. On your own Following list it adds Doesn't follow you after the name of each account Instagram says doesn't follow you back. Followers and other people's lists stay as they are, and nothing shows until Instagram has checked. Asked for in #1.

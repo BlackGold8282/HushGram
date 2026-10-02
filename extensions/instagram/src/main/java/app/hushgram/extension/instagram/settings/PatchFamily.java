@@ -128,6 +128,22 @@ public enum PatchFamily {
         }
     }
 
+    /** Whether a test says this build marks your own Following list, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean followingListMarkForTests;
+
+    /**
+     * Whether this build marks your own Following list. Show if a profile follows you goes in without
+     * it when Instagram's follow list has moved, so its second switch isn't offered then.
+     */
+    public static boolean followingListMarkInBuild() {
+        Boolean forced = followingListMarkForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(FRIENDSHIP_STATUS);
+        return FRIENDSHIP_STATUS.inBuild() && SettingsStatus.followingListMark();
+    }
+
     /** The families this build carries, in declaration order. */
     public static Set<PatchFamily> inThisBuild() {
         Set<PatchFamily> found = EnumSet.noneOf(PatchFamily.class);
@@ -169,6 +185,9 @@ public enum PatchFamily {
         for (PatchFamily family : values()) {
             if (inBuild.contains(family)) {
                 lines.add(family.reportLine(paused));
+                if (family == FRIENDSHIP_STATUS && !followingListMarkInBuild()) {
+                    lines.add("  Mark who doesn't follow you back: not in this build (Instagram's follow list didn't match)");
+                }
                 if (family == DISABLE_ANALYTICS || family == SANITIZE_SHARING_LINKS || family == TRANSLATED_START) {
                     try {
                         String encoded = (String) SettingsStatus.class.getMethod(family.statusMethod + "Coverage").invoke(null);

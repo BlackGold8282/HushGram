@@ -108,6 +108,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Mark who doesn't follow you back, the friendship patch's second switch, which a build can lack. */
+    public static boolean followingListMark() {
+        return false;
+    }
+
     public static boolean profileSuggestions() {
         return false;
     }

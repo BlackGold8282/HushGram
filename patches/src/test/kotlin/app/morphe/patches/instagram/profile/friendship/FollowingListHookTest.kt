@@ -255,7 +255,7 @@ class FollowingListHookTest {
         }
     }
 
-    private companion object {
+    internal companion object {
         const val BINDER = "Lfixture/RowBinder;"
         const val FILLER = "Lfixture/RowFiller;"
         const val HOLDER = "Lfixture/RowHolder;"

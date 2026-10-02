@@ -48,6 +48,7 @@ public class FollowingListSettingsTest {
         if (controller != null) controller.close();
         Utils.awaitBackgroundTasksForTests();
         PatchFamily.inBuildForTests = null;
+        PatchFamily.followingListMarkForTests = null;
         Settings.MARK_FOLLOWING_LIST.resetToDefault();
         Settings.SHOW_FRIENDSHIP_STATUS.resetToDefault();
         BaseSettings.PAUSED.save(false);
@@ -89,5 +90,20 @@ public class FollowingListSettingsTest {
         PauseForTests.resume();
         assertTrue(Settings.MARK_FOLLOWING_LIST.get());
         assertEquals(36, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
+    }
+    @Test public void aBuildWhoseFollowListMovedKeepsTheLabelWithoutTheSecondSwitch() throws Exception {
+        PatchFamily.followingListMarkForTests = false;
+        open(true);
+        assertNotNull(page.getPreferenceScreen().findPreference(Settings.SHOW_FRIENDSHIP_STATUS.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.MARK_FOLLOWING_LIST.key));
+        List<String> report = PatchFamily.reportLines(EnumSet.of(PatchFamily.FRIENDSHIP_STATUS), false);
+        assertTrue(report.toString(), report.contains(
+                "  Mark who doesn't follow you back: not in this build (Instagram's follow list didn't match)"));
+    }
+    @Test public void aBuildMarkingTheListReportsNothingMissing() throws Exception {
+        open(true);
+        assertTrue(PatchFamily.followingListMarkInBuild());
+        List<String> report = PatchFamily.reportLines(EnumSet.of(PatchFamily.FRIENDSHIP_STATUS), false);
+        for (String line : report) assertFalse(line, line.contains("not in this build ("));
     }
 }

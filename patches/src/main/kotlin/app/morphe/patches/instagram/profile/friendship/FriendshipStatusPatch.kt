@@ -16,6 +16,7 @@ import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.liveAcrossInjection
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.instagram.misc.extension.patchLog
 import app.morphe.patches.instagram.misc.extension.requireParameterIntact
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
@@ -86,17 +87,36 @@ val friendshipStatusPatch = bytecodePatch(
 
     execute {
         requireStatusMethod("friendshipStatus")
+        requireStatusMethod(FOLLOWING_LIST_STATUS)
         // Everything is found before anything changes, so a build missing any part is left untouched.
         val found = findProfileName()
-        val row = findFollowRow()
+        val row = followRowOrWarn()
         val stubs = friendshipStubs()
         val rowStubs = followingStubs()
         labelProfileName(found)
-        markFollowRow(row)
         stubs.fill(found)
-        rowStubs.fill(row)
+        if (row != null) {
+            markFollowRow(row)
+            rowStubs.fill(row)
+            enableStatus(FOLLOWING_LIST_STATUS)
+        }
         enableStatus("friendshipStatus")
     }
+}
+
+/** The status of the second switch, which a build can lack while the profile label goes in. */
+internal const val FOLLOWING_LIST_STATUS = "followingListMark"
+
+/**
+ * The follow list's row binder, or null with a warning in the patch log when this build's list
+ * doesn't match. Marking the list is a second switch, off to start, so a list that moved leaves it
+ * out rather than taking the profile label down too; settings then don't offer the switch.
+ */
+internal fun BytecodePatchContext.followRowOrWarn(): FollowRow? = try {
+    findFollowRow()
+} catch (moved: PatchException) {
+    patchLog.warning("${moved.message}. The profile label goes in without Mark who doesn't follow you back.")
+    null
 }
 
 internal fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
