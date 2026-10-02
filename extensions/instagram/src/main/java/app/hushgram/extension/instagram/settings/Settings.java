@@ -247,6 +247,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COPY_COMMENTS =
             new BooleanSetting("hushgram_copy_comments", FALSE);
 
+    /** An explicit Save action for a photo the comment itself carries. Off until enabled. */
+    public static final BooleanSetting SAVE_COMMENT_PHOTOS =
+            new BooleanSetting("hushgram_save_comment_photos", FALSE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);

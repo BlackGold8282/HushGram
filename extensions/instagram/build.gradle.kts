@@ -203,6 +203,22 @@ tasks.register("verifyAndroidBoundaries") {
                 "discoveryAndClipboardFailuresReturnToNativeDismissal[28]", "discoveryAndClipboardFailuresReturnToNativeDismissal",
                 "emptyOrNullCurrentTextRemovesStaleOwnedRowsFromImmutableMenus[28]", "emptyOrNullCurrentTextRemovesStaleOwnedRowsFromImmutableMenus",
                 "staleMenusAreUntouchedWhileOffPausedOrUnreadyAndFailuresRemainContained[28]", "staleMenusAreUntouchedWhileOffPausedOrUnreadyAndFailuresRemainContained"),
+            "app.hushgram.extension.instagram.comment.CommentPhotoTest" to listOf(
+                "explicitTapSavesAnImmutableSnapshotAndReturnsForDismissal[28]", "explicitTapSavesAnImmutableSnapshotAndReturnsForDismissal",
+                "immutableRepeatedAndChangedMenusKeepStockRowsAndOneOwnedRow[28]", "immutableRepeatedAndChangedMenusKeepStockRowsAndOneOwnedRow",
+                "noPhotoNowRemovesOnlyStaleOwnedRows[28]", "noPhotoNowRemovesOnlyStaleOwnedRows",
+                "eachFamilyAloneAndTogetherKeepDistinctOwnedRows[28]", "eachFamilyAloneAndTogetherKeepDistinctOwnedRows",
+                "offPausedUnreadyAndMissingInputsLeaveStockUntouched[28]", "offPausedUnreadyAndMissingInputsLeaveStockUntouched",
+                "getterRowAndQueueFailuresStayContainedAndRespectALateSwitch[28]", "getterRowAndQueueFailuresStayContainedAndRespectALateSwitch"),
+            "app.hushgram.extension.instagram.download.CommentPhotoSaveTest" to listOf(
+                "explicitCommentPhotoTapSavesTheLargestSuppliedRenditionAndCleansUp[28]", "explicitCommentPhotoTapSavesTheLargestSuppliedRenditionAndCleansUp",
+                "commentPhotoCancelUsesTheExistingControlAndRemovesAllTemporaryState[28]", "commentPhotoCancelUsesTheExistingControlAndRemovesAllTemporaryState",
+                "deniedLegacyStoragePermissionLeavesNoPendingPhoto"),
+            "app.hushgram.extension.instagram.download.CommentPhotoDownloadTest" to listOf(
+                "onlySuppliedMetaPhotoAddressesAreCopiedVerbatim[28]", "onlySuppliedMetaPhotoAddressesAreCopiedVerbatim",
+                "missingModelsGetNoImageFallback[28]", "missingModelsGetNoImageFallback",
+                "copyIsDetachedAndUnmodifiable[28]", "copyIsDetachedAndUnmodifiable",
+                "aSaveThatCannotStartSaysSoAndNeverThrows[28]", "aSaveThatCannotStartSaysSoAndNeverThrows"),
             "app.hushgram.extension.instagram.profile.ProfileSuggestionsTest" to listOf(
                 "offPausedAndUnreadyLeaveInstagramsAnswers[28]", "offPausedAndUnreadyLeaveInstagramsAnswers",
                 "aButtonHiddenEarlierComesBackWhenTheSwitchGoesOff[28]", "aButtonHiddenEarlierComesBackWhenTheSwitchGoesOff",
@@ -257,6 +273,10 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.CommentCopySettingsTest" to listOf(
                 "missingPatchHasNoCommentSwitch[28]", "missingPatchHasNoCommentSwitch",
                 "commentsSwitchStartsOffPersistsAndHonorsPause[28]", "commentsSwitchStartsOffPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.settings.CommentPhotoSettingsTest" to listOf(
+                "missingPatchHasNoCommentPhotoSwitch[28]", "missingPatchHasNoCommentPhotoSwitch",
+                "commentPhotoSwitchStartsOffPersistsAndHonorsPause[28]", "commentPhotoSwitchStartsOffPersistsAndHonorsPause",
+                "bothCommentSwitchesShareOneCategoryAndStayIndependent[28]", "bothCommentSwitchesShareOneCategoryAndStayIndependent"),
             "app.hushgram.extension.instagram.settings.FollowingListSettingsTest" to listOf(
                 "missingPatchHasNoFollowingListSwitch[28]", "missingPatchHasNoFollowingListSwitch",
                 "followingListSwitchStartsOffPersistsAndHonorsPause[28]", "followingListSwitchStartsOffPersistsAndHonorsPause"),

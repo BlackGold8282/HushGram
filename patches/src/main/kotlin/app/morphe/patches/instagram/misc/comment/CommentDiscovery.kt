@@ -17,62 +17,98 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.*
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
 internal const val COMMENT_SELECT = "select_comment_screen_comment_select_tap_"
 internal const val COMMENT_ROWS = "instagram_share_comment_to_story_entrypoint_impression"
 internal const val COMMENT_LEGACY = "comment_options_menu_rendered"
 internal const val COMMENT_NATIVE = "$EXTENSION_PACKAGE/comment/CommentMenuNative;"
 internal const val COPY_ROW = "$EXTENSION_PACKAGE/comment/CopyRow;"
-internal const val COPY_HOOK = "$EXTENSION_PACKAGE/comment/CommentCopy;->rows(Ljava/util/List;Ljava/lang/Object;Landroid/content/Context;)Ljava/util/List;"
+internal const val COMMENT_COPY = "$EXTENSION_PACKAGE/comment/CommentCopy;"
+internal const val COMMENT_ACTIONS = "$EXTENSION_PACKAGE/comment/CommentActions;"
+/** The one call both comment families share in the native renderer. */
+internal const val COMMENT_HOOK = "$COMMENT_ACTIONS->rows(Ljava/util/List;Ljava/lang/Object;Landroid/content/Context;)Ljava/util/List;"
+internal const val COPY_PATCH = "Copy comment"
 internal const val FUNCTION = "Lkotlin/jvm/functions/Function0;"
 internal const val OBJECT = "Ljava/lang/Object;"
 internal const val STRING = "Ljava/lang/String;"
 internal const val LIST = "Ljava/util/List;"
-private const val INTEGER = "Ljava/lang/Integer;"
-private const val GIPHY = "Lcom/instagram/api/schemas/CommentGiphyMediaInfoIntf;"
+internal const val INTEGER = "Ljava/lang/Integer;"
+internal const val GIPHY = "Lcom/instagram/api/schemas/CommentGiphyMediaInfoIntf;"
 internal const val JSON_ROOT_FIELD = "Current token not FIELD_NAME (to contain expected root name %s), but %s"
 internal const val JSON_ROOT_MISMATCH = "Root name (%s) does not match expected (%s) for type %s"
 
-/** All native boundaries, and spare registers, found before a single method is changed. */
-internal data class CommentMenu(
-    val renderer: Method, val at: Int, val rows: Int, val selected: Int, val context: Int,
-    val spares: List<Int>, val text: FieldReference, val rowConstructor: MethodReference,
-    val style: FieldReference, val iconConstructor: MethodReference, val labelConstructor: MethodReference,
-    val callback: FieldReference, val icon: Int, val label: Int,
+/**
+ * The selected comment, the common renderer and its native row type, found before a single method
+ * is changed. Both comment families build on it and share the renderer's one call. It holds plain
+ * references only, never the app's classes or methods, so keeping it holds none of the app's code.
+ */
+internal data class CommentSurface(
+    val selectedType: String, val rawField: FieldReference, val raw: String, val pando: String,
+    val renderer: MethodReference, val at: Int, val rows: Int, val selected: Int, val context: Int, val spares: List<Int>,
+    val rowConstructor: MethodReference, val style: FieldReference, val iconConstructor: MethodReference,
+    val labelConstructor: MethodReference, val callback: FieldReference, val copyAction: String,
 )
 
-internal fun BytecodePatchContext.findCommentMenu(): CommentMenu {
+/** Copy's own boundaries on top of the shared surface. */
+internal data class CommentMenu(val surface: CommentSurface, val text: FieldReference, val icon: Int, val label: Int)
+
+private val surfaces = java.util.WeakHashMap<BytecodePatchContext, CommentSurface>()
+private val discoveringPatch = ThreadLocal.withInitial { COPY_PATCH }
+
+/** Runs [block] with refusals naming [patch]. */
+internal fun <T> discovering(patch: String, block: () -> T): T {
+    val outer = discoveringPatch.get()
+    discoveringPatch.set(patch)
+    try {
+        return block()
+    } finally {
+        discoveringPatch.set(outer)
+    }
+}
+
+/** Every class as it stands now, by type. */
+internal fun BytecodePatchContext.classPool(): Map<String, ClassDef> {
     val classes = linkedMapOf<String, ClassDef>()
     classDefForEach { classes[it.type] = it }
-    for (type in listOf(COMMENT_NATIVE, COPY_ROW, "$EXTENSION_PACKAGE/comment/CommentCopy;")) {
+    return classes
+}
+
+/**
+ * The surface as the first comment family in this patch run found it. The second family can't
+ * read the renderer again once the shared call is in, so it reuses what was found before that.
+ */
+internal fun BytecodePatchContext.commentSurface(classes: Map<String, ClassDef>): CommentSurface {
+    synchronized(surfaces) { surfaces[this] }?.let { return it }
+    val surface = findCommentSurface(classes)
+    synchronized(surfaces) { surfaces[this] = surface }
+    return surface
+}
+
+internal fun treeBacked(type: ClassDef, classes: Map<String, ClassDef>): Boolean {
+    var parent = type.superclass
+    val seen = mutableSetOf<String>()
+    while (parent != null && seen.add(parent)) {
+        if (parent == "Lcom/facebook/pando/TreeJNI;") return true
+        parent = classes[parent]?.superclass
+    }
+    return false
+}
+
+internal fun BytecodePatchContext.findCommentMenu(): CommentMenu = discovering(COPY_PATCH) {
+    val classes = classPool()
+    val surface = commentSurface(classes)
+    for (type in listOf(COMMENT_NATIVE, COPY_ROW, COMMENT_COPY)) {
         if (type !in classes) refuse("missing extension boundary $type")
     }
     fun clazz(type: String) = classes[type] ?: refuse("missing native class $type")
     fun methods() = classes.values.asSequence().flatMap { it.methods.asSequence() }
-    fun treeBacked(type: ClassDef): Boolean {
-        var parent = type.superclass
-        val seen = mutableSetOf<String>()
-        while (parent != null && seen.add(parent)) {
-            if (parent == "Lcom/facebook/pando/TreeJNI;") return true
-            parent = classes[parent]?.superclass
-        }
-        return false
-    }
-    val select = methods().filter { COMMENT_SELECT in it.strings() && it.publicInstance() &&
-        it.returnType == "V" && it.parameters() == listOf(STRING, STRING, "F", "Z") }
-        .toList().one("selected-comment anchor")
-    val selectedType = selectionType(select)
+    val selectedType = surface.selectedType
     val model = clazz(selectedType)
-    requirePublic(model)
-    val rawField = model.fields.filter { field ->
-        classes[field.type]?.let { AccessFlags.INTERFACE.isSet(it.accessFlags) &&
-            it.methods.any { method -> method.parameterTypes.isEmpty() && method.returnType == GIPHY } } == true
-    }.one("selected comment's raw model")
-    val raw = clazz(rawField.type)
-    val pando = classes.values.filter {
-        raw.type in it.interfaces && treeBacked(it)
-    }.one("comment's tree-backed model")
-    val pandoText = pandoGetter("Copy comment", pando.type, "text", STRING)
+    val raw = clazz(surface.raw)
+    val pando = clazz(surface.pando)
+    val pandoText = pandoGetter(COPY_PATCH, pando.type, "text", STRING)
     val getter = raw.methods.filter {
         it.name == pandoText.name && it.parameterTypes.isEmpty() && it.returnType == STRING
     }.one("original text interface getter")
@@ -86,7 +122,7 @@ internal fun BytecodePatchContext.findCommentMenu(): CommentMenu {
         method.returnType in setOf(OBJECT, valueModel.type) && "text" in method.strings() &&
         method.code().any { it.call()?.let { call -> call.name == "<init>" && call.definingClass == valueModel.type } == true }
     }.toList().one("comment text parser")
-    val readAt = parserOriginalRead(parser, classes)
+    val readAt = parserOriginalRead(parser, classes, jsonReads(parserInput(parser), classes))
     if (constructorField(parser, readAt + 1, valueModel.type, classes, allowAbsent = true).toString() != valueText.toString()) {
         refuse("parsed text does not reach the original text getter")
     }
@@ -99,6 +135,30 @@ internal fun BytecodePatchContext.findCommentMenu(): CommentMenu {
     if (converter.code().getOrNull(textAt + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT) refuse("conversion loses original text")
     val text = constructorField(converter, textAt + 1, selectedType, classes)
     requirePublicField(model, text)
+    val (icon, label) = actionResources(clazz(surface.copyAction), classes)
+    validateCommentStubs()
+    CommentMenu(surface, text, icon, label)
+}
+
+/** Everything both families need from the selection, the row builder and the renderer. */
+private fun findCommentSurface(classes: Map<String, ClassDef>): CommentSurface {
+    if (COMMENT_ACTIONS !in classes) refuse("missing extension boundary $COMMENT_ACTIONS")
+    fun clazz(type: String) = classes[type] ?: refuse("missing native class $type")
+    fun methods() = classes.values.asSequence().flatMap { it.methods.asSequence() }
+    val select = methods().filter { COMMENT_SELECT in it.strings() && it.publicInstance() &&
+        it.returnType == "V" && it.parameters() == listOf(STRING, STRING, "F", "Z") }
+        .toList().one("selected-comment anchor")
+    val selectedType = selectionType(select)
+    val model = clazz(selectedType)
+    requirePublic(model)
+    val rawField = model.fields.filter { field ->
+        classes[field.type]?.let { AccessFlags.INTERFACE.isSet(it.accessFlags) &&
+            it.methods.any { method -> method.parameterTypes.isEmpty() && method.returnType == GIPHY } } == true
+    }.one("selected comment's raw model")
+    val raw = clazz(rawField.type)
+    val pando = classes.values.filter {
+        raw.type in it.interfaces && treeBacked(it, classes)
+    }.one("comment's tree-backed model")
 
     val builder = clazz(select.definingClass).methods.filter { COMMENT_ROWS in it.strings() }.one("comment row builder")
     if (builder.returnType != "Ljava/util/ArrayList;" || !select.code().any { it.call()?.matches(builder) == true }) {
@@ -110,7 +170,7 @@ internal fun BytecodePatchContext.findCommentMenu(): CommentMenu {
     val rowBase = clazz(rowConstructor.definingClass)
     requirePublic(rowBase)
     if (AccessFlags.FINAL.isSet(rowBase.accessFlags) || rowBase.methods.any { AccessFlags.ABSTRACT.isSet(it.accessFlags) }) {
-        refuse("native row cannot accept the independent Copy subtype")
+        refuse("native row cannot accept an independent action subtype")
     }
     requireConstructor(rowBase, rowConstructor.parameters())
     val callback = rowBase.fields.filter { it.type == FUNCTION && !AccessFlags.STATIC.isSet(it.accessFlags) }
@@ -162,7 +222,7 @@ internal fun BytecodePatchContext.findCommentMenu(): CommentMenu {
     val listRegister = renderer.implementation!!.registerCount - 2
     val selectedRegister = renderer.implementation!!.registerCount - 4
     val code = renderer.code()
-    if (code.any { it.call()?.toString() == COPY_HOOK }) refuse("renderer already carries the Copy hook")
+    if (code.any { it.call()?.toString() == COMMENT_HOOK }) refuse("renderer already carries the comment hook")
     val at = code.indices.filter { index ->
         code[index].call()?.let { it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Iterable;") &&
             it.returnType == "I" } == true && code[index].arguments() == listOf(listRegister) &&
@@ -184,20 +244,33 @@ internal fun BytecodePatchContext.findCommentMenu(): CommentMenu {
     }
     val copy = methods().filter { it.name == "toString" && it.returnType == STRING && "CopyText" in it.strings() }
         .toList().one("native CopyText label anchor")
-    val copyCtor = requireConstructor(clazz(copy.definingClass), emptyList())
-    val parentCallAt = copyCtor.code().indices.filter { index -> copyCtor.code()[index].call()?.let {
-        it.name == "<init>" && it.parameters().let { types -> types.size == 4 &&
+    return CommentSurface(selectedType, ImmutableFieldReference.of(rawField), raw.type, pando.type,
+        ImmutableMethodReference.of(renderer), at, listRegister, selectedRegister, context, spare,
+        ImmutableMethodReference.of(rowConstructor), ImmutableFieldReference.of(style),
+        ImmutableMethodReference.of(iconConstructor), ImmutableMethodReference.of(labelConstructor),
+        ImmutableFieldReference.of(callback), copy.definingClass)
+}
+
+/**
+ * A native menu action's icon and label: the constants its no-argument constructor hands to its
+ * family's resource constructor (an object, the icon, the label and a flag).
+ */
+internal fun actionResources(action: ClassDef, classes: Map<String, ClassDef>): Pair<Int, Int> {
+    val what = action.type.substringAfterLast('/').removeSuffix(";").let { "native action $it" }
+    val constructor = requireConstructor(action, emptyList())
+    val code = constructor.code()
+    if (code.any { it is OffsetInstruction }) refuse("$what constructor branches")
+    val parentCallAt = code.indices.filter { index -> code[index].call()?.let {
+        it.name == "<init>" && it.definingClass == action.superclass && it.parameters().let { types -> types.size == 4 &&
             types[1] == "I" && types[2] == "I" && types[3] == "Z" }
-    } == true }.one("CopyText resource constructor")
-    val parent = copyCtor.code()[parentCallAt].call()!!
-    requireConstructor(clazz(parent.definingClass), parent.parameters())
-    val arguments = copyCtor.code()[parentCallAt].arguments()
-    val icon = copyCtor.constantBefore(parentCallAt, arguments[2]) ?: refuse("CopyText icon is not a constant")
-    val label = copyCtor.constantBefore(parentCallAt, arguments[3]) ?: refuse("CopyText label is not a constant")
-    if (icon ushr 24 != 0x7f || label ushr 24 != 0x7f || icon == label) refuse("CopyText resources are invalid")
-    validateCommentStubs()
-    return CommentMenu(renderer, at, listRegister, selectedRegister, context, spare, text, rowConstructor,
-        style, iconConstructor, labelConstructor, callback, icon, label)
+    } == true }.one("$what resource constructor")
+    val parent = code[parentCallAt].call()!!
+    requireConstructor(classes[parent.definingClass] ?: refuse("missing native class ${parent.definingClass}"), parent.parameters())
+    val arguments = code[parentCallAt].arguments()
+    val icon = constructor.constantBefore(parentCallAt, arguments[2]) ?: refuse("$what icon is not a constant")
+    val label = constructor.constantBefore(parentCallAt, arguments[3]) ?: refuse("$what label is not a constant")
+    if (icon ushr 24 != 0x7f || label ushr 24 != 0x7f || icon == label) refuse("$what resources are invalid")
+    return icon to label
 }
 
 /** The selected comment, as resolved by the controller for the two comment IDs. */
@@ -206,14 +279,94 @@ internal fun selectionType(select: Method): String = select.code().mapNotNull { 
         it.returnType.startsWith("L") && it.returnType != STRING
 }.distinctBy { it.toString() }.one("selected-comment resolver").returnType
 
+/** The one JSON input a model parser reads. */
+internal fun parserInput(parser: Method): String =
+    parser.parameters().singleOrNull()?.takeIf { it.startsWith("L") } ?: refuse("parser input changed shape")
+
 /** A key comparison is useful only when the native name reader has advanced to that key's value. */
-private fun parserOriginalRead(parser: Method, classes: Map<String, ClassDef>): Int {
+private fun parserOriginalRead(parser: Method, classes: Map<String, ClassDef>, api: JsonReads): Int =
+    keyGuards(parser, "text", classes, api) { read, readers -> readers[read] == ORIGINAL }.guards
+        .map { it + 1 }.distinct().one("parser's proven original string read")
+
+/**
+ * The value a parser keeps for [key]: the one call consuming the input on the path that only the
+ * key's proven guard leads to, before that path rejoins the parser's loop. The call is either
+ * [valueParser]'s singleton parsing a nested model, or a direct reader answering [returns].
+ */
+internal fun parserKeyedRead(parser: Method, key: String, classes: Map<String, ClassDef>, api: JsonReads,
+                             valueParser: String? = null, returns: String? = null): Int {
+    val keyed = keyGuards(parser, key, classes, api) { _, _ -> true }
+    val start = keyed.guards.distinct().one("parser's $key discriminator") + 1
+    val code = keyed.code
+    val flow = keyed.inputs.flow
+    fun reach(from: Int, avoid: Int?): Set<Int> {
+        val seen = mutableSetOf<Int>()
+        val pending = java.util.ArrayDeque<Int>().apply { add(from) }
+        while (pending.isNotEmpty()) {
+            val at = pending.removeFirst()
+            if (at == avoid || !seen.add(at)) continue
+            pending.addAll(flow.normal[at]); pending.addAll(flow.exceptional[at])
+        }
+        return seen
+    }
+    // Only what can't be reached around the guard belongs to the key.
+    val inside = reach(start, null) - reach(0, start)
+    fun onInput(at: Int) = code[at].arguments().any { (keyed.inputs.before[at]?.get(it) ?: UNKNOWN) and RECEIVER != 0 }
+    val read = inside.filter { at -> code[at].call() != null && onInput(at) &&
+        code[at].call().toString() != api.current.toString() }.one("parser's $key value read")
+    val call = code[read].call()!!
+    if (code[read].opcode in staticInvokes == (valueParser != null) ||
+        code[read].arguments().none { keyed.inputs.before[read]?.get(it) == RECEIVER } ||
+        code.getOrNull(read + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT) refuse("parser's $key read changed shape")
+    if (valueParser == null) {
+        if (call.returnType != returns) refuse("parser's $key reader answers ${call.returnType}")
+        return read
+    }
+    val holder = code.getOrNull(read - 1)
+    val singleton = holder?.field()
+    if (holder?.opcode != Opcode.SGET_OBJECT || singleton?.definingClass != valueParser || singleton.type != valueParser ||
+        code[read].arguments().first() != (holder as OneRegisterInstruction).registerA ||
+        flow.normal.indices.filter { read in flow.normal[it] } != listOf(read - 1) || flow.exceptional.any { read in it }) {
+        refuse("parser's $key isn't read by its own model parser")
+    }
+    val nested = classes[valueParser] ?: refuse("missing native class $valueParser")
+    if (!AccessFlags.FINAL.isSet(nested.accessFlags)) refuse("$key model parser can be overridden")
+    nested.fields.filter { it.name == singleton.name && it.type == singleton.type &&
+        AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.FINAL.isSet(it.accessFlags) }.one("$key model parser singleton")
+    val entry = nested.methods.filter { it.matches(call) && !AccessFlags.STATIC.isSet(it.accessFlags) }.one("$key model parser entry")
+    if (!parsesItself(entry, classes, 3)) refuse("$key model parser entry no longer parses")
+    return read
+}
+
+/**
+ * Whether a parser's entry hands its input to its own unsafeParseFromJson, itself or through the
+ * entry it inherits. The parser class is final, so that call reaches the parser proved for the key.
+ */
+private fun parsesItself(entry: Method, classes: Map<String, ClassDef>, depth: Int): Boolean {
+    val code = entry.code()
+    val self = entry.implementation!!.registerCount - entry.parameters().size - 1
+    fun onSelf(at: Int) = code[at].arguments().firstOrNull() == self &&
+        code.take(at).none { it.writes(self) }
+    if (code.indices.any { at -> onSelf(at) && code[at].opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) &&
+            code[at].call()?.let { it.name == "unsafeParseFromJson" && it.parameters() == entry.parameters() } == true }) return true
+    if (depth == 0) return false
+    return code.indices.filter { at -> onSelf(at) && code[at].opcode in setOf(Opcode.INVOKE_SUPER, Opcode.INVOKE_SUPER_RANGE) &&
+        code[at].call()?.let { it.matches(entry) && it.definingClass == classes[entry.definingClass]?.superclass } == true
+    }.any { at ->
+        val inherited = classes[code[at].call()!!.definingClass]?.methods?.singleOrNull { it.matches(entry) && it.implementation != null }
+        inherited != null && parsesItself(inherited, classes, depth - 1)
+    }
+}
+
+/** Each guard that falls through only when the current field name equals [key]. */
+private class KeyGuards(val code: List<Instruction>, val inputs: TextOrigins, val guards: List<Int>)
+
+private fun keyGuards(parser: Method, key: String, classes: Map<String, ClassDef>, api: JsonReads,
+                      accept: (Int, Map<Int, Int>) -> Boolean): KeyGuards {
     val code = parser.code()
-    val keyAt = code.indices.filter { (code[it].reference() as? StringReference)?.string == "text" }
-        .one("parser's original text key")
-    val input = parser.parameters().singleOrNull()?.takeIf { it.startsWith("L") }
-        ?: refuse("parser input changed shape")
-    val api = jsonReads(input, classes)
+    val keyAt = code.indices.filter { (code[it].reference() as? StringReference)?.string == key }
+        .one("parser's $key key")
+    val input = parserInput(parser)
     val receiver = parser.implementation!!.registerCount - 1
     val inputs = textOrigins(parser, receiver = receiver)
     fun inputCall(at: Int) = code[at].arguments().any { inputs.before[at]?.get(it) == RECEIVER }
@@ -241,21 +394,21 @@ private fun parserOriginalRead(parser: Method, classes: Map<String, ClassDef>): 
         for (guard in code.indices.filter { code[it].opcode == Opcode.IF_EQZ &&
             matches.before[it]?.get((code[it] as OneRegisterInstruction).registerA) == KEY_MATCH }) {
             val read = guard + 1
-            if (readers[read] != ORIGINAL || matches.flow.normal[guard].distinct().size != 2) continue
+            if (!accept(read, readers) || matches.flow.normal[guard].distinct().size != 2) continue
             if (matches.flow.normal.indices.filter { read in matches.flow.normal[it] } != listOf(guard) ||
-                matches.flow.exceptional.any { read in it }) refuse("a path bypasses the original key discriminator")
-            guarded += read
+                matches.flow.exceptional.any { read in it }) refuse("a path bypasses the $key key discriminator")
+            guarded += guard
         }
     }
-    return guarded.distinct().one("parser's proven original string read")
+    return KeyGuards(code, inputs, guarded)
 }
 
-private data class JsonReads(val name: MethodReference, val advance: MethodReference,
-                             val value: MethodReference, val current: MethodReference)
+internal data class JsonReads(val name: MethodReference, val advance: MethodReference,
+                              val value: MethodReference, val current: MethodReference)
 private val staticInvokes = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 
 /** Jackson's retained root-unwrapping errors distinguish a current name from a string value. */
-private fun jsonReads(input: String, classes: Map<String, ClassDef>): JsonReads {
+internal fun jsonReads(input: String, classes: Map<String, ClassDef>): JsonReads {
     val root = classes.values.flatMap { it.methods.toList() }.filter {
         JSON_ROOT_FIELD in it.strings() && JSON_ROOT_MISMATCH in it.strings()
     }.one("JSON root-name semantics anchor")
@@ -413,15 +566,15 @@ private fun jsonReader(method: Method, api: JsonReads): Int {
     return if (returned) { if (isName) FIELD_NAME else ORIGINAL } else UNKNOWN
 }
 
-/** Finding an unused field read isn't proof that the native getter returns the parsed text. */
-private fun parsedTextField(getter: Method, type: String): FieldReference {
-    if (!getter.publicInstance() || getter.parameterTypes.isNotEmpty() || getter.returnType != STRING) {
-        refuse("parsed text getter changed shape")
+/** Finding an unused field read isn't proof that the native getter returns the parsed value. */
+internal fun parsedTextField(getter: Method, type: String, returns: String = STRING): FieldReference {
+    if (!getter.publicInstance() || getter.parameterTypes.isNotEmpty() || getter.returnType != returns) {
+        refuse("parsed getter ${getter.name} changed shape")
     }
     val code = getter.code()
     val readAt = code.indices.filter { code[it].opcode == Opcode.IGET_OBJECT &&
-        code[it].field()?.let { field -> field.definingClass == type && field.type == STRING } == true }
-        .one("parsed original field read")
+        code[it].field()?.let { field -> field.definingClass == type && field.type == returns } == true }
+        .one("parsed field read in ${getter.name}")
     val origins = textOrigins(getter, fieldAt = readAt, receiver = getter.implementation!!.registerCount - 1)
     val read = code[readAt] as TwoRegisterInstruction
     if (origins.before[readAt]?.get(read.registerB) != RECEIVER) refuse("parsed getter reads a different receiver")
@@ -434,11 +587,15 @@ private fun parsedTextField(getter: Method, type: String): FieldReference {
     return code[readAt].field()!!
 }
 
-/** The original read must supply the argument on every path, and that argument must supply the field. */
-private fun constructorField(method: Method, resultAt: Int, type: String, classes: Map<String, ClassDef>,
-                             allowAbsent: Boolean = false): FieldReference {
+/**
+ * The original read (the result at [resultAt], or the [incoming] parameter) must supply the argument
+ * on every path, and that argument must supply the field of [valueType] on the returned model.
+ */
+internal fun constructorField(method: Method, resultAt: Int?, type: String, classes: Map<String, ClassDef>,
+                              allowAbsent: Boolean = false, valueType: String = STRING, incoming: Int? = null,
+                              what: String = "original text"): FieldReference {
     val code = method.code()
-    val origins = textOrigins(method, resultAt = resultAt)
+    val origins = textOrigins(method, resultAt = resultAt, incoming = incoming)
     val candidates = code.indices.flatMap { at ->
         val call = code[at].call()
         val state = origins.before[at]
@@ -447,13 +604,13 @@ private fun constructorField(method: Method, resultAt: Int, type: String, classe
             val arguments = code[at].arguments()
             val slots = listOf(OBJECT) + call.parameters().flatMap { if (it == "J" || it == "D") listOf(it, "") else listOf(it) }
             if (arguments.size != slots.size || arguments.any { it !in state.indices }) refuse("invalid text constructor arguments")
-            arguments.indices.filter { slots[it] == STRING && state[arguments[it]] and ORIGINAL != 0 }.map { at to it }
+            arguments.indices.filter { slots[it] == valueType && state[arguments[it]] and ORIGINAL != 0 }.map { at to it }
         }
     }
-    val (at, argument) = candidates.one("original text constructor argument")
+    val (at, argument) = candidates.one("$what constructor argument")
     val allowed = ORIGINAL or if (allowAbsent) ABSENT else 0
     if (origins.before[at]!![code[at].arguments()[argument]] and allowed.inv() != 0) {
-        refuse("a path bypasses or replaces the original text read")
+        refuse("a path bypasses or replaces the $what read")
     }
     val returned = returnedConstruction(method, at, type)
     val call = code[at].call()!!
@@ -463,28 +620,28 @@ private fun constructorField(method: Method, resultAt: Int, type: String, classe
     val fields = textOrigins(constructor, incoming = receiver + argument, receiver = receiver)
     val body = fields.flow.instructions
     val writes = body.indices.filter { body[it].opcode == Opcode.IPUT_OBJECT && fields.before[it] != null &&
-        body[it].field()?.let { field -> field.definingClass == type && field.type == STRING } == true }
+        body[it].field()?.let { field -> field.definingClass == type && field.type == valueType } == true }
     val field = writes.filter { fields.before[it]!![(body[it] as TwoRegisterInstruction).registerA] and ORIGINAL != 0 }
-        .map { body[it].field()!! }.distinctBy { it.toString() }.one("original text field")
+        .map { body[it].field()!! }.distinctBy { it.toString() }.one("$what field")
     val stores = writes.filter { body[it].field()?.toString() == field.toString() }.toSet()
     if (stores.any { index ->
             val write = body[index] as TwoRegisterInstruction
             fields.before[index]!![write.registerA] != ORIGINAL || fields.before[index]!![write.registerB] != RECEIVER
-        }) refuse("a constructor path substitutes the original text or its receiver")
+        }) refuse("a constructor path substitutes the $what or its receiver")
     // An exception from a store has not assigned the field. Only its normal edge carries the write.
     val pending = java.util.ArrayDeque<Int>().apply { add(0) }
     val seen = mutableSetOf<Int>()
     while (pending.isNotEmpty()) {
         val index = pending.removeFirst()
         if (!seen.add(index)) continue
-        if (body[index].opcode == Opcode.RETURN_VOID) refuse("a constructor path bypasses the original field assignment")
+        if (body[index].opcode == Opcode.RETURN_VOID) refuse("a constructor path bypasses the $what assignment")
         pending.addAll(fields.flow.exceptional[index])
         if (index !in stores) pending.addAll(fields.flow.normal[index])
     }
     if (code.indices.any { index -> code[index].field()?.toString() == field.toString() &&
             code[index].opcode == Opcode.IPUT_OBJECT &&
             (returned.before[index]?.get((code[index] as TwoRegisterInstruction).registerB)?.and(RECEIVER) ?: 0) != 0 }) {
-        refuse("the returned model's original field is overwritten")
+        refuse("the returned model's $what field is overwritten")
     }
     return field
 }
@@ -535,7 +692,7 @@ private const val KEY_MATCH = 32
 private const val TOKEN = 64
 private val objectMoves = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 private val constants = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
-private data class TextOrigins(val flow: ControlFlow, val before: Array<IntArray?>)
+internal data class TextOrigins(val flow: ControlFlow, val before: Array<IntArray?>)
 
 /** Finite origin sets joined across every branch and pre-write exception edge. */
 private fun textOrigins(method: Method, resultAt: Int? = null, incoming: Int? = null, receiver: Int? = null,
@@ -609,15 +766,15 @@ private fun textOrigins(method: Method, resultAt: Int? = null, incoming: Int? = 
     return TextOrigins(flow, before)
 }
 
-private fun requireConstructor(type: ClassDef, parameters: List<String>): Method {
+internal fun requireConstructor(type: ClassDef, parameters: List<String>): Method {
     requirePublic(type)
     return type.methods.filter { it.name == "<init>" && it.publicInstance() && it.parameters() == parameters }
         .one("public constructor on ${type.type}")
 }
-private fun requirePublic(type: ClassDef) {
+internal fun requirePublic(type: ClassDef) {
     if (!AccessFlags.PUBLIC.isSet(type.accessFlags)) refuse("native type isn't public: ${type.type}")
 }
-private fun requirePublicField(type: ClassDef, field: FieldReference) {
+internal fun requirePublicField(type: ClassDef, field: FieldReference) {
     if (type.fields.none { it.name == field.name && it.type == field.type && AccessFlags.PUBLIC.isSet(it.accessFlags) }) {
         refuse("native field isn't public: $field")
     }
@@ -635,10 +792,13 @@ internal fun Instruction.arguments(): List<Int> = when (this) {
 internal fun MethodReference.parameters() = parameterTypes.map(Any::toString)
 internal fun MethodReference.matches(other: MethodReference) =
     name == other.name && returnType == other.returnType && parameters() == other.parameters()
-private fun Method.publicInstance() = AccessFlags.PUBLIC.isSet(accessFlags) && !AccessFlags.STATIC.isSet(accessFlags)
-private fun Method.constantBefore(at: Int, register: Int): Int? =
-    code().take(at).lastOrNull { it.writes(register) }?.let { it as? NarrowLiteralInstruction }?.narrowLiteral
-private fun Instruction.writes(register: Int) = opcode.setsRegister() &&
+internal fun Method.publicInstance() = AccessFlags.PUBLIC.isSet(accessFlags) && !AccessFlags.STATIC.isSet(accessFlags)
+/** The constant [register] last took before [at], counting only a const write. */
+internal fun Method.constantBefore(at: Int, register: Int): Int? =
+    code().take(at).lastOrNull { it.writes(register) }?.takeIf { it.opcode in constants }
+        ?.let { it as? NarrowLiteralInstruction }?.narrowLiteral
+internal fun Instruction.writes(register: Int) = opcode.setsRegister() &&
     (this as? OneRegisterInstruction)?.let { it.registerA == register || opcode.setsWideRegister() && it.registerA + 1 == register } == true
-private fun <T> Collection<T>.one(what: String): T = singleOrNull() ?: refuse("expected one $what, found $size")
-internal fun refuse(detail: String): Nothing = throw PatchException("Copy comment: $detail")
+internal fun <T> Collection<T>.one(what: String): T = singleOrNull() ?: refuse("expected one $what, found $size")
+/** Stops the comment family being discovered, naming it, before anything has changed. */
+internal fun refuse(detail: String): Nothing = throw PatchException("${discoveringPatch.get()}: $detail")

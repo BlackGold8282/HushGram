@@ -296,6 +296,8 @@ Copy comment	Salin komentar
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Menambahkan Salin ke menu komentar yang dipilih. Menyalin teks asli, termasuk pergantian baris.
 Comment copied	Komentar disalin
 Couldn't copy comment	Tidak dapat menyalin komentar
+Save comment photo	Simpan foto komentar
+Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.	Menambahkan Simpan ke menu komentar yang dipilih jika komentar memiliki fotonya sendiri. Menyimpan ukuran terbesar yang dikirim Instagram.
 Export overrides	Ekspor nilai pengganti
 Save this signed-in session's overrides for the exact Instagram build and schema.	Simpan nilai pengganti sesi yang sudah masuk ini untuk versi dan skema Instagram yang sama persis.
 Validate an overrides file	Validasi berkas nilai pengganti

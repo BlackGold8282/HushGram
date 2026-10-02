@@ -296,6 +296,8 @@ Copy comment	Yorumu kopyala
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Seçilen yorumun menüsüne Kopyala seçeneğini ekler. Satır sonları dahil özgün metni kopyalar.
 Comment copied	Yorum kopyalandı
 Couldn't copy comment	Yorum kopyalanamadı
+Save comment photo	Yorum fotoğrafını kaydet
+Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.	Kendi fotoğrafı olan seçili bir yorumun menüsüne Kaydet seçeneğini ekler. Instagram'ın gönderdiği en büyük boyutu kaydeder.
 Export overrides	Geçersiz kılmaları dışa aktar
 Save this signed-in session's overrides for the exact Instagram build and schema.	Bu açık oturumun geçersiz kılmalarını aynı Instagram sürümü ve şeması için kaydedin.
 Validate an overrides file	Bir geçersiz kılma dosyasını doğrula

@@ -39,6 +39,7 @@ public final class FamilyNames {
     public static final String FRIENDSHIP_STATUS = "Show if a profile follows you";
     public static final String PROFILE_SUGGESTIONS = "Hide suggested people on profiles";
     public static final String COMMENT_COPY = "Copy comment";
+    public static final String COMMENT_PHOTO = "Save comment photo";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";

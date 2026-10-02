@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(654);
+        Map<String, String> table = new HashMap<>(658);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -101,6 +101,8 @@ public final class L10nTranslations {
                 "F\u00fcgt dem Men\u00fc jeder Story die Option Herunterladen hinzu, ob Foto oder Video, gespeichert in deiner Download-Qualit\u00e4t. Ausgeschaltet oder pausiert kommt Instagrams eigenes Men\u00fc zur\u00fcck.");
         table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
                 "Zeigt Folgt dir oder Folgt dir nicht neben dem Namen im Profil einer Person, hinter den Pronomen, falls angegeben. Es erscheint erst etwas, wenn Instagram es gepr\u00fcft hat.");
+        table.put("Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.",
+                "F\u00fcgt dem Men\u00fc eines ausgew\u00e4hlten Kommentars Speichern hinzu, wenn der Kommentar ein eigenes Foto hat. Speichert die gr\u00f6\u00dfte Version, die Instagram gesendet hat.");
         table.put("Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.",
                 "F\u00fcgt oben in jeder Story eine Augen-Schaltfl\u00e4che hinzu, w\u00e4hrend du Stories anonym ansiehst. Tippe darauf, um in der Zuschauerliste dieser Story zu erscheinen. Die anderen Stories bleiben verborgen.");
         table.put("Ads and privacy",
@@ -175,11 +177,11 @@ public final class L10nTranslations {
                 "Dieser Hinweis konnte nicht ausgeblendet werden. Versuche es noch einmal.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "Die \u00dcberschreibungen konnten nicht importiert werden. Pr\u00fcfe die Datei und \u00f6ffne die Einstellungen auf der Startseite, w\u00e4hrend du angemeldet bist. Es wurde nichts ge\u00e4ndert.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "Die Diagnosedaten lie\u00dfen sich nicht wiederherstellen. Versuche es noch einmal.");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "Die Diagnosedaten lie\u00dfen sich nicht wiederherstellen. Versuche es noch einmal.");
         table.put("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.",
                 "Die \u00dcberschreibungen konnten nicht wiederhergestellt werden. F\u00fcr diese Sitzung und Version gibt es keine gespeicherte Kopie. Es wurde nichts ge\u00e4ndert.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
@@ -298,11 +300,11 @@ public final class L10nTranslations {
                 "Gruppen-Schaltfl\u00e4chen ausblenden");
         table.put("Hide suggested accounts",
                 "Vorgeschlagene Konten ausblenden");
-        table.put("Hide suggested people",
-                "Vorgeschlagene Personen ausblenden");
     }
 
     private static void fillDe2(Map<String, String> table) {
+        table.put("Hide suggested people",
+                "Vorgeschlagene Personen ausblenden");
         table.put("Hide suggested posts",
                 "Vorgeschlagene Beitr\u00e4ge ausblenden");
         table.put("Hide suggested stories",
@@ -421,11 +423,11 @@ public final class L10nTranslations {
                 "Viel kleiner");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
-        table.put("No document picker is available. Overrides haven't changed.",
-                "Es ist keine Dateiauswahl verf\u00fcgbar. Die \u00dcberschreibungen wurden nicht ge\u00e4ndert.");
     }
 
     private static void fillDe3(Map<String, String> table) {
+        table.put("No document picker is available. Overrides haven't changed.",
+                "Es ist keine Dateiauswahl verf\u00fcgbar. Die \u00dcberschreibungen wurden nicht ge\u00e4ndert.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Keine Dateiauswahl verf\u00fcgbar. Deine Einstellungen wurden nicht ge\u00e4ndert.");
         table.put("No matching settings",
@@ -518,6 +520,8 @@ public final class L10nTranslations {
                 "Alle speichern");
         table.put("Save cancelled",
                 "Speichern abgebrochen");
+        table.put("Save comment photo",
+                "Kommentarfoto speichern");
         table.put("Save folder",
                 "Speicherordner");
         table.put("Save full report",
@@ -542,13 +546,13 @@ public final class L10nTranslations {
                 "Gespeichert. Starte Instagram neu, um diese \u00c4nderung zu \u00fcbernehmen.");
         table.put("Saving a carousel",
                 "Karussell wird gespeichert");
+    }
+
+    private static void fillDe4(Map<String, String> table) {
         table.put("Saving a photo",
                 "Foto wird gespeichert");
         table.put("Saving a video",
                 "Video wird gespeichert");
-    }
-
-    private static void fillDe4(Map<String, String> table) {
         table.put("Saving...",
                 "Wird gespeichert \u2026");
         table.put("Saving... Cancel: Downloads in HushGram.",
@@ -665,13 +669,13 @@ public final class L10nTranslations {
                 "Aktiviere \u201eGr\u00f6\u00dfe der Story-Ringe\u201c, um diese Auswahl zu nutzen.");
         table.put("Undo cleared positions",
                 "Gel\u00f6schte Wiedergabepositionen wiederherstellen");
+    }
+
+    private static void fillDe5(Map<String, String> table) {
         table.put("Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.",
                 "Die Einstellungen konnten nicht vollst\u00e4ndig wiederhergestellt werden. Pr\u00fcfe die angezeigten Werte; R\u00fcckg\u00e4ngig wurde bereits verwendet.");
         table.put("Undo has expired.",
                 "Die Frist zum Wiederherstellen ist abgelaufen.");
-    }
-
-    private static void fillDe5(Map<String, String> table) {
         table.put("Undo settings import",
                 "Einstellungsimport r\u00fcckg\u00e4ngig machen");
         table.put("Up to %1$s",
@@ -729,7 +733,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(654);
+        Map<String, String> table = new HashMap<>(658);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -784,6 +788,8 @@ public final class L10nTranslations {
                 "A\u00f1ade Descargar al men\u00fa de la historia de cualquier persona, sea foto o video, con tu calidad de descarga. Desactivado o en pausa, vuelve el men\u00fa propio de Instagram.");
         table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
                 "A\u00f1ade Te sigue o No te sigue junto al nombre en el perfil de alguien, despu\u00e9s de sus pronombres si los tiene. No se muestra nada hasta que Instagram lo haya comprobado.");
+        table.put("Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.",
+                "A\u00f1ade Guardar al men\u00fa de un comentario seleccionado cuando el comentario tiene su propia foto. Guarda el tama\u00f1o m\u00e1s grande que envi\u00f3 Instagram.");
         table.put("Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.",
                 "A\u00f1ade un bot\u00f3n con un ojo en la parte superior de cada historia mientras ves de forma an\u00f3nima. T\u00f3calo para aparecer en la lista de espectadores de esa historia. Las dem\u00e1s historias siguen ocultas.");
         table.put("Ads and privacy",
@@ -858,11 +864,11 @@ public final class L10nTranslations {
                 "No se pudo ocultar este aviso. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "No se pudieron importar los valores personalizados. Comprueba el archivo y abre los ajustes desde Inicio con la sesi\u00f3n iniciada. Nada ha cambiado.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "No se pudieron restaurar los datos de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "No se pudieron restaurar los datos de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.",
                 "No se pudieron restaurar los valores personalizados. No hay una copia guardada para esta sesi\u00f3n y versi\u00f3n. Nada ha cambiado.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
@@ -981,11 +987,11 @@ public final class L10nTranslations {
                 "Ocultar botones de grupo");
         table.put("Hide suggested accounts",
                 "Ocultar cuentas sugeridas");
-        table.put("Hide suggested people",
-                "Ocultar personas sugeridas");
     }
 
     private static void fillEs2(Map<String, String> table) {
+        table.put("Hide suggested people",
+                "Ocultar personas sugeridas");
         table.put("Hide suggested posts",
                 "Ocultar publicaciones sugeridas");
         table.put("Hide suggested stories",
@@ -1104,11 +1110,11 @@ public final class L10nTranslations {
                 "Mucho m\u00e1s peque\u00f1o");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
-        table.put("No document picker is available. Overrides haven't changed.",
-                "No hay ning\u00fan selector de documentos disponible. Los valores personalizados no han cambiado.");
     }
 
     private static void fillEs3(Map<String, String> table) {
+        table.put("No document picker is available. Overrides haven't changed.",
+                "No hay ning\u00fan selector de documentos disponible. Los valores personalizados no han cambiado.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "No hay un selector de documentos disponible. Tus ajustes no han cambiado.");
         table.put("No matching settings",
@@ -1201,6 +1207,8 @@ public final class L10nTranslations {
                 "Guardar todo");
         table.put("Save cancelled",
                 "Se cancel\u00f3 el guardado");
+        table.put("Save comment photo",
+                "Guardar foto del comentario");
         table.put("Save folder",
                 "Carpeta de guardado");
         table.put("Save full report",
@@ -1225,13 +1233,13 @@ public final class L10nTranslations {
                 "Guardado. Reinicia Instagram para aplicar este cambio.");
         table.put("Saving a carousel",
                 "Guardando un carrusel");
+    }
+
+    private static void fillEs4(Map<String, String> table) {
         table.put("Saving a photo",
                 "Guardando una foto");
         table.put("Saving a video",
                 "Guardando un video");
-    }
-
-    private static void fillEs4(Map<String, String> table) {
         table.put("Saving...",
                 "Guardando...");
         table.put("Saving... Cancel: Downloads in HushGram.",
@@ -1348,13 +1356,13 @@ public final class L10nTranslations {
                 "Activa \u00abTama\u00f1o de los anillos de historias\u00bb para usar esta opci\u00f3n.");
         table.put("Undo cleared positions",
                 "Restaurar las posiciones borradas");
+    }
+
+    private static void fillEs5(Map<String, String> table) {
         table.put("Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.",
                 "No se pudieron restaurar todos los ajustes. Revisa los valores que se muestran; ya se ha usado Deshacer.");
         table.put("Undo has expired.",
                 "El plazo para restaurar ha terminado.");
-    }
-
-    private static void fillEs5(Map<String, String> table) {
         table.put("Undo settings import",
                 "Deshacer la importaci\u00f3n de ajustes");
         table.put("Up to %1$s",
@@ -1412,7 +1420,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(654);
+        Map<String, String> table = new HashMap<>(658);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1467,6 +1475,8 @@ public final class L10nTranslations {
                 "Menambahkan Unduh ke menu cerita siapa pun, foto atau video, disimpan dengan kualitas unduhan Anda. Saat nonaktif atau dijeda, menu asli Instagram kembali.");
         table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
                 "Menambahkan Mengikuti kamu atau Tidak mengikuti kamu di samping nama di profil seseorang, setelah kata ganti mereka jika ada. Tidak ada yang muncul sampai Instagram memeriksanya.");
+        table.put("Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.",
+                "Menambahkan Simpan ke menu komentar yang dipilih jika komentar memiliki fotonya sendiri. Menyimpan ukuran terbesar yang dikirim Instagram.");
         table.put("Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.",
                 "Menambahkan tombol mata di bagian atas setiap cerita saat kamu melihat secara anonim. Ketuk tombol itu agar kamu muncul di daftar penonton cerita tersebut. Cerita lainnya tetap tersembunyi.");
         table.put("Ads and privacy",
@@ -1541,11 +1551,11 @@ public final class L10nTranslations {
                 "Pemberitahuan ini tidak dapat disembunyikan. Coba lagi.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "Nilai pengganti tidak dapat diimpor. Periksa berkas dan buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "Data diagnostik tidak dapat dikembalikan. Coba lagi.");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "Data diagnostik tidak dapat dikembalikan. Coba lagi.");
         table.put("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.",
                 "Nilai pengganti tidak dapat dipulihkan. Tidak ada salinan tersimpan untuk sesi dan versi ini. Tidak ada yang berubah.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
@@ -1664,11 +1674,11 @@ public final class L10nTranslations {
                 "Sembunyikan tombol grup");
         table.put("Hide suggested accounts",
                 "Sembunyikan akun yang disarankan");
-        table.put("Hide suggested people",
-                "Sembunyikan orang yang disarankan");
     }
 
     private static void fillIn2(Map<String, String> table) {
+        table.put("Hide suggested people",
+                "Sembunyikan orang yang disarankan");
         table.put("Hide suggested posts",
                 "Sembunyikan postingan yang disarankan");
         table.put("Hide suggested stories",
@@ -1787,11 +1797,11 @@ public final class L10nTranslations {
                 "Jauh lebih kecil");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
-        table.put("No document picker is available. Overrides haven't changed.",
-                "Pemilih dokumen tidak tersedia. Nilai pengganti tidak berubah.");
     }
 
     private static void fillIn3(Map<String, String> table) {
+        table.put("No document picker is available. Overrides haven't changed.",
+                "Pemilih dokumen tidak tersedia. Nilai pengganti tidak berubah.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Pemilih dokumen tidak tersedia. Pengaturan Anda tidak berubah.");
         table.put("No matching settings",
@@ -1884,6 +1894,8 @@ public final class L10nTranslations {
                 "Simpan semua");
         table.put("Save cancelled",
                 "Penyimpanan dibatalkan");
+        table.put("Save comment photo",
+                "Simpan foto komentar");
         table.put("Save folder",
                 "Folder simpan");
         table.put("Save full report",
@@ -1908,13 +1920,13 @@ public final class L10nTranslations {
                 "Tersimpan. Mulai ulang Instagram untuk menerapkan perubahan ini.");
         table.put("Saving a carousel",
                 "Menyimpan carousel");
+    }
+
+    private static void fillIn4(Map<String, String> table) {
         table.put("Saving a photo",
                 "Menyimpan foto");
         table.put("Saving a video",
                 "Menyimpan video");
-    }
-
-    private static void fillIn4(Map<String, String> table) {
         table.put("Saving...",
                 "Menyimpan...");
         table.put("Saving... Cancel: Downloads in HushGram.",
@@ -2031,13 +2043,13 @@ public final class L10nTranslations {
                 "Aktifkan Ukuran lingkaran cerita untuk menggunakan pilihan ini.");
         table.put("Undo cleared positions",
                 "Pulihkan posisi yang dihapus");
+    }
+
+    private static void fillIn5(Map<String, String> table) {
         table.put("Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.",
                 "Pembatalan tidak dapat memulihkan semua pengaturan. Periksa nilai yang ditampilkan; opsi pembatalan sudah digunakan.");
         table.put("Undo has expired.",
                 "Waktu untuk memulihkan telah habis.");
-    }
-
-    private static void fillIn5(Map<String, String> table) {
         table.put("Undo settings import",
                 "Batalkan impor pengaturan");
         table.put("Up to %1$s",
@@ -2095,7 +2107,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(654);
+        Map<String, String> table = new HashMap<>(658);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2150,6 +2162,8 @@ public final class L10nTranslations {
                 "Adiciona Baixar ao menu do story de qualquer pessoa, foto ou v\u00eddeo, salvo na sua qualidade de download. Desativado ou pausado, o menu do pr\u00f3prio Instagram volta.");
         table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
                 "Adiciona Segue voc\u00ea ou N\u00e3o segue voc\u00ea ao lado do nome no perfil de algu\u00e9m, depois dos pronomes, se a pessoa tiver definido. Nada aparece at\u00e9 o Instagram verificar.");
+        table.put("Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.",
+                "Adiciona Salvar ao menu de um coment\u00e1rio selecionado quando o coment\u00e1rio tem a pr\u00f3pria foto. Salva o maior tamanho que o Instagram enviou.");
         table.put("Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.",
                 "Adiciona um bot\u00e3o de olho no topo de cada Story enquanto voc\u00ea assiste anonimamente. Toque nele para aparecer na lista de quem viu aquele Story. Os outros Stories continuam ocultos.");
         table.put("Ads and privacy",
@@ -2224,11 +2238,11 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel ocultar este aviso. Tente novamente.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "N\u00e3o foi poss\u00edvel importar os valores personalizados. Confira o arquivo e abra as configura\u00e7\u00f5es pela p\u00e1gina inicial com a sess\u00e3o iniciada. Nada mudou.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "N\u00e3o foi poss\u00edvel restaurar os dados de diagn\u00f3stico. Tente de novo.");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "N\u00e3o foi poss\u00edvel restaurar os dados de diagn\u00f3stico. Tente de novo.");
         table.put("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.",
                 "N\u00e3o foi poss\u00edvel restaurar os valores personalizados. N\u00e3o h\u00e1 c\u00f3pia salva para esta sess\u00e3o e vers\u00e3o. Nada mudou.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
@@ -2347,11 +2361,11 @@ public final class L10nTranslations {
                 "Ocultar bot\u00f5es de grupo");
         table.put("Hide suggested accounts",
                 "Ocultar contas sugeridas");
-        table.put("Hide suggested people",
-                "Ocultar pessoas sugeridas");
     }
 
     private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Hide suggested people",
+                "Ocultar pessoas sugeridas");
         table.put("Hide suggested posts",
                 "Ocultar posts sugeridos");
         table.put("Hide suggested stories",
@@ -2470,11 +2484,11 @@ public final class L10nTranslations {
                 "Bem menor");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
-        table.put("No document picker is available. Overrides haven't changed.",
-                "Nenhum seletor de documentos est\u00e1 dispon\u00edvel. Os valores personalizados n\u00e3o mudaram.");
     }
 
     private static void fillPt_rBR3(Map<String, String> table) {
+        table.put("No document picker is available. Overrides haven't changed.",
+                "Nenhum seletor de documentos est\u00e1 dispon\u00edvel. Os valores personalizados n\u00e3o mudaram.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Nenhum seletor de documentos est\u00e1 dispon\u00edvel. Suas configura\u00e7\u00f5es n\u00e3o mudaram.");
         table.put("No matching settings",
@@ -2567,6 +2581,8 @@ public final class L10nTranslations {
                 "Salvar tudo");
         table.put("Save cancelled",
                 "Salvamento cancelado");
+        table.put("Save comment photo",
+                "Salvar foto do coment\u00e1rio");
         table.put("Save folder",
                 "Pasta de destino");
         table.put("Save full report",
@@ -2591,13 +2607,13 @@ public final class L10nTranslations {
                 "Salvo. Reinicie o Instagram para aplicar esta altera\u00e7\u00e3o.");
         table.put("Saving a carousel",
                 "Salvando um carrossel");
+    }
+
+    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Saving a photo",
                 "Salvando uma foto");
         table.put("Saving a video",
                 "Salvando um v\u00eddeo");
-    }
-
-    private static void fillPt_rBR4(Map<String, String> table) {
         table.put("Saving...",
                 "Salvando...");
         table.put("Saving... Cancel: Downloads in HushGram.",
@@ -2714,13 +2730,13 @@ public final class L10nTranslations {
                 "Ative Tamanho do c\u00edrculo dos stories para usar esta op\u00e7\u00e3o.");
         table.put("Undo cleared positions",
                 "Restaurar posi\u00e7\u00f5es apagadas");
+    }
+
+    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.",
                 "N\u00e3o foi poss\u00edvel restaurar todas as configura\u00e7\u00f5es. Confira os valores exibidos; Desfazer j\u00e1 foi usado.");
         table.put("Undo has expired.",
                 "O prazo para restaurar terminou.");
-    }
-
-    private static void fillPt_rBR5(Map<String, String> table) {
         table.put("Undo settings import",
                 "Desfazer importa\u00e7\u00e3o das configura\u00e7\u00f5es");
         table.put("Up to %1$s",
@@ -2778,7 +2794,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(654);
+        Map<String, String> table = new HashMap<>(658);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -2833,6 +2849,8 @@ public final class L10nTranslations {
                 "Herkesin hikayesinin men\u00fcs\u00fcne \u0130ndir ekler, foto\u011fraf ya da video, indirme kalitende kaydedilir. Kapal\u0131yken veya duraklat\u0131ld\u0131\u011f\u0131nda Instagram'\u0131n kendi men\u00fcs\u00fc geri gelir.");
         table.put("Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.",
                 "Birinin profilinde ad\u0131n\u0131n yan\u0131na, zamirleri varsa onlardan sonra, Seni takip ediyor ya da Seni takip etmiyor ekler. Instagram kontrol edene kadar hi\u00e7bir \u015fey g\u00f6r\u00fcnmez.");
+        table.put("Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.",
+                "Kendi foto\u011fraf\u0131 olan se\u00e7ili bir yorumun men\u00fcs\u00fcne Kaydet se\u00e7ene\u011fini ekler. Instagram'\u0131n g\u00f6nderdi\u011fi en b\u00fcy\u00fck boyutu kaydeder.");
         table.put("Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.",
                 "Anonim izlerken her hikayenin \u00fcst\u00fcne bir g\u00f6z d\u00fc\u011fmesi ekler. O hikayenin izleyici listesinde g\u00f6r\u00fcnmek i\u00e7in d\u00fc\u011fmeye dokun. Di\u011fer hikayeler gizli kal\u0131r.");
         table.put("Ads and privacy",
@@ -2907,11 +2925,11 @@ public final class L10nTranslations {
                 "Bu bildirim gizlenemedi. Tekrar dene.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
                 "Ge\u00e7ersiz k\u0131lmalar i\u00e7e aktar\u0131lamad\u0131. Dosyay\u0131 denetleyin ve oturum a\u00e7\u0131kken Ana Sayfa'dan ayarlar\u0131 a\u00e7\u0131n. Hi\u00e7bir \u015fey de\u011fi\u015fmedi.");
-        table.put("Couldn't put back the diagnostic data. Try again.",
-                "Tan\u0131lama verileri geri getirilemedi. Tekrar dene.");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Couldn't put back the diagnostic data. Try again.",
+                "Tan\u0131lama verileri geri getirilemedi. Tekrar dene.");
         table.put("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.",
                 "Ge\u00e7ersiz k\u0131lmalar geri y\u00fcklenemedi. Bu oturum ve s\u00fcr\u00fcm i\u00e7in kay\u0131tl\u0131 kopya yok. Hi\u00e7bir \u015fey de\u011fi\u015fmedi.");
         table.put("Couldn't save or fully restore the settings. Check the shown values and try Undo.",
@@ -3030,11 +3048,11 @@ public final class L10nTranslations {
                 "Grup d\u00fc\u011fmelerini gizle");
         table.put("Hide suggested accounts",
                 "\u00d6nerilen hesaplar\u0131 gizle");
-        table.put("Hide suggested people",
-                "\u00d6nerilen ki\u015fileri gizle");
     }
 
     private static void fillTr2(Map<String, String> table) {
+        table.put("Hide suggested people",
+                "\u00d6nerilen ki\u015fileri gizle");
         table.put("Hide suggested posts",
                 "\u00d6nerilen g\u00f6nderileri gizle");
         table.put("Hide suggested stories",
@@ -3153,11 +3171,11 @@ public final class L10nTranslations {
                 "\u00c7ok daha k\u00fc\u00e7\u00fck");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
-        table.put("No document picker is available. Overrides haven't changed.",
-                "Belge se\u00e7ici kullan\u0131lam\u0131yor. Ge\u00e7ersiz k\u0131lmalar de\u011fi\u015fmedi.");
     }
 
     private static void fillTr3(Map<String, String> table) {
+        table.put("No document picker is available. Overrides haven't changed.",
+                "Belge se\u00e7ici kullan\u0131lam\u0131yor. Ge\u00e7ersiz k\u0131lmalar de\u011fi\u015fmedi.");
         table.put("No document picker is available. Your settings haven't changed.",
                 "Belge se\u00e7ici kullan\u0131lam\u0131yor. Ayarlar\u0131n\u0131z de\u011fi\u015fmedi.");
         table.put("No matching settings",
@@ -3250,6 +3268,8 @@ public final class L10nTranslations {
                 "T\u00fcm\u00fcn\u00fc kaydet");
         table.put("Save cancelled",
                 "Kaydetme iptal edildi");
+        table.put("Save comment photo",
+                "Yorum foto\u011fraf\u0131n\u0131 kaydet");
         table.put("Save folder",
                 "Kay\u0131t klas\u00f6r\u00fc");
         table.put("Save full report",
@@ -3274,13 +3294,13 @@ public final class L10nTranslations {
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Instagram'u yeniden ba\u015flat.");
         table.put("Saving a carousel",
                 "\u00c7oklu g\u00f6nderi kaydediliyor");
+    }
+
+    private static void fillTr4(Map<String, String> table) {
         table.put("Saving a photo",
                 "Foto\u011fraf kaydediliyor");
         table.put("Saving a video",
                 "Video kaydediliyor");
-    }
-
-    private static void fillTr4(Map<String, String> table) {
         table.put("Saving...",
                 "Kaydediliyor...");
         table.put("Saving... Cancel: Downloads in HushGram.",
@@ -3397,13 +3417,13 @@ public final class L10nTranslations {
                 "Bu se\u00e7imi kullanmak i\u00e7in Hik\u00e2ye halkas\u0131 boyutu se\u00e7ene\u011fini a\u00e7\u0131n.");
         table.put("Undo cleared positions",
                 "Silinen konumlar\u0131 geri y\u00fckle");
+    }
+
+    private static void fillTr5(Map<String, String> table) {
         table.put("Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.",
                 "Geri alma, ayarlar\u0131n tamam\u0131n\u0131 geri y\u00fckleyemedi. G\u00f6sterilen de\u011ferleri kontrol edin; geri alma se\u00e7ene\u011fi kullan\u0131ld\u0131.");
         table.put("Undo has expired.",
                 "Geri y\u00fckleme s\u00fcresi doldu.");
-    }
-
-    private static void fillTr5(Map<String, String> table) {
         table.put("Undo settings import",
                 "Ayarlar\u0131 i\u00e7e aktarmay\u0131 geri al");
         table.put("Up to %1$s",

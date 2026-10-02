@@ -581,9 +581,12 @@ once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->inPlaceOf
 # FollowingListHookTest checks on the 449 fixture that it lands right after the call.
 once-call Lapp/hushgram/extension/instagram/profile/FollowingList;->row(Ljava/lang/Object;ILandroid/view/View;Ljava/lang/Object;)V in instance (ILandroid/view/View;Ljava/lang/Object;Ljava/lang/Object;)V holding null\scannot\sbe\scast\sto\snon-null\stype\scom.instagram.user.userlist.adapter.FollowRowState
 
-# Copy is added after the common renderer's popup guards, once before its stock list iteration.
-# The renderer holds no string; its class holds the matching selection-dismissal marker.
-once-call Lapp/hushgram/extension/instagram/comment/CommentCopy;->rows(Ljava/util/List;Ljava/lang/Object;Landroid/content/Context;)Ljava/util/List; in instance (L*;L*;L*;Ljava/util/List;F)V class-holding select_comment_screen_comment_unselect_tap_
+# Copy comment and Save comment photo share one call, added after the common renderer's popup
+# guards, once before its stock list iteration. Whichever patch runs first writes it and the other
+# finds it there, so it's once-call with either or both. Left out, neither row shows; twice or
+# elsewhere, it isn't the hook the patches wrote. The renderer holds no string; its class holds the
+# matching selection-dismissal marker.
+once-call Lapp/hushgram/extension/instagram/comment/CommentActions;->rows(Ljava/util/List;Ljava/lang/Object;Landroid/content/Context;)Ljava/util/List; in instance (L*;L*;L*;Ljava/util/List;F)V class-holding select_comment_screen_comment_unselect_tap_
 
 # Hide suggested people on profiles hands the action row's show flag for its inline row of
 # suggestions to ProfileSuggestions right after the read, and the person-plus button to it right

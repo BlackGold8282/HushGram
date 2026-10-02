@@ -296,6 +296,8 @@ Copy comment	Kommentar kopieren
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Fügt dem Menü eines ausgewählten Kommentars Kopieren hinzu. Kopiert den Originaltext einschließlich Zeilenumbrüchen.
 Comment copied	Kommentar kopiert
 Couldn't copy comment	Kommentar konnte nicht kopiert werden
+Save comment photo	Kommentarfoto speichern
+Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.	Fügt dem Menü eines ausgewählten Kommentars Speichern hinzu, wenn der Kommentar ein eigenes Foto hat. Speichert die größte Version, die Instagram gesendet hat.
 Export overrides	Überschreibungen exportieren
 Save this signed-in session's overrides for the exact Instagram build and schema.	Speichere die Überschreibungen dieser angemeldeten Sitzung für genau diese Instagram-Version und dieses Schema.
 Validate an overrides file	Eine Überschreibungsdatei prüfen

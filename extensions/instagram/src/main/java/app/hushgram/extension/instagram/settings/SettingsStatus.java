@@ -125,6 +125,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean commentPhoto() {
+        return false;
+    }
+
     public static boolean followingFeed() {
         return false;
     }

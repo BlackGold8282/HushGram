@@ -449,10 +449,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
 
-        if (build.contains(PatchFamily.COMMENT_COPY)) {
+        if (build.contains(PatchFamily.COMMENT_COPY) || build.contains(PatchFamily.COMMENT_PHOTO)) {
             PreferenceCategory comments = category(screen, L10n.t("Comments"));
-            comments.addPreference(toggle(context, Settings.COPY_COMMENTS, L10n.t("Copy comment"),
-                    L10n.t("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.")));
+            if (build.contains(PatchFamily.COMMENT_COPY)) {
+                comments.addPreference(toggle(context, Settings.COPY_COMMENTS, L10n.t("Copy comment"),
+                        L10n.t("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.")));
+            }
+            if (build.contains(PatchFamily.COMMENT_PHOTO)) {
+                comments.addPreference(toggle(context, Settings.SAVE_COMMENT_PHOTOS, L10n.t("Save comment photo"),
+                        L10n.t("Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.")));
+            }
         }
 
         if (build.contains(PatchFamily.FRIENDSHIP_STATUS) || build.contains(PatchFamily.PROFILE_SUGGESTIONS)) {
