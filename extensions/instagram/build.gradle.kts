@@ -219,6 +219,12 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.SignInNoticeTest" to listOf(
                 "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[28]", "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[29]",
                 "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure[30]", "aFailedDismissalKeepsTheNoticeAndExplainsTheFailure"),
+            "app.hushgram.extension.instagram.settings.PauseRecoveryTest" to listOf(
+                "aWorkerCommitDisablesBothRecoveryInputsAndIgnoresDuplicateTaps[28]", "aWorkerCommitDisablesBothRecoveryInputsAndIgnoresDuplicateTaps[29]", "aWorkerCommitDisablesBothRecoveryInputsAndIgnoresDuplicateTaps",
+                "aFailedCommitKeepsTheSavedPauseAndRestoresTheRetryControls[28]", "aFailedCommitKeepsTheSavedPauseAndRestoresTheRetryControls[29]", "aFailedCommitKeepsTheSavedPauseAndRestoresTheRetryControls",
+                "aFailedRollbackShowsThePauseValueThatActuallySurvived[28]", "aFailedRollbackShowsThePauseValueThatActuallySurvived[29]", "aFailedRollbackShowsThePauseValueThatActuallySurvived",
+                "aFullWorkerQueueLeavesPauseSavedAndBothControlsReadyToRetry[28]", "aFullWorkerQueueLeavesPauseSavedAndBothControlsReadyToRetry[29]", "aFullWorkerQueueLeavesPauseSavedAndBothControlsReadyToRetry",
+                "recoveryFinishesAfterTeardownWithoutUpdatingDetachedControlsOrAcceptingALateTap[28]", "recoveryFinishesAfterTeardownWithoutUpdatingDetachedControlsOrAcceptingALateTap[29]", "recoveryFinishesAfterTeardownWithoutUpdatingDetachedControlsOrAcceptingALateTap"),
             "app.hushgram.extension.instagram.settings.SettingsEntryOpenTest" to listOf(
                 "movesToAScreenInstagramOpensOverIt[28]", "movesToAScreenInstagramOpensOverIt",
                 "staysClosedOnceThePersonClosedIt[28]", "staysClosedOnceThePersonClosedIt"),

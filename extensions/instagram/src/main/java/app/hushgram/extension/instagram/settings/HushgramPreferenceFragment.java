@@ -103,6 +103,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** The first row, which says whether HushGram runs now and whether the next start changes that. */
     @Nullable
     private Preference statusCard;
+    private boolean resumingFromOverview;
 
     @Nullable private Row clearPositions;
     private boolean changingPositions;
@@ -1099,6 +1100,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private Preference statusCard(Context context) {
         Row card = new Row(context);
         card.setPersistent(false);
+        card.setEnabled(!resumingFromOverview);
         boolean paused = HushgramPause.isPaused();
         ScreenColors palette = ScreenColors.DEFAULT;
         card.setIcon(SettingsIcons.icon(context, paused ? SettingsIcons.PAUSE : SettingsIcons.PATCHED,
@@ -1150,12 +1152,42 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     void resumeFromOverview() {
         Context context = getContext();
-        if (context == null || statusCard == null) return;
-        HushgramPause.Reason still = HushgramPause.turnBackOn(context);
+        Activity activity = getActivity();
+        if (resumingFromOverview || context == null || statusCard == null || getView() == null
+                || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        Context application = context.getApplicationContext();
+        Context storage = application == null ? context : application;
+        resumingFromOverview = true;
+        setResumeControlsEnabled(false);
+        if (!Utils.runOnBackgroundThread(() -> {
+            HushgramPause.Reason kept = null;
+            try { kept = HushgramPause.turnBackOn(storage); }
+            catch (RuntimeException failure) {
+                Logger.printInfo(() -> "HushGram pause recovery failed", failure);
+            } finally {
+                HushgramPause.Reason still = kept;
+                Utils.runOnMainThread(() -> resumeFromOverviewFinished(still));
+            }
+        })) resumeFromOverviewFinished(null);
+    }
+
+    private void setResumeControlsEnabled(boolean enabled) {
+        if (statusCard != null) statusCard.setEnabled(enabled);
+        Preference pause = findPreference(BaseSettings.PAUSED.key);
+        if (pause != null) pause.setEnabled(enabled && BaseSettings.PAUSED.isAvailable());
+    }
+
+    private void resumeFromOverviewFinished(@Nullable HushgramPause.Reason still) {
+        resumingFromOverview = false;
+        Context context = getContext();
+        Activity activity = getActivity();
+        if (context == null || statusCard == null || getView() == null || activity == null
+                || activity.isFinishing() || activity.isDestroyed()) return;
+        setResumeControlsEnabled(true);
         // The switch shows what was kept. Setting it to off here would write off through the
         // preference itself when the store had just refused to.
         Preference pause = findPreference(BaseSettings.PAUSED.key);
-        if (pause instanceof SwitchPreference) ((SwitchPreference) pause).setChecked(BaseSettings.PAUSED.savedValue());
+        if (pause != null) syncSettingWithPreference(pause, BaseSettings.PAUSED, true);
         if (still == HushgramPause.Reason.MARKER_FILE) {
             String file = L10n.isolate(HushgramPause.MARKER_FILE_NAME);
             String folder = L10n.isolate(markerFolder(context.getPackageName()));
@@ -1425,6 +1457,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Override
     protected void updatePreferenceAvailability(Preference preference, Setting<?> setting) {
         super.updatePreferenceAvailability(preference, setting);
+        if (resumingFromOverview && setting == BaseSettings.PAUSED) preference.setEnabled(false);
         if (setting == Settings.ONLY_FOLLOWING) {
             preference.setSummary(setting.isAvailable()
                     ? L10n.t("Takes For you out of the picker at the top of Home, so Home stays on Following or "

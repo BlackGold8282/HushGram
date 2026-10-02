@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Turning HushGram back on from its status card saves in the background instead of blocking settings. Both recovery controls stay disabled until the write finishes, duplicate taps are ignored, and failures leave the saved Pause choice visible for retry. Closing settings during recovery leaves detached controls alone.
+
 * **Tooling:** Troubleshooting now checks the Instagram build and other enabled patch sources before blaming a changed app. Report #11 succeeded after its other source was removed. Signing-conflict guidance explains which updates preserve data and that removing a differently signed app deletes its local data.
 
 * **Instagram:** Copy comment proves the original field-name and returned-object paths before applying its hook. Empty or null replacement text removes stale Copy actions while retaining the stock menu.
