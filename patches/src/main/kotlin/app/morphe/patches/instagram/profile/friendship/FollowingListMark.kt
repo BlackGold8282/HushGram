@@ -134,6 +134,9 @@ internal fun BytecodePatchContext.findFollowRow(): FollowRow {
         (code[at].opcode == Opcode.INVOKE_STATIC || code[at].opcode == Opcode.INVOKE_STATIC_RANGE) && called != null &&
             called.parameterTypes.map(CharSequence::toString).containsAll(listOf(USER, rowState, holder))
     } ?: refuse("$where doesn't hand a $USER, its $rowState and its $holder to a static call")
+    // A call answering something is followed by its move-result, which the hook mustn't split off.
+    val fills = code[call].methodReference()!!.returnType
+    if (fills != "V") refuse("$where fills the row in with a call answering $fills, not void")
     val at = call + 1
     if (at >= code.size || at in binder.jumpTargets()) {
         refuse("$where has no place right after the call filling the row in that only that call leads to")

@@ -115,6 +115,10 @@ class FollowingListHookTest {
     @Test
     fun aBranchLandingAfterTheCallFailsThePatch() = assertRefused(standIns(branchAfter = true), "only that call leads to")
 
+    /** A fill call answering something has its move-result right after it, where the hook would go. */
+    @Test
+    fun aFillCallAnsweringSomethingFailsThePatch() = assertRefused(standIns(fillAnswers = OBJECT), "answering $OBJECT, not void")
+
     @Test
     fun anItemNotCastToAUserFailsThePatch() = assertRefused(standIns(castsUser = false), "to cast one value to $USER")
 
@@ -276,6 +280,7 @@ class FollowingListHookTest {
             kinds: List<String> = listOf("FOLLOWERS", FOLLOWING_KIND, "MUTUAL"),
             overwrite: String = "",
             holderPublic: Boolean = true,
+            fillAnswers: String = "V",
         ): List<ClassDef> {
             val bind = method(
                 BINDER, "bindView", parameters, "V", 10,
@@ -293,7 +298,8 @@ class FollowingListHookTest {
                     check-cast v4, $HOLDER
                     ${if (branchAfter) "if-eqz v3, :after" else ""}
                     $overwrite
-                    invoke-static { v0, v3, v4 }, $FILLER->fill($USER$ROW_STATE$HOLDER)V
+                    invoke-static { v0, v3, v4 }, $FILLER->fill($USER$ROW_STATE$HOLDER)$fillAnswers
+                    ${if (fillAnswers == "V") "" else "move-result-object v5"}
                     :after
                     return-void
                     :missing
