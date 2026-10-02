@@ -144,8 +144,8 @@ public final class L10nTranslations {
                 "Kommentare");
         table.put("Contacts, location setup, analytics",
                 "Kontakte, Standorteinrichtung, Analysedaten");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Angaben.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Kopiere einen Kurzbericht oder speichere den vollst\u00e4ndigen Bericht unter %1$s. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Pr\u00fcfe ihn vor dem Teilen auf andere private Angaben.");
         table.put("Copy a short report to the clipboard.",
                 "Kurzen Bericht in die Zwischenablage kopieren.");
         table.put("Copy comment",
@@ -471,8 +471,8 @@ public final class L10nTranslations {
                 "Speicherordner");
         table.put("Save full report",
                 "Vollst\u00e4ndigen Bericht speichern");
-        table.put("Save the full report in Download/Morphe.",
-                "Vollst\u00e4ndigen Bericht unter Download/Morphe speichern.");
+        table.put("Save the full report in %1$s.",
+                "Vollst\u00e4ndigen Bericht unter %1$s speichern.");
         table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
                 "Speichere die \u00dcberschreibungen dieser angemeldeten Sitzung f\u00fcr genau diese Instagram-Version und dieses Schema.");
         table.put("Save videos other apps can open",
@@ -763,8 +763,8 @@ public final class L10nTranslations {
                 "Comentarios");
         table.put("Contacts, location setup, analytics",
                 "Contactos, configuraci\u00f3n de ubicaci\u00f3n, anal\u00edticas");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Copia un informe r\u00e1pido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si queda otro texto privado antes de compartirlo.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Copia un informe r\u00e1pido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesi\u00f3n. Revisa si queda otro texto privado antes de compartirlo.");
         table.put("Copy a short report to the clipboard.",
                 "Copia un informe breve en el portapapeles.");
         table.put("Copy comment",
@@ -1090,8 +1090,8 @@ public final class L10nTranslations {
                 "Carpeta de guardado");
         table.put("Save full report",
                 "Guardar informe completo");
-        table.put("Save the full report in Download/Morphe.",
-                "Guarda el informe completo en Download/Morphe.");
+        table.put("Save the full report in %1$s.",
+                "Guarda el informe completo en %1$s.");
         table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
                 "Guarda los valores personalizados de esta sesi\u00f3n para esta versi\u00f3n y este esquema exactos de Instagram.");
         table.put("Save videos other apps can open",
@@ -1382,8 +1382,8 @@ public final class L10nTranslations {
                 "Komentar");
         table.put("Contacts, location setup, analytics",
                 "Kontak, pengaturan lokasi, analitik");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Salin laporan singkat atau simpan laporan lengkap di %1$s. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.");
         table.put("Copy a short report to the clipboard.",
                 "Salin laporan singkat ke papan klip.");
         table.put("Copy comment",
@@ -1709,8 +1709,8 @@ public final class L10nTranslations {
                 "Folder simpan");
         table.put("Save full report",
                 "Simpan laporan lengkap");
-        table.put("Save the full report in Download/Morphe.",
-                "Simpan laporan lengkap di Download/Morphe.");
+        table.put("Save the full report in %1$s.",
+                "Simpan laporan lengkap di %1$s.");
         table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
                 "Simpan nilai pengganti sesi yang sudah masuk ini untuk versi dan skema Instagram yang sama persis.");
         table.put("Save videos other apps can open",
@@ -2001,8 +2001,8 @@ public final class L10nTranslations {
                 "Coment\u00e1rios");
         table.put("Contacts, location setup, analytics",
                 "Contatos, configura\u00e7\u00e3o de localiza\u00e7\u00e3o, an\u00e1lises");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "Copie um relat\u00f3rio r\u00e1pido ou salve o relat\u00f3rio completo em Download/Morphe. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Verifique se h\u00e1 outros textos privados antes de compartilhar.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "Copie um relat\u00f3rio r\u00e1pido ou salve o relat\u00f3rio completo em %1$s. Links, IDs, cookies e tokens de login s\u00e3o omitidos. Verifique se h\u00e1 outros textos privados antes de compartilhar.");
         table.put("Copy a short report to the clipboard.",
                 "Copie um relat\u00f3rio curto para a \u00e1rea de transfer\u00eancia.");
         table.put("Copy comment",
@@ -2328,8 +2328,8 @@ public final class L10nTranslations {
                 "Pasta de destino");
         table.put("Save full report",
                 "Salvar relat\u00f3rio completo");
-        table.put("Save the full report in Download/Morphe.",
-                "Salve o relat\u00f3rio completo em Download/Morphe.");
+        table.put("Save the full report in %1$s.",
+                "Salve o relat\u00f3rio completo em %1$s.");
         table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
                 "Salve os valores personalizados desta sess\u00e3o para esta vers\u00e3o e este esquema exatos do Instagram.");
         table.put("Save videos other apps can open",
@@ -2620,8 +2620,8 @@ public final class L10nTranslations {
                 "Yorumlar");
         table.put("Contacts, location setup, analytics",
                 "Ki\u015filer, konum kurulumu, analiz");
-        table.put("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
-                "K\u0131sa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve oturum belirte\u00e7leri \u00e7\u0131kar\u0131l\u0131r. Payla\u015fmadan \u00f6nce ba\u015fka \u00f6zel bilgi olup olmad\u0131\u011f\u0131na bak.");
+        table.put("Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.",
+                "K\u0131sa raporu kopyala veya tam raporu %1$s konumuna kaydet. Ba\u011flant\u0131lar, kimlikler, \u00e7erezler ve oturum belirte\u00e7leri \u00e7\u0131kar\u0131l\u0131r. Payla\u015fmadan \u00f6nce ba\u015fka \u00f6zel bilgi olup olmad\u0131\u011f\u0131na bak.");
         table.put("Copy a short report to the clipboard.",
                 "K\u0131sa raporu panoya kopyalar.");
         table.put("Copy comment",
@@ -2947,8 +2947,8 @@ public final class L10nTranslations {
                 "Kay\u0131t klas\u00f6r\u00fc");
         table.put("Save full report",
                 "Tam raporu kaydet");
-        table.put("Save the full report in Download/Morphe.",
-                "Tam raporu Download/Morphe konumuna kaydeder.");
+        table.put("Save the full report in %1$s.",
+                "Tam raporu %1$s konumuna kaydeder.");
         table.put("Save this signed-in session's overrides for the exact Instagram build and schema.",
                 "Bu a\u00e7\u0131k oturumun ge\u00e7ersiz k\u0131lmalar\u0131n\u0131 ayn\u0131 Instagram s\u00fcr\u00fcm\u00fc ve \u015femas\u0131 i\u00e7in kaydedin.");
         table.put("Save videos other apps can open",

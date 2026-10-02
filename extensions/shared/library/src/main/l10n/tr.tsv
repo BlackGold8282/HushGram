@@ -13,7 +13,7 @@ Before you sign in	Giriş yapmadan önce
 Cancel	İptal
 Changing these	Bunları değiştirmek
 Clear diagnostic data	Tanılama verilerini temizle
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu %1$s konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
 Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
 Copy quick report	Hızlı raporu kopyala
 Copying to the gallery	Galeriye kopyalanıyor
@@ -64,7 +64,7 @@ Retry	Yeniden dene
 Sanitize sharing links	Paylaşım bağlantılarını temizle
 Save cancelled	Kaydetme iptal edildi
 Save full report	Tam raporu kaydet
-Save the full report in Download/Morphe.	Tam raporu Download/Morphe konumuna kaydeder.
+Save the full report in %1$s.	Tam raporu %1$s konumuna kaydeder.
 Saved to %1$s	Şuraya kaydedildi: %1$s
 Saved to %1$s in lower quality than on Instagram	Şuraya Instagram'dakinden düşük kalitede kaydedildi: %1$s
 Saved to the gallery	Galeriye kaydedildi

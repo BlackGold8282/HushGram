@@ -13,7 +13,7 @@ Before you sign in	Sebelum Anda masuk
 Cancel	Batal
 Changing these	Mengubah pilihan ini
 Clear diagnostic data	Hapus data diagnostik
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di %1$s. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
 Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
 Copy quick report	Salin laporan singkat
 Copying to the gallery	Menyalin ke galeri
@@ -64,7 +64,7 @@ Retry	Coba lagi
 Sanitize sharing links	Bersihkan tautan berbagi
 Save cancelled	Penyimpanan dibatalkan
 Save full report	Simpan laporan lengkap
-Save the full report in Download/Morphe.	Simpan laporan lengkap di Download/Morphe.
+Save the full report in %1$s.	Simpan laporan lengkap di %1$s.
 Saved to %1$s	Disimpan ke %1$s
 Saved to %1$s in lower quality than on Instagram	Disimpan ke %1$s dengan kualitas lebih rendah daripada di Instagram
 Saved to the gallery	Disimpan ke galeri

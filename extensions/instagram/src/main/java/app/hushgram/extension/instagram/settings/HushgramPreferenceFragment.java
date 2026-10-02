@@ -80,6 +80,7 @@ import app.hushgram.extension.shared.settings.preference.AbstractPreferenceFragm
 import app.hushgram.extension.shared.settings.preference.ClearLogBufferPreference;
 import app.hushgram.extension.shared.settings.preference.ExportDiagnosticReportPreference;
 import app.hushgram.extension.shared.settings.preference.ImmediateAction;
+import app.hushgram.extension.shared.settings.preference.LogBufferManager;
 
 /**
  * The preference list, built in code rather than from an XML resource so the bundle adds no
@@ -572,8 +573,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 L10n.t("Record patch activity and show errors for a bug report. Leave off during normal use.")), SettingsIcons.BUG));
         ExportDiagnosticReportPreference export = new ExportRow(context);
         export.setTitle(L10n.t("Export diagnostic report"));
-        export.setSummary(L10n.t("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies "
-                + "and sign-in tokens are left out. Check it for other private text before you share it."));
+        export.setSummary(L10n.f("Copy a quick report or save the full one to %1$s. Links, IDs, cookies "
+                + "and sign-in tokens are left out. Check it for other private text before you share it.",
+                L10n.isolate(LogBufferManager.reportFolder(context))));
         hushgram.addPreference(mark(export, SettingsIcons.LICENSE));
         ClearLogBufferPreference clear = new ClearRow(context);
         clear.setTitle(L10n.t("Clear diagnostic data"));
@@ -1991,7 +1993,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     new CharSequence[]{L10n.t(getContext(), "Copy quick report"),
                             L10n.t(getContext(), "Save full report")},
                     new CharSequence[]{L10n.t(getContext(), "Copy a short report to the clipboard."),
-                            L10n.t(getContext(), "Save the full report in Download/Morphe.")});
+                            L10n.f(getContext(), "Save the full report in %1$s.",
+                                    L10n.isolate(LogBufferManager.reportFolder(getContext())))});
         }
 
         /** The cards bring their own spacing and ripple, so the list draws no divider of its own. */

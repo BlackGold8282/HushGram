@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Diagnostic export descriptions show the folder the writer actually uses. Android 9 shows Instagram's own external-files folder; Android 10 and newer show Download/Morphe. The row and chooser share the same path, including translated descriptions.
 * **Instagram:** A refused sign-in notice dismissal keeps the notice visible and explains the save failure. The diagnostic report chooser closes with its settings page, and a late tap cannot reopen it after teardown.
 * **Tooling:** Device installs and verifier runs require an exclusive lease and verified device identity. Updates keep installed data and permissions, replacement uninstalls refuse, and verification selects the device's actual instruction set. Windows emulator identity replies accept their native line endings.
 * **Tooling:** Protect translation replacement with an enforced Windows file transaction. Stale edits and conflicting writers refuse the import, existing readers retain complete old bytes, and unsupported storage refuses writes. Unchanged imports still preserve exact bytes.

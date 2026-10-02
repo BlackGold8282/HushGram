@@ -13,7 +13,7 @@ Before you sign in	Bevor du dich anmeldest
 Cancel	Abbrechen
 Changing these	So änderst du sie
 Clear diagnostic data	Diagnosedaten löschen
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kopiere einen Kurzbericht oder speichere den vollständigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Prüfe ihn vor dem Teilen auf andere private Angaben.
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kopiere einen Kurzbericht oder speichere den vollständigen Bericht unter %1$s. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Prüfe ihn vor dem Teilen auf andere private Angaben.
 Copy a short report to the clipboard.	Kurzen Bericht in die Zwischenablage kopieren.
 Copy quick report	Kurzbericht kopieren
 Copying to the gallery	Wird in die Galerie kopiert
@@ -64,7 +64,7 @@ Retry	Erneut versuchen
 Sanitize sharing links	Geteilte Links bereinigen
 Save cancelled	Speichern abgebrochen
 Save full report	Vollständigen Bericht speichern
-Save the full report in Download/Morphe.	Vollständigen Bericht unter Download/Morphe speichern.
+Save the full report in %1$s.	Vollständigen Bericht unter %1$s speichern.
 Saved to %1$s	Gespeichert unter %1$s
 Saved to %1$s in lower quality than on Instagram	Gespeichert unter %1$s, in geringerer Qualität als auf Instagram
 Saved to the gallery	In der Galerie gespeichert

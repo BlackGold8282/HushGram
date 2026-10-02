@@ -227,7 +227,8 @@ tasks.register("verifyAndroidBoundaries") {
                 "android9CountsOnlyTheHandlersMark", "android11CountsCrashesNativeCrashesAndHangsButNotBeingSwipedAway"),
             "app.hushgram.extension.shared.settings.preference.LogBufferManagerExportTest" to listOf(
                 "android9SavesTheReportInInstagramsOwnFolder", "noExitOnRecordMeansNoLastExitSection[28]",
-                "theReportSaysWhyTheProcessWentAwayLastTime", "repeatedExportsEachGetTheirOwnDownloadsEntry"),
+                "theReportSaysWhyTheProcessWentAwayLastTime", "repeatedExportsEachGetTheirOwnDownloadsEntry",
+                "reportRowAndChooserNameTheFolderThatTheWriterUses[28]", "reportRowAndChooserNameTheFolderThatTheWriterUses[29]", "reportRowAndChooserNameTheFolderThatTheWriterUses"),
             "app.hushgram.extension.instagram.download.MediaSaveTest" to listOf(
                 "onAndroid9ASaveWritesTheFileIntoTheFolderItself"),
             "app.hushgram.extension.instagram.download.SaveInterruptionTest" to listOf(
