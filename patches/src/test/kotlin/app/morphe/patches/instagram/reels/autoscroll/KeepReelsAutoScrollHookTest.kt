@@ -50,6 +50,20 @@ class KeepReelsAutoScrollHookTest {
     private val clickParameters = listOf(
         "Landroidx/fragment/app/FragmentActivity;", session, "Lfixture/Logger;", "Lkotlin/jvm/functions/Function0;", "I", "J", "Z",
     )
+
+    /**
+     * What the stand-in handler saves: its choice copied once, as 449 does, or twice; a constant;
+     * the copy flipped; the copy written over on one arm of a branch; or the choice's own register
+     * written over before it's copied.
+     */
+    private val choiceToSave = mapOf(
+        "move" to listOf("move/from16 v1, p8"),
+        "copiedTwice" to listOf("move/from16 v2, p8", "move v1, v2"),
+        "constant" to listOf("const/4 v1, 0x1"),
+        "flipped" to listOf("move/from16 v1, p8", "xor-int/lit8 v1, v1, 0x1"),
+        "overwrittenOnABranch" to listOf("move/from16 v1, p8", "if-nez v0, :keep", "const/4 v1, 0x1", ":keep"),
+        "parameterOverwritten" to listOf("const/16 p8, 0x1", "move/from16 v1, p8"),
+    )
     private val hooks = setOf(AUTO_SCROLL_ANSWER, AUTO_SCROLL_SAVED, AUTO_SCROLL_CHOSEN)
 
     /** The hooks the patch writes are in the ReelAutoScroll the bundle ships, public and static. */
@@ -91,11 +105,25 @@ class KeepReelsAutoScrollHookTest {
         assertEquals("SettingsStatus.reelAutoScroll() isn't switched on", 1, (status.first() as NarrowLiteralInstruction).narrowLiteral)
     }
 
+    /**
+     * The handler's choice may reach the setter through more than one plain move, and the hook
+     * still reads it first thing from the handler's own parameter.
+     */
+    @Test
+    fun aChoiceCopiedTwiceIsStillTheChoiceSaved() {
+        val context = PatchContexts.of(classes(clickSavesChoice = "copiedTwice") + ExtensionDex.classDef(SETTINGS_STATUS))
+
+        keepReelsAutoScrollPatch.execute(context)
+
+        assertChoiceFirst("copied twice", context.method(plugin, "handle"))
+    }
+
     /** A build the patch can't read fails at patch time, saying what it found, before anything is written. */
     @Test
     fun aBuildThePatchCantReadFailsBeforeAnythingChanges() {
         val oneMarked = "expected one method marked"
         val callers = "expected $preference->setEnabled($prefs" + "Z)V to be called by"
+        val notTheChoice = "saves something other than its choice, parameter 6 (v28), to $preference->setEnabled($prefs" + "Z)V"
         val cases = listOf(
             classes(checks = 0) to "$oneMarked $IS_AUTOSCROLL_ACTIVE, found 0",
             classes(checks = 2) to "$oneMarked $IS_AUTOSCROLL_ACTIVE, found 2",
@@ -114,6 +142,10 @@ class KeepReelsAutoScrollHookTest {
             classes(setters = 0) to "to have one static setter taking a boolean, found 0",
             classes(checkReads = false) to "doesn't read $preference->enabled($prefs)Z",
             classes(clickSaves = false) to "doesn't save to $preference->setEnabled($prefs" + "Z)V",
+            classes(clickSavesChoice = "constant") to "$notTheChoice at instruction 4",
+            classes(clickSavesChoice = "flipped") to "$notTheChoice at instruction 5",
+            classes(clickSavesChoice = "overwrittenOnABranch") to "$notTheChoice at instruction 6",
+            classes(clickSavesChoice = "parameterOverwritten") to "$notTheChoice at instruction 5",
             classes(pauses = 0) to "$callers $plugin->handle",
             classes(pauseString = "auto_scroll_v2") to "$callers $plugin->handle",
             classes(otherSavers = 1) to "$callers $plugin->handle",
@@ -264,6 +296,7 @@ class KeepReelsAutoScrollHookTest {
         clickChoice: String = "Z",
         clickLoops: Boolean = false,
         clickSaves: Boolean = true,
+        clickSavesChoice: String = "move",
         preferences: Int = 1,
         getterNamed: Boolean = true,
         getters: Int = 1,
@@ -305,7 +338,7 @@ class KeepReelsAutoScrollHookTest {
                 const/4 v0, 0x0
                 const-string v1, "android_purge_26_q3_$AUTOSCROLL_MODE_CLICK"
                 invoke-static { v1 }, $trace
-                move/from16 v1, p8
+                ${choiceToSave.getValue(clickSavesChoice).joinToString("\n                ")}
                 $save
                 ${if (clickLoops) "if-eqz v1, :top" else ""}
                 return-void

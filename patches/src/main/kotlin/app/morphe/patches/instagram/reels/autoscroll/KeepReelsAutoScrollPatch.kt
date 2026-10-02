@@ -20,16 +20,20 @@ import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import java.util.BitSet
 
 private const val PATCH = "Keep Reels auto scroll on"
 
@@ -120,7 +124,8 @@ internal class ReelAutoScrollSites(
  * taking the choice last as a boolean. The saved preference's class is the one whose initializer
  * loads [AUTOSCROLL_PREFERENCE] and [AUTOSCROLL_GETTER_NAME]; its one static getter answering a
  * boolean has to be read by the check, and its one static setter, taking what the getter takes and
- * a boolean, has to be called by the handler.
+ * a boolean, has to be called by the handler, saving the choice it was handed (see
+ * [requireSavesChoice]), so the choice read first thing is the one Instagram goes on to save.
  *
  * The setter has three callers on 449: the handler, the Reels viewer's onPause, which loads
  * [AUTO_SCROLL_SURFACE] and clears the preference, and the Reels tab's long-press action, an
@@ -174,6 +179,7 @@ internal fun BytecodePatchContext.findReelAutoScroll(): ReelAutoScrollSites {
         ?: refuse("expected ${preference.type} to have one static setter taking a boolean, found ${setters.size}")
     if (isActive.code().none { it.calls(getter) }) refuse("${isActive.text()} doesn't read ${getter.text()}")
     if (click.code().none { it.calls(setter) }) refuse("${click.text()} doesn't save to ${setter.text()}")
+    click.requireSavesChoice(setter)
     if (isActive.code().none { it.opcode == Opcode.RETURN } || getter.code().none { it.opcode == Opcode.RETURN }) {
         refuse("${isActive.text()} or ${getter.text()} has no return to answer at")
     }
@@ -235,6 +241,63 @@ internal fun BytecodePatchContext.keepReelAutoScroll(sites: ReelAutoScrollSites)
     )
     mutable(sites.isActive).filterEveryBooleanReturn(PATCH, AUTO_SCROLL_ANSWER)
     mutable(sites.getter).filterEveryBooleanReturn(PATCH, AUTO_SCROLL_SAVED)
+}
+
+/** The moves that copy a narrow value from one register to another. */
+private val PLAIN_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+
+/**
+ * Refuses unless every call in this handler to [setter] saves the choice the handler was handed
+ * last: the setter's boolean has to be the choice's own register, or a copy of it made by plain
+ * moves, with nothing written over the choice or the copy on any path from the start to the call,
+ * along branches and exception handlers alike. On 449 the handler copies the choice once
+ * (`move/from16`) near its start and saves the copy where Instagram goes by the preference.
+ */
+private fun Method.requireSavesChoice(setter: Method) {
+    val flow = ControlFlow.of(this)
+    val choice = parameterRegisterNumber(parameterTypes.lastIndex)
+    // The registers holding the choice on every path into each instruction; null until one reaches it.
+    val holding = arrayOfNulls<BitSet>(flow.instructions.size)
+    val pending = ArrayDeque<Int>()
+    fun flowInto(at: Int, held: BitSet) {
+        val known = holding[at]
+        val merged = (held.clone() as BitSet).apply { if (known != null) and(known) }
+        if (merged != known) {
+            holding[at] = merged
+            pending += at
+        }
+    }
+    flowInto(0, BitSet().apply { set(choice) })
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        val before = holding[at]!!
+        val instruction = flow.instructions[at]
+        // An instruction that throws writes nothing, so a handler sees the registers as they were.
+        flow.exceptional[at].forEach { flowInto(it, before) }
+        val after = before.clone() as BitSet
+        if (instruction.opcode.setsRegister()) {
+            val destination = (instruction as? OneRegisterInstruction)?.registerA
+            if (destination == null) {
+                after.clear()
+            } else {
+                after.clear(destination)
+                if (instruction.opcode.setsWideRegister()) after.clear(destination + 1)
+                if (instruction.opcode in PLAIN_MOVES && before[(instruction as TwoRegisterInstruction).registerB]) {
+                    after.set(destination)
+                }
+            }
+        }
+        flow.normal[at].forEach { flowInto(it, after) }
+    }
+    flow.instructions.withIndex().filter { (_, instruction) -> instruction.calls(setter) }.forEach { (save, instruction) ->
+        val saved = instruction.argumentRegisters().getOrNull(1)
+        if (saved == null || holding[save]?.get(saved) != true) {
+            refuse(
+                "${text()} saves something other than its choice, parameter ${parameterTypes.lastIndex} (v$choice), " +
+                    "to ${setter.text()} at instruction $save",
+            )
+        }
+    }
 }
 
 private fun BytecodePatchContext.mutable(site: MethodSite): MutableMethod =

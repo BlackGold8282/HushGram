@@ -20,6 +20,7 @@ Every HushGram release, newest first.
 * **Instagram:** Keep Reels auto scroll on no longer takes Instagram's saved auto scroll setting by itself as a sign you turned it on. Where Instagram goes by a timer or by memory instead, a long press on the Reels tab could leave that setting on, and turning auto scroll off with its switch then didn't stick.
 
 * **Instagram:** Copy comment only takes a comment menu renderer whose middle argument fits one register. A future build that made it a long or double would have shifted the selected comment's register, so it's refused before anything changes.
+* **Instagram:** Keep Reels auto scroll on now checks that Instagram's auto scroll switch saves the very choice it was handed, passed along only by plain copies, before it reads that choice. A build that saved anything else would have left HushGram remembering the wrong choice, so it's refused before anything changes.
 
 * **Tooling:** The injected-register verifier no longer clears a shared phone's log buffer. It writes its own marker line, reads only what follows it, and stops with a plain message if the buffer has already rotated past the marker.
 
