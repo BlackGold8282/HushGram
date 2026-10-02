@@ -49,6 +49,7 @@ public enum PatchFamily {
             Settings.DONT_SEND_REEL_WATCH_HISTORY),
     STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
             Settings.BLOCK_STORY_AUTO_ADVANCE),
+    STORY_TIME(FamilyNames.STORY_TIME, "storyTime", null, Settings.SHOW_STORY_TIME),
     STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null, Settings.VIEW_STORIES_ANONYMOUSLY,
             Settings.MARK_STORIES_SEEN),
     STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null, Settings.HIDE_SUGGESTED_STORIES,

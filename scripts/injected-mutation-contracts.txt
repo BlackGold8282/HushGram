@@ -202,6 +202,15 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # else calls hold().
 start-call Lapp/hushgram/extension/instagram/stories/StoryAdvance;->hold()Z in instance (Ljava/lang/Object;)V calling static L*;->*(Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelItem;)Z holding userSession Required\svalue\swas\snull.
 once-call Lapp/hushgram/extension/instagram/stories/StoryAdvance;->hold()Z in instance (Ljava/lang/Object;)V calling static L*;->*(Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelItem;)Z holding userSession Required\svalue\swas\snull.
+# Show a story's exact time asks label() in front of the long-to-double in the story item's time
+# label, the item's one instance method taking a Context and answering a String. The label holds
+# no string, so the rule names one only ReelItem's methods hold on 449. Left out, every story says
+# "3h"; twice or elsewhere, it isn't the call the patch wrote.
+once-call Lapp/hushgram/extension/instagram/stories/StoryTime;->label(J)Ljava/lang/String; in instance (Landroid/content/Context;)Ljava/lang/String; class-holding Reel\sitem\sisn't\sa\snetego\sunit\swith\san\saction
+# It also answers the story header builder's read of its second relative format flag through
+# relativeHeader(). The builder is the one static method taking a Context, the session, a reel and
+# a story item that holds "timestamp" on 449, and it reads the flag once.
+once-call Lapp/hushgram/extension/instagram/stories/StoryTime;->relativeHeader(I)Z in static (Landroid/content/Context;Lcom/instagram/common/session/UserSession;L*;Lcom/instagram/model/reels/ReelItem;)L*; holding timestamp
 # Restore trust on re-signed builds puts its call first in the package signer reader, which its
 # fingerprint picks by the SigningInfo and PackageInfo calls it makes. The reader holds no string,
 # so the rule holds the old signatures array it reads, which 28 methods read on 449. Of

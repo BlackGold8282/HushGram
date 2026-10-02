@@ -320,6 +320,14 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.StorySeenSettingsTest" to listOf(
                 "missingPatchHasNoMarkAsSeenSwitch[28]", "missingPatchHasNoMarkAsSeenSwitch",
                 "markAsSeenSwitchStartsOffPersistsAndHonorsPause[28]", "markAsSeenSwitchStartsOffPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.stories.StoryTimeTest" to listOf(
+                "aTwelveHourPhoneGetsTheDateAndTimeWithPm[28]", "aTwelveHourPhoneGetsTheDateAndTimeWithPm",
+                "aTwentyFourHourPhoneGetsTheTwentyFourHourTime[28]", "aTwentyFourHourPhoneGetsTheTwentyFourHourTime",
+                "theLabelFollowsThePhonesLanguage[28]", "theLabelFollowsThePhonesLanguage",
+                "offPausedAndUnreadyKeepInstagramsLabel[28]", "offPausedAndUnreadyKeepInstagramsLabel"),
+            "app.hushgram.extension.instagram.settings.StoryTimeSettingsTest" to listOf(
+                "missingPatchHasNoStoryTimeSwitch[28]", "missingPatchHasNoStoryTimeSwitch",
+                "storyTimeSwitchStartsOnUnderStoriesPersistsAndHonorsPause[28]", "storyTimeSwitchStartsOnUnderStoriesPersistsAndHonorsPause"),
             "app.hushgram.extension.instagram.settings.OverrideNavigationTest" to listOf(
                 "missingPatchHasNoNativeAction[28]", "missingPatchHasNoNativeAction",
                 "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery[28]", "unavailableSessionOrNavigationKeepsTheDialogAndShowsRecovery",

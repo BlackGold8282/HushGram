@@ -88,6 +88,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_block_story_auto_advance", TRUE);
 
     /**
+     * A story's header shows the date and time it was posted, in the phone's language and 12 or
+     * 24-hour setting, instead of how long ago
+     * ({@link app.hushgram.extension.instagram.stories.StoryTime}). Read as each header is drawn,
+     * so a change shows from the next story. The patch is off in the default selection, so a build
+     * that has it asked for it, and the switch starts on.
+     */
+    public static final BooleanSetting SHOW_STORY_TIME =
+            new BooleanSetting("hushgram_show_story_time", TRUE);
+
+    /**
      * The stories you watch, which Instagram posts to media/seen/ to put you on their viewer lists.
      * Held back, you stay off them. Replies and reactions still show you.
      */

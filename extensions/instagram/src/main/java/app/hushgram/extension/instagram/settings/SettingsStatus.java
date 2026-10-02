@@ -68,6 +68,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storyTime() {
+        return false;
+    }
+
     public static boolean storySeen() {
         return false;
     }

@@ -398,6 +398,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             stories.add(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),
                     L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.")));
         }
+        if (build.contains(PatchFamily.STORY_TIME)) {
+            stories.add(toggle(context, Settings.SHOW_STORY_TIME, L10n.t("Show a story's exact time"),
+                    L10n.t("A story's header shows the date and time it was posted, like Oct 2, 3:45 PM, instead of "
+                            + "how long ago. It follows your phone's language and 12 or 24-hour setting.")));
+        }
         if (build.contains(PatchFamily.STORY_SEEN)) {
             stories.add(toggle(context, Settings.VIEW_STORIES_ANONYMOUSLY, L10n.t("View stories anonymously"),
                     L10n.t("Instagram isn't told which stories you watch, so you stay off their viewer lists. "
