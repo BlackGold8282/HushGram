@@ -112,9 +112,12 @@ The other patches keep their switches in `HushGram settings`, so Morphe Manager 
 Long-press Instagram's icon on your home screen and tap **HushGram settings**. Or, inside Instagram, open **Settings and activity** from the menu on your profile and tap **HushGram settings** at the top. The screen opens over Instagram, and the shortcut works before you sign in too.
 
 <p>
-  <img src="assets/settings-switches.png" alt="HushGram settings: the on card and the Ads and privacy switches" width="270">
-  <img src="assets/settings-pause-and-diagnostics.png" alt="HushGram settings: Set when you patched, Pause and Debug logging" width="270">
+  <img src="assets/settings-switches.png" alt="Published HushGram v0.0.3 settings, showing the on status and Ads and privacy controls" width="270">
+  <img src="assets/settings-pause-and-diagnostics.png" alt="Published HushGram v0.0.3 settings, showing Pause, Debug mode and diagnostic report controls" width="270">
+  <img src="assets/settings-about.png" alt="Published HushGram v0.0.3 About section on Instagram 449.0.0.52.84" width="270">
 </p>
+
+Captured on 2026-10-02 from the published v0.0.3 bundle with 33 of its 35 patches selected. Open developer options and Pure black dark mode were left out. The controls you see depend on the patches you select.
 
 Unreleased source builds also have **Search settings**. Search by a control's label or description in your phone's language, or by its English patch name. Contacts and location setup lead to Disable analytics. Following and Reels find their installed controls. Pause, diagnostics and any running save's Cancel stay available while searching. Clear the search to return to the same sections and choices. Search works offline. The query clears when settings closes or Android rebuilds the page, and it never becomes stored history.
 
@@ -133,10 +136,12 @@ At the top, a card says whether HushGram is on or paused. Below it:
 - **Layout** holds the switch for Remove the empty space at the bottom.
 - **Downloads** holds the switches for Download feed videos and Download feed photos, lists each save that's running, with a Cancel button, and holds what every save uses: Save videos other apps can open, Download quality, the save folder and the video file name. Videos go to Movies and photos to Pictures, each in an Instagram folder unless you name another, and a video is named `IG_VID_` with the date and time unless you set a name.
 - **Updates** holds the switch for the build expired screen.
-- **Developer** holds the Home long-press switch and Open MetaConfig overrides. The direct row opens Instagram's native flag editor without enabling the switch or changing any flag. It requires a signed-in Home or settings activity. An unavailable screen leaves HushGram settings open with an explanation.
+- **Developer** holds the Home long-press switch for Open developer options.
 - **Set when you patched** lists what was fixed at patch time and can't be switched off here, such as the re-signed build fix, the removed advertising ID and the pure black dark mode.
 - **Pause and diagnostics** has the Pause switch, Debug logging, and the diagnostic report. Copy a quick report, or save the full one to Download/Morphe (on Android 9, a Download/Morphe folder inside Instagram's own folder, and the message says where). Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it.
 - **About** shows the version and the licenses, with a link to this page.
+
+Unreleased source builds add **Open MetaConfig overrides** to Developer. It opens Instagram's native flag editor without enabling Home long press or changing a flag. It requires a signed-in Home or settings activity. An unavailable screen leaves HushGram settings open with an explanation.
 
 The diagnostic report also shows patch-time target coverage for Disable analytics, Sanitize sharing links and Start on x86 devices. Each shows matched/expected counts and fixed labels for missing targets. These describe the code the patch found, not which live requests Instagram sends.
 
@@ -244,6 +249,8 @@ Every source file says where it came from in its header, and [provenance.json](p
 ## Building from source
 
 You need JDK 17 or newer and the Android SDK. The Morphe patcher comes from GitHub Packages, so you also need a GitHub token with `read:packages`.
+
+The v0.0.3 release uses Gradle 9.8.0, Android Gradle Plugin 9.1.0 and Kotlin 2.4.20. It was verified with Morphe Manager 1.32.0 and Desktop CLI 1.17.0, both using patcher 1.14.1.
 
 ```bash
 export GITHUB_ACTOR=<your GitHub user>

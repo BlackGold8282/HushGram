@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Refresh the settings, diagnostics and About captures from the published v0.0.3 bundle. Document their actual patch selection and verified build tools, and label source-only controls as unreleased.
 * **Instagram:** Add an optional Copy action to the common comment menu, with an off-by-default Comments switch. An explicit tap copies the original text, including literal markup and line breaks, and uses Instagram's own menu dismissal.
 
 * **Instagram:** Default playback quality is included in Manager's simple mode. Its initial Auto choice leaves playback unchanged; patches that change behavior immediately remain opt-in.
