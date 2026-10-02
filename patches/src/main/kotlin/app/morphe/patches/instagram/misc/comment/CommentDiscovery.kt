@@ -140,9 +140,11 @@ internal fun BytecodePatchContext.findCommentMenu(): CommentMenu {
     val iconConstructor = requireConstructor(iconClass, listOf("I"))
     val labelConstructor = requireConstructor(labelClass, listOf("I"))
 
+    // The selected comment's register is counted back from the list, so the value between them
+    // must take one register.
     val renderer = methods().filter { method ->
         method.publicInstance() && method.returnType == "V" && method.parameters().let {
-            it.size == 5 && it[1] == selectedType && it[3] == LIST && it[4] == "F"
+            it.size == 5 && it[1] == selectedType && it[2] != "J" && it[2] != "D" && it[3] == LIST && it[4] == "F"
         } && method.code().any { it.field()?.toString() == callback.toString() ||
             (it.reference() as? TypeReference)?.type == rowBase.type }
     }.toList().one("common comment menu renderer")

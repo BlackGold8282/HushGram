@@ -6,6 +6,8 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Instagram:** Copy comment only takes a comment menu renderer whose middle argument fits one register. A future build that made it a long or double would have shifted the selected comment's register, so it's refused before anything changes.
+
 * **Tooling:** The injected-register verifier no longer clears a shared phone's log buffer. It writes its own marker line, reads only what follows it, and stops with a plain message if the buffer has already rotated past the marker.
 
 * **Instagram:** Save all only shows on a carousel when at least one page would save with your Downloads switches. An all-photo carousel used to offer it with Download feed photos off, then report every page as skipped.

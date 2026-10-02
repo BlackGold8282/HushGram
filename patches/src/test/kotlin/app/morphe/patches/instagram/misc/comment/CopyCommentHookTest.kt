@@ -61,6 +61,8 @@ class CopyCommentHookTest {
             "private style base" to nativeClasses("First", styleTypeFlags = AccessFlags.ABSTRACT.value),
             "non-dismissing callback" to nativeClasses("First", dismiss = 0),
             "missing popup guards" to nativeClasses("First", guards = false),
+            // The selected comment's register is counted back from the list, so a wide value between them moves it.
+            "wide renderer parameter" to nativeClasses("First", wideState = true),
             "missing bridge" to valid + extension().filter { it.type != COMMENT_NATIVE },
         )
         for ((case, native) in cases) {
@@ -278,7 +280,7 @@ class CopyCommentHookTest {
                               rowTypeFlags: Int = public or AccessFlags.ABSTRACT.value, labelFlags: Int = public,
                               constructorFlow: String = "alias", converterFlow: String = "direct",
                               getterFlow: String = "alias", styleTypeFlags: Int = public or AccessFlags.ABSTRACT.value,
-                              parserFlow: String = "direct"): List<ClassDef> {
+                              parserFlow: String = "direct", wideState: Boolean = false): List<ClassDef> {
         fun t(name: String) = "Ltest/$salt$name;"
         val raw = t("Raw")
         val value = t("Value")
@@ -518,7 +520,7 @@ class CopyCommentHookTest {
                     return-object v0
                 """))),
             clazz(renderer, fields = listOf(field(renderer, "popup", OBJECT)), methods = listOf(
-                method(renderer, "show", listOf("Landroidx/fragment/app/Fragment;", view, "Ltest/State;", LIST, "F"), "V", 12, public, """
+                method(renderer, "show", listOf("Landroidx/fragment/app/Fragment;", view, if (wideState) "J" else "Ltest/State;", LIST, "F"), "V", if (wideState) 13 else 12, public, """
                     iget-object v0, p0, $renderer->popup:$OBJECT
                     ${if (guards) "if-nez v0, :done" else "nop"}
                     iget-object v0, p0, $renderer->popup:$OBJECT
@@ -526,7 +528,7 @@ class CopyCommentHookTest {
                     const/4 v2, 0x0
                     invoke-virtual { p1 }, Landroidx/fragment/app/Fragment;->requireContext()$context
                     move-result-object v3
-                    invoke-static { p4 }, Ltest/Rows;->size(Ljava/lang/Iterable;)I
+                    invoke-static { ${if (wideState) "p5" else "p4"} }, Ltest/Rows;->size(Ljava/lang/Iterable;)I
                     move-result v0
                     const/4 v1, 0x0
                     new-instance v0, $wrapper
