@@ -26,6 +26,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -39,12 +41,21 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** The markers, after Instagram's release prefix, of 449's two methods reading the memory besides the check. */
+private const val PLAYBACK_STATE = "VideoPlaybackUseCase_getUiState"
+private const val PIP_ON_CREATE = "ClipsPiPFragment_onCreate"
+
 class KeepReelsAutoScrollHookTest {
     private val plugin = "Lfixture/AutoscrollPlugin;"
     private val preference = "Lfixture/AutoscrollPreference;"
     private val viewer = "Lfixture/ViewerFragment;"
     private val tabAction = "Lfixture/TabAction;"
     private val prefs = "Lfixture/Prefs;"
+    private val memoryClass = "Lfixture/AutoscrollManager;"
+    private val memory = "$memoryClass->on:Z"
+    private val useCase = "Lfixture/PlaybackUseCase;"
+    private val pip = "Lfixture/PipFragment;"
+    private val lifecycle = "Lfixture/ManagerLifecycle;"
     private val trace = "Lfixture/Trace;->begin(Ljava/lang/String;)V"
     private val session = "Lcom/instagram/common/session/UserSession;"
     private val clickParameters = listOf(
@@ -64,7 +75,15 @@ class KeepReelsAutoScrollHookTest {
         "overwrittenOnABranch" to listOf("move/from16 v1, p8", "if-nez v0, :keep", "const/4 v1, 0x1", ":keep"),
         "parameterOverwritten" to listOf("const/16 p8, 0x1", "move/from16 v1, p8"),
     )
-    private val hooks = setOf(AUTO_SCROLL_ANSWER, AUTO_SCROLL_SAVED, AUTO_SCROLL_CHOSEN)
+    private val hooks = setOf(AUTO_SCROLL_ANSWER, AUTO_SCROLL_SAVED, AUTO_SCROLL_CHOSEN, AUTO_SCROLL_STORED)
+
+    /** How the stand-in handler keeps its choice in memory: as it is, not at all, twice, or a constant in its place. */
+    private val choiceToKeep = mapOf(
+        "choice" to listOf("iput-boolean v1, v2, $memory"),
+        "none" to emptyList(),
+        "twice" to listOf("iput-boolean v1, v2, $memory", "iput-boolean v1, v2, $memory"),
+        "constant" to listOf("const/4 v3, 0x1", "iput-boolean v3, v2, $memory"),
+    )
 
     /** The hooks the patch writes are in the ReelAutoScroll the bundle ships, public and static. */
     @Test
@@ -79,8 +98,10 @@ class KeepReelsAutoScrollHookTest {
 
     /**
      * Every return of the check and of the getter is answered, a branch straight to a return
-     * included; the handler hands its choice over first thing, from a parameter above v15; the
-     * long-press action hands its choice over right after it saves it; and the status is on.
+     * included; the handler hands its choice over first thing, from a parameter above v15, and
+     * again right after it keeps it in memory and saves it; every read of the memory outside the
+     * check is answered right where it's read, and a branch past a read doesn't land on its answer;
+     * the long-press action hands its choice over right after it saves it; and the status is on.
      */
     @Test
     fun everyAnswerAndEveryChoiceGoesThroughTheExtension() {
@@ -98,7 +119,16 @@ class KeepReelsAutoScrollHookTest {
         val click = context.method(plugin, "handle")
         assertEquals("the stand-in handler's choice is in v28", 28, click.implementation!!.registerCount - 1)
         assertChoiceFirst("the stand-in", click)
+        assertChoiceKept("the stand-in", click, "$preference->setEnabled($prefs" + "Z)V", memory)
         assertChoiceAfterSave("the stand-in", context.method(tabAction, "run"), "$preference->setEnabled($prefs" + "Z)V")
+        val state = context.method(useCase, "uiState")
+        assertMemoryReadsAnswered("the playback state", state, memory, reads = 1)
+        val read = state.code().indexOfFirst { it.referenceText() == memory }
+        assertEquals("the branch past the read still lands on the instruction after it", read + 3, state.targetOf(read + 5))
+        assertMemoryReadsAnswered("picture in picture", context.method(pip, "onCreate"), memory, reads = 2)
+        assertEquals("nothing is added where Instagram resets the memory", 0,
+            context.method(lifecycle, "onActivityCreated").code().count { it.referenceText() in hooks })
+        assertEquals("the memory's getter isn't changed", 0, context.method(memoryClass, "instance").code().count { it.referenceText() in hooks })
         assertEquals("nothing else calls chosen", 0, context.method(viewer, "onPause").code().count { it.referenceText() == AUTO_SCROLL_CHOSEN })
 
         val status = context.method(SETTINGS_STATUS, "reelAutoScroll").code()
@@ -154,6 +184,16 @@ class KeepReelsAutoScrollHookTest {
             classes(toggleTakes = listOf("I")) to "isn't an instance method taking and returning nothing",
             classes(toggleSaves = 2) to "calls $preference->setEnabled($prefs" + "Z)V 2 times, expected once",
             classes(jumpAfterSave = true) to "has no place right after its call to $preference->setEnabled($prefs" + "Z)V",
+            classes(checkReadsMemory = 0) to "expected $plugin->check($session)Z to read one boolean field, found 0",
+            classes(checkReadsMemory = 2) to "expected $plugin->check($session)Z to read one boolean field, found 2",
+            classes(memoryClassThere = false) to "$memoryClass, whose boolean $plugin->check($session)Z reads, isn't in the app",
+            classes(memoryMarked = false) to "$memoryClass, whose boolean $plugin->check($session)Z reads, has no static method marked $AUTOSCROLL_MEMORY answering it",
+            classes(memoryFlags = 2) to "expected $memoryClass to keep one instance boolean, on, found [on, on1]",
+            classes(clickKeeps = "none") to "to keep its choice in $memory once, found 0",
+            classes(clickKeeps = "twice") to "to keep its choice in $memory once, found 2",
+            classes(clickKeeps = "constant") to "keeps something other than its choice, parameter 6 (v28), in $memory at instruction 10",
+            classes(readerOpcode = "iget") to "$useCase->uiState()Z reads $memory with iget at instruction 4, not iget-boolean",
+            classes(clickReads = true) to "reads $memory and hands its choice over too",
         )
         for ((classes, expected) in cases) {
             val context = PatchContexts.of(classes + ExtensionDex.classDef(SETTINGS_STATUS))
@@ -197,21 +237,39 @@ class KeepReelsAutoScrollHookTest {
                     AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
                         it.parameterTypes.map(CharSequence::toString) == listOf(getter.parameterTypes.single().toString(), "Z")
                 }
+                val plugin = found.values.single { type -> type.methods.any { m -> IS_AUTOSCROLL_ACTIVE in m.markers() } }
+                val checkMethod = plugin.methods.single { IS_AUTOSCROLL_ACTIVE in it.markers() }
+                val memory = checkMethod.code().single { it.opcode == Opcode.IGET_BOOLEAN }.reference() as FieldReference
+                val memoryText = memory.toString()
+                // The timer's and the preference's state: the static fields the preference class
+                // keeps, and those of the same types the check reads from the timer's class.
+                val descriptorTypes = preferenceClass.staticFields.map { it.type }.toSet()
+                val stateClasses = checkMethod.code().filter { it.opcode == Opcode.SGET_OBJECT }.map { it.reference() as FieldReference }
+                    .filter { it.type in descriptorTypes }.map { it.definingClass }.toSet() + preferenceClass.type
+                assertEquals("${bundle.name}: the timer's and the preference's classes", 2, stateClasses.size)
+                val stateReaders = mutableSetOf<String>()
                 FixtureDex.forEach(bundle) { dex ->
-                    if (dex.methodSection.none { it.definingClass == setter.definingClass && it.name == setter.name }) return@forEach
                     for (classDef in dex.classes) {
-                        if (classDef.type !in found && classDef.methods.any { m -> m.code().any { it.calls(setter) } }) {
-                            found[classDef.type] = ImmutableClassDef.of(classDef)
+                        var wanted = classDef.type == memory.definingClass
+                        for (method in classDef.methods) {
+                            for (instruction in method.code()) {
+                                if (instruction.calls(setter) || instruction.referenceText() == memoryText) wanted = true
+                                val field = instruction.reference() as? FieldReference ?: continue
+                                if (instruction.opcode.setsRegister() && field.definingClass in stateClasses && classDef.type !in stateClasses) {
+                                    stateReaders += method.text()
+                                }
+                            }
                         }
+                        if (wanted && classDef.type !in found) found[classDef.type] = ImmutableClassDef.of(classDef)
                     }
                 }
+                assertEquals("${bundle.name}: what reads the timer or the preference besides their own classes", setOf(checkMethod.text()), stateReaders)
                 val context = PatchContexts.of(found.values + ExtensionDex.classDef(SETTINGS_STATUS))
                 val sites = context.findReelAutoScroll()
                 assertEquals("${bundle.name}: the getter", "${getter.definingClass}->${getter.name}", "${sites.getter.definingClass}->${sites.getter.name}")
 
                 keepReelsAutoScrollPatch.execute(context)
 
-                val plugin = found.values.single { type -> type.methods.any { m -> IS_AUTOSCROLL_ACTIVE in m.markers() } }
                 val check = context.mutableClassDefBy(plugin.type).methods.single { IS_AUTOSCROLL_ACTIVE in it.markers() }
                 assertEveryReturnAnswered("${bundle.name}: the check", check, returns = null)
                 val checkCode = check.code()
@@ -221,6 +279,22 @@ class KeepReelsAutoScrollHookTest {
                 assertEveryReturnAnswered("${bundle.name}: the getter", context.method(getter), returns = 1, filter = AUTO_SCROLL_SAVED)
                 val click = context.mutableClassDefBy(plugin.type).methods.single { AUTOSCROLL_MODE_CLICK in it.markers() }
                 assertChoiceFirst(bundle.name, click)
+                assertChoiceKept(bundle.name, click, setter.text(), memoryText)
+
+                val readers = found.values.flatMap { type -> type.methods.filter { m -> m.code().any { it.referenceText() == memoryText && it.opcode.setsRegister() } } }
+                assertTrue("${bundle.name}: the check reads the memory", readers.any { it.text() == checkMethod.text() })
+                val outside = readers.filter { it.text() != checkMethod.text() }
+                val known = listOf(PIP_ON_CREATE, PLAYBACK_STATE)
+                assertEquals("${bundle.name}: what reads the memory besides the check", known, outside.map { m -> known.single { it in m.markers() } }.sorted())
+                outside.forEach { assertMemoryReadsAnswered("${bundle.name}: ${it.text()}", context.method(it), memoryText, reads = 1) }
+                assertEquals("${bundle.name}: reads answered", outside.map { "${it.definingClass}->${it.name}" }.sorted(),
+                    sites.memoryReads.map { "${it.method.definingClass}->${it.method.name}" }.sorted())
+                val resets = found.values.flatMap { type -> type.methods.filter { m -> m.code().any { it.referenceText() == memoryText && !it.opcode.setsRegister() } } }
+                    .filter { it.text() != click.text() }
+                assertTrue("${bundle.name}: Instagram resets the memory somewhere", resets.isNotEmpty())
+                resets.forEach { reset ->
+                    assertEquals("${bundle.name}: ${reset.text()} resets the memory and isn't changed", 0, context.method(reset).code().count { it.referenceText() in hooks })
+                }
 
                 val savers = found.values.flatMap { type -> type.methods.filter { m -> m.code().any { it.calls(setter) } }.map { type to it } }
                 assertEquals("${bundle.name}: the setter's callers", 3, savers.size)
@@ -277,6 +351,47 @@ class KeepReelsAutoScrollHookTest {
         assertTrue("$what: a jump lands on the hook", save + 1 !in toggle.jumpTargets())
     }
 
+    /**
+     * Right after each place the handler keeps its choice, the write to [field] and each call to
+     * [setter], the choice kept there goes to stored, and nothing jumps onto that call.
+     */
+    private fun assertChoiceKept(what: String, click: MutableMethod, setter: String, field: String) {
+        val code = click.code()
+        val keeps = code.indices.filter {
+            code[it].referenceText() == setter || (code[it].referenceText() == field && code[it].opcode == Opcode.IPUT_BOOLEAN)
+        }
+        assertEquals("$what: the handler keeps its choice in memory and in the preference", 2, keeps.size)
+        val targets = click.jumpTargets()
+        for (at in keeps) {
+            val held = if (code[at].opcode == Opcode.IPUT_BOOLEAN) (code[at] as TwoRegisterInstruction).registerA else code[at].arguments()[1]
+            assertEquals("$what: right after keeping at $at", AUTO_SCROLL_STORED, code[at + 1].referenceText())
+            assertEquals("$what: the choice kept at $at", listOf(held), code[at + 1].arguments())
+            assertTrue("$what: a jump lands on stored after $at", at + 1 !in targets)
+        }
+        assertEquals("$what: stored calls", keeps.size, code.count { it.referenceText() == AUTO_SCROLL_STORED })
+    }
+
+    /**
+     * Each of the [reads] reads of [field] in this method is followed by answer, on the register
+     * read into, and its result back in that register, with nothing jumping onto either.
+     */
+    private fun assertMemoryReadsAnswered(what: String, method: MutableMethod, field: String, reads: Int) {
+        val code = method.code()
+        val at = code.indices.filter { code[it].opcode == Opcode.IGET_BOOLEAN && code[it].referenceText() == field }
+        assertEquals("$what: reads", reads, at.size)
+        val targets = method.jumpTargets()
+        for (index in at) {
+            val register = (code[index] as TwoRegisterInstruction).registerA
+            assertEquals("$what: answer after the read at $index", AUTO_SCROLL_ANSWER, code[index + 1].referenceText())
+            assertEquals("$what: the register read at $index", listOf(register), code[index + 1].arguments())
+            assertEquals("$what: the result at $index", Opcode.MOVE_RESULT, code[index + 2].opcode)
+            assertEquals("$what: the result's register at $index", register, (code[index + 2] as OneRegisterInstruction).registerA)
+            assertTrue("$what: a jump lands on the answer of the read at $index", (index + 1..index + 2).none { it in targets })
+        }
+        assertEquals("$what: answer calls", at.size, code.count { it.referenceText() == AUTO_SCROLL_ANSWER })
+        assertEquals("$what: other hooks", 0, code.count { it.referenceText() in hooks - AUTO_SCROLL_ANSWER })
+    }
+
     // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
 
     /**
@@ -309,9 +424,23 @@ class KeepReelsAutoScrollHookTest {
         toggleTakes: List<String> = emptyList(),
         toggleSaves: Int = 1,
         jumpAfterSave: Boolean = false,
+        checkReadsMemory: Int = 1,
+        memoryClassThere: Boolean = true,
+        memoryMarked: Boolean = true,
+        memoryFlags: Int = 1,
+        clickKeeps: String = "choice",
+        clickReads: Boolean = false,
+        readerOpcode: String = "iget-boolean",
     ): List<ClassDef> {
         val setter = "$preference->setEnabled($prefs" + "Z)V"
         val read = if (checkReads) "invoke-static { v0 }, $preference->enabled($prefs)Z" else "invoke-static { v0 }, Lfixture/Other;->enabled($prefs)Z"
+        val instance = "$memoryClass->instance($session)$memoryClass"
+        val memoryRead = mapOf(
+            0 to listOf("const/4 v2, 0x1"),
+            1 to listOf("const/4 v2, 0x0", "invoke-static { v2 }, $instance", "move-result-object v2", "iget-boolean v2, v2, $memory"),
+            2 to listOf("const/4 v2, 0x0", "invoke-static { v2 }, $instance", "move-result-object v2", "iget-boolean v3, v2, Lfixture/Elsewhere;->flag:Z",
+                "iget-boolean v2, v2, $memory"),
+        )
         val checkMethods = (0 until checks).map { copy ->
             method(plugin, if (copy == 0) "check" else "check$copy", listOf(session), checkAnswers, 4, static = checkStatic, body = """
                 const/4 v1, 0x0
@@ -326,7 +455,7 @@ class KeepReelsAutoScrollHookTest {
                 :off
                 return v1
                 :memory
-                const/4 v2, 0x1
+                ${memoryRead.getValue(checkReadsMemory).joinToString("\n                ")}
                 return v2
             """)
         }
@@ -340,6 +469,13 @@ class KeepReelsAutoScrollHookTest {
                 invoke-static { v1 }, $trace
                 ${choiceToSave.getValue(clickSavesChoice).joinToString("\n                ")}
                 $save
+                if-nez v0, :kept
+                const/4 v2, 0x0
+                invoke-static { v2 }, $instance
+                move-result-object v2
+                ${choiceToKeep.getValue(clickKeeps).joinToString("\n                ")}
+                ${if (clickReads) "iget-boolean v4, v2, $memory" else ""}
+                :kept
                 ${if (clickLoops) "if-eqz v1, :top" else ""}
                 return-void
             """)
@@ -401,7 +537,49 @@ class KeepReelsAutoScrollHookTest {
                 return-void
             """)), fields = fields)
         }
-        return pluginClass + preferenceClasses + viewerClasses + otherClasses + toggleClasses
+        val memoryClasses = if (!memoryClassThere) emptyList() else listOf(
+            classDef(memoryClass, listOf(method(memoryClass, "instance", listOf(session), memoryClass, 1, static = true, body = """
+                const-string v0, "android_purge_26_q2_${if (memoryMarked) AUTOSCROLL_MEMORY else "ClipsSessionAutoscrollManager_init"}"
+                invoke-static { v0 }, $trace
+                const/4 v0, 0x0
+                return-object v0
+            """)), fields = listOf("on" to "Z") + if (memoryFlags == 2) listOf("on1" to "Z") else emptyList()),
+        )
+        // The Reels viewer's state reads the memory on one path and the preference on the other,
+        // which jumps to right after the read, as 449's does.
+        val readerClasses = listOf(
+            classDef(useCase, listOf(method(useCase, "uiState", emptyList(), "Z", 3, body = """
+                const/4 v0, 0x0
+                if-nez v0, :preference
+                invoke-static { v0 }, $instance
+                move-result-object v0
+                $readerOpcode v1, v0, $memory
+                :read
+                return v1
+                :preference
+                const/4 v1, 0x1
+                goto :read
+            """))),
+            classDef(pip, listOf(method(pip, "onCreate", listOf("Landroid/os/Bundle;"), "V", 3, body = """
+                const/4 v0, 0x0
+                invoke-static { v0 }, $instance
+                move-result-object v0
+                iget-boolean v1, v0, $memory
+                iput-boolean v1, p0, $pip->autoScroll:Z
+                iget-boolean v2, v0, $memory
+                iput-boolean v2, p0, $pip->autoScroll:Z
+                return-void
+            """)), fields = listOf("autoScroll" to "Z")),
+            classDef(lifecycle, listOf(method(lifecycle, "onActivityCreated", emptyList(), "V", 2, body = """
+                const/4 v0, 0x0
+                invoke-static { v0 }, $instance
+                move-result-object v0
+                const/4 v1, 0x0
+                iput-boolean v1, v0, $memory
+                return-void
+            """))),
+        )
+        return pluginClass + preferenceClasses + viewerClasses + otherClasses + toggleClasses + memoryClasses + readerClasses
     }
 
     private fun method(

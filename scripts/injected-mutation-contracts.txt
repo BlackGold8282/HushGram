@@ -676,11 +676,19 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->bind(Ljava/lang/
 # so it's the one static method answering a boolean in the class whose initializer loads the
 # preference's key (0CRG on 449), and calls saved once. The plugin's check of whether auto scroll is on (0CrH.A01 on 449)
 # calls answer at each of its four returns, which no rule here counts, so it rests on the same
-# test, which checks on the 449 fixture that every return passes through answer. Left out, auto
-# scroll goes back to Instagram's rules; twice or elsewhere, it isn't the hook the patch wrote.
+# test, which checks on the 449 fixture that every return passes through answer. The handler also
+# hands its choice to ReelAutoScroll.stored right after it keeps it in memory and right after it
+# saves it, two calls no rule here counts, so they rest on that test too. Two methods read the
+# memory itself (the manager's one boolean) and pass what they read through answer once, right
+# after the read: the Reels viewer's state (07Bj.A0V on 449, the one method holding its marker
+# below) and the picture in picture fragment's onCreate (0Xrc.onCreate). The test finds every read
+# of that boolean on the 449 fixture and checks each is answered. Left out, auto scroll goes back
+# to Instagram's rules; twice or elsewhere, it isn't the hook the patch wrote.
 start-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->chosen(I)V in instance (Landroidx/fragment/app/FragmentActivity;Lcom/instagram/common/session/UserSession;L*;Lkotlin/jvm/functions/Function0;IJZ)V holding android_purge_26_q3_ClipsOptInAutoscrollPluginImpl_handleAutoscrollModeClick
 shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->chosen(I)V in instance (Landroidx/fragment/app/FragmentActivity;Lcom/instagram/common/session/UserSession;L*;Lkotlin/jvm/functions/Function0;IJZ)V holding android_purge_26_q3_ClipsOptInAutoscrollPluginImpl_handleAutoscrollModeClick
 shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->saved(I)Z in static (L*;)Z class-holding preference_clips_auto_scroll_enabled
+shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->answer(I)Z in instance (*)L*; holding android_purge_26_q3_VideoPlaybackUseCase_getUiState
+shared-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->answer(I)Z in instance (Landroid/os/Bundle;)V holding android_purge_26_q2_ClipsPiPFragment_onCreate
 #
 # Stop Reels scrolling hands the Reels pager to ReelScrolling.pager right after the Reels viewer's
 # onViewCreated stores it (06Bw on 449, the one method of its shape holding the setup marker below),

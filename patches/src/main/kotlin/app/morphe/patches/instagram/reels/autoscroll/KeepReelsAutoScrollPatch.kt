@@ -31,6 +31,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import java.util.BitSet
@@ -41,6 +42,7 @@ internal const val REEL_AUTO_SCROLL = "$EXTENSION_PACKAGE/reels/ReelAutoScroll;"
 internal const val AUTO_SCROLL_ANSWER = "$REEL_AUTO_SCROLL->answer(I)Z"
 internal const val AUTO_SCROLL_SAVED = "$REEL_AUTO_SCROLL->saved(I)Z"
 internal const val AUTO_SCROLL_CHOSEN = "$REEL_AUTO_SCROLL->chosen(I)V"
+internal const val AUTO_SCROLL_STORED = "$REEL_AUTO_SCROLL->stored(I)V"
 
 /**
  * The markers, after Instagram's release prefix, of the Reels auto scroll plugin's check of whether
@@ -48,6 +50,9 @@ internal const val AUTO_SCROLL_CHOSEN = "$REEL_AUTO_SCROLL->chosen(I)V"
  */
 internal const val IS_AUTOSCROLL_ACTIVE = "ClipsOptInAutoscrollPluginImpl_isDurationAutoscrollActive"
 internal const val AUTOSCROLL_MODE_CLICK = "ClipsOptInAutoscrollPluginImpl_handleAutoscrollModeClick"
+
+/** The marker, after Instagram's release prefix, of the getter of the class keeping auto scroll in memory. */
+internal const val AUTOSCROLL_MEMORY = "ClipsSessionAutoscrollManager_getInstance"
 
 /** The saved auto scroll preference's key, and Kotlin's name for its getter. Its class's initializer loads both. */
 internal const val AUTOSCROLL_PREFERENCE = "preference_clips_auto_scroll_enabled"
@@ -67,11 +72,15 @@ private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
  * on across restarts is the user's pick. Asked for in #21.
  *
  * Instagram 449's auto scroll plugin answers whether auto scroll is on from memory, a timer or a
- * saved preference, as its server says, and every reader (the scroller and each auto scroll switch)
- * asks the plugin. Each of its answers passes through the extension, and so does each answer of the
- * saved preference's getter, through a hook of its own that remembers nothing. The plugin's handler
- * for its switches hands the extension the choice first thing, and so does the Reels tab's
- * long-press action, right after it saves its choice.
+ * saved preference, as its server says. The scroller and each auto scroll switch ask the plugin, and
+ * each of its answers passes through the extension, and so does each answer of the saved
+ * preference's getter, through a hook of its own that remembers nothing. Two more places read the
+ * memory itself rather than asking: the Reels viewer's state (07Bj.A0V on 449) and its picture in
+ * picture (0Xrc.onCreate). Every read of the memory outside the plugin's check passes through the
+ * extension too, so they get the same answer. The plugin's handler for its switches hands the
+ * extension the choice first thing, and again right after it keeps it in memory or saves it, so an
+ * "on" made there is remembered at once. The Reels tab's long-press action hands its choice over
+ * right after it saves it.
  *
  * Every method is found by Instagram's own markers, strings and kept class names, and everything is
  * found and checked before anything changes, so a build that differs stops the patch naming what
@@ -112,11 +121,24 @@ internal class ReelAutoScrollSites(
     /** The plugin's handler for its switches, and the register of its choice, read first thing. */
     val click: MethodSite,
     val clickChoice: Int,
+    /**
+     * In the handler, the index right after each place it keeps its choice, in memory or in the saved
+     * preference, and the register holding the choice there. Each goes through [AUTO_SCROLL_STORED].
+     */
+    val clickKeeps: List<Kept>,
     /** The Reels tab's long-press action, the index right after it saves its choice, and the choice's register. */
     val toggle: MethodSite,
     val toggleAt: Int,
     val toggleChoice: Int,
+    /** Every read of the memory outside the check: each goes through [AUTO_SCROLL_ANSWER]. */
+    val memoryReads: List<MemoryRead>,
 )
+
+/** In the handler, right [after] it keeps its choice, which [register] holds. */
+internal class Kept(val after: Int, val register: Int)
+
+/** A read of the memory at [index] of [method], into [register]. */
+internal class MemoryRead(val method: MethodSite, val index: Int, val register: Int)
 
 /**
  * Finds the plugin's two methods by their markers, both in one class: the check, an instance
@@ -125,12 +147,17 @@ internal class ReelAutoScrollSites(
  * loads [AUTOSCROLL_PREFERENCE] and [AUTOSCROLL_GETTER_NAME]; its one static getter answering a
  * boolean has to be read by the check, and its one static setter, taking what the getter takes and
  * a boolean, has to be called by the handler, saving the choice it was handed (see
- * [requireSavesChoice]), so the choice read first thing is the one Instagram goes on to save.
+ * [requireKeepsChoice]), so the choice read first thing is the one Instagram goes on to save.
  *
  * The setter has three callers on 449: the handler, the Reels viewer's onPause, which loads
  * [AUTO_SCROLL_SURFACE] and clears the preference, and the Reels tab's long-press action, an
  * instance method taking nothing in a class keeping a [MAIN_ACTIVITY]. That last one, which calls
  * the setter once with no jump landing right after the call, is where its choice is read.
+ *
+ * The memory is the one boolean field the check reads. Its class has a static method marked
+ * [AUTOSCROLL_MEMORY] answering it, and keeps no other instance boolean. The handler writes it once,
+ * with the choice it was handed (see [requireKeepsChoice]). Every other read of it anywhere in the
+ * app is found here, so none is left reading Instagram's own value.
  *
  * Fails when any of them isn't there, or there's more than one, since that's an update this patch
  * hasn't seen.
@@ -179,15 +206,38 @@ internal fun BytecodePatchContext.findReelAutoScroll(): ReelAutoScrollSites {
         ?: refuse("expected ${preference.type} to have one static setter taking a boolean, found ${setters.size}")
     if (isActive.code().none { it.calls(getter) }) refuse("${isActive.text()} doesn't read ${getter.text()}")
     if (click.code().none { it.calls(setter) }) refuse("${click.text()} doesn't save to ${setter.text()}")
-    click.requireSavesChoice(setter)
+    val memories = isActive.code().filter { it.opcode == Opcode.IGET_BOOLEAN }.map { it.field() }.distinctBy { it.text() }
+    val memory = memories.singleOrNull()
+        ?: refuse("expected ${isActive.text()} to read one boolean field, found ${memories.size}")
+    val clickKeeps = click.requireKeepsChoice(setter, memory)
     if (isActive.code().none { it.opcode == Opcode.RETURN } || getter.code().none { it.opcode == Opcode.RETURN }) {
         refuse("${isActive.text()} or ${getter.text()} has no return to answer at")
     }
 
     val callers = mutableListOf<Pair<ClassDef, Method>>()
+    val memoryClasses = mutableListOf<ClassDef>()
+    val reads = mutableListOf<Pair<Method, Int>>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
-        classDef.methods.filter { method -> method.code().any { it.calls(setter) } }.forEach { callers += classDef to it }
+        if (classDef.type == memory.definingClass) memoryClasses += classDef
+        classDef.methods.forEach { method ->
+            val code = method.code()
+            if (code.any { it.calls(setter) }) callers += classDef to method
+            code.forEachIndexed { index, instruction -> if (instruction.reads(memory)) reads += method to index }
+        }
+    }
+    val memoryClass = memoryClasses.singleOrNull() ?: refuse("${memory.definingClass}, whose boolean ${isActive.text()} reads, isn't in the app")
+    if (memoryClass.methods.none { it.isStatic() && it.returnType == memoryClass.type && AUTOSCROLL_MEMORY in it.markers() }) {
+        refuse("${memoryClass.type}, whose boolean ${isActive.text()} reads, has no static method marked $AUTOSCROLL_MEMORY answering it")
+    }
+    val flags = memoryClass.fields.filter { it.type == "Z" && !AccessFlags.STATIC.isSet(it.accessFlags) }.map { it.name }
+    if (flags != listOf(memory.name)) refuse("expected ${memoryClass.type} to keep one instance boolean, ${memory.name}, found $flags")
+    val memoryReads = reads.filter { (method, _) -> method.text() != isActive.text() }.map { (method, index) ->
+        val read = method.code()[index]
+        if (read.opcode != Opcode.IGET_BOOLEAN) {
+            refuse("${method.text()} reads ${memory.text()} with ${read.opcode.name.lowercase()} at instruction $index, not iget-boolean")
+        }
+        MemoryRead(method.site(), index, (read as TwoRegisterInstruction).registerA)
     }
     val others = callers.filter { (_, method) -> method.text() != click.text() }
     val pauses = others.filter { (_, method) ->
@@ -217,24 +267,47 @@ internal fun BytecodePatchContext.findReelAutoScroll(): ReelAutoScrollSites {
     if (toggleAt >= code.size || toggleAt in toggle.jumpTargets()) {
         refuse("${toggle.text()} has no place right after its call to ${setter.text()} that only that call leads to")
     }
+    memoryReads.firstOrNull { it.method.toString() == click.site().toString() || it.method.toString() == toggle.site().toString() }?.let {
+        refuse("${it.method} reads ${memory.text()} and hands its choice over too")
+    }
 
     return ReelAutoScrollSites(
-        isActive.site(), getter.site(), click.site(), click.parameterRegisterNumber(click.parameterTypes.lastIndex),
-        toggle.site(), toggleAt, toggleChoice,
+        isActive.site(), getter.site(), click.site(), click.parameterRegisterNumber(click.parameterTypes.lastIndex), clickKeeps,
+        toggle.site(), toggleAt, toggleChoice, memoryReads,
     )
 }
 
 /**
- * The handler's choice goes to [AUTO_SCROLL_CHOSEN] first thing, and the long-press action's right
- * after it saves it. Then every return of the check passes its answer through [AUTO_SCROLL_ANSWER],
- * and every return of the getter through [AUTO_SCROLL_SAVED], at the return's own label, so a branch
- * straight to a return passes through it too.
+ * The handler's choice goes to [AUTO_SCROLL_STORED] right after each place it keeps it, then to
+ * [AUTO_SCROLL_CHOSEN] first thing; the long-press action's goes to [AUTO_SCROLL_CHOSEN] right after
+ * it saves it. Every read of the memory outside the check passes what it read through
+ * [AUTO_SCROLL_ANSWER] right after the read. Code put right after an instruction is skipped by a
+ * jump to the instruction that followed it, which keeps its label: that jump didn't come through the
+ * read or the keeping. Then every return of the check passes its answer through
+ * [AUTO_SCROLL_ANSWER], and every return of the getter through [AUTO_SCROLL_SAVED], at the return's
+ * own label, so a branch straight to a return passes through it too.
  */
 internal fun BytecodePatchContext.keepReelAutoScroll(sites: ReelAutoScrollSites) {
-    mutable(sites.click).addInstructions(
+    val click = mutable(sites.click)
+    sites.clickKeeps.sortedByDescending { it.after }.forEach { kept ->
+        click.addInstructions(kept.after, "invoke-static/range { v${kept.register} .. v${kept.register} }, $AUTO_SCROLL_STORED")
+    }
+    click.addInstructions(
         0,
         "invoke-static/range { v${sites.clickChoice} .. v${sites.clickChoice} }, $AUTO_SCROLL_CHOSEN",
     )
+    sites.memoryReads.groupBy { it.method.toString() }.values.forEach { reads ->
+        val reader = mutable(reads.first().method)
+        reads.sortedByDescending { it.index }.forEach { read ->
+            reader.addInstructions(
+                read.index + 1,
+                """
+                    invoke-static/range { v${read.register} .. v${read.register} }, $AUTO_SCROLL_ANSWER
+                    move-result v${read.register}
+                """,
+            )
+        }
+    }
     mutable(sites.toggle).addInstructions(
         sites.toggleAt,
         "invoke-static/range { v${sites.toggleChoice} .. v${sites.toggleChoice} }, $AUTO_SCROLL_CHOSEN",
@@ -248,12 +321,16 @@ private val PLAIN_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 
 /**
  * Refuses unless every call in this handler to [setter] saves the choice the handler was handed
- * last: the setter's boolean has to be the choice's own register, or a copy of it made by plain
- * moves, with nothing written over the choice or the copy on any path from the start to the call,
- * along branches and exception handlers alike. On 449 the handler copies the choice once
- * (`move/from16`) near its start and saves the copy where Instagram goes by the preference.
+ * last, and its one write to [memory] keeps it: the setter's boolean, and the value written, have to
+ * be the choice's own register, or a copy of it made by plain moves, with nothing written over the
+ * choice or the copy on any path from the start, along branches and exception handlers alike. On
+ * 449 the handler copies the choice once (`move/from16`) near its start, keeps the copy in memory
+ * where Instagram goes by memory and saves it where Instagram goes by the preference. Answers where
+ * each of those happens and which register holds the choice there.
  */
-private fun Method.requireSavesChoice(setter: Method) {
+private fun Method.requireKeepsChoice(setter: Method, memory: FieldReference): List<Kept> {
+    val writes = code().count { it.writes(memory) }
+    if (writes != 1) refuse("expected ${text()} to keep its choice in ${memory.text()} once, found $writes")
     val flow = ControlFlow.of(this)
     val choice = parameterRegisterNumber(parameterTypes.lastIndex)
     // The registers holding the choice on every path into each instruction; null until one reaches it.
@@ -289,15 +366,20 @@ private fun Method.requireSavesChoice(setter: Method) {
         }
         flow.normal[at].forEach { flowInto(it, after) }
     }
-    flow.instructions.withIndex().filter { (_, instruction) -> instruction.calls(setter) }.forEach { (save, instruction) ->
-        val saved = instruction.argumentRegisters().getOrNull(1)
-        if (saved == null || holding[save]?.get(saved) != true) {
-            refuse(
-                "${text()} saves something other than its choice, parameter ${parameterTypes.lastIndex} (v$choice), " +
-                    "to ${setter.text()} at instruction $save",
-            )
+    val kept = mutableListOf<Kept>()
+    flow.instructions.forEachIndexed { at, instruction ->
+        val (held, where) = when {
+            instruction.calls(setter) -> instruction.argumentRegisters().getOrNull(1) to "to ${setter.text()}"
+            instruction.writes(memory) -> (instruction as TwoRegisterInstruction).registerA to "in ${memory.text()}"
+            else -> return@forEachIndexed
         }
+        if (held == null || holding[at]?.get(held) != true || at + 1 >= flow.instructions.size) {
+            val verb = if (instruction.calls(setter)) "saves" else "keeps"
+            refuse("${text()} $verb something other than its choice, parameter ${parameterTypes.lastIndex} (v$choice), $where at instruction $at")
+        }
+        kept += Kept(at + 1, held)
     }
+    return kept
 }
 
 private fun BytecodePatchContext.mutable(site: MethodSite): MutableMethod =
@@ -333,3 +415,17 @@ private fun Instruction.argumentRegisters(): List<Int> = when (this) {
     is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
     else -> emptyList()
 }
+
+private fun Instruction.field(): FieldReference = (this as ReferenceInstruction).reference as FieldReference
+
+private fun FieldReference.text() = "$definingClass->$name:$type"
+
+/** Whether this instruction reads or writes [field]. */
+private fun Instruction.touches(field: FieldReference): Boolean {
+    val touched = (this as? ReferenceInstruction)?.reference as? FieldReference ?: return false
+    return touched.definingClass == field.definingClass && touched.name == field.name && touched.type == field.type
+}
+
+private fun Instruction.reads(field: FieldReference) = touches(field) && opcode.setsRegister()
+
+private fun Instruction.writes(field: FieldReference) = touches(field) && !opcode.setsRegister()

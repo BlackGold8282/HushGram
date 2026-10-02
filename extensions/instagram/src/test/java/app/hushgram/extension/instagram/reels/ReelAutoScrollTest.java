@@ -107,6 +107,29 @@ public class ReelAutoScrollTest {
     }
 
     /**
+     * The switch's choice, once Instagram keeps it in memory or saves it, is remembered at once,
+     * on and off, before anything asks the check again: the Playback sheet's switch turned on is
+     * still on after a restart even if no reel ended in between.
+     */
+    @Test
+    public void aChoiceInstagramKeepsIsRememberedAtOnce() {
+        ReelAutoScroll.chosen(1);
+        ReelAutoScroll.stored(1);
+        assertTrue(Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        assertTrue("Instagram forgot, HushGram didn't", ReelAutoScroll.answer(0));
+
+        ReelAutoScroll.chosen(0);
+        ReelAutoScroll.stored(0);
+        assertFalse(Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        assertFalse(ReelAutoScroll.answer(0));
+
+        ReelAutoScroll.stored(0x7f);
+        assertTrue("any non-zero is on", Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        ReelAutoScroll.stored(0);
+        assertFalse("off kept without the switch's own call", Settings.REEL_AUTO_SCROLL_ON.savedValue());
+    }
+
+    /**
      * The Reels tab's long press saved on, auto scroll was turned off with the plugin's switch
      * where Instagram goes by memory or a timer, and nothing cleared the saved preference. Reading
      * it, as the long press does, answers Instagram's own on but remembers nothing, so the off stands.
@@ -177,6 +200,13 @@ public class ReelAutoScrollTest {
         ReelAutoScroll.chosen(0, () -> true, memory);
         assertEquals(2, memory.writes);
         assertFalse(memory.on);
+
+        ReelAutoScroll.stored(0, () -> true, memory);
+        assertEquals(2, memory.writes);
+        ReelAutoScroll.stored(1, () -> true, memory);
+        ReelAutoScroll.stored(1, () -> true, memory);
+        assertEquals(3, memory.writes);
+        assertTrue(memory.on);
     }
 
     /**
@@ -203,6 +233,7 @@ public class ReelAutoScrollTest {
         assertFalse(ReelAutoScroll.answer(0));
         assertTrue(ReelAutoScroll.answer(1));
         ReelAutoScroll.chosen(0);
+        ReelAutoScroll.stored(0);
         assertTrue("nothing is remembered while paused", Settings.REEL_AUTO_SCROLL_ON.savedValue());
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
@@ -212,8 +243,13 @@ public class ReelAutoScrollTest {
             assertFalse(ReelAutoScroll.answer(0));
             assertTrue(ReelAutoScroll.answer(1));
             ReelAutoScroll.chosen(0);
+            ReelAutoScroll.stored(0);
         });
         assertTrue("nothing is remembered before the settings are read", Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        Settings.REEL_AUTO_SCROLL_ON.save(false);
+        CountingMemory memory = new CountingMemory(false);
+        ReelAutoScroll.stored(1, () -> false, memory);
+        assertEquals("a kept on isn't remembered while paused", 0, memory.writes);
     }
 
     /** A switch or a memory that throws leaves Instagram's answer, and says which hook threw. */
@@ -240,6 +276,10 @@ public class ReelAutoScrollTest {
             throw new IllegalStateException("settings went away");
         }, () -> true, new CountingMemory(false)));
         ReelAutoScroll.chosen(0, () -> true, broken);
+        ReelAutoScroll.stored(1, () -> true, broken);
+        ReelAutoScroll.stored(0, () -> {
+            throw new IllegalStateException("settings went away");
+        }, new CountingMemory(true));
         assertFalse(ReelAutoScroll.saved(0, () -> true, broken));
         assertTrue(ReelAutoScroll.saved(1, () -> true, broken));
         assertFalse(ReelAutoScroll.saved(0, () -> {
@@ -250,6 +290,7 @@ public class ReelAutoScrollTest {
         assertTrue(missing, missing.contains("'auto scroll answer'"));
         assertTrue(missing, missing.contains("'auto scroll choice'"));
         assertTrue(missing, missing.contains("'auto scroll saved'"));
+        assertTrue(missing, missing.contains("'auto scroll stored'"));
         assertTrue(missing, missing.contains(IllegalStateException.class.getName()));
     }
 }
