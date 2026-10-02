@@ -263,6 +263,36 @@ To apply every patch to a real build and check the result, run `scripts/verify-a
 
 Verification reads coverage back from the patched APK and writes a separate coverage report. `scripts/patch-coverage-expectations.json` pins required and optional targets to an exact Instagram version and version code. The 449 fixture requires every reviewed target in those three families. A missing required target stops certification even if the family applied. An explicitly optional absence stays visible. Forced runs on unreviewed builds record counts with `reviewed: false`. Schema 3 receipts carry this same input-derived coverage. Older receipts keep their own schema checks and don't certify these new fields.
 
+## Translating HushGram
+
+HushGram keeps its translations in UTF-8 TSV files under `extensions/shared/library/src/main/l10n`. The English text is the lookup key. Python 3.10 or newer can export the current source catalog and existing translations as flat JSON for Crowdin:
+
+```bash
+python scripts/sync-l10n.py export --output "path/to/translation-review"
+```
+
+Upload `en.json` as the source file and the five language files as existing translations. Identifiers are the full SHA-256 of each exact English key, so adding or moving a row doesn't change other identifiers. Changing the English creates a new identifier that needs review. Existing translations that match English are valid and should be kept when seeding the project.
+
+Create the hosted project from the authenticated account that will own it. Use English as the source language and Korean for the first volunteer pilot. Enable placeholder mismatch as an error. Export approved translations with untranslated strings skipped, because Crowdin's default export fills missing translations with English. See [Crowdin's export settings](https://support.crowdin.com/project-settings/export/) and [translation upload guide](https://support.crowdin.com/uploading-translations/). Importing a file locally doesn't approve its wording. Native review and checking the translated screens come separately.
+
+Import a complete reviewed file, then regenerate the class the extension carries:
+
+```bash
+python scripts/sync-l10n.py import --language de --input "path/to/translation-review/de.json"
+python scripts/gen-l10n.py
+python scripts/test-l10n.py
+```
+
+For an existing language, `--partial` keeps every row absent from the download. Blank values are rejected. A new language needs a complete file and an explicit `--new-language`, such as `--language ko --new-language`. Indonesian's `id` maps to `in.tsv`, and `pt-BR` maps to `pt-rBR.tsv`.
+
+Each import validates the input before atomically replacing one table. Unchanged imports keep the original bytes, including comments and line endings. Missing required rows, duplicate or unknown identifiers, malformed JSON and incompatible formatting stop the import. Files may contain up to 4,096 entries and take up to 2 MiB. Each string has an 8,192-character limit. Numbered Java arguments may move, while bare arguments keep their order. Width, flags and date conversions need a reviewed extension to the current format contract.
+
+TSV escapes are `\\` for a backslash and `\n` for a line feed. Printable right-to-left text is preserved. Invisible controls are rejected, and the runtime isolates dynamic values itself. Extra plural rows use the actual quantity call's other key followed by `|zero`, `|two`, `|few` or `|many`. The original singular key supplies `one`.
+
+Importers use an exclusive transaction lock and check the destination again before replacement. A competing import stops without taking over its lock. If a process dies holding a lock, remove that lock only after verifying the old process has stopped.
+
+The lock coordinates this script's imports. Other tools can still edit a table between the final check and replacement. Stop those tools from writing the destination during an import.
+
 ## License
 
 [GPL-3.0](LICENSE), with the Morphe section 7 notices carried in [NOTICE](NOTICE). Instagram, Facebook and Meta are trademarks of Meta Platforms, Inc.

@@ -1,0 +1,527 @@
+"""Exercise local catalog exports, TSV escapes and failure-safe translation imports.
+
+Copyright 2026 HushGram contributors. GPL-3.0-only.
+https://github.com/SysAdminDoc/HushGram
+"""
+import hashlib
+import importlib.util
+import io
+import json
+import os
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+ROOT = Path(__file__).resolve().parent.parent
+SCRATCH = Path(os.environ.get("HUSHGRAM_L10N_TEST_WORK", str(ROOT / "build/l10n-tests")))
+SCRATCH.mkdir(parents=True, exist_ok=True)
+spec = importlib.util.spec_from_file_location("hushgram_translation_sync", ROOT / "scripts/sync-l10n.py")
+bridge = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(bridge)
+generator = bridge.generator
+
+
+class TranslationTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(prefix="catalog-", dir=SCRATCH)
+        self.addCleanup(self.temporary.cleanup)
+        self.work = Path(self.temporary.name)
+        self.root = self.work / "repo"
+        self.rows = {"Hello": "Hallo", "Value %1$s": "Wert %1$s", "Bare %s and %d": "Wert %s und %d",
+                     "One %1$d item": "Ein %1$d Eintrag", "%1$d items": "%1$d Eintrage"}
+        self.make_repository(self.rows, ["de"], ("One %1$d item", "%1$d items"))
+        self.table = self.root / bridge.TABLE_DIRECTORY / "de.tsv"
+        self.input = self.work / "incoming.json"
+
+    def make_repository(self, rows, languages, quantity=None):
+        folder = self.root / bridge.TABLE_DIRECTORY
+        folder.mkdir(parents=True, exist_ok=True)
+        shared = self.root / "extensions/shared/library/src/main/java"
+        application = self.root / "extensions/instagram/src/main/java"
+        shared.mkdir(parents=True, exist_ok=True)
+        application.mkdir(parents=True, exist_ok=True)
+        source = "class SourceCatalog { void show() {\n"
+        source += "".join(f"L10n.t({json.dumps(key, ensure_ascii=True)});\n" for key in rows
+                          if not generator.PLURAL_VARIANT.match(key))
+        if quantity:
+            source += "L10n.quantity(count, {}, {});\n".format(*tuple(json.dumps(key) for key in quantity))
+        (application / "SourceCatalog.java").write_text(source + "} }\n", encoding="utf-8")
+        for language in languages:
+            data = b"# Keep this context.\n" + "".join(
+                generator.encode_field(key) + "\t" + generator.encode_field(value) + "\n"
+                for key, value in rows.items()).encode("utf-8")
+            (folder / (language + ".tsv")).write_bytes(data)
+
+    def incoming(self, rows=None):
+        self.input.write_bytes(bridge.json_bytes(self.rows if rows is None else rows))
+        return self.input
+
+    def import_rows(self, rows=None, **options):
+        return bridge.import_translations(self.root, "de", self.incoming(rows), **options)
+
+    def reject(self, data, **options):
+        self.input.write_bytes(data)
+        before = self.table.read_bytes()
+        with self.assertRaises((ValueError, OSError)):
+            bridge.import_translations(self.root, "de", self.input, **options)
+        self.assertEqual(before, self.table.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_all_five_real_languages_round_trip_without_changing_any_bytes(self):
+        shutil.rmtree(self.root)
+        for tree in ("extensions/shared/library/src/main/java", "extensions/instagram/src/main/java",
+                     str(bridge.TABLE_DIRECTORY)):
+            shutil.copytree(ROOT / tree, self.root / tree)
+        script = self.root / "scripts/gen-l10n.py"
+        script.parent.mkdir()
+        shutil.copyfile(ROOT / "scripts/gen-l10n.py", script)
+        folder = self.root / bridge.TABLE_DIRECTORY
+        before = {path.name: path.read_bytes() for path in folder.glob("*.tsv")}
+        java = self.root / "extensions/shared/library/src/main/java/app/hushgram/extension/shared/L10nTranslations.java"
+        generated = java.read_bytes()
+        counts = {name[:-4]: sum(b"\t" in line for line in data.splitlines()) for name, data in before.items()}
+        source_keys = {generator.decode_field(line.split(b"\t", 1)[0].decode("utf-8"))
+                       for data in before.values() for line in data.splitlines() if b"\t" in line}
+        output = self.work / "export"
+        self.assertEqual((len(source_keys), sum(counts.values())), bridge.export_catalog(self.root, output))
+        self.assertTrue({"de", "es", "in", "pt-rBR", "tr"}.issubset(counts))
+        for language, count in counts.items():
+            self.assertEqual((False, count, 0), bridge.import_translations(
+                self.root, language, output / (language + ".json")))
+        self.assertEqual(before, {path.name: path.read_bytes() for path in folder.glob("*.tsv")})
+        regenerated = subprocess.run([sys.executable, "-B", str(script)], capture_output=True, text=True, check=False)
+        self.assertEqual(0, regenerated.returncode, regenerated.stderr)
+        self.assertEqual(generated, java.read_bytes())
+
+    def test_identifiers_use_full_sha256_of_exact_english(self):
+        english = "line\nnext \\n"
+        self.assertEqual("hg_" + hashlib.sha256(english.encode("utf-8")).hexdigest(), bridge.identifier(english))
+        self.assertNotEqual(bridge.identifier("a\nb"), bridge.identifier("a\\nb"))
+        self.assertNotEqual(bridge.identifier("caf\u00e9"), bridge.identifier("cafe\u0301"))
+
+    def test_export_is_deterministic_and_source_matches_code(self):
+        first, second = self.work / "first", self.work / "second"
+        bridge.export_catalog(self.root, first)
+        bridge.export_catalog(self.root, second)
+        self.assertEqual((first / "en.json").read_bytes(), (second / "en.json").read_bytes())
+        self.assertEqual({bridge.identifier(key): key for key in self.rows},
+                         json.loads((first / "en.json").read_bytes()))
+        self.assertEqual((first / "de.json").read_bytes(), (second / "de.json").read_bytes())
+
+    def test_partial_merge_retains_absent_rows_and_context(self):
+        before = self.table.read_bytes()
+        self.assertEqual((True, 1, 4), self.import_rows({"Hello": "Neu"}, partial=True))
+        after = self.table.read_bytes()
+        self.assertEqual(before.replace(b"Hello\tHallo\n", b"Hello\tNeu\n"), after)
+        self.assertEqual("Neu", generator.read(self.table)["Hello"])
+
+    def test_source_equal_translation_is_valid(self):
+        self.assertEqual((True, 1, 4), self.import_rows({"Hello": "Hello"}, partial=True))
+
+    def test_unchanged_import_preserves_bom_crlf_comments_and_no_final_newline(self):
+        data = b"\xef\xbb\xbf" + self.table.read_bytes().replace(b"\n", b"\r\n").rstrip(b"\r\n")
+        self.table.write_bytes(data)
+        self.assertEqual((False, 5, 0), self.import_rows())
+        self.assertEqual(data, self.table.read_bytes())
+
+    def test_missing_row_is_rejected_by_default(self):
+        self.reject(bridge.json_bytes({"Hello": "Neu"}))
+
+    def test_json_rejects_unknown_and_duplicate_decoded_identifiers(self):
+        key = bridge.identifier("Hello")
+        escaped = key.replace("h", "\\u0068", 1)
+        for data in (b'{"unknown":"x"}', (f'{{"{key}":"x","{escaped}":"y"}}').encode()):
+            with self.subTest(data=data):
+                self.reject(data, partial=True)
+
+    def test_json_rejects_invalid_structure_constants_and_encoding(self):
+        key = bridge.identifier("Hello")
+        for value in (None, False, 2, [], {"nested": "x"}, "", " \n "):
+            with self.subTest(value=value):
+                self.reject(json.dumps({key: value}).encode(), partial=True)
+        for data in (b"[]", b"{}", b"null", b'{"x":NaN}', b'{"x":Infinity}', b'{"x":-Infinity}',
+                     b'{"x":"\xff"}', b'{"x":', b'\xef\xbb\xbf\xef\xbb\xbf{}'):
+            with self.subTest(data=data):
+                self.reject(data, partial=True)
+
+    def test_json_bom_is_accepted(self):
+        self.input.write_bytes(b"\xef\xbb\xbf" + bridge.json_bytes(self.rows))
+        self.assertEqual((False, 5, 0), bridge.import_translations(self.root, "de", self.input))
+
+    def test_controls_surrogates_and_invisibles_are_rejected(self):
+        for character in ("\0", "\r", "\t", "\u2068", "\u2069", "\u202e", "\u200f", "\u200b",
+                          "\ue000", "\u0378", "\u2028", "\u2029", "\ud800", "\udfff", "\u3164",
+                          "\ufe0f", "\U000e0100", "\u2013", "\u2014"):
+            with self.subTest(codepoint=ord(character)):
+                self.reject(json.dumps({bridge.identifier("Hello"): "a" + character + "b"}).encode(), partial=True)
+        self.reject(bridge.json_bytes({"Hello": "a - b"}), partial=True)
+
+    def test_codec_round_trip_preserves_newline_backslashes_supplementary_and_rtl(self):
+        value = 'quote " and apostrophe\' <tag>& literal \\n, LF\n\u0645\u0631\u062d\u0628\u0627 \u05e9\u05dc\u05d5\u05dd \U0001f680'
+        self.assertEqual(value, generator.decode_field(generator.encode_field(value)))
+        self.assertEqual((True, 1, 4), self.import_rows({"Hello": value}, partial=True))
+        self.assertEqual(value, generator.read(self.table)["Hello"])
+        self.assertIn("\\u", generator.literal(value))
+        self.assertIn("\\ud83d\\ude80", generator.literal(value))
+        output = self.work / "rtl"
+        bridge.export_catalog(self.root, output)
+        self.assertEqual((False, 5, 0), bridge.import_translations(self.root, "de", output / "de.json"))
+
+    def test_source_key_newlines_and_literal_backslash_n_get_distinct_identifiers(self):
+        rows = {"line\nnext": "Zeile\nweiter", "line\\nnext": "Zeile\\nweiter"}
+        shutil.rmtree(self.root)
+        self.make_repository(rows, ["de"])
+        output = self.work / "escapes"
+        self.assertEqual((2, 2), bridge.export_catalog(self.root, output))
+        before = self.table.read_bytes()
+        self.assertEqual((False, 2, 0), bridge.import_translations(self.root, "de", output / "de.json"))
+        self.assertEqual(before, self.table.read_bytes())
+
+    def test_formats_keep_bare_order_and_numbered_argument_types(self):
+        for source, translated in (("%1$s %2$d", "%2$d %1$s"), ("%s %% %d", "%% %s %d"),
+                                   ("%1$s %1$s", "%1$s %1$s"), ("a%n%s", "%s%n a")):
+            self.assertIsNone(generator.placeholder_problem(source, translated))
+        for source, translated in (("%s %d", "%d %s"), ("%1$s", "%1$d"), ("%1$s %2$s", "%1$s %1$s"),
+                                   ("%1$s", "%s"), ("%1$s", "%1$s %999999999s"), ("%1$s", "%1$s %"),
+                                   ("%1$s", "%1$999999s"), ("%1$s", "%1$.2s"), ("Hello", "%0$s"),
+                                   ("Hello", "%1$n"), ("Hello", "%1$%"), ("%s %%", "%s"),
+                                   ("%1$s", "%1$s %q"), ("%1$s", "%1$s %<s"), ("%1$s", "%1$s %tY")):
+            with self.subTest(source=source, translated=translated):
+                self.assertIsNotNone(generator.placeholder_problem(source, translated))
+        self.reject(bridge.json_bytes({"Bare %s and %d": "Wert %d und %s"}), partial=True)
+        self.reject(bridge.json_bytes({"Value %1$s": "%1$s %999999999s"}), partial=True)
+
+    def test_real_numbered_reordering_imports(self):
+        rows = {"%1$s then %2$d": "%1$s dann %2$d"}
+        shutil.rmtree(self.root)
+        self.make_repository(rows, ["de"])
+        self.assertEqual((True, 1, 0), self.import_rows({"%1$s then %2$d": "%2$d dann %1$s"}))
+
+    def test_reachable_plural_variant_import_export_and_partial_retention(self):
+        rows = dict(self.rows, **{"%1$d items|few": "%1$d wenige Eintrage"})
+        self.assertEqual((True, 6, 0), self.import_rows(rows))
+        output = self.work / "plural"
+        self.assertEqual((6, 6), bridge.export_catalog(self.root, output))
+        self.assertEqual("%1$d items", json.loads((output / "en.json").read_bytes())[bridge.identifier("%1$d items|few")])
+        before = self.table.read_bytes()
+        self.assertEqual((False, 6, 0), bridge.import_translations(self.root, "de", output / "de.json"))
+        self.assertEqual(before, self.table.read_bytes())
+        self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(rows["%1$d items|few"], generator.read(self.table)["%1$d items|few"])
+        self.reject(bridge.json_bytes(self.rows))
+
+    def test_orphan_unreachable_unknown_and_incompatible_plural_variants_reject(self):
+        for key, value in (("Hello|few", "x"), ("%1$d items|one", "%1$d x"),
+                           ("%1$d items|unknown", "%1$d x"), ("%1$d items|few", "%1$s x")):
+            with self.subTest(key=key):
+                self.reject(bridge.json_bytes({key: value}), partial=True)
+
+    def test_source_literal_that_ends_like_a_plural_category_is_exported_in_full(self):
+        source = self.root / "extensions/instagram/src/main/java/SourceCatalog.java"
+        with source.open("a", encoding="utf-8") as handle:
+            handle.write('class LiteralCategory { void show() { L10n.t("Label|few"); } }')
+        with self.table.open("ab") as handle:
+            handle.write(b"Label|few\tBeschriftung\n")
+        output = self.work / "literal-category"
+        bridge.export_catalog(self.root, output)
+        self.assertEqual("Label|few", json.loads((output / "en.json").read_bytes())[bridge.identifier("Label|few")])
+
+    def test_string_limit_accepts_boundary_and_rejects_one_more(self):
+        self.import_rows({"Hello": "a" * bridge.MAX_TEXT}, partial=True)
+        self.reject(bridge.json_bytes({"Hello": "a" * (bridge.MAX_TEXT + 1)}), partial=True)
+
+    def test_file_limit_accepts_boundary_and_rejects_one_more(self):
+        data = bridge.json_bytes(self.rows)
+        at_limit = data + b" " * (bridge.MAX_BYTES - len(data))
+        self.input.write_bytes(at_limit)
+        self.assertEqual((False, 5, 0), bridge.import_translations(self.root, "de", self.input))
+        self.reject(at_limit + b" ")
+
+    def test_entry_limit_accepts_boundary_and_rejects_one_more(self):
+        rows = {f"key {at:04d}": f"value {at:04d}" for at in range(bridge.MAX_ENTRIES)}
+        shutil.rmtree(self.root)
+        self.make_repository(rows, ["de"])
+        self.assertEqual((False, bridge.MAX_ENTRIES, 0), self.import_rows(rows))
+        data = json.loads(bridge.json_bytes(rows))
+        data["unknown"] = "x"
+        self.reject(json.dumps(data).encode())
+
+    def test_source_catalog_limit_and_missing_or_stale_table_rows_reject(self):
+        for bad in (b"Unknown\tx\n", b"Hello\tHallo\nHello\tDoppelt\n", b"Hello\tHallo\tx\n",
+                    b"Hello\tunknown\\q\n", b"Hello\ttrailing\\\n", b"\xef\xbb\xbf\xef\xbb\xbfHello\tHallo\n"):
+            self.table.write_bytes(bad)
+            self.reject(bridge.json_bytes(self.rows))
+        rows = {f"key {at:04d}": "x" for at in range(bridge.MAX_ENTRIES + 1)}
+        shutil.rmtree(self.root)
+        self.make_repository(rows, ["de"])
+        self.reject(bridge.json_bytes({"Hello": "x"}), partial=True)
+
+    def test_tsv_does_not_silently_strip_a_carriage_return_from_translation_text(self):
+        for bad in (b"Hello\tHallo\r", b"Hello\tHallo\r\r\n"):
+            with self.subTest(data=bad):
+                self.table.write_bytes(bad)
+                self.reject(bridge.json_bytes(self.rows))
+
+    def test_new_language_is_explicit_and_requires_complete_input(self):
+        source = self.incoming({"Hello": "\uc548\ub155"})
+        korean = self.table.with_name("ko.tsv")
+        for options in ({}, {"new_language": True}, {"new_language": True, "partial": True}):
+            with self.subTest(options=options), self.assertRaises(ValueError):
+                bridge.import_translations(self.root, "ko", source, **options)
+            self.assertFalse(korean.exists())
+        source = self.incoming()
+        self.assertEqual((True, 5, 0), bridge.import_translations(self.root, "ko", source, new_language=True))
+        self.assertEqual(self.rows, generator.read(korean))
+        with self.assertRaises(ValueError):
+            bridge.import_translations(self.root, "ko", source, new_language=True)
+
+    def test_language_aliases_and_unsafe_names(self):
+        self.assertEqual("in", bridge.language_tag("id"))
+        self.assertEqual("pt-rBR", bridge.language_tag("pt-BR"))
+        self.assertEqual("pt-rBR", bridge.language_tag("pt-rbr"))
+        for invalid in ("../de", "de/foo", "de\\foo", "de.tsv", "", "con", "NUL", "en", "en-XA", "ar-XB"):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                bridge.language_tag(invalid)
+
+    def test_identifier_collision_stops_export_before_files_are_created(self):
+        output = self.work / "collision"
+        with mock.patch.object(bridge, "identifier", return_value="hg_collision"), self.assertRaises(ValueError):
+            bridge.export_catalog(self.root, output)
+        self.assertFalse(output.exists())
+
+    def test_source_scanner_joins_literals_and_ignores_fake_calls(self):
+        source = self.root / "extensions/instagram/src/main/java/SourceCatalog.java"
+        source.write_text('class SourceCatalog { void show() {\n'
+                          '// L10n.t("comment");\nString x = "L10n.t(\\\"string\\\")";\n'
+                          'L10n.t("Hello " + /* context */ "world");\n'
+                          'L10n.quantity(2, "One\\nitem", "%1$d " + "items");\n} }', encoding="utf-8")
+        keys, others = generator.source_catalog(str(self.root))
+        self.assertEqual({"Hello world", "One\nitem", "%1$d items"}, keys)
+        self.assertEqual({"%1$d items"}, others)
+
+    def test_source_scanner_includes_pause_fields_and_the_constant(self):
+        source = self.root / "extensions/instagram/src/main/java"
+        (source / "PatchFamily.java").write_text(
+            'enum PatchFamily { KEEP(FamilyNames.KEEP, "keep", "what stays"), '
+            'OFF(FamilyNames.OFF, "off", null, Settings.OFF); }', encoding="utf-8")
+        (source / "HushgramPreferenceFragment.java").write_text(
+            'class HushgramPreferenceFragment { static final String STAYS_WHILE_PAUSED = "pause text"; }', encoding="utf-8")
+        keys, _ = generator.source_catalog(str(self.root))
+        self.assertEqual(set(self.rows) | {"what stays", "pause text"}, keys)
+
+    def test_destination_race_during_staging_keeps_the_other_writers_bytes(self):
+        latest = self.table.read_bytes().replace(b"Hello\tHallo", b"Hello\tLatest")
+        real_fsync = bridge.os.fsync
+        calls = 0
+
+        def racing_fsync(descriptor):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                self.table.write_bytes(latest)
+            return real_fsync(descriptor)
+
+        with mock.patch.object(bridge.os, "fsync", side_effect=racing_fsync), self.assertRaises(ValueError):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(latest, self.table.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+
+    def test_stale_snapshot_and_racing_creation_are_rejected(self):
+        expected = bridge.snapshot(self.table)
+        latest = self.table.read_bytes().replace(b"Hello\tHallo", b"Hello\tLatest")
+        self.table.write_bytes(latest)
+        with self.assertRaises(ValueError):
+            bridge.replace_if_unchanged(self.table, expected, b"wrong")
+        self.assertEqual(latest, self.table.read_bytes())
+        created = self.table.with_name("ko.tsv")
+        missing = bridge.snapshot(created)
+        created.write_bytes(b"created by another writer")
+        with self.assertRaises(ValueError):
+            bridge.replace_if_unchanged(created, missing, b"wrong")
+        self.assertEqual(b"created by another writer", created.read_bytes())
+
+    def test_write_fsync_and_replace_failures_leave_destination_intact(self):
+        before = self.table.read_bytes()
+        for target in ("NamedTemporaryFile", "fsync", "replace"):
+            with self.subTest(target=target):
+                owner = bridge.tempfile if target == "NamedTemporaryFile" else bridge.os
+                original = getattr(owner, target)
+                calls = 0
+
+                def failing(*args, _target=target, _original=original, **kwargs):
+                    nonlocal calls
+                    calls += 1
+                    if _target != "fsync" or calls == 2:
+                        raise OSError("injected write failure")
+                    return _original(*args, **kwargs)
+
+                with mock.patch.object(owner, target, side_effect=failing), self.assertRaises(OSError):
+                    self.import_rows({"Hello": "Neu"}, partial=True)
+                self.assertEqual(before, self.table.read_bytes())
+                self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+                self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_oversized_staged_table_and_read_only_destination_leave_original_intact(self):
+        before = self.table.read_bytes()
+        with self.assertRaises(ValueError):
+            bridge.replace_if_unchanged(self.table, bridge.snapshot(self.table), b"a" * (bridge.MAX_BYTES + 1))
+        self.assertEqual(before, self.table.read_bytes())
+        original_mode = stat.S_IMODE(self.table.stat().st_mode)
+        self.table.chmod(stat.S_IREAD)
+        try:
+            self.assertEqual((False, 5, 0), self.import_rows())
+            with self.assertRaises(ValueError):
+                self.import_rows({"Hello": "Neu"}, partial=True)
+            self.assertEqual(before, self.table.read_bytes())
+            self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        finally:
+            self.table.chmod(original_mode)
+
+    def test_foreign_transaction_lock_is_never_overwritten_or_removed(self):
+        lock = self.table.with_name("." + self.table.name + ".import-lock")
+        lock.write_bytes(b"another writer's ownership record")
+        before = self.table.read_bytes()
+        with self.assertRaises(ValueError):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(before, self.table.read_bytes())
+        self.assertEqual(b"another writer's ownership record", lock.read_bytes())
+
+    def test_post_commit_lock_cleanup_error_reports_the_applied_result(self):
+        lock = self.table.with_name("." + self.table.name + ".import-lock")
+        original = Path.unlink
+        errors = io.StringIO()
+
+        def fail_cleanup(path, *args, **kwargs):
+            if path == lock:
+                raise OSError("injected cleanup failure")
+            return original(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", autospec=True, side_effect=fail_cleanup), \
+                mock.patch.object(bridge.sys, "stderr", errors):
+            self.assertEqual((True, 1, 4), self.import_rows({"Hello": "Neu"}, partial=True))
+        self.assertEqual("Neu", generator.read(self.table)["Hello"])
+        self.assertIn("lock cleanup failed", errors.getvalue())
+        lock.unlink()
+
+    def test_lock_handle_close_failure_happens_before_the_destination_commit(self):
+        before = self.table.read_bytes()
+        original = bridge.os.fdopen
+
+        def failing_close(descriptor, *args, **kwargs):
+            handle = original(descriptor, *args, **kwargs)
+            context = mock.MagicMock()
+            context.__enter__.return_value = handle
+
+            def close(*_):
+                handle.close()
+                raise OSError("injected lock close failure")
+
+            context.__exit__.side_effect = close
+            return context
+
+        with mock.patch.object(bridge.os, "fdopen", side_effect=failing_close), \
+                self.assertRaisesRegex(OSError, "lock close failure"):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(before, self.table.read_bytes())
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_committed_import_never_stats_its_old_temporary_name(self):
+        original = Path.exists
+
+        def fail_cleanup_stat(path):
+            if path.name.endswith(".tmp"):
+                raise OSError("injected post-commit temporary stat failure")
+            return original(path)
+
+        with mock.patch.object(Path, "exists", autospec=True, side_effect=fail_cleanup_stat):
+            self.assertEqual((True, 1, 4), self.import_rows({"Hello": "Neu"}, partial=True))
+        self.assertEqual("Neu", generator.read(self.table)["Hello"])
+        self.assertEqual([], list(self.table.parent.glob(".*.tmp")))
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_temporary_cleanup_error_preserves_the_original_failure(self):
+        before = self.table.read_bytes()
+        original = Path.unlink
+        errors = io.StringIO()
+
+        def fail_cleanup(path, *args, **kwargs):
+            if path.name.endswith(".tmp"):
+                raise OSError("injected temporary cleanup failure")
+            return original(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", autospec=True, side_effect=fail_cleanup), \
+                mock.patch.object(bridge.os, "replace", side_effect=OSError("injected replace failure")), \
+                mock.patch.object(bridge.sys, "stderr", errors), \
+                self.assertRaisesRegex(OSError, "replace failure"):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(before, self.table.read_bytes())
+        self.assertIn("temporary cleanup failed", errors.getvalue())
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+        remaining = list(self.table.parent.glob(".*.tmp"))
+        self.assertEqual(1, len(remaining))
+        remaining[0].unlink()
+
+    def test_changed_lock_ownership_during_staging_is_preserved(self):
+        lock = self.table.with_name("." + self.table.name + ".import-lock")
+        before = self.table.read_bytes()
+        real_fsync = bridge.os.fsync
+        calls = 0
+
+        def replace_owner(descriptor):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                lock.write_bytes(b"replacement owner")
+            return real_fsync(descriptor)
+
+        with mock.patch.object(bridge.os, "fsync", side_effect=replace_owner), self.assertRaises(ValueError):
+            self.import_rows({"Hello": "Neu"}, partial=True)
+        self.assertEqual(before, self.table.read_bytes())
+        self.assertEqual(b"replacement owner", lock.read_bytes())
+
+    def test_separate_process_import_lock_excludes_a_second_writer(self):
+        program = ('import importlib.util, pathlib, sys\n'
+                   'spec=importlib.util.spec_from_file_location("sync",sys.argv[1])\n'
+                   'module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module)\n'
+                   'with module.transaction_lock(pathlib.Path(sys.argv[2])):\n'
+                   ' print("locked",flush=True)\n'
+                   ' sys.stdin.readline()\n')
+        process = subprocess.Popen([sys.executable, "-B", "-c", program, str(ROOT / "scripts/sync-l10n.py"), str(self.table)],
+                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            self.assertEqual("locked", process.stdout.readline().strip())
+            before = self.table.read_bytes()
+            with self.assertRaises(ValueError):
+                self.import_rows({"Hello": "Neu"}, partial=True)
+            self.assertEqual(before, self.table.read_bytes())
+        finally:
+            _, error = process.communicate("\n", timeout=10)
+        self.assertEqual(0, process.returncode, error)
+        self.assertEqual([], list(self.table.parent.glob("*.import-lock")))
+
+    def test_cli_exports_imports_and_returns_nonzero_for_incomplete_input(self):
+        command = [sys.executable, "-B", str(ROOT / "scripts/sync-l10n.py"), "--root", str(self.root)]
+        output = self.work / "cli"
+        exported = subprocess.run(command + ["export", "--output", str(output)], capture_output=True, text=True, check=False)
+        self.assertEqual(0, exported.returncode, exported.stderr)
+        imported = subprocess.run(command + ["import", "--language", "de", "--input", str(output / "de.json")],
+                                  capture_output=True, text=True, check=False)
+        self.assertEqual(0, imported.returncode, imported.stderr)
+        self.assertIn("unchanged", imported.stdout)
+        before = self.table.read_bytes()
+        failed = subprocess.run(command + ["import", "--language", "de", "--input", str(self.incoming({"Hello": "Neu"}))],
+                                capture_output=True, text=True, check=False)
+        self.assertEqual(1, failed.returncode)
+        self.assertIn("incomplete", failed.stderr)
+        self.assertEqual(before, self.table.read_bytes())
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

@@ -223,6 +223,8 @@
         "patches/src/main/kotlin/app/morphe/patches/instagram/download/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/extension/PurgeMarkers.kt",
         "scripts/audit-dependencies.ps1",
+        "scripts/sync-l10n.py",
+        "scripts/test-l10n.py",
         "scripts/dependency-graphs.init.gradle",
         "scripts/dependency-advisory-exceptions.txt",
         "scripts/PatchCoverage.java",
