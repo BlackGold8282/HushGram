@@ -57,6 +57,7 @@ try {
             RemotePaths = [System.Collections.Generic.HashSet[string]]::new(
                 [System.StringComparer]::Ordinal)
             CleanupCalls = 0
+            Marker = $null
         }
         $invoker = {
             param([string]$Executable, [string[]]$Arguments)
@@ -74,7 +75,10 @@ try {
                 [void]$state.RemotePaths.Add($directory)
                 if ($FailureStage -eq 'setup') { $exitCode = 12 }
             } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-c') {
-                if ($FailureStage -eq 'clear') { $exitCode = 13 }
+                throw 'The verifier cleared the log buffer of a shared phone.'
+            } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'log -t HushGramVerify *') {
+                $state.Marker = $Arguments[3].Substring('log -t HushGramVerify '.Length)
+                if ($FailureStage -eq 'mark') { $exitCode = 13 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'dex2oat* --dex-file=*') {
                 $read = if ($FailureStage -eq 'short-read') { 5 } else { $Size }
                 $output = if ($FailureStage -eq 'dex2oat') { @('exit=14', "size=$read") } else { @('exit=0', "size=$read") }
@@ -83,14 +87,24 @@ try {
                     throw 'fake ADB threw while reading logcat'
                 } elseif ($FailureStage -eq 'log-read') {
                     $exitCode = 15
-                } elseif ($FailureStage -eq 'unread') {
-                    $output = @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushgram-verify-case.apk'")
                 } else {
-                    $output = @(
+                    # Another session's lines before this run's marker are left alone and not counted.
+                    $before = @(
                         'I dex2oat64: Verification error in Lfixture/Host;',
-                        'I dex2oat64: Verification error in Lfixture/Host;',
-                        'W dex2oat: VerifyError in Lfixture/Other;'
+                        "W dex2oat64: Skipping non-existent dex file '/data/local/tmp/other.apk'",
+                        "I HushGramVerify: hushgram-verify-case-$('0' * 32)"
                     )
+                    $run = if ($FailureStage -eq 'unread') {
+                        @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushgram-verify-case.apk'")
+                    } else {
+                        @(
+                            'I dex2oat64: Verification error in Lfixture/Host;',
+                            'I dex2oat64: Verification error in Lfixture/Host;',
+                            'W dex2oat: VerifyError in Lfixture/Other;'
+                        )
+                    }
+                    $marked = if ($FailureStage -eq 'rotated') { @() } else { @("I HushGramVerify: $($state.Marker)") }
+                    $output = @($before) + @($marked) + @($run)
                 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'rm -rf *') {
                 $state.CleanupCalls++
@@ -325,9 +339,10 @@ class FakeAdb {
     $failures = [ordered]@{
         push = 'Could not push case to SERIAL (ADB exit 11).'
         setup = 'Could not prepare the verifier output directory for case on SERIAL (ADB exit 12).'
-        clear = 'Could not clear logcat on SERIAL before verifying case (ADB exit 13).'
+        mark = 'Could not mark logcat on SERIAL before verifying case (ADB exit 13).'
         dex2oat = 'dex2oat on case exited 14.'
         'log-read' = 'Could not read logcat on SERIAL after verifying case (ADB exit 15).'
+        rotated = "The log on SERIAL no longer holds the start of the case run, so its verifier messages can't be counted. Retry when the phone is quieter."
         'short-read' = "dex2oat on case read a file of 5 bytes on SERIAL, not the $fixtureSize bytes pushed."
         unread = "dex2oat did not read case on SERIAL: Skipping non-existent dex file '/data/local/tmp/hushgram-verify-case.apk'"
     }
@@ -361,7 +376,7 @@ class FakeAdb {
     Assert-True ($thrownFailure.State.RemotePaths.Count -eq 0) `
         'A thrown ADB error left fake remote files behind.'
 
-    $primaryWithCleanupFailure = New-FakeAdb -FailureStage 'clear' -CleanupThrowNumber 1
+    $primaryWithCleanupFailure = New-FakeAdb -FailureStage 'mark' -CleanupThrowNumber 1
     $warnings = @()
     $caught = $null
     try {
@@ -371,7 +386,7 @@ class FakeAdb {
     } catch {
         $caught = $_
     }
-    Assert-True ($caught.Exception.Message -eq $failures.clear) `
+    Assert-True ($caught.Exception.Message -eq $failures.mark) `
         'A cleanup failure replaced the original verification failure.'
     Assert-BothCleanupCalls -State $primaryWithCleanupFailure.State -Context 'secondary cleanup failure'
     Assert-True (($warnings | ForEach-Object { "$_" }) -join "`n" -match 'cleanup also failed') `

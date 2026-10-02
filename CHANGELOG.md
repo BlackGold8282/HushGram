@@ -6,6 +6,8 @@ Every HushGram release, newest first.
 
 ### HushGram v0.0.4
 
+* **Tooling:** The injected-register verifier no longer clears a shared phone's log buffer. It writes its own marker line, reads only what follows it, and stops with a plain message if the buffer has already rotated past the marker.
+
 * **Instagram:** Save all only shows on a carousel when at least one page would save with your Downloads switches. An all-photo carousel used to offer it with Download feed photos off, then report every page as skipped.
 
 * **Tooling:** Device identity checks read ADB's standard output separately from diagnostic messages. A successful daemon startup no longer rejects the selected phone or emulator, while command failures keep their full diagnostics and invalid identities still refuse installation.
