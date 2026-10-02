@@ -184,6 +184,13 @@ $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
     -AllowedDependencyNames $dependencyNames -OutputPath $out `
     -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
 if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
+$coverage = @(Get-ApkTargetCoverage -Apk $out -Java $Java -DesktopJar $DesktopJar -Names $names)
+$coverageVerdict = Test-TargetCoverage -Coverage $coverage -Names $names -Package $stock.package `
+    -VersionName $stock.versionName -VersionCode $stock.versionCode
+if (-not $coverageVerdict.Valid -or -not $coverageVerdict.Reviewed) { throw "Target coverage failed: $($coverageVerdict.Reason)" }
+foreach ($entry in $coverage) {
+    Write-Host "[device] $($entry.family): $($entry.matched)/$($entry.expected) targets; missing: $($entry.missing -join ', ')"
+}
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
 Write-Host "[device] $out"
 

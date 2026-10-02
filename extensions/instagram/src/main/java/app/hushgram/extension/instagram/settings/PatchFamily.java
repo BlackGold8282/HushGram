@@ -161,11 +161,49 @@ public enum PatchFamily {
         List<String> lines = new ArrayList<>();
         List<String> absent = new ArrayList<>();
         for (PatchFamily family : values()) {
-            if (inBuild.contains(family)) lines.add(family.reportLine(paused));
+            if (inBuild.contains(family)) {
+                lines.add(family.reportLine(paused));
+                if (family == DISABLE_ANALYTICS || family == SANITIZE_SHARING_LINKS || family == TRANSLATED_START) {
+                    try {
+                        String encoded = (String) SettingsStatus.class.getMethod(family.statusMethod + "Coverage").invoke(null);
+                        lines.add("  " + coverageLine(encoded));
+                    } catch (ReflectiveOperationException | RuntimeException failure) {
+                        lines.add("  patch target coverage unavailable");
+                    }
+                }
+            }
             else absent.add(family.patchName);
         }
         if (!absent.isEmpty()) lines.add("not in this build: " + String.join(", ", absent));
         return lines;
+    }
+
+    /** The same fixed-label metadata the fixture tools read from this APK's DEX. */
+    static String coverageLine(String encoded) {
+        if (encoded == null || encoded.isEmpty() || encoded.length() > 32768) {
+            return "patch target coverage unavailable";
+        }
+        try {
+            String[] parts = encoded.split("\\|", -1);
+            if (parts.length != 5 || !parts[0].equals("1")) throw new IllegalArgumentException();
+            int matched = Integer.parseInt(parts[1]);
+            int expected = Integer.parseInt(parts[2]);
+            List<String> targets = Arrays.asList(parts[3].split(",", -1));
+            List<String> missing = parts[4].isEmpty() ? Collections.emptyList() : Arrays.asList(parts[4].split(",", -1));
+            if (matched < 1 || expected < matched || expected > 256 || targets.size() != expected
+                    || missing.size() != expected - matched || new HashSet<>(targets).size() != expected
+                    || new HashSet<>(missing).size() != missing.size() || !targets.containsAll(missing)) {
+                throw new IllegalArgumentException();
+            }
+            for (String label : targets) {
+                if (!label.matches("[a-z][a-z0-9 -]{0,63}")) throw new IllegalArgumentException();
+            }
+            return "patch targets matched " + matched + "/" + expected
+                    + (missing.isEmpty() ? " (complete)" : " (partial); missing: " + String.join(", ", missing))
+                    + ". Patch-time matches do not prove live endpoint suppression.";
+        } catch (IllegalArgumentException failure) {
+            return "patch target coverage unavailable";
+        }
     }
 
     /** "on", "disabled by its switch" or "disabled while paused", then the saved switches. */

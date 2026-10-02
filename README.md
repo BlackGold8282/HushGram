@@ -130,6 +130,8 @@ At the top, a card says whether HushGram is on or paused. Below it:
 - **Developer** holds the switch for Open developer options.
 - **Set when you patched** lists what was fixed at patch time and can't be switched off here, such as the re-signed build fix, the removed advertising ID and the pure black dark mode.
 - **Pause and diagnostics** has the Pause switch, Debug logging, and the diagnostic report. Copy a quick report, or save the full one to Download/Morphe (on Android 9, a Download/Morphe folder inside Instagram's own folder, and the message says where). Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it.
+
+Unreleased source builds also show patch-time target coverage for Disable analytics, Sanitize sharing links and Start on x86 devices in the diagnostic report. Each shows matched/expected counts and fixed labels for missing targets. These describe the code the patch found, not which live requests Instagram sends.
 - **About** shows the version and the licenses, with a link to this page.
 
 Pause turns off every feature a switch controls, all at once and without losing your choices. It's the quickest way to tell whether HushGram is behind a problem.
@@ -244,6 +246,8 @@ The Android host test-tool graphs pin Netty to 4.1.138. The settings plugin pins
 The shipped SBOM still describes only what the bundle carries. The host-contract graph describes the patcher's locally resolved provided libraries. It doesn't prove which versions are inside an installed Morphe Manager or Desktop, and an advisory finding doesn't prove the affected code is reachable. On 2026-10-01 the settings plugin resolved Guava 33.5.0 despite the project overrides. Its own override now selects 33.7.2, matching the publisher's fixed version. Tool-created test graphs in the shared extension also take the same reviewed version.
 
 To apply every patch to a real build and check the result, run `scripts/verify-all-patches.ps1 -Apk <instagram .apks> -DesktopJar <morphe-desktop jar> -WorkDir <scratch folder>`. It patches without forcing anything, then compares the patched manifest to Meta's. [CONTRIBUTING.md](CONTRIBUTING.md) has the rest.
+
+Verification reads coverage back from the patched APK and writes a separate coverage report. `scripts/patch-coverage-expectations.json` pins required and optional targets to an exact Instagram version and version code. The 449 fixture requires every reviewed target in those three families. A missing required target stops certification even if the family applied; an explicitly optional absence stays visible. Forced runs on unreviewed builds record counts with `reviewed: false`. Schema 3 receipts carry this same input-derived coverage. Older receipts keep their own schema checks and don't certify these new fields.
 
 ## License
 

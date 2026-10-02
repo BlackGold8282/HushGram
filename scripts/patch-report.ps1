@@ -15,8 +15,99 @@
 .NOTES
     Taken from Hushfacebook's scripts/patch-report.ps1
     (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
-    GPL-3.0-only. Unchanged apart from this note.
+    GPL-3.0-only. Modified for HushGram (Instagram), 2026.
 #>
+
+function Get-ApkTargetCoverage {
+    param([string]$Apk, [string]$Java, [string]$DesktopJar, [string[]]$Names)
+    if (@($Names | Where-Object { $_ -cin @('Disable analytics', 'Sanitize sharing links', 'Start on x86 devices') }).Count -eq 0) {
+        return @()
+    }
+    $preference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = -1
+        $lines = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'PatchCoverage.java') $Apk 2>&1)
+        $code = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $preference }
+    if ($code -ne 0) { throw "Could not read target coverage from the patched APK: $($lines -join ' ')" }
+    foreach ($line in $lines) {
+        $match = [regex]::Match([string]$line, '^(disableAnalytics|sanitizeSharingLinks|translatedStart)=(.+)$')
+        if (-not $match.Success) { throw 'Unexpected output from the target coverage reader.' }
+        $parts = $match.Groups[2].Value.Split('|')
+        if ($parts.Count -ne 5 -or $parts[0] -cne '1' -or
+            $parts[1] -notmatch '^[0-9]{1,3}$' -or $parts[2] -notmatch '^[0-9]{1,3}$') {
+            throw 'Invalid target coverage encoding in the patched APK.'
+        }
+        [pscustomobject]@{ family = $match.Groups[1].Value; matched = [int]$parts[1]; expected = [int]$parts[2]
+            targets = @($parts[3].Split(',')); missing = @(if ($parts[4]) { $parts[4].Split(',') }) }
+    }
+}
+
+function Test-TargetCoverage {
+    param([object[]]$Coverage, [string[]]$Names, [string]$Package, [string]$VersionName, [string]$VersionCode,
+        [object]$Policy)
+    function Bad([string]$Reason) { return [pscustomobject]@{ Valid = $false; Reviewed = $false; Reason = $Reason } }
+    $families = [ordered]@{ disableAnalytics = 'Disable analytics'; sanitizeSharingLinks = 'Sanitize sharing links'
+        translatedStart = 'Start on x86 devices' }
+    $wanted = @($families.Keys | Where-Object { $families[$_] -cin $Names })
+    $entries = @($Coverage)
+    if ($entries.Count -ne $wanted.Count) { return Bad 'The APK/receipt does not record every selected coverage family exactly once.' }
+    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    foreach ($entry in $entries) {
+        if ($null -eq $entry -or [string]$entry.family -cnotin $wanted -or -not $seen.Add([string]$entry.family)) {
+            return Bad 'Unexpected or duplicated coverage family.'
+        }
+        if (($entry.matched -isnot [int] -and $entry.matched -isnot [long]) -or
+            ($entry.expected -isnot [int] -and $entry.expected -isnot [long]) -or
+            $entry.matched -lt 1 -or $entry.expected -lt $entry.matched -or $entry.expected -gt 256 -or
+            $entry.targets -isnot [array] -or $entry.missing -isnot [array]) {
+            return Bad 'Invalid target coverage counts or arrays.'
+        }
+        $targets = @($entry.targets)
+        $missing = @($entry.missing)
+        if ($targets.Count -ne $entry.expected -or $missing.Count -ne $entry.expected - $entry.matched -or
+            @($targets | Sort-Object -CaseSensitive -Unique).Count -ne $targets.Count -or
+            @($missing | Sort-Object -CaseSensitive -Unique).Count -ne $missing.Count -or
+            @($targets | Where-Object { $_ -isnot [string] -or $_ -cnotmatch '^[a-z][a-z0-9 -]{0,63}$' }).Count -or
+            @($missing | Where-Object { $_ -isnot [string] -or $_ -cnotin $targets }).Count) {
+            return Bad 'Target coverage labels disagree with the counts or contain non-fixed data.'
+        }
+    }
+    if ($wanted.Count -eq 0) { return [pscustomobject]@{ Valid = $true; Reviewed = $true; Reason = $null } }
+    if ($null -eq $Policy) {
+        $path = Join-Path $PSScriptRoot 'patch-coverage-expectations.json'
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return Bad 'The reviewed coverage policy is missing.' }
+        try { $Policy = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json }
+        catch { return Bad 'The reviewed coverage policy is not JSON.' }
+    }
+    if (($Policy.schemaVersion -isnot [int] -and $Policy.schemaVersion -isnot [long]) -or
+        $Policy.schemaVersion -ne 1) { return Bad 'Unknown coverage policy schema.' }
+    $fixtures = @($Policy.fixtures | Where-Object {
+        $_.package -ceq $Package -and $_.versionName -ceq $VersionName -and $_.versionCode -ceq $VersionCode
+    })
+    if ($fixtures.Count -gt 1) { return Bad 'Duplicated reviewed coverage fixture.' }
+    if ($fixtures.Count -eq 0) {
+        return [pscustomobject]@{ Valid = $true; Reviewed = $false
+            Reason = 'No reviewed coverage expectations for this exact APK. Counts are recorded, not certified.' }
+    }
+    foreach ($entry in $entries) {
+        $rules = @($fixtures[0].families | Where-Object { $_.family -ceq $entry.family })
+        if ($rules.Count -ne 1) { return Bad "No unique reviewed expectation for $($entry.family)." }
+        $rule = $rules[0]
+        $required = @($rule.targets | Where-Object { $_ -cnotin @($rule.optional) })
+        if ($rule.patch -cne $families[$entry.family] -or $rule.targets -isnot [array] -or
+            $rule.optional -isnot [array] -or @($rule.optional | Where-Object { $_ -cnotin @($rule.targets) }).Count -or
+            @($rule.targets | Sort-Object -CaseSensitive -Unique).Count -ne @($rule.targets).Count -or
+            @($rule.targets | Where-Object { $_ -cnotin @($entry.targets) }).Count -or
+            @($entry.targets | Where-Object { $_ -cnotin @($rule.targets) }).Count) {
+            return Bad "Coverage targets do not match the reviewed $($entry.family) census."
+        }
+        $lost = @($entry.missing | Where-Object { $_ -cin $required })
+        if ($lost.Count) { return Bad "Required $($entry.family) targets are missing: $($lost -join ', ')." }
+    }
+    return [pscustomobject]@{ Valid = $true; Reviewed = $true; Reason = $null }
+}
 
 function Test-ApkFile {
     param([string]$Path)

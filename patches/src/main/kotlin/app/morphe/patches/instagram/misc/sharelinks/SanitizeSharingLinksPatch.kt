@@ -14,6 +14,7 @@ import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.handleTargets
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.writeTargetCoverage
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.sendToStandIn
 import app.morphe.patches.instagram.misc.settings.settingsPatch
@@ -108,7 +109,8 @@ val sanitizeSharingLinksPatch = bytecodePatch(
         requireStatusMethod("sanitizeSharingLinks")
 
         val targets = listOf("permalink parser", "story link parser", "clipboard copies", "share sheets", "direct shares")
-        handleTargets(PATCH, "ways a link leaves Instagram", targets) { target ->
+        handleTargets(PATCH, "ways a link leaves Instagram", targets,
+            coverage = { writeTargetCoverage("sanitizeSharingLinks", it) }) { target ->
             when (target) {
                 "permalink parser" -> sanitizeParsedLink(PermalinkParserFingerprint, PERMALINK_TYPE)
                 "story link parser" -> sanitizeParsedLink(StoryShareUrlParserFingerprint, STORY_SHARE_URL_TYPE)

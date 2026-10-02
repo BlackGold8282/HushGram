@@ -188,6 +188,20 @@ try {
     $unapprovedChanges = @()
     $unmade = @()
     if ($cliExitCode -eq 0 -and $validation.Valid) {
+        $coverage = @(Get-ApkTargetCoverage -Apk $out -Java $Java -DesktopJar $DesktopJar -Names $names)
+        $coverageVerdict = Test-TargetCoverage -Coverage $coverage -Names $names -Package $stock.package `
+            -VersionName $stock.versionName -VersionCode $stock.versionCode
+        if (-not $coverageVerdict.Valid -or (-not $forced -and -not $coverageVerdict.Reviewed)) {
+            throw "[verify] Target coverage failed: $($coverageVerdict.Reason)"
+        }
+        $coveragePath = Join-Path $workRoot "verify-all-coverage-$runId.json"
+        [ordered]@{ reviewed = $coverageVerdict.Reviewed; families = $coverage } | ConvertTo-Json -Depth 6 |
+            Set-Content -LiteralPath $coveragePath -Encoding UTF8
+        foreach ($entry in $coverage) {
+            Write-Host "[verify] $($entry.family): $($entry.matched)/$($entry.expected) targets; missing: $($entry.missing -join ', ')"
+        }
+        if ($coverageVerdict.Reason) { Write-Warning $coverageVerdict.Reason }
+        Write-Host "[verify] coverage report: $coveragePath"
         # What patching did to the manifest, against the APK the CLI patched, held to the allowlist.
         $manifestChanges = @(ConvertTo-ManifestDeltaEntries -Delta (Get-ManifestDelta `
             -Stock (Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2) -Patched (Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2)))

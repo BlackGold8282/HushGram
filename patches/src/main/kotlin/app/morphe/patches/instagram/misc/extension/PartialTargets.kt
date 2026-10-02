@@ -18,6 +18,14 @@ import java.util.logging.Logger
  */
 internal val patchLog: Logger = Logger.getLogger("app.morphe.patches.instagram")
 
+/** Fixed source labels only. The diagnostic metadata never holds a method name, URL or user data. */
+internal data class TargetCoverage(val targets: List<String>, val missing: List<String>) {
+    val expected get() = targets.size
+    val matched get() = expected - missing.size
+
+    fun encode(): String = "1|$matched|$expected|${targets.joinToString(",")}|${missing.joinToString(",")}"
+}
+
 /**
  * What a patch that works down a list of separate targets does when a build lacks some of them.
  *
@@ -31,19 +39,34 @@ internal val patchLog: Logger = Logger.getLogger("app.morphe.patches.instagram")
  * @param what the targets' kind in the plural, as the messages say it ("ad prefetch schedulers")
  * @return how many targets were dealt with
  */
-internal fun <T> handleTargets(patch: String, what: String, targets: List<T>, handle: (T) -> String?): Int {
+internal fun <T> handleTargets(
+    patch: String,
+    what: String,
+    targets: List<T>,
+    label: (T) -> String = { it.toString() },
+    coverage: (TargetCoverage) -> Unit = {},
+    handle: (T) -> String?,
+): Int {
     require(targets.isNotEmpty()) { "$patch has no $what to look for" }
-    val missing = targets.mapNotNull(handle)
-    if (missing.size == targets.size) {
+    val labels = targets.map(label)
+    require(labels.size <= 256 && labels.distinct().size == labels.size &&
+        labels.all { it.matches(Regex("[a-z][a-z0-9 -]{0,63}")) }) { "$patch has invalid coverage labels" }
+    val missing = mutableListOf<String>()
+    val reasons = targets.mapIndexedNotNull { index, target ->
+        handle(target)?.also { missing += labels[index] }
+    }
+    if (reasons.size == targets.size) {
         throw PatchException(
             "$patch: this Instagram build has none of the ${targets.size} $what the patch works on. " +
-                missing.joinToString("; ", postfix = "."),
+                reasons.joinToString("; ", postfix = "."),
         )
     }
-    val handled = targets.size - missing.size
-    missing.forEach { reason ->
+    val result = TargetCoverage(labels.toList(), missing.toList())
+    val handled = result.matched
+    reasons.forEach { reason ->
         patchLog.warning("$patch: $reason. The patch goes on with the $handled of ${targets.size} $what it found.")
     }
+    coverage(result)
     return handled
 }
 

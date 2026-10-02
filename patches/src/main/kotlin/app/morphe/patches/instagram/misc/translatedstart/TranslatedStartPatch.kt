@@ -18,6 +18,8 @@ import app.morphe.patches.instagram.misc.extension.freeLocalsAt
 import app.morphe.patches.instagram.misc.extension.handleTargets
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.TargetCoverage
+import app.morphe.patches.instagram.misc.extension.writeTargetCoverage
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -48,7 +50,7 @@ val translatedStartPatch = bytecodePatch(
 
     execute {
         requireStatusMethod("translatedStart")
-        guardCodeProtection()
+        guardCodeProtection { writeTargetCoverage("translatedStart", it) }
         enableStatus("translatedStart")
     }
 }
@@ -62,7 +64,7 @@ val translatedStartPatch = bytecodePatch(
  *
  * @return how many calls were guarded
  */
-internal fun BytecodePatchContext.guardCodeProtection(): Int {
+internal fun BytecodePatchContext.guardCodeProtection(coverage: (TargetCoverage) -> Unit = {}): Int {
     val callers = mutableListOf<Method>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
@@ -82,7 +84,9 @@ internal fun BytecodePatchContext.guardCodeProtection(): Int {
             .map { method to it.index }
             .reversed()
     }
-    return handleTargets(TRANSLATED_START_NAME, "calls to the code protection step", calls) { (method, call) ->
+    return handleTargets(TRANSLATED_START_NAME, "calls to the code protection step", calls.withIndex().toList(),
+        label = { "code protection call ${it.index + 1}" }, coverage = coverage) { (_, target) ->
+        val (method, call) = target
         try {
             method.skipUnlessProtected(call)
             null

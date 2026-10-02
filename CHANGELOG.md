@@ -4,6 +4,9 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Diagnostic reports show matched/expected patch targets and fixed missing-target labels for Disable analytics, Sanitize sharing links and Start on x86 devices. The counts describe patch-time code matches, not live request suppression.
+* **Tooling:** Fixture verification and schema 3 release receipts read those counts from the patched APK. Required targets are pinned to the exact fixture and a missing one stops certification even when its patch applied. Optional absences stay visible; forced runs on unreviewed builds record counts without certifying them. Historical receipts keep their original schema checks.
+
 * **Tooling:** AGP's host test tools use Netty 4.1.138, and the settings plugin uses JDOM 2.0.6.1 and jose4j 0.9.7, removing the affected versions found by the dependency audit. These libraries aren't in the shipped extension payload.
 
 * **Tooling:** The dependency audit reports the resolved settings, plugin, build, test and host-contract graphs separately from the shipped SBOM. Missing dependencies stop it. OSV results include a reviewed publisher supplement for Guava, whose settings-plugin copy and shared-extension test graphs now resolve to 33.7.2. Host contracts don't certify an installed Manager or Desktop.

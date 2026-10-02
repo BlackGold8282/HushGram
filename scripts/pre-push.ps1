@@ -184,6 +184,8 @@ $releaseToolingPaths = @(
     'scripts/release-receipt.ps1',
     'scripts/script-wiring.ps1',
     'scripts/test-release-tooling.ps1',
+    'scripts/PatchCoverage.java',
+    'scripts/patch-coverage-expectations.json',
     'scripts/validate-release-facts.ps1'
 )
 $touchesReleaseTooling = @($changed | Where-Object { $_ -in $releaseToolingPaths }).Count -gt 0

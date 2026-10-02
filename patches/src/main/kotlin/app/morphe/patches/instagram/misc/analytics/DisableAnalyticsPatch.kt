@@ -12,6 +12,7 @@ import app.morphe.patches.instagram.misc.extension.filterEveryStringLoad
 import app.morphe.patches.instagram.misc.extension.handleTargets
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.writeTargetCoverage
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 
@@ -44,7 +45,8 @@ val disableAnalyticsPatch = bytecodePatch(
     execute {
         requireStatusMethod("disableAnalytics")
 
-        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt", "reports", "pings", "stream", "setup")) { target ->
+        handleTargets(PATCH, "event upload addresses", listOf("builder", "graph", "mqtt", "reports", "pings", "stream", "setup"),
+            coverage = { writeTargetCoverage("disableAnalytics", it) }) { target ->
             when (target) {
                 // Instagram's own logging_client_events and pigeon_nest addresses, built from a host.
                 "builder" -> AnalyticsEndpointFingerprint.matchAllOrNull().orEmpty().let { matches ->

@@ -381,6 +381,13 @@ foreach ($apk in $Fixture) {
         if (-not $validation.Valid) { throw "$label did not patch cleanly: $($validation.Reason)" }
         if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode on $label." }
 
+        $coverage = @(Get-ApkTargetCoverage -Apk $out -Java $Java -DesktopJar $DesktopJar -Names $patchNames)
+        $coverageVerdict = Test-TargetCoverage -Coverage $coverage -Names $patchNames -Package $stock.package `
+            -VersionName $stock.versionName -VersionCode $stock.versionCode
+        if (-not $coverageVerdict.Valid -or (-not $forced -and -not $coverageVerdict.Reviewed)) {
+            throw "Target coverage failed for ${label}: $($coverageVerdict.Reason)"
+        }
+
         $patched = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
         # The manifest the patches started from is the APK the CLI patched, the merge for a split
         # bundle, not the base APK's: the merge rewrites the manifest itself, and a delta against
@@ -403,6 +410,8 @@ foreach ($apk in $Fixture) {
                 forced      = $forced
             }
             patches       = $verdicts
+            coverage      = $coverage
+            coverageReviewed = $coverageVerdict.Reviewed
             manifestDelta = [ordered]@{
                 permissionsAdded          = @($delta.permissionsAdded)
                 permissionsRemoved        = @($delta.permissionsRemoved)

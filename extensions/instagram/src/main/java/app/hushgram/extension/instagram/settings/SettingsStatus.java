@@ -9,13 +9,27 @@ package app.hushgram.extension.instagram.settings;
 /**
  * Which patches were selected for this build.
  *
- * <p>Every method answers false here. A patch that adds a feature rewrites its method to answer
+ * <p>Every boolean method answers false here. A patch that adds a feature rewrites it to answer
  * true, so the settings screen offers only the switches this APK backs and the diagnostic report
- * lists only the patches it carries.
+ * lists only the patches it carries. Coverage strings start empty and are stamped from the
+ * targets that patching actually handled, not from activity observed on the phone.
  */
 @SuppressWarnings({"unused", "SameReturnValue"})
 public final class SettingsStatus {
     private SettingsStatus() {
+    }
+
+    /** Input-derived subtarget coverage, filled by the corresponding selected patch. */
+    public static String disableAnalyticsCoverage() {
+        return "";
+    }
+
+    public static String sanitizeSharingLinksCoverage() {
+        return "";
+    }
+
+    public static String translatedStartCoverage() {
+        return "";
     }
 
     public static boolean hideAds() {

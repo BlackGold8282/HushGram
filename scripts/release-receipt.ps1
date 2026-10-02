@@ -34,6 +34,7 @@
 #>
 
 . (Join-Path $PSScriptRoot 'apk-facts.ps1')
+. (Join-Path $PSScriptRoot 'patch-report.ps1')
 
 function Get-ReleaseReceiptSchemaVersion {
     <#
@@ -47,8 +48,9 @@ function Get-ReleaseReceiptSchemaVersion {
         older commit, so it stays a bare return.
 
         2 added sbom: the file name, SHA-256 and component count of the release SBOM.
+        3 added input-derived per-target coverage and exact-fixture coverage review.
     #>
-    return 2
+    return 3
 }
 
 function Resolve-ReceiptSchema {
@@ -1018,6 +1020,20 @@ function Test-ReleaseReceipt {
             }
             if (-not $verdict.applied) {
                 return Fail "The receipt reports $label patch $name as not applied."
+            }
+        }
+        if ($ExpectedSchemaVersion -ge 3) {
+            $coverageProperty = $target.PSObject.Properties['coverage']
+            $reviewedProperty = $target.PSObject.Properties['coverageReviewed']
+            if ($null -eq $coverageProperty -or $coverageProperty.Value -isnot [array] -or
+                $null -eq $reviewedProperty -or $reviewedProperty.Value -isnot [bool]) {
+                return Fail "The receipt records no typed target coverage for $label."
+            }
+            $coverageVerdict = Test-TargetCoverage -Coverage @($coverageProperty.Value) -Names $ExpectedPatchNames `
+                -Package $target.source.package -VersionName $target.source.versionName -VersionCode $target.source.versionCode
+            if (-not $coverageVerdict.Valid -or $reviewedProperty.Value -ne $coverageVerdict.Reviewed -or
+                ($atDeclaredVersion -and -not $coverageVerdict.Reviewed)) {
+                return Fail "The receipt target coverage for $label is not certified: $($coverageVerdict.Reason)"
             }
         }
         foreach ($entry in ConvertTo-ManifestDeltaEntries -Delta $target.manifestDelta) {

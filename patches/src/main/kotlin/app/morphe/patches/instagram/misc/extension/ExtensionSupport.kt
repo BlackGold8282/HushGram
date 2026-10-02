@@ -50,6 +50,15 @@ private fun BytecodePatchContext.statusMethod(name: String): MutableMethod =
         it.name == name && it.returnType == "Z" && it.parameterTypes.isEmpty()
     } ?: throw PatchException("SettingsStatus has no boolean method $name()")
 
+/** Stamp the input-derived coverage into the same APK that holds the family status. */
+internal fun BytecodePatchContext.writeTargetCoverage(name: String, coverage: TargetCoverage) {
+    val method = mutableClassDefBy(SETTINGS_STATUS).methods.singleOrNull {
+        it.name == "${name}Coverage" && it.returnType == "Ljava/lang/String;" &&
+            it.parameterTypes.isEmpty() && AccessFlags.STATIC.isSet(it.accessFlags)
+    } ?: throw PatchException("SettingsStatus has no coverage method $name()")
+    method.returnEarly(coverage.encode())
+}
+
 /** How many registers a parameter of this type takes: two for a long or a double. */
 private fun CharSequence.width(): Int = if (toString() == "J" || toString() == "D") 2 else 1
 

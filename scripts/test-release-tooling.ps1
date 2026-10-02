@@ -279,6 +279,7 @@ try {
                 forced = $false }
             patches = @([ordered]@{ name = 'Alpha'; applied = $true; reason = $null },
                         [ordered]@{ name = 'Beta'; applied = $true; reason = $null })
+            coverage = @(); coverageReviewed = $true
             manifestDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
                 exportedComponentsAdded = @(); exportedComponentsRemoved = @() }
         }, [ordered]@{
@@ -287,6 +288,7 @@ try {
                 forced = $false }
             patches = @([ordered]@{ name = 'Alpha'; applied = $true; reason = $null },
                         [ordered]@{ name = 'Beta'; applied = $true; reason = $null })
+            coverage = @(); coverageReviewed = $true
             manifestDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
                 exportedComponentsAdded = @(); exportedComponentsRemoved = @() }
         })
@@ -350,6 +352,11 @@ try {
         'an SBOM with no hash'                  = { param($r) $r.sbom.sha256 = 'nope' }
         'an SBOM hash in lower case'            = { param($r) $r.sbom.sha256 = ([string]$r.sbom.sha256).ToLowerInvariant() }
         'an SBOM counting no component'         = { param($r) $r.sbom.components = 0 }
+        'no coverage field'                    = { param($r) $r.targets[0].PSObject.Properties.Remove('coverage') }
+        'null coverage'                        = { param($r) $r.targets[0].coverage = $null }
+        'no coverage review flag'              = { param($r) $r.targets[0].PSObject.Properties.Remove('coverageReviewed') }
+        'an untyped coverage review flag'      = { param($r) $r.targets[0].coverageReviewed = 'true' }
+        'forged coverage review'               = { param($r) $r.targets[0].coverageReviewed = $false }
     }
     foreach ($description in $mutations.Keys) {
         $result = Test-TestReceipt -Receipt (New-TestReceipt -Mutate $mutations[$description])
@@ -646,15 +653,78 @@ try {
         -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
         -ExpectedPackageVersions $declaredBuilds -BundlePath $bundle -ExpectedSchemaVersion 1
     Assert-True $oneAtOne.Valid "A schema 1 receipt was refused at schema 1: $($oneAtOne.Reason)"
-    $oneAtTwo = Test-TestReceipt -Receipt $schemaOne
+    $oneAtTwo = Test-ReceiptWithSbom $schemaOne -Schema 2
     Assert-True ($oneAtTwo.Reason -like '*schema version 1; its release is read at version 2*') `
         "A schema 1 receipt was not refused where schema 2 is expected: $($oneAtTwo.Reason)"
-    $twoAtOne = Test-ReceiptWithSbom (New-TestReceipt) -Schema 1
+    $schemaTwo = New-TestReceipt -Mutate { param($r) $r.schemaVersion = 2
+        foreach ($target in $r.targets) { $target.PSObject.Properties.Remove('coverage'); $target.PSObject.Properties.Remove('coverageReviewed') } }
+    $twoAtOne = Test-ReceiptWithSbom $schemaTwo -Schema 1
     Assert-True ($twoAtOne.Reason -like '*schema version 2; its release is read at version 1*') `
         "A schema 2 receipt was not refused where schema 1 is expected: $($twoAtOne.Reason)"
     $oneWithSbom = Test-ReceiptWithSbom $schemaOne -Schema 1
     Assert-True ($oneWithSbom.Reason -like '*schema 1 receipt names no SBOM to hold*') `
         "A schema 1 receipt was held to an SBOM it can't name: $($oneWithSbom.Reason)"
+    $twoAtTwo = Test-ReceiptWithSbom $schemaTwo -Schema 2
+    Assert-True $twoAtTwo.Valid "A historical schema 2 receipt was refused: $($twoAtTwo.Reason)"
+    $twoAtThree = Test-TestReceipt $schemaTwo
+    Assert-True (-not $twoAtThree.Valid) 'A historical receipt certified schema 3 coverage it never recorded.'
+
+    # A family may apply yet miss a subtarget. Certification must reject a required absence,
+    # preserve an explicitly optional absence, and never take a forged count as evidence.
+    $partial = [pscustomobject]@{ family = 'disableAnalytics'; matched = 2; expected = 3
+        targets = @('alpha', 'beta', 'gamma'); missing = @('gamma') }
+    $policy = [pscustomobject]@{ schemaVersion = 1; fixtures = @([pscustomobject]@{
+        package = 'com.example.host'; versionName = '46.7.3'; versionCode = '2024607030'
+        families = @([pscustomobject]@{ family = 'disableAnalytics'; patch = 'Disable analytics'
+            targets = @('alpha', 'beta', 'gamma'); optional = @('gamma') }) }) }
+    $arguments = @{ Names = @('Disable analytics'); Package = 'com.example.host'; VersionName = '46.7.3'
+        VersionCode = '2024607030'; Policy = $policy }
+    $optional = Test-TargetCoverage -Coverage @($partial) @arguments
+    Assert-True ($optional.Valid -and $optional.Reviewed -and $partial.missing[0] -ceq 'gamma') `
+        'Optional partial coverage disappeared or was not certified against its reviewed rule.'
+    $policy.fixtures[0].families[0].optional = @()
+    $required = Test-TargetCoverage -Coverage @($partial) @arguments
+    Assert-True (-not $required.Valid -and $required.Reason -like '*Required*gamma*') `
+        'A successful family with a missing required target was certified.'
+    $policy.fixtures[0].families[0].optional = @('gamma')
+    foreach ($mutation in @(
+        { param($e) $e.matched = 0; $e.missing = @('alpha', 'beta', 'gamma') },
+        { param($e) $e.matched = 3 }, { param($e) $e.expected = 99 },
+        { param($e) $e.matched = '2' }, { param($e) $e.missing = @('unknown') },
+        { param($e) $e.targets = @('alpha', 'alpha', 'gamma') },
+        { param($e) $e.targets = @('alpha', 'https://account/private', 'gamma') })) {
+        $invalid = $partial | ConvertTo-Json -Depth 5 | ConvertFrom-Json
+        & $mutation $invalid
+        Assert-True (-not (Test-TargetCoverage -Coverage @($invalid) @arguments).Valid) 'Invalid coverage passed certification.'
+    }
+    Assert-True (-not (Test-TargetCoverage -Coverage @($partial, $partial) @arguments).Valid) 'Duplicate coverage passed.'
+    Assert-True (-not (Test-TargetCoverage -Coverage @() @arguments).Valid) 'Absent selected-family metadata passed.'
+    $arguments.VersionCode = 'different'
+    $unknown = Test-TargetCoverage -Coverage @($partial) @arguments
+    Assert-True ($unknown.Valid -and -not $unknown.Reviewed) 'Another version code claimed reviewed fixture coverage.'
+
+    # Exercise the receipt validator itself with the real reviewed fixture and target labels.
+    $coverageReceipt = New-TestReceipt
+    $coverageReceipt.release.patchCount = 1
+    $coverageReceipt.targets = @($coverageReceipt.targets[0])
+    $coverageTarget = $coverageReceipt.targets[0]
+    $coverageTarget.source.package = 'com.instagram.android'
+    $coverageTarget.source.versionName = '449.0.0.52.84'
+    $coverageTarget.source.versionCode = '385511871'
+    $coverageTarget.patches = @([pscustomobject]@{ name = 'Disable analytics'; applied = $true; reason = $null })
+    $coverageTarget.coverage = @([pscustomobject]@{ family = 'disableAnalytics'; matched = 7; expected = 7
+        targets = @('builder', 'graph', 'mqtt', 'reports', 'pings', 'stream', 'setup'); missing = @() })
+    $receiptArguments = @{ ExpectedVersion = '9.9.9'; ExpectedPatchNames = @('Disable analytics')
+        ExpectedPatcherVersion = '1.12.0'; ExpectedManagerFloor = '1.29.0'; ExpectedPackageName = 'com.instagram.android'
+        ExpectedPackageVersions = @('449.0.0.52.84'); ExpectedPackageVersionCodes = @{ '449.0.0.52.84' = @('385511871') }
+        BundlePath = $bundle }
+    $certified = Test-ReleaseReceipt -Receipt $coverageReceipt @receiptArguments
+    Assert-True $certified.Valid "The reviewed coverage receipt failed: $($certified.Reason)"
+    $coverageTarget.coverage[0].matched = 6; $coverageTarget.coverage[0].missing = @('mqtt')
+    $lost = Test-ReleaseReceipt -Receipt $coverageReceipt @receiptArguments
+    Assert-True (-not $lost.Valid -and $lost.Reason -like '*Required*mqtt*') 'A receipt hid missing required coverage.'
+    $coverageTarget.coverage[0].matched = 7
+    Assert-True (-not (Test-ReleaseReceipt -Receipt $coverageReceipt @receiptArguments).Valid) 'Forged receipt counts passed.'
 } finally {
     Remove-Item -LiteralPath $allowlistRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
@@ -2040,6 +2110,14 @@ try {
         ("HushGram declares one Instagram build pinned to one version code, and the cases below are built on that. " +
             "The catalog declares $(Format-DeclaredBuilds -Target $releaseTarget).")
 
+    $coverageFixture = (Get-Content (Join-Path $PSScriptRoot 'patch-coverage-expectations.json') -Raw | ConvertFrom-Json).fixtures |
+        Where-Object { $_.versionName -ceq $declaredBuild -and $_.versionCode -ceq $declaredCode }
+    Assert-True ($null -ne $coverageFixture) 'The release fixture has no reviewed coverage census.'
+    $releaseCoverage = @($coverageFixture.families | ForEach-Object {
+        [ordered]@{ family = $_.family; matched = $_.targets.Count; expected = $_.targets.Count
+            targets = @($_.targets); missing = @() }
+    })
+
     # A receipt for this commit with a run of each build given, every patch applied and the
     # manifest changes the checked-in allowlist approves, written where the release check looks.
     $approvedDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
@@ -2061,6 +2139,8 @@ try {
                     package = $releaseTarget.PackageName; versionName = $Builds[$i]; versionCode = $code
                     sha256 = ([string]'ABCDEF'[$i % 6] * 64); forced = $releaseTarget.PackageVersions -notcontains $Builds[$i] }
                 patches       = @($releaseNames | ForEach-Object { [ordered]@{ name = $_; applied = $true; reason = $null } })
+                coverage      = $releaseCoverage
+                coverageReviewed = $Builds[$i] -ceq $declaredBuild -and $code -ceq $declaredCode
                 manifestDelta = $approvedDelta
             }
         })
@@ -2137,6 +2217,7 @@ try {
         'set "HERE=%~dp0"',
         'rem -Xmx -cp <jar> <tool>.java and the tool''s arguments.',
         'if /i "%~nx4"=="MergeSplits.java" goto merge',
+        'if /i "%~nx4"=="PatchCoverage.java" goto coverage',
         'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0"',
         'shift',
         'shift',
@@ -2178,7 +2259,13 @@ try {
         'if exist "!HERE!merge-writes-nothing.txt" exit /b 0',
         'copy /y "%~5.merged.txt" "%~6" >nul || exit /b 7',
         '>"%~6.source" echo %~5',
-        'exit /b 0') -join "`r`n") + "`r`n"), [System.Text.Encoding]::ASCII)
+        'exit /b 0',
+        ':coverage',
+        'type "!HERE!coverage-output.txt"',
+        'exit /b %errorlevel%') -join "`r`n") + "`r`n"), [System.Text.Encoding]::ASCII)
+    Set-Content -LiteralPath (Join-Path $tools 'coverage-output.txt') -Encoding ASCII -Value @($releaseCoverage | ForEach-Object {
+        "$($_.family)=1|$($_.matched)|$($_.expected)|$($_.targets -join ',')|"
+    })
     [System.IO.File]::WriteAllText($stubAapt2, ((@(
         '@echo off',
         'setlocal EnableExtensions DisableDelayedExpansion',
