@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Tapping an expired Undo for remembered positions reports its expiration and leaves newly remembered positions intact, even when the settings row hasn't refreshed yet.
+
 * **Instagram:** Clear remembered positions deletes the local playback history and cancels pending restores, even while playback is off or paused. Undo restores its bounded snapshot once within 10 seconds; a restart discards it, and newly remembered positions take precedence.
 
 * **Instagram:** Only accounts you follow, Ring size and Playback quality explain which parent switch enables them while it is off. Their saved choices stay intact, and shared Download quality remains available.

@@ -96,6 +96,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     @Nullable private Row clearPositions;
     private boolean changingPositions;
+    private boolean positionsUndoShown;
 
     /** The page's dialogs that may still be on screen, which would outlive it. */
     private final List<Dialog> shownDialogs = new ArrayList<>();
@@ -493,6 +494,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         Row row = clearPositions;
         if (row == null) return;
         boolean undo = ResumePlayback.canUndoHistory();
+        positionsUndoShown = undo;
         row.setEnabled(!changingPositions);
         row.setTitle(changingPositions ? L10n.t("Updating remembered positions...")
                 : undo ? L10n.t("Undo cleared positions") : L10n.t("Clear remembered positions"));
@@ -504,7 +506,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** Disk commits run on the existing worker, with immediate feedback and no confirmation. */
     private void changePositions() {
         if (changingPositions) return;
-        boolean undo = ResumePlayback.canUndoHistory();
+        // Honor the action the row offered. An expired Undo must never become another clear
+        // while its delayed refresh is still waiting on the main thread.
+        boolean undo = positionsUndoShown;
         changingPositions = true;
         showClearPositions();
         if (!Utils.runOnBackgroundThread(() -> {
