@@ -212,6 +212,16 @@ public final class OverrideImport {
                 throw failure;
             }
 
+            // Saving the journal can wait on storage. Recheck before the first typed write, and
+            // undo only this operation's staging if permission changed while it waited.
+            try { allowed(); }
+            catch (NotAllowed refused) {
+                if (!restoring) store.abandon();
+                else if (wasArmed) store.dropReplaced();
+                else store.settle();
+                throw refused;
+            }
+
             int reached = 0;
             boolean written = true;
             for (Change change : plan.changes) {
@@ -394,7 +404,7 @@ public final class OverrideImport {
      * restore point while its pending copy repairs an interrupted native rollback.
      */
     private static final class Store {
-        final File directory, backup, pending, replaced, armed;
+        final File directory, backup, pending, replaced, armed, completed;
         final List<File> copies;
         final long hostCode;
         String selected = "backup", digest, previous = "-", phase = "import";
@@ -406,6 +416,7 @@ public final class OverrideImport {
             pending = new File(directory, name + ".pending.json");
             replaced = new File(directory, name + ".replaced.json");
             armed = new File(directory, name + ".armed");
+            completed = new File(directory, name + ".settled");
             copies = Arrays.asList(backup, pending, replaced,
                     new File(directory, backup.getName() + ".tmp"),
                     new File(directory, pending.getName() + ".tmp"),
@@ -414,16 +425,36 @@ public final class OverrideImport {
             hostCode = OverrideExchange.hostCode(snapshot);
         }
 
-        boolean isArmed() {
+        boolean isArmed() throws IOException {
             if (armed.exists()) return true;
             for (File file : copies) if (!file.equals(backup) && file.exists()) return true;
+            if (completed.exists()) {
+                // The last journal is moved, never unlinked. If its directory sync fails, it
+                // remains a witness across a new Store/process even when no write can succeed.
+                try {
+                    if (!completed.isFile() || completed.length() > 512) return true;
+                    String[] record = new String(read(completed), StandardCharsets.UTF_8).split("\n", -1);
+                    if (record.length != 6 || !"1".equals(record[0]) || !Long.toString(hostCode).equals(record[1])
+                            || !Arrays.asList("import", "rollback", "complete").contains(record[4])
+                            || !("-".equals(record[5]) || record[5].matches("[0-9a-f]{64}"))) return true;
+                    if ("backup".equals(record[2])) {
+                        if (!backup.isFile() || !record[3].equals(sha256(read(backup)))) return true;
+                    } else if (!"none".equals(record[2]) || !"-".equals(record[3]) || backup.exists()) return true;
+                    sync(directory);
+                } catch (IOException | RuntimeException failure) {
+                    RestoreFirst blocked = new RestoreFirst();
+                    blocked.initCause(failure);
+                    throw blocked;
+                }
+            }
             return false;
         }
 
         byte[] restorePoint(boolean wasArmed) throws IOException {
             File source = backup;
-            if (armed.exists()) {
-                String[] record = new String(read(armed), StandardCharsets.UTF_8).split("\n", -1);
+            File journal = armed.exists() ? armed : wasArmed && completed.exists() ? completed : null;
+            if (journal != null) {
+                String[] record = new String(read(journal), StandardCharsets.UTF_8).split("\n", -1);
                 if (record.length == 1 && record[0].matches("[0-9]+")) {
                     // Numeric markers never recorded which of two different copies was authoritative.
                     if (pending.isFile() && backup.isFile() && !Arrays.equals(read(pending), read(backup))) {
@@ -477,7 +508,7 @@ public final class OverrideImport {
 
         private void mark() throws IOException {
             byte[] record = marker();
-            if (armed.isFile() && Arrays.equals(read(armed), record)) sync(directory);
+            if (armed.isFile() && armed.length() == record.length && Arrays.equals(read(armed), record)) sync(directory);
             else replace(armed, record);
         }
 
@@ -540,13 +571,7 @@ public final class OverrideImport {
                 if (!isArmed()) return true;
                 mark();
                 for (File file : copies) if (!file.equals(backup)) delete(file);
-                byte[] record = marker();
-                try { delete(armed); }
-                catch (IOException | RuntimeException failure) {
-                    // A failed sync after deletion must not quietly reopen the import path.
-                    try { replace(armed, record); } catch (IOException | RuntimeException stillFailing) { /* Reported by blocked. */ }
-                    return false;
-                }
+                finish();
                 return true;
             } catch (IOException | RuntimeException failure) { return false; }
         }
@@ -560,19 +585,27 @@ public final class OverrideImport {
         boolean discard() throws IOException {
             boolean found = armed.exists();
             for (File file : copies) found |= file.exists();
+            if (!found && completed.exists()) found = isArmed();
             if (!found) return false;
             selected = "none";
             digest = previous = "-";
             phase = "complete";
-            mark();
+            // Discard never needs to read the old journal, even when it is unreadable.
+            replace(armed, marker());
             for (File file : copies) delete(file);
-            byte[] record = marker();
-            try { delete(armed); }
+            try { finish(); }
             catch (IOException | RuntimeException failure) {
-                try { replace(armed, record); } catch (IOException | RuntimeException stillFailing) { /* The original failure is reported. */ }
                 throw invalid();
             }
             return true;
+        }
+
+        /** Keep a small terminal witness so failed final durability never depends on a rescue write. */
+        private void finish() throws IOException {
+            directorySync.reached("beforeMove", completed);
+            Files.move(armed.toPath(), completed.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            directorySync.reached("moved", completed);
+            sync(directory);
         }
 
         private static byte[] read(File file) throws IOException {

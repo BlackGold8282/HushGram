@@ -682,7 +682,7 @@ public class OverrideImportTest {
         restartAndRestore();
         assertTrue(points.stream().anyMatch(point -> point.startsWith("fileSynced:")));
         assertTrue(points.stream().anyMatch(point -> point.startsWith("moved:")));
-        assertTrue(points.stream().anyMatch(point -> point.startsWith("deleted:")));
+        assertTrue(points.contains("moved:" + saved(".settled").getName()));
         for (boolean crash : new boolean[]{false, true}) {
             for (int stop = 0; stop < points.size(); stop++) {
                 NativeTable.reset(NativeTable.file);
@@ -834,6 +834,93 @@ public class OverrideImportTest {
                         before.equals(restored) || original().equals(restored));
                 if (undoJournal) assertArrayEquals("An interrupted rollback must preserve the older restore point", older, bytes(".json"));
             }
+        }
+    }
+
+    @Test public void permissionRevokedAfterStagingRefusesTheFirstTypedWrite() throws Exception {
+        for (boolean restoring : new boolean[]{false, true}) for (boolean pause : new boolean[]{false, true})
+                for (boolean recovering : new boolean[]{false, true}) {
+            if (recovering && !restoring) continue;
+            storageObserver = null;
+            OverrideImport.discard(activity);
+            Files.write(NativeTable.file.toPath(), NATIVE);
+            NativeTable.reset(NativeTable.file);
+            if (recovering) storageObserver = (boundary, file) -> {
+                if (boundary.equals("beforeMove") && file.getName().endsWith(".settled")) throw new IOException("leave Restore armed");
+            };
+            assertEquals(recovering, OverrideImport.apply(activity, limit(5)).blocked);
+            storageObserver = null;
+            byte[] previous = bytes(".json"), current = Files.readAllBytes(NativeTable.file.toPath());
+            byte[] journal = recovering ? bytes(".armed") : null;
+            byte[] next = limit(7);
+            NativeTable.reset(NativeTable.file);
+            storageObserver = (boundary, file) -> {
+                if (boundary.equals("moved") && file.getName().endsWith(restoring ? ".replaced.json" : ".armed")) {
+                    if (pause) {
+                        BaseSettings.PAUSED.save(true);
+                        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+                    } else Settings.ALLOW_OVERRIDE_IMPORT.save(false);
+                }
+            };
+            try {
+                assertThrows(OverrideImport.NotAllowed.class, () -> {
+                    if (restoring) OverrideImport.restore(activity); else OverrideImport.apply(activity, next);
+                });
+                assertEquals(0, NativeTable.writes);
+                assertArrayEquals(current, Files.readAllBytes(NativeTable.file.toPath()));
+                assertArrayEquals(previous, bytes(".json"));
+                assertFalse(saved(".pending.json").exists());
+                assertFalse(saved(".replaced.json").exists());
+                if (recovering) assertArrayEquals(journal, bytes(".armed"));
+                else assertFalse(saved(".armed").exists());
+            } finally {
+                storageObserver = null;
+                Settings.ALLOW_OVERRIDE_IMPORT.save(true);
+                BaseSettings.PAUSED.save(false);
+                PauseForTests.resume();
+            }
+        }
+    }
+
+    @Test public void discardDoesNotParseAnyDamagedRecoveryRecord() throws Exception {
+        byte[] corrupt = new byte[2 * 1024 * 1024];
+        Arrays.fill(corrupt, (byte) 'x');
+        for (String suffix : new String[]{".armed", ".settled"}) {
+            Files.createDirectories(saved(suffix).getParentFile().toPath());
+            Files.write(saved(suffix).toPath(), corrupt);
+            Files.write(saved(".json").toPath(), corrupt);
+            assertTrue(OverrideImport.discard(activity));
+            assertFalse(saved(".json").exists());
+            assertFalse(saved(".armed").exists());
+            untouched(NATIVE);
+        }
+    }
+
+    @Test public void persistentIoFailureAfterTheFinalMarkerMoveKeepsImportsBlocked() throws Exception {
+        for (boolean discarding : new boolean[]{false, true}) {
+            syncFailure = null;
+            storageObserver = null;
+            OverrideImport.discard(activity);
+            Files.write(NativeTable.file.toPath(), NATIVE);
+            NativeTable.reset(NativeTable.file);
+            if (discarding) assertFalse(OverrideImport.apply(activity, limit(5)).blocked);
+            storageObserver = (boundary, file) -> {
+                if ((boundary.equals("deleted") && file.getName().endsWith(".armed")) ||
+                        (boundary.equals("moved") && file.getName().endsWith(".settled"))) {
+                    syncFailure = new IOException("persistent EIO after final marker transition");
+                }
+            };
+            if (discarding) assertThrows(IOException.class, () -> OverrideImport.discard(activity));
+            else assertTrue(OverrideImport.apply(activity, limit(5)).blocked);
+            storageObserver = null;
+            byte[] unchanged = exported();
+            NativeTable.reset(NativeTable.file);
+            assertThrows(OverrideImport.RestoreFirst.class, () -> OverrideImport.apply(activity, unchanged));
+            assertEquals(0, NativeTable.writes);
+            syncFailure = null;
+            if (!discarding) assertFalse(OverrideImport.restore(activity).blocked);
+            OverrideImport.discard(activity);
+            assertFalse(OverrideImport.apply(activity, exported()).blocked);
         }
     }
 
