@@ -4,6 +4,8 @@
  */
 package app.hushgram.extension.instagram.share;
 
+import android.view.View;
+
 import androidx.annotation.Nullable;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
@@ -46,6 +48,20 @@ public final class RepostButton {
         return hidden("data tree") ? Boolean.FALSE : eligible;
     }
 
+    /**
+     * Injected after Feed's UFI binder draws the repost icon and count. The upstream state can be
+     * built before settings are ready, so the rendered Feed row gets one final, switch-aware pass.
+     */
+    public static void feedUfi(@Nullable View icon, @Nullable View count) {
+        try {
+            if (!hidden("feed UFI")) return;
+            hide(icon);
+            hide(count);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REPOST_BUTTON, "feed UFI", failure);
+        }
+    }
+
     private static boolean hidden(String where) {
         try {
             HookStatus.invoked(FamilyNames.REPOST_BUTTON);
@@ -59,5 +75,14 @@ public final class RepostButton {
             HookStatus.threw(FamilyNames.REPOST_BUTTON, where, failure);
             return false;
         }
+    }
+
+    private static void hide(@Nullable View view) {
+        if (view == null) return;
+        view.setVisibility(View.GONE);
+        view.setOnClickListener(null);
+        view.setOnLongClickListener(null);
+        view.setOnTouchListener(null);
+        view.setContentDescription(null);
     }
 }
