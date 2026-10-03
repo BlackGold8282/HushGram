@@ -303,7 +303,11 @@
         "scripts/CompositionInitializer.java",
         "scripts/patch-sources.ps1",
         "scripts/patch-with-sources.ps1",
-        "scripts/test-source-composition.ps1"
+        "scripts/test-source-composition.ps1",
+        "patches/src/test/kotlin/app/morphe/util/DefaultCatalogTest.kt",
+        "patches/src/test/kotlin/app/morphe/patches/instagram/NeutralNativePath.kt",
+        "patches/src/test/kotlin/app/morphe/patches/instagram/NeutralNativePathTest.kt",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/NeutralDefaultsSettingsTest.java"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/HushGram",

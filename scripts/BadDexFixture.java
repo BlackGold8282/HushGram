@@ -416,6 +416,7 @@ public class BadDexFixture {
             "once-call Lapp/hushgram/extension/fixture/metaai/MetaAi;->inboxRow(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;L*;L*;L*;)Z class-holding No\\ssection\\sgenerator\\sfound\\sfor\\ssection\\stype\\s",
             "shared-call Lapp/hushgram/extension/fixture/misc/InstagramSignature;->isSameKeyFamilyProviderCaller(Landroid/content/Context;)Z in instance ()V calling instance Lcom/facebook/secure/content/delegate/TrustedCallerContentProviderDelegate;->*()L*; holding Component\\saccess\\snot\\sallowed\\sfor\\s Content\\sProvider\\sblocked\\sby\\skill\\sswitch\\sfor\\s",
             "shared-call Lapp/hushgram/extension/fixture/misc/Analytics;->setupScreen(Ljava/lang/String;)I in static (Landroid/content/Context;L*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;L*;L*;I)V holding FragmentActivity\\sis\\srequired\\sto\\sopen\\sCDS\\sbottom\\ssheet foa_bottom_sheet_config cds_bloks",
+            "once-call Lapp/hushgram/extension/fixture/feed/SwipeToCreate;->enabled()I in instance (Lfixture/PositionConfig;)V calling instance Lfixture/SwipeContainer;->setEndPanelExtraParameter(Lfixture/PositionConfig;)V holding Lfixture/PositionConfig;->animate:Z",
             "once-call Lapp/hushgram/extension/fixture/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\\scannot\\sbe\\scast\\sto\\snon-null\\stype\\sT\\sof\\scom.instagram.store.PendingActionStore",
             "retry-call Lapp/hushgram/extension/fixture/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\\scannot\\sbe\\scast\\sto\\snon-null\\stype\\sT\\sof\\scom.instagram.store.PendingActionStore");
 
@@ -1238,6 +1239,36 @@ public class BadDexFixture {
                         new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(DM_ENDPOINT)),
                         new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference("voice_media")),
                         op(Opcode.RETURN_VOID)), OBJECT, OBJECT, OBJECT)));
+    }
+
+    private static ClassDef swipeMovement(int gateCount) {
+        String owner = "Lfixture/SwipeContainer;", config = "Lfixture/PositionConfig;";
+        List<Instruction> code = new ArrayList<>();
+        for (int i = 0; i < gateCount; i++) code.addAll(Arrays.asList(
+                invoke(method("Lapp/hushgram/extension/fixture/feed/SwipeToCreate;", "enabled", "I")),
+                op(Opcode.MOVE_RESULT, 0)));
+        code.add(new ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 0, 2,
+                new ImmutableFieldReference(config, "animate", "Z")));
+        code.add(new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 2, 0, 0, 0,
+                method(owner, "setEndPanelExtraParameter", "V", config)));
+        code.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null, Arrays.asList(
+                define(owner, "move", "V", false, body(3, code.toArray(new Instruction[0])), config),
+                define(owner, "setEndPanelExtraParameter", "V", false, body(2, op(Opcode.RETURN_VOID)), config)));
+    }
+
+    private static ClassDef swipeConfig() {
+        String owner = "Lfixture/PositionConfig;";
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null,
+                Collections.singletonList(new ImmutableField(owner, "animate", "Z", AccessFlags.PUBLIC.getValue(), null, null, null)),
+                Collections.emptyList());
+    }
+
+    private static ClassDef swipeGate() {
+        String owner = "Lapp/hushgram/extension/fixture/feed/SwipeToCreate;";
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(owner, "enabled", "I", true, body(1,
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)))));
     }
 
     /** The inbox hook follows its row field read, while the selector is held by a sibling. */
@@ -2144,7 +2175,7 @@ public class BadDexFixture {
                 seenCache(Collections.<Instruction>emptyList(), false), storySeen(), storyRetryQueue(1, false, false),
                 tabBuilder(STATIC_CHECK, true, false), reelsTab(), dmReceipts(1, false), visualSeen(),
                 inboxSections(true), inboxFilter(), familyProviders(1, true, false), trustedProvider(), instagramSignature(),
-                setupPresenter(true), setupOpeners(true), setupData(), analyticsSetup());
+                setupPresenter(true), setupOpeners(true), setupData(), analyticsSetup(), swipeMovement(1), swipeConfig(), swipeGate());
     }
 
     /** The clean host, Facebook's classes as they ship, with the batcher's flush making [handOver]. */
@@ -2164,7 +2195,7 @@ public class BadDexFixture {
                 linkParsers(0, 0, false, false), menuOptions(0, false),
                 seenStore(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList(), false),
                 seenCache(Collections.<Instruction>emptyList(), false), tabBuilder(STATIC_CHECK, false, false),
-                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData(), storyRetryQueue(0, false, false));
+                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData(), storyRetryQueue(0, false, false), swipeMovement(0), swipeConfig());
     }
 
     /**
@@ -2827,6 +2858,8 @@ public class BadDexFixture {
         dexes.put("bad-dm-visual-guard-late", replaced(good(), dmReceipts(1, true)));
         dexes.put("bad-dm-visual-guard-twice", replaced(good(), dmReceipts(2, false)));
         dexes.put("metai-inbox-row-missing", replaced(good(), inboxSections(false)));
+        dexes.put("bad-swipe-gate-missing", replaced(good(), swipeMovement(0)));
+        dexes.put("bad-swipe-gate-twice", replaced(good(), swipeMovement(2)));
         dexes.put("bad-same-key-provider-missing", replaced(good(), familyProviders(0, true, false)));
         dexes.put("bad-same-key-provider-twice", replaced(good(), familyProviders(2, true, false)));
         dexes.put("bad-same-key-provider-two-guards", replaced(good(), familyProviders(1, true, true)));

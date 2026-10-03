@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.NeutralNativePath
 import app.morphe.patches.instagram.profile.suggested.BUILD_ROWS
 import app.morphe.patches.instagram.profile.suggested.FOLLOW_CHAINING_BUTTON
 import app.morphe.patches.instagram.profile.suggested.HEADER_BIND
@@ -146,6 +147,11 @@ class HideHighlightsHookTest {
         forEachFixture { bundle ->
             val holders = listOf(HEADER_BIND, REEL_TRAY).flatMap { FixtureDex.classesHolding(bundle, it) }.distinctBy { it.type }
             val context = PatchContexts.of(holders)
+            val site = context.findHighlightsRow()
+            val stockRows = context.mutableClassDefBy(site.type).methods.single {
+                it.name == site.name && it.parameterTypes.map(CharSequence::toString) == site.parameters
+            }
+            val original = NeutralNativePath(stockRows)
 
             context.hide()
 
@@ -156,6 +162,7 @@ class HideHighlightsHookTest {
             assertEquals("${bundle.name}: the rows method", BUILD_ROWS, rows.name)
             val keep = rows.code().indexOfFirst { it.referenceText() == KEEP_TRAY }
             assertTrayAsked(bundle.name, rows, (rows.code()[keep + 1] as OneRegisterInstruction).registerA)
+            original.assertPreserved(bundle.name, rows, (keep..keep + 2).toSet())
         }
     }
 

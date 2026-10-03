@@ -88,6 +88,8 @@
     so no method answers. Each is a build, and each fails that once-call rule for its own reason.
     The provider guard also uses calling instance to distinguish its kept policy getter from a
     decoy holding both refusal strings. Each calling rule must have exact negative coverage.
+    Stop swipe to create's early native-read gate is missing in one build and called twice in
+    another. Each must fail only its once-call rule; full stock branches are held by 449 fixtures.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
     fail with findings of its own category only, so a check that fires for the wrong reason fails
@@ -819,9 +821,13 @@ try {
     $inboxHook = 'Lapp/hushgram/extension/fixture/metaai/MetaAi;->inboxRow(Ljava/lang/Object;)Ljava/lang/Object;'
     $inboxSite = 'Lfixture/InboxSections;->build(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z'
     $inboxRule = "once-call $inboxHook in static (L*;L*;L*;L*;)Z class-holding No\ssection\sgenerator\sfound\sfor\ssection\stype\s"
-    Assert-True ($onceCallRules.Count -eq 6 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
+    $swipeHook = 'Lapp/hushgram/extension/fixture/feed/SwipeToCreate;->enabled()I'
+    $swipeSite = 'Lfixture/SwipeContainer;->move(Lfixture/PositionConfig;)V'
+    $swipeRule = "once-call $swipeHook in instance (Lfixture/PositionConfig;)V calling instance " +
+        'Lfixture/SwipeContainer;->setEndPanelExtraParameter(Lfixture/PositionConfig;)V holding Lfixture/PositionConfig;->animate:Z'
+    Assert-True ($onceCallRules.Count -eq 7 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
         $onceCallRules[2] -ceq $tabRule -and $onceCallRules[3] -ceq $dmRule -and $onceCallRules[4] -ceq $inboxRule -and
-        $onceCallRules[5] -ceq $retryRule) `
+        $onceCallRules[5] -ceq $swipeRule -and $onceCallRules[6] -ceq $retryRule) `
         "The contract file has a once-call rule without exact negative coverage:`n$($onceCallRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
         "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
@@ -831,6 +837,8 @@ try {
         "The good build's visual guard was not reported once in the visual handler.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $inboxRule`: once in $inboxSite")) `
         "The good build's inbox row call was not reported once in its native-shaped builder.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swipeRule`: once in $swipeSite")) `
+        "The good build's swipe gate was not reported once in its native-shaped setter.`n$($good.Output -join "`n")"
     # The link parsers, provider inline gate and direct setup presenter share hooks with other paths.
     # Every shared-call rule here has targeted bad fixtures, so an untested rule cannot pass on a
     # count nobody checks.
@@ -893,8 +901,8 @@ try {
     $tabHeld = """default"" with the shape static $tabShape and a static call to $tabCall"
     $callingRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\scalling\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($callingRules.Count -eq 4 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule -and
-        $callingRules[2] -ceq $retryRule -and $callingRules[3] -ceq $retryRouteRule) `
+    Assert-True ($callingRules.Count -eq 5 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule -and
+        $callingRules[2] -ceq $swipeRule -and $callingRules[3] -ceq $retryRule -and $callingRules[4] -ceq $retryRouteRule) `
         "The contract file has a calling rule without exact negative coverage:`n$($callingRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $tabRule`: once in $tabHome")) `
         "The good build's home tab call was not reported once in the home tab, picked by its static check.`n$($good.Output -join "`n")"
@@ -1079,6 +1087,8 @@ try {
         'bad-dm-visual-guard-late' = 'contract'
         'bad-dm-visual-guard-twice' = 'contract'
         'metai-inbox-row-missing' = 'contract'
+        'bad-swipe-gate-missing' = 'contract'
+        'bad-swipe-gate-twice' = 'contract'
         'bad-same-key-provider-missing' = 'contract'
         'bad-same-key-provider-twice' = 'contract'
         'bad-same-key-provider-two-guards' = 'contract'
@@ -1312,6 +1322,8 @@ try {
     # Each new fixture must fail only the contract it deliberately breaks.
     $inboxOne = 'with the shape static (L*;L*;L*;L*;)Z in a class holding "No section generator found for section type "'
     $newContractFails = [ordered]@{
+        'bad-swipe-gate-missing' = '[diff] FAIL: contract: Lapp/hushgram/extension/fixture/feed/SwipeToCreate;->enabled()I is not called in Lfixture/SwipeContainer;->move(Lfixture/PositionConfig;)V, the one method holding "Lfixture/PositionConfig;->animate:Z" with the shape instance (Lfixture/PositionConfig;)V and an instance call to Lfixture/SwipeContainer;->setEndPanelExtraParameter(Lfixture/PositionConfig;)V'
+        'bad-swipe-gate-twice' = '[diff] FAIL: contract: Lapp/hushgram/extension/fixture/feed/SwipeToCreate;->enabled()I has 2 call sites in Lfixture/SwipeContainer;->move(Lfixture/PositionConfig;)V, and must have exactly one'
         'bad-dm-visual-guard-late' = "[diff] FAIL: contract: $dmHook is called in $dmSite, but after a call, branch, switch, return or throw, not first"
         'bad-dm-visual-guard-twice' = "[diff] FAIL: contract: $dmHook has 2 call sites in $dmSite, and must have exactly one"
         'metai-inbox-row-missing' = "[diff] FAIL: contract: $inboxHook is not called in $inboxSite, the one method $inboxOne"
