@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Exercise the real Android boundary gate against incomplete provider caller results.
+    Exercise the real Android boundary gate against incomplete or wrong-platform provider results.
 .NOTES
     Run after the unfiltered unit tests. The original generated report is restored byte for byte.
     Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram
@@ -17,7 +17,7 @@ $suite = 'app.hushgram.extension.instagram.misc.SameKeyProviderCallerTest'
 $report = Join-Path $Root "extensions/instagram/build/test-results/testDebugUnitTest/TEST-$suite.xml"
 if (-not (Test-Path -LiteralPath $report -PathType Leaf)) { throw 'Run the complete unfiltered Android unit tests before the boundary self-tests.' }
 $original = [IO.File]::ReadAllBytes($report)
-$wrapper = Join-Path $Root $(if ($IsWindows) { 'gradlew.bat' } else { 'gradlew' })
+$wrapper = Join-Path $Root $(if ([Environment]::OSVersion.Platform -eq 'Win32NT') { 'gradlew.bat' } else { 'gradlew' })
 $passed = 0
 . (Join-Path $PSScriptRoot 'script-wiring.ps1')
 
@@ -35,9 +35,17 @@ function Test-BoundarySuiteWiring {
 }
 
 function Invoke-BoundaryGate {
-    $output = @(& $wrapper -p $Root --offline --console=plain :extensions:instagram:verifyAndroidBoundaries `
-        -x :extensions:instagram:testDebugUnitTest 2>&1 | ForEach-Object { "$_" }) -join "`n"
-    [pscustomobject]@{ Exit = $LASTEXITCODE; Output = $output }
+    $previous = $ErrorActionPreference
+    try {
+        # Windows PowerShell reports expected native stderr as NativeCommandError.
+        # Keep the task's exit code and refusal message as the result on both shells.
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = -1
+        $output = @(& $wrapper -p $Root --offline --console=plain :extensions:instagram:verifyAndroidBoundaries `
+            -x :extensions:instagram:testDebugUnitTest 2>&1 | ForEach-Object { "$_" }) -join "`n"
+        $exitCode = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $previous }
+    [pscustomobject]@{ Exit = $exitCode; Output = $output }
 }
 
 try {
@@ -54,7 +62,19 @@ try {
         } },
         @{ Name = 'filtered API 37'; Reason = $caseFailure; Change = { param($document)
             foreach ($node in @($document.GetElementsByTagName('testcase'))) {
-                if (-not $node.GetAttribute('name').EndsWith('[28]')) { $node.ParentNode.RemoveChild($node) | Out-Null }
+                if ($node.GetAttribute('name').EndsWith('[37]')) { $node.ParentNode.RemoveChild($node) | Out-Null }
+            }
+        } },
+        @{ Name = 'API 36 substituted for API 37'; Reason = $caseFailure; Change = { param($document)
+            foreach ($node in @($document.GetElementsByTagName('testcase'))) {
+                $name = $node.GetAttribute('name')
+                if ($name.EndsWith('[37]')) { $node.SetAttribute('name', $name.Replace('[37]', '[36]')) }
+            }
+        } },
+        @{ Name = 'highest API marker removed'; Reason = $caseFailure; Change = { param($document)
+            foreach ($node in @($document.GetElementsByTagName('testcase'))) {
+                $name = $node.GetAttribute('name')
+                if ($name.EndsWith('[37]')) { $node.SetAttribute('name', $name.Substring(0, $name.Length - 4)) }
             }
         } },
         @{ Name = 'one missing case'; Reason = $caseFailure; Change = { param($document)
