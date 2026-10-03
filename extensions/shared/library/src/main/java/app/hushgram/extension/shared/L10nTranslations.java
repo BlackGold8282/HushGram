@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(700);
+        Map<String, String> table = new HashMap<>(704);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -345,6 +345,8 @@ public final class L10nTranslations {
                 "Stories-Leiste ausblenden");
         table.put("Highest",
                 "H\u00f6chste");
+        table.put("Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.",
+                "H\u00e4lt Lesebest\u00e4tigungen f\u00fcr Fotos und Videos zur einmaligen Ansicht zur\u00fcck. Medien laufen weiterhin ab. Diese Testfunktion ist anfangs ausgeschaltet.");
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "Die Startseite \u00f6ffnet sich mit Beitr\u00e4gen von Konten, denen du folgst. Tippe oben auf \u201eGefolgt\u201c, um zu \u201eF\u00fcr dich\u201c zu wechseln, und die Startseite merkt sich deine Wahl. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -421,11 +423,11 @@ public final class L10nTranslations {
                 "Layout");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Blendet \u201eNeue Gruppe\u201c im Teilen-Men\u00fc aus, ebenso die Schaltfl\u00e4che, die an die ausgew\u00e4hlten Personen als Gruppe sendet. \u201eEinzeln senden\u201c bleibt, und eine Gruppe kannst du weiterhin in deinen Nachrichten erstellen.");
-        table.put("Licenses",
-                "Lizenzen");
     }
 
     private static void fillDe3(Map<String, String> table) {
+        table.put("Licenses",
+                "Lizenzen");
         table.put("Link expired. Reopen the item and try again",
                 "Link abgelaufen. \u00d6ffne den Inhalt neu und versuche es noch einmal");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
@@ -544,11 +546,11 @@ public final class L10nTranslations {
                 "Erneut versuchen");
         table.put("Ring size",
                 "Ringgr\u00f6\u00dfe");
-        table.put("Sanitize sharing links",
-                "Geteilte Links bereinigen");
     }
 
     private static void fillDe4(Map<String, String> table) {
+        table.put("Sanitize sharing links",
+                "Geteilte Links bereinigen");
         table.put("Save",
                 "Speichern");
         table.put("Save all",
@@ -655,8 +657,8 @@ public final class L10nTranslations {
                 "Zum Wiedereinschalten tippen.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Der Folgen-Button neben dem Namen der Person, die das Reel gepostet hat. Auf ihrem Profil gibt es ihn weiterhin.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
-                "Der Tab Suche und der Bereich oben in deinen Nachrichten bekommen eine normale Suchleiste ohne Meta AI, Suchergebnisse verlieren ihre Leiste f\u00fcr Folgefragen, und die obere Leiste der Startseite verliert die Meta-AI-Schaltfl\u00e4chen. Starte Instagram nach einer \u00c4nderung neu.");
+        table.put("The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.",
+                "Der Tab \u201eSuche\u201c und der obere Bereich deiner Nachrichten erhalten eine normale Suchleiste. Die Leiste \u201eNachfrage stellen\u201c verschwindet aus den Suchergebnissen. Die Meta-AI-Schaltfl\u00e4chen auf der Startseite und im Nachrichteneditor sowie die optionale Meta-AI-Zeile im Posteingang werden ausgeblendet. Starte Instagram nach einer \u00c4nderung neu.");
         table.put("The bubbles of friends who liked or commented, the Followed by and Liked by lines with their faces, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Die Blasen von Freunden, die etwas mit Gef\u00e4llt mir markiert oder kommentiert haben, die Zeilen \u201eGefolgt von\u201c und \u201eGef\u00e4llt\u201c mit ihren Profilbildern, der Kommentar unter einem Reel und die Reihe der Freunde, die es gesehen haben. Die Kommentare sind weiterhin nur einen Tipp entfernt.");
         table.put("The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.",
@@ -667,11 +669,11 @@ public final class L10nTranslations {
                 "Der Diagnosebericht lie\u00df sich noch nicht speichern. Versuche es gleich noch einmal.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "Der Diagnosebericht lie\u00df sich nicht speichern. Versuche es noch einmal.");
-        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
-                "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s, um HushGram wieder einzuschalten.");
     }
 
     private static void fillDe5(Map<String, String> table) {
+        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
+                "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s, um HushGram wieder einzuschalten.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Die Beitr\u00e4ge und Reels unter der Suchleiste im Tab Suche. Die Suche, deine letzten Suchen und die Suchergebnisse bleiben.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -754,6 +756,8 @@ public final class L10nTranslations {
                 "Videos, Reels und Stories laufen in der Qualit\u00e4t unten, ab dem n\u00e4chsten Video, das du \u00f6ffnest.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Videos, Reels und Stories warten, bis du tippst. Videos im Feed zeigen eine Wiedergabetaste, wie wenn du weniger mobile Daten nutzt.");
+        table.put("View DM photos and videos anonymously",
+                "Fotos und Videos in Nachrichten anonym ansehen");
         table.put("View stories anonymously",
                 "Stories anonym ansehen");
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
@@ -775,7 +779,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(700);
+        Map<String, String> table = new HashMap<>(704);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -1074,6 +1078,8 @@ public final class L10nTranslations {
                 "Ocultar la fila de historias");
         table.put("Highest",
                 "La m\u00e1s alta");
+        table.put("Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.",
+                "No env\u00eda confirmaciones de visualizaci\u00f3n de fotos y videos de una sola vista. Los archivos siguen caducando. Esta funci\u00f3n de prueba empieza desactivada.");
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "Inicio se abre con publicaciones de las cuentas que sigues. Toca Seguidos arriba para cambiar a Para ti, e Inicio recuerda lo que elegiste. Reinicia Instagram despu\u00e9s de cambiarlo.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -1150,11 +1156,11 @@ public final class L10nTranslations {
                 "Dise\u00f1o");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Quita Nuevo grupo del men\u00fa para compartir y el bot\u00f3n que env\u00eda a las personas elegidas como grupo. Enviar por separado se queda, y puedes seguir creando un grupo desde tus mensajes.");
-        table.put("Licenses",
-                "Licencias");
     }
 
     private static void fillEs3(Map<String, String> table) {
+        table.put("Licenses",
+                "Licencias");
         table.put("Link expired. Reopen the item and try again",
                 "El enlace expir\u00f3. Vuelve a abrir el contenido e int\u00e9ntalo de nuevo");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
@@ -1273,11 +1279,11 @@ public final class L10nTranslations {
                 "Reintentar");
         table.put("Ring size",
                 "Tama\u00f1o de los anillos");
-        table.put("Sanitize sharing links",
-                "Limpiar enlaces compartidos");
     }
 
     private static void fillEs4(Map<String, String> table) {
+        table.put("Sanitize sharing links",
+                "Limpiar enlaces compartidos");
         table.put("Save",
                 "Guardar");
         table.put("Save all",
@@ -1384,8 +1390,8 @@ public final class L10nTranslations {
                 "Toca para volver a activarlo.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "El bot\u00f3n Seguir junto al autor de un reel. Su perfil lo sigue teniendo.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
-                "La pesta\u00f1a Buscar y la parte de arriba de tus mensajes tienen una barra de b\u00fasqueda normal, sin Meta AI, los resultados de b\u00fasqueda pierden su barra de preguntas de seguimiento y la barra superior de Inicio pierde los botones de Meta AI. Reinicia Instagram despu\u00e9s de cambiarlo.");
+        table.put("The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.",
+                "La pesta\u00f1a Buscar y la parte superior de tus mensajes tendr\u00e1n una barra de b\u00fasqueda normal. Los resultados de b\u00fasqueda perder\u00e1n la barra para hacer una pregunta de seguimiento. Los botones de Meta AI desaparecer\u00e1n de Inicio y del editor de mensajes, y se ocultar\u00e1 su fila opcional en la bandeja de entrada. Reinicia Instagram despu\u00e9s de cambiar esta opci\u00f3n.");
         table.put("The bubbles of friends who liked or commented, the Followed by and Liked by lines with their faces, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Las burbujas de amigos que dieron me gusta o comentaron, las l\u00edneas de Seguido por y Le gusta a con sus fotos, el comentario que aparece bajo un reel y la fila de amigos que lo vieron. Los comentarios siguen a un toque.");
         table.put("The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.",
@@ -1396,11 +1402,11 @@ public final class L10nTranslations {
                 "Todav\u00eda no se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo en un momento.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "No se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
-        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
-                "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s para volver a activar HushGram.");
     }
 
     private static void fillEs5(Map<String, String> table) {
+        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
+                "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s para volver a activar HushGram.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Las publicaciones y reels debajo de la barra de la pesta\u00f1a Buscar. La b\u00fasqueda, tus b\u00fasquedas recientes y los resultados se quedan.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -1483,6 +1489,8 @@ public final class L10nTranslations {
                 "Los videos, reels e historias se reproducen en la calidad de abajo, a partir del pr\u00f3ximo que abras.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Los videos, reels e historias esperan a que toques. Los videos del feed muestran un bot\u00f3n de reproducir, como cuando usas menos datos m\u00f3viles.");
+        table.put("View DM photos and videos anonymously",
+                "Ver fotos y videos de mensajes de forma an\u00f3nima");
         table.put("View stories anonymously",
                 "Ver historias de forma an\u00f3nima");
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
@@ -1504,7 +1512,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(700);
+        Map<String, String> table = new HashMap<>(704);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1803,6 +1811,8 @@ public final class L10nTranslations {
                 "Sembunyikan baris Cerita");
         table.put("Highest",
                 "Tertinggi");
+        table.put("Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.",
+                "Menahan tanda sudah dilihat untuk foto dan video sekali lihat. Media tetap kedaluwarsa. Fitur uji coba ini awalnya nonaktif.");
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "Beranda terbuka dengan postingan dari akun yang kamu ikuti. Ketuk Mengikuti di bagian atas untuk beralih ke Untuk Anda, dan Beranda mengingat pilihanmu. Mulai ulang Instagram setelah mengubahnya.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -1879,11 +1889,11 @@ public final class L10nTranslations {
                 "Tata letak");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Menghapus Grup baru dari lembar bagikan, juga tombol yang mengirim ke orang-orang yang kamu pilih sebagai grup. Kirim terpisah tetap ada, dan kamu tetap bisa membuat grup dari pesanmu.");
-        table.put("Licenses",
-                "Lisensi");
     }
 
     private static void fillIn3(Map<String, String> table) {
+        table.put("Licenses",
+                "Lisensi");
         table.put("Link expired. Reopen the item and try again",
                 "Tautan kedaluwarsa. Buka ulang kontennya lalu coba lagi");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
@@ -2002,11 +2012,11 @@ public final class L10nTranslations {
                 "Coba lagi");
         table.put("Ring size",
                 "Ukuran lingkaran");
-        table.put("Sanitize sharing links",
-                "Bersihkan tautan berbagi");
     }
 
     private static void fillIn4(Map<String, String> table) {
+        table.put("Sanitize sharing links",
+                "Bersihkan tautan berbagi");
         table.put("Save",
                 "Simpan");
         table.put("Save all",
@@ -2113,8 +2123,8 @@ public final class L10nTranslations {
                 "Ketuk untuk mengaktifkan HushGram lagi.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Tombol Ikuti di samping pembuat reel. Profilnya tetap punya tombol itu.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
-                "Tab Cari dan bagian atas pesan kamu mendapat bilah pencarian biasa, tanpa Meta AI, hasil pencarian kehilangan bilah pertanyaan lanjutannya, dan bilah atas Beranda kehilangan tombol Meta AI. Mulai ulang Instagram setelah mengubahnya.");
+        table.put("The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.",
+                "Tab Pencarian dan bagian atas pesan menggunakan bilah pencarian biasa. Bilah pertanyaan lanjutan di hasil pencarian dihapus. Tombol Meta AI di Beranda dan penyusun pesan serta baris Meta AI opsional di kotak masuk disembunyikan. Mulai ulang Instagram setelah mengubahnya.");
         table.put("The bubbles of friends who liked or commented, the Followed by and Liked by lines with their faces, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Gelembung teman yang menyukai atau berkomentar, baris Diikuti oleh dan Disukai oleh beserta foto mereka, komentar yang tampil di bawah reel, dan deretan teman yang melihatnya. Komentar tetap bisa dibuka dengan sekali ketuk.");
         table.put("The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.",
@@ -2125,11 +2135,11 @@ public final class L10nTranslations {
                 "Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "Laporan diagnostik tidak dapat disimpan. Coba lagi.");
-        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
-                "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushGram lagi.");
     }
 
     private static void fillIn5(Map<String, String> table) {
+        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
+                "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushGram lagi.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Postingan dan reel di bawah bilah tab Cari. Pencarian, pencarian terbaru kamu, dan hasil pencarian tetap ada.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -2212,6 +2222,8 @@ public final class L10nTranslations {
                 "Video, reels, dan cerita diputar dengan kualitas di bawah, mulai dari yang berikutnya Anda buka.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Video, reels, dan cerita menunggu ketukan Anda. Video di feed menampilkan tombol putar, seperti saat Anda menghemat data seluler.");
+        table.put("View DM photos and videos anonymously",
+                "Lihat foto dan video di pesan secara anonim");
         table.put("View stories anonymously",
                 "Lihat cerita secara anonim");
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
@@ -2233,7 +2245,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(700);
+        Map<String, String> table = new HashMap<>(704);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2532,6 +2544,8 @@ public final class L10nTranslations {
                 "Ocultar a fileira de stories");
         table.put("Highest",
                 "A mais alta");
+        table.put("Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.",
+                "N\u00e3o envia confirma\u00e7\u00f5es de visualiza\u00e7\u00e3o de fotos e v\u00eddeos de visualiza\u00e7\u00e3o \u00fanica. A m\u00eddia continua expirando. Este recurso de teste come\u00e7a desativado.");
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "O In\u00edcio abre com posts das contas que voc\u00ea segue. Toque em Seguindo no topo para mudar para Para voc\u00ea, e o In\u00edcio lembra da sua escolha. Reinicie o Instagram depois de mudar.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -2608,11 +2622,11 @@ public final class L10nTranslations {
                 "Layout");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Tira Novo grupo do menu de compartilhamento e o bot\u00e3o que envia para as pessoas escolhidas como grupo. Enviar separadamente continua, e voc\u00ea ainda pode criar um grupo nas suas mensagens.");
-        table.put("Licenses",
-                "Licen\u00e7as");
     }
 
     private static void fillPt_rBR3(Map<String, String> table) {
+        table.put("Licenses",
+                "Licen\u00e7as");
         table.put("Link expired. Reopen the item and try again",
                 "Link expirado. Reabra o item e tente novamente");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
@@ -2731,11 +2745,11 @@ public final class L10nTranslations {
                 "Tentar novamente");
         table.put("Ring size",
                 "Tamanho dos an\u00e9is");
-        table.put("Sanitize sharing links",
-                "Limpar links compartilhados");
     }
 
     private static void fillPt_rBR4(Map<String, String> table) {
+        table.put("Sanitize sharing links",
+                "Limpar links compartilhados");
         table.put("Save",
                 "Salvar");
         table.put("Save all",
@@ -2842,8 +2856,8 @@ public final class L10nTranslations {
                 "Toque para reativar.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "O bot\u00e3o Seguir ao lado de quem postou o reel. O perfil da pessoa continua com ele.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
-                "A aba Pesquisar e o topo das suas mensagens ficam com uma barra de pesquisa comum, sem a Meta AI, os resultados da pesquisa perdem a barra de perguntas de acompanhamento e a barra superior do In\u00edcio perde os bot\u00f5es da Meta AI. Reinicie o Instagram depois de mudar.");
+        table.put("The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.",
+                "A aba Pesquisar e a parte superior das suas mensagens passam a ter uma barra de pesquisa comum. A barra de perguntas adicionais sai dos resultados de pesquisa. Os bot\u00f5es da Meta AI somem da P\u00e1gina inicial e do editor de mensagens, e a linha opcional da Meta AI \u00e9 ocultada na caixa de entrada. Reinicie o Instagram ap\u00f3s alterar esta op\u00e7\u00e3o.");
         table.put("The bubbles of friends who liked or commented, the Followed by and Liked by lines with their faces, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Os bal\u00f5es de amigos que curtiram ou comentaram, as linhas Seguido por e Curtido por com as fotos deles, o coment\u00e1rio mostrado embaixo do reel e a fileira de amigos que o viram. Os coment\u00e1rios continuam a um toque.");
         table.put("The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.",
@@ -2854,11 +2868,11 @@ public final class L10nTranslations {
                 "O relat\u00f3rio de diagn\u00f3stico ainda n\u00e3o p\u00f4de ser salvo. Tente de novo em instantes.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "N\u00e3o foi poss\u00edvel salvar o relat\u00f3rio de diagn\u00f3stico. Tente de novo.");
-        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
-                "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushGram.");
     }
 
     private static void fillPt_rBR5(Map<String, String> table) {
+        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
+                "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushGram.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Os posts e reels embaixo da barra da aba Pesquisar. A pesquisa, suas pesquisas recentes e os resultados continuam.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -2941,6 +2955,8 @@ public final class L10nTranslations {
                 "V\u00eddeos, reels e stories s\u00e3o reproduzidos na qualidade abaixo, a partir do pr\u00f3ximo que voc\u00ea abrir.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "V\u00eddeos, reels e stories esperam o seu toque. Os v\u00eddeos do feed mostram um bot\u00e3o de reproduzir, como quando voc\u00ea usa menos dados m\u00f3veis.");
+        table.put("View DM photos and videos anonymously",
+                "Ver fotos e v\u00eddeos de mensagens anonimamente");
         table.put("View stories anonymously",
                 "Ver Stories anonimamente");
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",
@@ -2962,7 +2978,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(700);
+        Map<String, String> table = new HashMap<>(704);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3261,6 +3277,8 @@ public final class L10nTranslations {
                 "Hikaye s\u0131ras\u0131n\u0131 gizle");
         table.put("Highest",
                 "En y\u00fcksek");
+        table.put("Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.",
+                "Tek g\u00f6r\u00fcnt\u00fclemelik foto\u011fraf ve videolar\u0131n g\u00f6r\u00fcld\u00fc bilgisini g\u00f6ndermeyi engeller. Medyan\u0131n s\u00fcresi yine dolar. Bu deneme \u00f6zelli\u011fi ba\u015flang\u0131\u00e7ta kapal\u0131d\u0131r.");
         table.put("Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.",
                 "Ana Sayfa, takip etti\u011fin hesaplar\u0131n g\u00f6nderileriyle a\u00e7\u0131l\u0131r. Senin i\u00e7in'e ge\u00e7mek i\u00e7in \u00fcstteki Takip Edilenler'e dokun, Ana Sayfa se\u00e7imini hat\u0131rlar. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
         table.put("How far a photo or video you're saving has got, with a button to cancel it",
@@ -3337,11 +3355,11 @@ public final class L10nTranslations {
                 "D\u00fczen");
         table.put("Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.",
                 "Payla\u015f\u0131m men\u00fcs\u00fcnden Yeni grup d\u00fc\u011fmesini ve se\u00e7ti\u011fin ki\u015filere grup olarak g\u00f6nderen d\u00fc\u011fmeyi kald\u0131r\u0131r. Ayr\u0131 ayr\u0131 g\u00f6nder kal\u0131r ve mesajlar\u0131ndan yine grup olu\u015fturabilirsin.");
-        table.put("Licenses",
-                "Lisanslar");
     }
 
     private static void fillTr3(Map<String, String> table) {
+        table.put("Licenses",
+                "Lisanslar");
         table.put("Link expired. Reopen the item and try again",
                 "Ba\u011flant\u0131n\u0131n s\u00fcresi doldu. \u00d6\u011feyi yeniden a\u00e7\u0131p tekrar dene");
         table.put("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.",
@@ -3460,11 +3478,11 @@ public final class L10nTranslations {
                 "Yeniden dene");
         table.put("Ring size",
                 "Halka boyutu");
-        table.put("Sanitize sharing links",
-                "Payla\u015f\u0131m ba\u011flant\u0131lar\u0131n\u0131 temizle");
     }
 
     private static void fillTr4(Map<String, String> table) {
+        table.put("Sanitize sharing links",
+                "Payla\u015f\u0131m ba\u011flant\u0131lar\u0131n\u0131 temizle");
         table.put("Save",
                 "Kaydet");
         table.put("Save all",
@@ -3571,8 +3589,8 @@ public final class L10nTranslations {
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("The Follow button beside a reel's author. Their profile still has one.",
                 "Bir reelin sahibinin yan\u0131ndaki Takip Et d\u00fc\u011fmesi. Profilinde h\u00e2l\u00e2 var.");
-        table.put("The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.",
-                "Ara sekmesi ve mesajlar\u0131n\u0131n \u00fcst\u00fc, Meta AI olmadan sade bir arama \u00e7ubu\u011fu al\u0131r, arama sonu\u00e7lar\u0131 takip sorusu \u00e7ubu\u011funu kaybeder ve Ana Sayfa'n\u0131n \u00fcst \u00e7ubu\u011fu Meta AI d\u00fc\u011fmelerini kaybeder. De\u011fi\u015ftirdikten sonra Instagram'\u0131 yeniden ba\u015flat.");
+        table.put("The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.",
+                "Ara sekmesi ve mesajlar\u0131n\u0131z\u0131n \u00fcst k\u0131sm\u0131 normal bir arama \u00e7ubu\u011fu kullan\u0131r. Arama sonu\u00e7lar\u0131ndaki takip sorusu \u00e7ubu\u011fu kald\u0131r\u0131l\u0131r. Meta AI d\u00fc\u011fmeleri Ana Sayfa ve mesaj olu\u015fturucudan kald\u0131r\u0131l\u0131r, gelen kutusundaki iste\u011fe ba\u011fl\u0131 Meta AI sat\u0131r\u0131 da gizlenir. Bu ayar\u0131 de\u011fi\u015ftirdikten sonra Instagram\u2019\u0131 yeniden ba\u015flat\u0131n.");
         table.put("The bubbles of friends who liked or commented, the Followed by and Liked by lines with their faces, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.",
                 "Be\u011fenen ya da yorum yapan arkada\u015flar\u0131n baloncuklar\u0131, foto\u011fraflar\u0131yla birlikte takip eden ve be\u011fenen arkada\u015f sat\u0131rlar\u0131, reelin alt\u0131nda g\u00f6sterilen yorum ve onu g\u00f6ren arkada\u015flar\u0131n s\u0131ras\u0131. Yorumlar h\u00e2l\u00e2 bir dokunu\u015f uzakta.");
         table.put("The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.",
@@ -3583,11 +3601,11 @@ public final class L10nTranslations {
                 "Tan\u0131lama raporu hen\u00fcz kaydedilemedi. Birazdan tekrar dene.");
         table.put("The diagnostic report couldn't be saved. Try again.",
                 "Tan\u0131lama raporu kaydedilemedi. Tekrar dene.");
-        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
-                "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. HushGram'u yeniden a\u00e7mak i\u00e7in onu %2$s i\u00e7inden sil.");
     }
 
     private static void fillTr5(Map<String, String> table) {
+        table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
+                "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. HushGram'u yeniden a\u00e7mak i\u00e7in onu %2$s i\u00e7inden sil.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
                 "Ara sekmesinin \u00e7ubu\u011fu alt\u0131ndaki g\u00f6nderiler ve reels videolar\u0131. Arama, son aramalar\u0131n ve arama sonu\u00e7lar\u0131 kal\u0131r.");
         table.put("The posts, accounts and communities from Threads that Instagram mixes into your feed.",
@@ -3670,6 +3688,8 @@ public final class L10nTranslations {
                 "Videolar, reels ve hikayeler, a\u00e7aca\u011f\u0131n bir sonrakinden itibaren a\u015fa\u011f\u0131daki kalitede oynat\u0131l\u0131r.");
         table.put("Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.",
                 "Videolar, reels ve hikayeler dokunman\u0131 bekler. Ak\u0131\u015ftaki videolar, daha az mobil veri kulland\u0131\u011f\u0131ndaki gibi bir oynat d\u00fc\u011fmesi g\u00f6sterir.");
+        table.put("View DM photos and videos anonymously",
+                "Mesajlardaki foto\u011fraf ve videolar\u0131 anonim g\u00f6r\u00fcnt\u00fcle");
         table.put("View stories anonymously",
                 "Hikayeleri anonim olarak izle");
         table.put("Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.",

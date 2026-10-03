@@ -114,6 +114,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting VIEW_STORIES_ANONYMOUSLY =
             new BooleanSetting("hushgram_view_stories_anonymously", TRUE);
 
+    /** A separate opt-in for the direct visual-media receipt. Ordinary chat receipts stay native. */
+    public static final BooleanSetting VIEW_DM_MEDIA_ANONYMOUSLY =
+            new BooleanSetting("hushgram_view_dm_media_anonymously", FALSE);
+
     /**
      * The Mark as seen button in the story viewer's header
      * ({@link app.hushgram.extension.instagram.stories.StorySeenButton}). Off to start. A story you

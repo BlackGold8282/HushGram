@@ -261,6 +261,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "refuses them, instead of to Instagram and Facebook. Restart Instagram after "
                             + "changing it.")));
         }
+        if (build.contains(PatchFamily.DM_MEDIA_SEEN)) {
+            privacy.add(toggle(context, Settings.VIEW_DM_MEDIA_ANONYMOUSLY,
+                    L10n.t("View DM photos and videos anonymously"),
+                    L10n.t("Holds back seen receipts for view-once photos and videos. Media still expires. "
+                            + "This is a test feature, off to start.")));
+        }
         if (!privacy.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Ads and privacy"));
             for (Preference row : privacy) section.addPreference(row);
@@ -296,8 +302,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (build.contains(PatchFamily.META_AI)) {
             PreferenceCategory metaAi = category(screen, L10n.t("Meta AI"));
             metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_SEARCH, L10n.t("Hide Meta AI in search and Home's bar"),
-                    L10n.t("The Search tab and the top of your messages get a plain search bar, without Meta AI, "
-                            + "search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. "
+                    L10n.t("The Search tab and the top of your messages get a plain search bar. "
+                            + "Search results lose their Ask a follow-up bar. "
+                            + "Meta AI's buttons disappear from Home and the message composer, "
+                            + "and its optional inbox row is hidden. "
                             + "Restart Instagram after changing it.")));
             metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_POSTS, L10n.t("Hide Meta AI posts"),
                     L10n.t("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.")));

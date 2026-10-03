@@ -195,7 +195,7 @@ Stop swipe to create	Oluşturmak için kaydırmayı durdur
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Ana sayfada yana kaydırmak artık kamerayı açmaz. + düğmesi ve kameraya giden diğer yollar çalışmaya devam eder.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Aramada ve Ana Sayfa çubuğunda Meta AI'ı gizle
-The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	Ara sekmesi ve mesajlarının üstü, Meta AI olmadan sade bir arama çubuğu alır, arama sonuçları takip sorusu çubuğunu kaybeder ve Ana Sayfa'nın üst çubuğu Meta AI düğmelerini kaybeder. Değiştirdikten sonra Instagram'ı yeniden başlat.
+The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.	Ara sekmesi ve mesajlarınızın üst kısmı normal bir arama çubuğu kullanır. Arama sonuçlarındaki takip sorusu çubuğu kaldırılır. Meta AI düğmeleri Ana Sayfa ve mesaj oluşturucudan kaldırılır, gelen kutusundaki isteğe bağlı Meta AI satırı da gizlenir. Bu ayarı değiştirdikten sonra Instagram’ı yeniden başlatın.
 Hide Meta AI posts	Meta AI gönderilerini gizle
 Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.	Instagram'ın ana akışına koyduğu Meta AI videoları, sohbetleri ve senin görsellerin.
 Explore	Keşfet
@@ -351,3 +351,5 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	Görüldü olarak işaretle
 Marked as seen. Tap again to undo.	Görüldü olarak işaretlendi. Geri almak için tekrar dokun.
 Marked as seen and sent	Görüldü olarak işaretlendi ve gönderildi
+View DM photos and videos anonymously	Mesajlardaki fotoğraf ve videoları anonim görüntüle
+Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	Tek görüntülemelik fotoğraf ve videoların görüldü bilgisini göndermeyi engeller. Medyanın süresi yine dolar. Bu deneme özelliği başlangıçta kapalıdır.

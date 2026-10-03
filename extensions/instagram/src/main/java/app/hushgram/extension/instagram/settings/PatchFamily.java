@@ -53,6 +53,7 @@ public enum PatchFamily {
     STORY_LOOP(FamilyNames.STORY_LOOP, "storyLoop", null, Settings.LOOP_STORIES),
     STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null, Settings.VIEW_STORIES_ANONYMOUSLY,
             Settings.MARK_STORIES_SEEN),
+    DM_MEDIA_SEEN(FamilyNames.DM_MEDIA_SEEN, "visualSeen", null, Settings.VIEW_DM_MEDIA_ANONYMOUSLY),
     STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null, Settings.HIDE_SUGGESTED_STORIES,
             Settings.HIDE_STORIES_TRAY),
     STORY_RING(FamilyNames.STORY_RING, "storyRingSize", null, Settings.STORY_RING),

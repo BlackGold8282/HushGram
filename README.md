@@ -64,7 +64,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 
 Default playback quality is in Manager's simple mode. It starts at Auto, so Instagram keeps choosing the quality until you change it in HushGram. Patches whose initial switches or patch-time changes alter behavior keep their opt-in selection.
 
-There are 46 patches for `com.instagram.android`, checked against Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The eleven newest, Copy comment, Save comment photo, Hide suggested people on profiles, Hide highlights, Hide suggested accounts in Reels, Keep a seek bar on Reels, Keep Reels auto scroll on, Show a story's exact time, Loop a story, Stop swipe to create and Stop Reels scrolling, are new in v0.0.4.
+The source catalog has 47 patches for `com.instagram.android`, targeting Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The published v0.0.4 bundle has 46. View DM photos and videos anonymously and the new Meta AI message controls are unreleased. Their sender and inbox checks still need a test account.
 
 | Patch | What it does |
 |---|---|
@@ -79,7 +79,7 @@ There are 46 patches for `com.instagram.android`, checked against Instagram 449.
 | `Hide ads` | Hides sponsored posts, reels and stories. Instagram is told the ad didn't go in, so no gap is left where it would have been. |
 | `Hide group buttons on the share sheet` | Takes the New group button away from beside the share sheet's search bar, and the button that sends to the people you picked as one group, so they get it one by one. You can still start a group from your messages. |
 | `Hide highlights` | Takes the row of story highlights off profiles, yours and other people's. Bios, counts, posts and the Add to highlight list on your stories stay. |
-| `Hide Meta AI` | Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they search the plain way, drops the Ask a follow-up bar under search results and Meta AI's buttons in Home's top bar, and removes Meta AI's posts from your home feed. Each has its own switch, and the search one shows once Instagram restarts. |
+| `Hide Meta AI` | Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they search the plain way, drops the Ask a follow-up bar under search results and Meta AI's buttons in Home's top bar and the message composer, hides its optional row in your inbox, and removes Meta AI's posts from your home feed. Search and posts have separate switches. The search switch applies after Instagram restarts. |
 | `Hide Reels in the feed` | Removes the rows of suggested reels between posts in your home feed, and the other units that open the Reels viewer from there. A reel someone you follow posts stays. |
 | `Hide the Explore grid` | Empties the grid of posts and reels under the Search tab's bar. Search, your recent searches and search results stay. |
 | `Hide suggested accounts in Reels` | Leaves out the cards of people and creators to follow that Instagram puts between reels. Every reel still plays. |
@@ -113,6 +113,7 @@ There are 46 patches for `com.instagram.android`, checked against Instagram 449.
 | `Story ring size` | Draws the rings in the stories row at the top of Home smaller, so more fit on the screen, or larger. Pick the size in HushGram's settings. |
 | `Tap to play` | Videos, reels and stories wait for your tap instead of starting by themselves. Feed videos show a play button, the way they do when Instagram saves mobile data. |
 | `Turn off double tap to like` | Stops a double tap on a post or a reel from liking it, and the heart doesn't show. A single tap still does what it did, and the Like button still likes. |
+| `View DM photos and videos anonymously` | Adds an off-by-default switch to hold back the opened receipt for view-once photos and videos in messages. Ordinary chat and voice receipts keep Instagram's behavior. Sender-side verification is pending. |
 | `View stories anonymously` | Keeps you off the viewer list of the stories you watch, because Instagram isn't told which ones you've seen. Replying or reacting still shows you, and stories you've watched keep showing as new. A second switch, off to start, adds a Mark as seen button to each story, so you can still show up on the ones you pick. |
 
 The other patches keep their switches in `HushGram settings`, so Morphe Manager includes it whenever any of them is picked. Any of the rest can be left out when you patch.
@@ -133,7 +134,7 @@ HushGram's settings also have **Search settings**. Search by a control's label o
 
 At the top, a card says whether HushGram is on or paused. Below it:
 
-- **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links, Open links in external browser and Disable analytics.
+- **Ads and privacy** holds the switches for Hide ads, Sanitize sharing links, Open links in external browser and Disable analytics. Source builds can also include View DM photos and videos anonymously. It starts off and has its own switch.
 - **Feed** holds Start Home on Following's two switches, Start Home on Following and Only accounts you follow, Hide suggested posts' three: Hide suggested accounts, Hide suggested posts and Hide Threads posts, and the switch for Stop swipe to create.
 - **Meta AI** holds Hide Meta AI's two switches: Hide Meta AI in search and Home's bar, and Hide Meta AI posts.
 - **Explore** holds the switch for Hide the Explore grid.
