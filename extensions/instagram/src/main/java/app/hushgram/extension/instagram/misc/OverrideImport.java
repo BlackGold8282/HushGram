@@ -138,7 +138,9 @@ public final class OverrideImport {
     public static boolean discard(Activity activity) throws IOException {
         synchronized (LOCK) {
             allowed();
-            return new Store(activity, OverrideExchange.capture(activity)).discard();
+            OverrideExchange.Snapshot snapshot = OverrideExchange.capture(activity);
+            allowed();
+            return new Store(activity, snapshot).discard();
         }
     }
 
@@ -168,6 +170,7 @@ public final class OverrideImport {
             try { OverrideExchange.validated(document, first, target); }
             catch (IOException failure) { throw restoring ? new SavedCopyDoesntFit() : failure; }
             OverrideExchange.Snapshot before = settled(activity, first);
+            allowed();
             Map<Long, String> current = OverrideExchange.values(bytes(before.raw), before);
             Plan plan = plan(before, current, target);
             if (!restoring) {
@@ -190,10 +193,12 @@ public final class OverrideImport {
             // The commit boundary: the same session manager, store, schema and bytes as planned.
             OverrideExchange.Snapshot now = OverrideExchange.capture(activity);
             unchanged(before, now);
+            allowed();
             Object table;
             try { table = DeveloperOptions.getOverrideTableNative(now.manager); }
             catch (Throwable failure) { throw invalid(); }
             if (table == null) throw invalid();
+            allowed();
             try {
                 if (restoring) store.saveReplaced(OverrideExchange.export(before));
                 else store.savePending(OverrideExchange.export(before));

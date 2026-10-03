@@ -263,6 +263,62 @@ public class OverrideImportTest {
         }
     }
 
+    @Test public void permissionRevokedWhileSettlingOrAtCommitRefusesBeforeAnyMutation() throws Exception {
+        for (int at : new int[]{2, 3}) for (boolean pause : new boolean[]{false, true}) {
+            NativeTable.reset(NativeTable.file);
+            byte[] file = limit(5);
+            NativeTable.changeAt = at;
+            NativeTable.onChange = () -> {
+                if (pause) {
+                    BaseSettings.PAUSED.save(true);
+                    PauseForTests.pause(HushgramPause.Reason.SWITCH);
+                } else Settings.ALLOW_OVERRIDE_IMPORT.save(false);
+            };
+            try {
+                assertThrows(OverrideImport.NotAllowed.class, () -> OverrideImport.apply(activity, file));
+                untouched(NATIVE);
+                assertFalse(saved(".replaced.json").exists());
+            } finally {
+                NativeTable.onChange = null;
+                Settings.ALLOW_OVERRIDE_IMPORT.save(true);
+                BaseSettings.PAUSED.save(false);
+                PauseForTests.resume();
+            }
+        }
+    }
+
+    @Test public void permissionRevokedDuringRestoreOrDiscardPreservesTheSavedCopy() throws Exception {
+        byte[] previous = exported();
+        assertEquals(OverrideImport.Outcome.APPLIED, OverrideImport.apply(activity, limit(5)).outcome);
+        byte[] current = Files.readAllBytes(NativeTable.file.toPath());
+        for (int at : new int[]{1, 2, 3}) for (boolean pause : new boolean[]{false, true}) {
+            NativeTable.reset(NativeTable.file);
+            NativeTable.changeAt = at;
+            NativeTable.onChange = () -> {
+                if (pause) {
+                    BaseSettings.PAUSED.save(true);
+                    PauseForTests.pause(HushgramPause.Reason.SWITCH);
+                } else Settings.ALLOW_OVERRIDE_IMPORT.save(false);
+            };
+            try {
+                if (at == 1) assertThrows(OverrideImport.NotAllowed.class, () -> OverrideImport.discard(activity));
+                else assertThrows(OverrideImport.NotAllowed.class, () -> OverrideImport.restore(activity));
+                assertArrayEquals(current, Files.readAllBytes(NativeTable.file.toPath()));
+                assertArrayEquals(previous, bytes(".json"));
+                assertEquals(0, NativeTable.writes);
+                assertEquals(0, NativeTable.tableCalls);
+                assertFalse(saved(".pending.json").exists());
+                assertFalse(saved(".replaced.json").exists());
+                assertFalse(saved(".armed").exists());
+            } finally {
+                NativeTable.onChange = null;
+                Settings.ALLOW_OVERRIDE_IMPORT.save(true);
+                BaseSettings.PAUSED.save(false);
+                PauseForTests.resume();
+            }
+        }
+    }
+
     /**
      * Instagram's editor puts a change in its table at once and in the file later. An import
      * right after such an edit must see it land before planning, not write over it.

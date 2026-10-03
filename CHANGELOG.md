@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Import, Restore and Discard recheck their permission after reading native state. Turning Allow importing overrides off or pausing while an import waits now stops it before any typed write or recovery-file change.
 * **Instagram:** Added the opt-in source patch `View DM photos and videos anonymously`, with a separate switch that starts off. It holds back the visual photo/video opened receipt and completes Instagram's queued visual task locally. Ordinary message and voice receipts keep their existing path. Sender-side and native replay checks are still pending.
 * **Instagram:** `Hide Meta AI` now covers its optional message composer buttons through Instagram's existing visibility and layout path, and omits the optional inbox row through its native empty-row branch. Native fixture tests preserve ordinary controls and thread lists. An account with a real thread and active Meta AI row is still needed for the phone check.
 * **Instagram:** Same-key provider trust now checks the caller's actual current signing key after Instagram's native decision. Only named family apps in the same Android user can qualify. Other provider policies and the original deep-link certificate answers stay intact. Threads Continue as still needs its live acceptance check.
