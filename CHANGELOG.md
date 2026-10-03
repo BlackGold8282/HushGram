@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Pure black dark mode now leaves bottom navigation icon colors alone when they share Instagram's dark Prism value, so the buttons stay visible on black backgrounds.
+
 * **Tooling:** Wrapper checks find Git Bash when Git hooks resolve an internal Git executable. The authentic Windows and POSIX launchers and every refusal-before-execution check remain required.
 
 * **Tooling:** Local builds default to two workers at low priority, with parallel project builds off. Patch tests use a 4 GB heap instead of 8 GB, and test JVMs limit their internal processor count to two. Build caching stays on.
