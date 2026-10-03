@@ -585,12 +585,18 @@ public final class OverrideImport {
         boolean discard() throws IOException {
             boolean found = armed.exists();
             for (File file : copies) found |= file.exists();
-            if (!found && completed.exists()) found = isArmed();
+            if (!found && completed.exists()) {
+                try { found = isArmed(); }
+                catch (RestoreFirst damagedTerminal) {
+                    // A completed journal that can't be inspected is eligible for explicit Discard.
+                    found = true;
+                }
+            }
             if (!found) return false;
             selected = "none";
             digest = previous = "-";
             phase = "complete";
-            // Discard never needs to read the old journal, even when it is unreadable.
+            // Replace the old journal even if the optional terminal inspection couldn't read it.
             replace(armed, marker());
             for (File file : copies) delete(file);
             try { finish(); }

@@ -896,6 +896,46 @@ public class OverrideImportTest {
         }
     }
 
+    @Test public void discardCanReplaceALoneDamagedTerminalRecordWithoutChangingOverrides() throws Exception {
+        File terminal = saved(".settled");
+        Files.createDirectories(terminal.getParentFile().toPath());
+        for (byte[] corrupt : new byte[][]{"not a journal".getBytes(StandardCharsets.UTF_8), new byte[2 * 1024 * 1024]}) {
+            Files.write(terminal.toPath(), corrupt);
+            assertFalse(saved(".armed").exists());
+            assertFalse(saved(".json").exists());
+            assertTrue(OverrideImport.discard(activity));
+            untouched(NATIVE);
+            assertFalse(saved(".armed").exists());
+            assertFalse(OverrideImport.discard(activity));
+            OverrideImport.Result unchanged = OverrideImport.apply(activity, exported());
+            assertFalse(unchanged.blocked);
+            assertEquals(0, unchanged.changes);
+            untouched(NATIVE);
+        }
+    }
+
+    @Test public void discardCanRecoverALoneTerminalAfterInspectionIoFailure() throws Exception {
+        File terminal = saved(".settled");
+        Files.createDirectories(terminal.getParentFile().toPath());
+        Files.write(terminal.toPath(), "1\n385511871\nnone\n-\ncomplete\n-".getBytes(StandardCharsets.UTF_8));
+        boolean[] failInspection = {true};
+        storageObserver = (boundary, file) -> {
+            if (failInspection[0] && boundary.equals("beforeDirectorySync")) {
+                failInspection[0] = false;
+                throw new IOException("terminal inspection failed");
+            }
+        };
+        try {
+            assertTrue(OverrideImport.discard(activity));
+            untouched(NATIVE);
+            assertFalse(saved(".armed").exists());
+            assertFalse(OverrideImport.discard(activity));
+            OverrideImport.Result unchanged = OverrideImport.apply(activity, exported());
+            assertFalse(unchanged.blocked);
+            assertEquals(0, unchanged.changes);
+        } finally { storageObserver = null; }
+    }
+
     @Test public void persistentIoFailureAfterTheFinalMarkerMoveKeepsImportsBlocked() throws Exception {
         for (boolean discarding : new boolean[]{false, true}) {
             syncFailure = null;
