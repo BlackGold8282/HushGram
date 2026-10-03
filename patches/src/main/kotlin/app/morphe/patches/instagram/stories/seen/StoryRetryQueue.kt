@@ -66,7 +66,7 @@ private fun refuseQueue(detail: String): Nothing = throw PatchException("$PATCH:
  * Selection runs again whenever the pending item is retried. No other store gets this null path.
  * These shapes are deliberately narrow: a changed ownership or loop refuses before mutation.
  */
-internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: StoreRetry, reader: Method): StoryRetryQueue {
+internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: StoreRetry, reader: Method, accountGetter: Method): StoryRetryQueue {
     if (!AccessFlags.FINAL.isSet(store.accessFlags) || store.interfaces.isNotEmpty()) refuseQueue("store isn't final without interfaces")
     val base = store.superclass?.let { classDefByOrNull(it) } ?: refuseQueue("has no native owner")
     if (!AccessFlags.PUBLIC.isSet(base.accessFlags) || !AccessFlags.ABSTRACT.isSet(base.accessFlags) || base.interfaces.isNotEmpty() ||
@@ -87,6 +87,7 @@ internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: St
 
     val callers = mutableListOf<Pair<Method, Int>>()
     classDefForEach { type ->
+        if (type.superclass == store.type) refuseQueue("final story store has a subclass ${type.type}")
         if (type.annotations.callsQueue(bridge, build) || type.fields.any {
                 it.initialValue?.callsQueue(bridge, build) == true || it.annotations.callsQueue(bridge, build)
             }) refuseQueue("encoded story builder reference bypasses the protected queue")
@@ -135,6 +136,8 @@ internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: St
     code.registers(3, self)
     code.registers(5, code.reg(4))
     code.javaCall(5, "iterator", emptyList(), "Ljava/util/Iterator;")
+    code.registers(7, iterator)
+    requireIteratorCheck(code.call(7))
     code.registers(8, iterator)
     code.javaCall(8, "hasNext", emptyList(), "Z")
     code.registers(10, code.reg(9))
@@ -154,6 +157,20 @@ internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: St
     code.registers(28, self)
     if (code.call(28).definingClass != base.type || code.call(28).parameterTypes.isNotEmpty() || code.call(28).returnType != USER_SESSION) {
         refuseQueue("loop uses a foreign account getter")
+    }
+    if (!code.call(28).same(accountGetter) || store.methods.any { it.name == accountGetter.name &&
+            it.parameterTypes.map(Any::toString) == accountGetter.parameterTypes.map(Any::toString) && it.returnType == USER_SESSION }) {
+        refuseQueue("story selection doesn't use the loop's native account getter")
+    }
+    val account = base.requireAccountGetter(accountGetter)
+    requireNativeUserId()
+    val beforeBuild = bridge.code().take(retry.build).filter { it.opcode != Opcode.NOP }
+    if (beforeBuild.map { it.opcode } != listOf(Opcode.CHECK_CAST, Opcode.INVOKE_STATIC, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT) ||
+        beforeBuild[2].call()?.same(accountGetter) != true || beforeBuild[2].namedRegisters() != listOf(bridge.localRegisterCount()) ||
+        beforeBuild[0].namedRegisters() != listOf(retry.batch) ||
+        beforeBuild[1].namedRegisters() != listOf(retry.batch) ||
+        bridge.code()[retry.build].namedRegisters() != listOf(retry.batch, beforeBuild[3].namedRegisters().single())) {
+        refuseQueue("bridge doesn't build for its native account")
     }
     code.registers(32, code.reg(31), request)
     code.branch(33, 8)
@@ -193,6 +210,7 @@ internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: St
     move.literal(0, 0)
     move.registers(1, claimKey, move.reg(0))
     requireClaimAssertions(move.call(1), move.call(14))
+    requireNonNullCheck(beforeBuild[1].call()!!, move.call(1))
     move.registers(9, move.reg(0))
     move.registers(10, move.reg(10), claimSelf)
     move.registers(11, move.reg(4), claimKey)
@@ -206,7 +224,8 @@ internal fun BytecodePatchContext.findStoryRetryQueue(store: ClassDef, retry: St
     if ((move.reference(13) as? StringReference)?.string != CLAIM_TAG) refuseQueue("claim lacks its native store marker")
     claim.requireParameterIntact(PATCH, 0, listOf(1, 5, 11, 15))
     claim.requireThisIntact(PATCH, listOf(2, 4, 10))
-    base.requireOwnedMaps(pending, inFlight, monitor)
+    base.requireOwnedMaps(pending, inFlight, monitor, account)
+    base.requireCount(code.call(2), pending, inFlight, monitor)
 
     base.requireSnapshot(code.call(3), pending, monitor)
     base.requireLookup(code.call(14), pending, inFlight, monitor)
@@ -231,8 +250,8 @@ internal fun BytecodePatchContext.hookStoryRetryQueue(found: StorySeenTargets) {
     """, ExternalLabel("native", native), ExternalLabel("next", next))
 }
 
-private fun ClassDef.requireOwnedMaps(pending: FieldReference, inFlight: FieldReference, monitor: FieldReference) {
-    for (field in listOf(pending, inFlight, monitor)) {
+private fun ClassDef.requireOwnedMaps(pending: FieldReference, inFlight: FieldReference, monitor: FieldReference, account: FieldReference) {
+    for (field in listOf(pending, inFlight, monitor, account)) {
         val declared = fields.singleOrNull { it.toString() == field.toString() } ?: refuseQueue("ownership field isn't declared")
         if (!AccessFlags.FINAL.isSet(declared.accessFlags) || AccessFlags.STATIC.isSet(declared.accessFlags)) refuseQueue("ownership field isn't final")
     }
@@ -242,6 +261,15 @@ private fun ClassDef.requireOwnedMaps(pending: FieldReference, inFlight: FieldRe
     val code = Shape(constructor, Opcode.INVOKE_DIRECT, Opcode.IPUT_OBJECT, Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT,
         Opcode.IPUT_OBJECT, Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT, Opcode.IPUT_OBJECT, Opcode.NEW_INSTANCE,
         Opcode.INVOKE_DIRECT, Opcode.IPUT_OBJECT, Opcode.RETURN_VOID)
+    if (constructor.implementation!!.tryBlocks.isNotEmpty() || !AccessFlags.CONSTRUCTOR.isSet(constructor.accessFlags) ||
+        AccessFlags.NATIVE.isSet(constructor.accessFlags) || AccessFlags.ABSTRACT.isSet(constructor.accessFlags) ||
+        AccessFlags.STATIC.isSet(constructor.accessFlags) || !AccessFlags.PUBLIC.isSet(constructor.accessFlags) ||
+        code.call(0).toString() != "$OBJECT-><init>()V" || code.reference(1).toString() != account.toString()) {
+        refuseQueue("constructor doesn't capture its native account")
+    }
+    code.registers(0, constructor.localRegisterCount())
+    code.registers(1, constructor.parameterRegisterNumber(0), constructor.localRegisterCount())
+    constructor.requireParameterIntact(PATCH, 0, listOf(1))
     for ((fresh, field, kind) in listOf(
         Triple(2, pending, LINKED_MAP), Triple(5, inFlight, HASH_MAP), Triple(8, monitor, OBJECT),
     )) {
@@ -254,6 +282,114 @@ private fun ClassDef.requireOwnedMaps(pending: FieldReference, inFlight: FieldRe
         code.registers(put, register, constructor.localRegisterCount())
     }
     constructor.requireThisIntact(PATCH, listOf(0, 1, 4, 7, 10))
+}
+
+/** The account passed to the constructor is the account selection, retry and cleanup read. */
+private fun ClassDef.requireAccountGetter(method: Method): FieldReference {
+    if (method.definingClass != type || !AccessFlags.PUBLIC.isSet(method.accessFlags) || AccessFlags.STATIC.isSet(method.accessFlags) ||
+        AccessFlags.NATIVE.isSet(method.accessFlags) || AccessFlags.ABSTRACT.isSet(method.accessFlags) ||
+        method.parameterTypes.isNotEmpty() || method.returnType != USER_SESSION || method.implementation?.tryBlocks?.isEmpty() != true) {
+        refuseQueue("account getter isn't the native field read")
+    }
+    val code = Shape(method, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT)
+    val field = code.field(0, USER_SESSION, type)
+    code.registers(0, code.reg(0), method.localRegisterCount())
+    code.registers(1, code.reg(0))
+    if (code.reg(0) == method.localRegisterCount()) refuseQueue("account getter overwrites its receiver")
+    return field
+}
+
+private fun BytecodePatchContext.requireNativeUserId() {
+    val session = classDefByOrNull(USER_SESSION) ?: refuseQueue("has no native account type")
+    if (!AccessFlags.FINAL.isSet(session.accessFlags)) refuseQueue("native account type isn't final")
+    val getter = session.methods.singleOrNull { it.name == "getUserId" && it.parameterTypes.isEmpty() && it.returnType == STRING &&
+        AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) &&
+        !AccessFlags.NATIVE.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags) }
+        ?: refuseQueue("has no native user ID getter")
+    val code = Shape(getter, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT)
+    val field = code.field(0, STRING, USER_SESSION)
+    if (field.name != "userId" || getter.implementation!!.tryBlocks.isNotEmpty() || session.fields.singleOrNull { it.toString() == field.toString() }
+            ?.let { AccessFlags.FINAL.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) } != true) {
+        refuseQueue("user ID isn't its native final field")
+    }
+    code.registers(0, code.reg(0), getter.localRegisterCount())
+    code.registers(1, code.reg(0))
+    if (code.reg(0) == getter.localRegisterCount()) refuseQueue("user ID getter overwrites its receiver")
+}
+
+/** A fresh JDK snapshot iterator is non-null; its native assertion must immediately return. */
+private fun BytecodePatchContext.requireIteratorCheck(reference: MethodReference) {
+    val method = requireNonNullCheck(reference)
+    val code = Shape(method, Opcode.IF_NEZ, Opcode.CONST_STRING, Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC,
+        Opcode.MOVE_RESULT_OBJECT, Opcode.THROW, Opcode.RETURN_VOID)
+    code.registers(0, method.parameterRegisterNumber(0))
+    code.branch(0, 6)
+    if ((code.reference(1) as? StringReference)?.string != "INVOKE_RETURN") refuseQueue("iterator changed its native assertion marker")
+}
+
+/** The queue tests the batch before claim, so only this assertion's non-null branch can run. */
+private fun BytecodePatchContext.requireNonNullCheck(reference: MethodReference, parameterCheck: MethodReference? = null): Method {
+    val owner = classDefByOrNull(reference.definingClass) ?: refuseQueue("has no native non-null assertion")
+    val method = owner.method(reference)
+    if (!AccessFlags.PUBLIC.isSet(method.accessFlags) || !AccessFlags.STATIC.isSet(method.accessFlags) ||
+        AccessFlags.NATIVE.isSet(method.accessFlags) || AccessFlags.ABSTRACT.isSet(method.accessFlags) ||
+        method.parameterTypes.map(Any::toString) != listOf(OBJECT) || method.returnType != "V" ||
+        method.implementation?.tryBlocks?.isEmpty() != true || owner.methods.any { it.name == "<clinit>" } ||
+        owner.superclass != OBJECT || owner.interfaces.isNotEmpty() || AccessFlags.INTERFACE.isSet(owner.accessFlags)) {
+        refuseQueue("changed its native non-null assertion")
+    }
+    if (method.code().firstOrNull()?.opcode == Opcode.IF_NEZ) {
+        method.requireNonNullReturn()
+    } else {
+        val wrapper = Shape(method, Opcode.CONST_4, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID)
+        wrapper.literal(0, 0)
+        wrapper.registers(1, method.parameterRegisterNumber(0), wrapper.reg(0))
+        if (wrapper.reg(0) == method.parameterRegisterNumber(0) || wrapper.call(1).definingClass != owner.type ||
+            parameterCheck != null && !wrapper.call(1).same(parameterCheck)) refuseQueue("non-null wrapper changed its native arguments")
+        val check = owner.method(wrapper.call(1))
+        if (!AccessFlags.PUBLIC.isSet(check.accessFlags) || !AccessFlags.STATIC.isSet(check.accessFlags) ||
+            AccessFlags.NATIVE.isSet(check.accessFlags) || AccessFlags.ABSTRACT.isSet(check.accessFlags) ||
+            check.parameterTypes.map(Any::toString) != listOf(OBJECT, "I") || check.returnType != "V" ||
+            check.implementation?.tryBlocks?.isEmpty() != true) refuseQueue("non-null wrapper changed its native check")
+        check.requireNonNullReturn()
+    }
+    return method
+}
+
+private fun Method.requireNonNullReturn() {
+    val code = code()
+    val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+    if (code.firstOrNull()?.opcode != Opcode.IF_NEZ || code.first().namedRegisters() != listOf(parameterRegisterNumber(0)) ||
+        code.lastOrNull()?.opcode != Opcode.RETURN_VOID ||
+        (code.first() as OffsetInstruction).codeOffset != addresses[code.lastIndex]) {
+        refuseQueue("non-null assertion doesn't return before any work")
+    }
+}
+
+/** The ignored preselection result is a count, never an ownership operation. */
+private fun ClassDef.requireCount(reference: MethodReference, pending: FieldReference, inFlight: FieldReference, monitor: FieldReference) {
+    val method = method(reference)
+    method.nativeMethod(emptyList(), "I")
+    val code = Shape(method, Opcode.IGET_OBJECT, Opcode.MONITOR_ENTER, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT, Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT, Opcode.ADD_INT_2ADDR,
+        Opcode.MONITOR_EXIT, Opcode.RETURN, Opcode.MOVE_EXCEPTION, Opcode.MONITOR_EXIT, Opcode.THROW)
+    if (code.reference(0).toString() != monitor.toString() || code.reference(2).toString() != pending.toString() ||
+        code.reference(5).toString() != inFlight.toString()) refuseQueue("count doesn't read its owned maps")
+    if (setOf(method.localRegisterCount(), code.reg(0), code.reg(4), code.reg(7)).size != 4 || code.reg(4) == code.reg(5)) {
+        refuseQueue("count aliases its native accumulator")
+    }
+    code.registers(0, code.reg(0), method.localRegisterCount())
+    code.registers(1, code.reg(0))
+    code.registers(2, code.reg(2), method.localRegisterCount())
+    code.registers(3, code.reg(2))
+    code.javaCall(3, "size", emptyList(), "I")
+    code.registers(5, code.reg(5), method.localRegisterCount())
+    code.registers(6, code.reg(5))
+    code.javaCall(6, "size", emptyList(), "I")
+    code.registers(8, code.reg(4), code.reg(7))
+    code.registers(10, code.reg(4))
+    code.monitor(1, listOf(9, 12), 11, listOf(2, 3, 5, 6))
+    method.requireThisIntact(PATCH, listOf(0, 2, 5))
 }
 
 private fun ClassDef.requireSnapshot(reference: MethodReference, pending: FieldReference, monitor: FieldReference) {
@@ -562,6 +698,7 @@ private class Shape(val method: Method, vararg expected: Opcode) {
             "iterator" -> "Ljava/util/AbstractCollection;"
             "containsKey", "remove", "keySet" -> "Ljava/util/AbstractMap;"
             "get", "put" -> MAP
+            "size" -> if (code[at].opcode == Opcode.INVOKE_INTERFACE) MAP else "Ljava/util/AbstractMap;"
             else -> refuseQueue("unproved collection operation $name")
         }
         if (call.definingClass != owner || call.name != name || call.parameterTypes.map(Any::toString) != parameters ||
@@ -595,11 +732,16 @@ private class Shape(val method: Method, vararg expected: Opcode) {
 
 private fun Method.nativeMethod(parameters: List<String>, result: String) {
     if (!AccessFlags.PUBLIC.isSet(accessFlags) || !AccessFlags.FINAL.isSet(accessFlags) || AccessFlags.STATIC.isSet(accessFlags) ||
+        AccessFlags.NATIVE.isSet(accessFlags) || AccessFlags.ABSTRACT.isSet(accessFlags) ||
         parameterTypes.map(Any::toString) != parameters || returnType != result) refuseQueue("$name isn't its native instance method")
 }
 private fun ClassDef.method(reference: MethodReference): Method = methods.singleOrNull { it.same(reference) }
     ?: refuseQueue("can't resolve ${reference.name} in the owner")
-private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+private fun Method.code(): List<Instruction> {
+    val body = implementation ?: return emptyList()
+    if (AccessFlags.NATIVE.isSet(accessFlags) || AccessFlags.ABSTRACT.isSet(accessFlags)) refuseQueue("$name has no executable DEX body")
+    return body.instructions.toList()
+}
 private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference
 private fun Instruction.call() = reference() as? MethodReference
 internal fun Instruction.indirectlyCalls(bridge: MethodReference, build: MethodReference) = when (val reference = reference()) {

@@ -76,7 +76,7 @@ class StorySeenHookTest {
         val patched = context.mutableClassDefBy(STORE)
         assertSendHooked("the send", patched.methods.single { it.name == "A0O" }, BATCH)
         val retry = patched.methods.single { it.name == "A0J" }
-        assertRetryHooked("the retry", retry, BATCH, build = 5)
+        assertRetryHooked("the retry", retry, BATCH, build = 6)
         for (name in listOf("A0P", "A0L", "A00")) {
             assertEquals("$name was touched", 0, patched.methods.single { it.name == name }.code().count { it.referenceText() in HOOKS })
         }
@@ -704,6 +704,7 @@ class StorySeenHookTest {
         val retryBody = """
             ${if (retryOverwrites) "const/4 p1, 0x0" else "nop"}
             check-cast p1, $BATCH
+            invoke-static { p1 }, LX/04Zi;->A0R(Ljava/lang/Object;)V
             invoke-virtual { p0 }, $STORE_BASE->A0H()$USER_SESSION
             move-result-object v0
             ${if (retryBranchesToBuild) "if-eqz v0, :build" else "nop"}
@@ -763,10 +764,10 @@ class StorySeenHookTest {
         )
         val userSession = classOf(
             USER_SESSION,
-            emptyList(),
+            listOf(ImmutableField(USER_SESSION, "userId", STRING, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, null)),
             listOfNotNull(
                 if (userId) method(USER_SESSION, "getUserId", emptyList(), "Ljava/lang/String;", 2, """
-                    const/4 v0, 0x0
+                    iget-object v0, p0, $USER_SESSION->userId:$STRING
                     return-object v0
                 """, static = false) else null,
             ),

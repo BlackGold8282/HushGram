@@ -141,7 +141,7 @@ internal fun storyQueueBase(owner: String, request: String, session: Boolean = t
         move-result-object v0
         invoke-virtual { v0 }, Ljava/util/AbstractCollection;->iterator()Ljava/util/Iterator;
         move-result-object v2
-        invoke-static { v2 }, Lfixture/Checks;->present(Ljava/lang/Object;)V
+        invoke-static { v2 }, LX/04Zi;->A0C(Ljava/lang/Object;)V
         :next
         invoke-interface { v2 }, Ljava/util/Iterator;->hasNext()Z
         move-result v0
@@ -251,6 +251,21 @@ internal fun storyQueueDiskHelpers(): List<ImmutableClassDef> {
     """
     return listOf(
         type("LX/04Zi;", listOf(
+            storyQueueMethod("LX/04Zi;", "A0R", listOf("Ljava/lang/Object;"), "V", 2, """
+                const/4 v0, 0x0
+                invoke-static { p0, v0 }, LX/04Zi;->A0V(Ljava/lang/Object;I)V
+                return-void
+            """, static = true),
+            storyQueueMethod("LX/04Zi;", "A0C", listOf("Ljava/lang/Object;"), "V", 2, """
+                if-nez p0, :done
+                const-string v0, "INVOKE_RETURN"
+                invoke-static { p0, v0 }, LX/04Zi;->A0X(Ljava/lang/Object;Ljava/lang/String;)V
+                invoke-static { }, LX/0002;->createAndThrow()LX/0002;
+                move-result-object v0
+                throw v0
+                :done
+                return-void
+            """, static = true),
             storyQueueMethod("LX/04Zi;", "A0V", listOf("Ljava/lang/Object;", "I"), "V", 2, parameterCheck, static = true),
             storyQueueMethod("LX/04Zi;", "A0U", listOf("Ljava/lang/Object;", "I"), "V", 2,
                 parameterCheck.replace("NullPointerException", "IllegalArgumentException"), static = true),

@@ -296,6 +296,7 @@
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/stories/StoryRetryTest.java",
         "patches/src/test/kotlin/app/morphe/patches/instagram/stories/seen/StoryRetryFixtures.kt",
         "patches/src/test/kotlin/app/morphe/patches/instagram/stories/seen/StoryRetryQueueTest.kt",
+        "patches/src/test/kotlin/app/morphe/patches/instagram/stories/seen/StoryRetryOwnershipTest.kt",
         "scripts/test-carried-licenses.ps1",
         "scripts/InspectPatchBundle.java",
         "scripts/CompositionFixture.java",

@@ -238,7 +238,7 @@ internal fun BytecodePatchContext.findStorySeen(): StorySeenTargets {
     }
 
     val stubs = storySeenStubs()
-    val queue = retry?.let { findStoryRetryQueue(storeClass, it, storeReader) }
+    val queue = retry?.let { findStoryRetryQueue(storeClass, it, storeReader, sessionGetter) }
     return StorySeenTargets(
         batch, store, send.name, retry, getter.name, sessionGetter.definingClass, sessionGetter.name, reels, binder.definingClass,
         binder.name, parameters, session, item, holder, itemView, queue, stubs,
@@ -555,6 +555,16 @@ private fun BytecodePatchContext.requireEveryRouteToTheRequest(
     send: Method,
     constructors: List<Method>,
 ): StoreRetry? {
+    val storeClass = classDefBy(store)
+    val owner = storeClass.superclass?.let { classDefByOrNull(it) }
+    val builders = owner?.methods?.filter { AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
+        it.parameterTypes.map(Any::toString) == listOf(OBJECT) && it.returnType.startsWith("L") }.orEmpty()
+    if (storeClass.methods.any { method ->
+            (AccessFlags.NATIVE.isSet(method.accessFlags) || AccessFlags.ABSTRACT.isSet(method.accessFlags)) && builders.any {
+                it.name == method.name && it.returnType == method.returnType &&
+                    it.parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString)
+            }
+        }) refuse("retry bridge has no executable DEX body")
     val callers = mutableListOf<Pair<Method, Int>>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
