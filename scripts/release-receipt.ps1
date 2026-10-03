@@ -36,6 +36,8 @@
 . (Join-Path $PSScriptRoot 'apk-facts.ps1')
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 
+. (Join-Path $PSScriptRoot 'build-identity.ps1')
+
 function Get-ReleaseReceiptSchemaVersion {
     <#
     .SYNOPSIS
@@ -49,8 +51,9 @@ function Get-ReleaseReceiptSchemaVersion {
 
         2 added sbom: the file name, SHA-256 and component count of the release SBOM.
         3 added input-derived per-target coverage and exact-fixture coverage review.
+        4 adds the canonical production identity and verifies its exact extension payload bytes.
     #>
-    return 3
+    return 4
 }
 
 function Resolve-ReceiptSchema {
@@ -87,8 +90,11 @@ function Resolve-ReceiptSchema {
     if ($version -eq $current) { return [pscustomobject]@{ Version = $version; Note = $null } }
     return [pscustomobject]@{
         Version = $version
-        Note = ("the receipt is held to schema $version, which its own commit $short wrote, so it names no " +
-            'SBOM and none is checked for its release')
+        Note = if ($version -lt 2) {
+            "the receipt is held to schema $version, which its own commit $short wrote, so it names no SBOM and none is checked for its release"
+        } else {
+            "the receipt keeps historical schema $version from its own commit $short, without requiring newer metadata"
+        }
     }
 }
 
@@ -384,6 +390,9 @@ function Get-BundleManifestFacts {
     $timestamp = [regex]::Match($text, '(?m)^Timestamp:\s*(\d+)\s*$')
     $version = [regex]::Match($text, '(?m)^Version:\s*(\S+)\s*$')
     $patcher = [regex]::Match($text, '(?m)^Patcher-Version:\s*(\S+)\s*$')
+    $mainAttributes = ($text -split '\r?\n\r?\n', 2)[0]
+    $identities = [regex]::Matches($mainAttributes, '(?m)^HushGram-Build-Identity:\s*(\S+)\s*$')
+    if ($identities.Count -gt 1) { throw 'The bundle manifest has duplicate production build identities.' }
     if (-not $timestamp.Success) { throw "The bundle manifest has no Timestamp: $BundlePath" }
     if (-not $version.Success) { throw "The bundle manifest has no Version: $BundlePath" }
     if (-not $patcher.Success) { throw "The bundle manifest has no Patcher-Version: $BundlePath" }
@@ -392,7 +401,41 @@ function Get-BundleManifestFacts {
         version        = $version.Groups[1].Value
         timestamp      = [long]$timestamp.Groups[1].Value
         patcherVersion = $patcher.Groups[1].Value
+        buildIdentity  = if ($identities.Count) { $identities[0].Groups[1].Value } else { $null }
     }
+}
+
+function Get-ExtensionPayloads {
+    <#
+    .SYNOPSIS
+        Names, sizes and hashes of the actual extension DEX bytes in a final bundle.
+    #>
+    param([string]$BundlePath)
+    $BundlePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($BundlePath)
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $payloads = [Collections.Generic.List[object]]::new()
+    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $archive = [IO.Compression.ZipFile]::OpenRead($BundlePath)
+    try {
+        foreach ($entry in @($archive.Entries | Where-Object { $_.FullName -like 'extensions/*.mpe' } | Sort-Object FullName)) {
+            if ($entry.FullName -cnotmatch '^extensions/[^/]+\.mpe$' -or -not $seen.Add($entry.FullName)) {
+                throw 'The final bundle has a duplicate or invalid extension payload name.'
+            }
+            $stream = $entry.Open()
+            $memory = [IO.MemoryStream]::new()
+            try { $stream.CopyTo($memory); $bytes = $memory.ToArray() }
+            finally { $stream.Dispose(); $memory.Dispose() }
+            if ([Text.Encoding]::ASCII.GetString($bytes, 0, [Math]::Min(4, $bytes.Length)) -ne "dex`n") {
+                throw "$($entry.FullName) in $BundlePath is not an Android DEX payload."
+            }
+            $sha = [Security.Cryptography.SHA256]::Create()
+            try { $hash = -join ($sha.ComputeHash($bytes) | ForEach-Object { $_.ToString('X2') }) }
+            finally { $sha.Dispose() }
+            $payloads.Add([ordered]@{ name = $entry.FullName; sizeBytes = [long]$bytes.Length; sha256 = $hash })
+        }
+    } finally { $archive.Dispose() }
+    if (-not $payloads.Count) { throw "The bundle carries no extension payload: $BundlePath" }
+    return $payloads.ToArray()
 }
 
 function Resolve-ReceiptManifestAllowlist {
@@ -893,6 +936,10 @@ function Test-ReleaseReceipt {
         return Fail ("The receipt is schema version $($Receipt.schemaVersion); its release is read at " +
             "version $ExpectedSchemaVersion.")
     }
+    if ($ExpectedSchemaVersion -ge 4) {
+        try { Assert-CanonicalBuildIdentity -Identity $Receipt.buildIdentity }
+        catch { return Fail $_.Exception.Message }
+    }
     if ($Receipt.release.version -ne $ExpectedVersion) {
         return Fail "The receipt is for $($Receipt.release.version), not $ExpectedVersion."
     }
@@ -961,6 +1008,9 @@ function Test-ReleaseReceipt {
         }
 
         $manifest = Get-BundleManifestFacts -BundlePath $BundlePath
+        if ($ExpectedSchemaVersion -ge 4 -and $manifest.buildIdentity -cne $Receipt.buildIdentity.id) {
+            return Fail 'The receipt identity differs from the bundle production build identity.'
+        }
         if ($manifest.version -ne $ExpectedVersion) {
             return Fail "The bundle's manifest says version $($manifest.version), not $ExpectedVersion."
         }
@@ -1011,6 +1061,11 @@ function Test-ReleaseReceipt {
             $bound = Test-ReleaseSbom -Sbom $document -BundlePath $BundlePath -BundleName ([string]$Receipt.bundle.file)
             if (-not $bound.Valid) { return Fail $bound.Reason }
         }
+        if ($ExpectedSchemaVersion -ge 4) {
+            try { $sbomIdentity = Read-SbomCanonicalBuildIdentity -Path $SbomPath }
+            catch { return Fail $_.Exception.Message }
+            if ($sbomIdentity.id -cne $Receipt.buildIdentity.id) { return Fail 'The receipt identity differs from its SBOM production identity.' }
+        }
     }
 
     # Nulls dropped first. A receipt with the key missing altogether gives $null here, and
@@ -1027,6 +1082,20 @@ function Test-ReleaseReceipt {
         }
         if ([string]$payload.sha256 -notmatch '^[0-9A-F]{64}$') {
             return Fail "The recorded DEX payload $($payload.name) has no SHA-256."
+        }
+    }
+    if ($ExpectedSchemaVersion -ge 4 -and $BundlePath) {
+        try { $actualPayloads = @(Get-ExtensionPayloads -BundlePath $BundlePath) }
+        catch { return Fail $_.Exception.Message }
+        if ($payloads.Count -ne $actualPayloads.Count -or @($payloads.name | Sort-Object -Unique).Count -ne $payloads.Count) {
+            return Fail 'The receipt does not map each final extension payload exactly once.'
+        }
+        foreach ($actual in $actualPayloads) {
+            $recorded = @($payloads | Where-Object { $_.name -ceq $actual.name })
+            if ($recorded.Count -ne 1 -or $recorded[0].sizeBytes -ne $actual.sizeBytes -or
+                $recorded[0].sha256 -cne $actual.sha256) {
+                return Fail "The receipt bytes differ from the final extension payload $($actual.name)."
+            }
         }
     }
 

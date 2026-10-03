@@ -66,7 +66,7 @@ $assistant = @('c', 'l', 'a', 'u', 'd', 'e') -join ''
 $aiPattern = "(?i)\b($assistant|anthropic|openai|chatgpt|codex|copilot|gemini)\b"
 $buildPaths = '^(extensions/|patches/|gradle/|build\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|' +
     'NOTICE$|provenance\.json$|README\.md$|patches-list\.json$|sources/|' +
-    'scripts/(build-inputs\.gradle|DexDiff\.java|ResourceTableCheck\.java|MergeSplits\.java|injected-mutation-contracts\.txt|' +
+    'scripts/(build-inputs\.gradle|canonical-build-inputs\.txt|build-identity\.ps1|test-build-identity\.ps1|DexDiff\.java|ResourceTableCheck\.java|MergeSplits\.java|injected-mutation-contracts\.txt|' +
     'injected-register-removal-allowlist\.txt|verify-all-patches\.ps1|verify-injected-registers\.ps1|' +
     'test-android-boundaries\.ps1|pre-push\.ps1|script-wiring\.ps1)$)'
 $ledgerPaths = '^(sources/|scripts/(instagram-sources|test-instagram-sources|audit-instagram-sources)\.ps1$|NOTICE$|provenance\.json$)'
@@ -177,6 +177,9 @@ $releaseToolingPaths = @(
     'scripts/audit-dependencies.ps1',
     'scripts/dependency-graphs.init.gradle',
     'scripts/build-inputs.gradle',
+    'scripts/build-identity.ps1',
+    'scripts/canonical-build-inputs.txt',
+    'scripts/test-build-identity.ps1',
     'scripts/dependency-advisory-exceptions.txt',
     'scripts/apk-facts.ps1',
     'scripts/build-release-receipt.ps1',
@@ -221,6 +224,13 @@ if ($touchesInjectedRegisterDevice) {
 if ($touchesReleaseTooling) {
     $suites += , @('scripts/test-release-tooling.ps1', 'the release tooling or a file it reads changed, running its contract tests')
     $suites += , @('scripts/test-carried-licenses.ps1', 'checking reviewed carried-library license evidence')
+}
+if (@($changed | Where-Object {
+    $_ -in @('scripts/build-inputs.gradle', 'scripts/canonical-build-inputs.txt', 'scripts/build-identity.ps1',
+        'scripts/test-build-identity.ps1', 'scripts/release-receipt.ps1', 'patches/build.gradle.kts',
+        'scripts/pre-push.ps1', 'scripts/script-wiring.ps1')
+}).Count -gt 0) {
+    $suites += , @('scripts/test-build-identity.ps1', 'the production identity boundary changed, checking canonical inputs')
 }
 if (@($changed | Where-Object {
     $_ -in @('scripts/gen-l10n.py', 'scripts/sync-l10n.py', 'scripts/crowdin-l10n.py',

@@ -4,6 +4,9 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** About and local diagnostic reports show the production build identity, so different source builds of the same version can be identified.
+* **Tooling:** New release receipts map the canonical source, catalog and toolchain identity to final bundle and extension hashes. Historical receipts keep their original reading rules.
+
 * **Instagram:** Turning all three suggestion switches under Feed off restores Instagram's own empty feed behavior in the same run. Removing a suggestion earlier no longer keeps the filtered feed's end state active. The startup and scrolling blank frames reported in #28 still need a separate reproduction.
 * **Tooling:** The Android boundary gate now requires every current-key provider caller case on Android 9 and Android 17. Its self-test removes or filters the generated results and checks skipped, failed and duplicate cases through the real Gradle task. It restores the original report and runs after the push gate's clean build.
 

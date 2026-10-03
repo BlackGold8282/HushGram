@@ -182,9 +182,11 @@ try {
     # A stand-in bundle, so the size, hash and manifest checks compare against real bytes.
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $commitSeconds = 1700000000L
+    $testBuildIdentity = [pscustomobject]@{ schemaVersion = 1; sourceSha256 = ('0' * 64); catalogSha256 = ('1' * 64)
+        toolchainSha256 = ('2' * 64); id = 'hg1:cd44116f6ee1923f60ea7b97e6f131740dd97f13e5e65330ba3242d39f94039b' }
     function New-TestBundle {
         param([string]$Path, [string]$Version = '9.9.9', [long]$Timestamp = 1700000000000L,
-            [string]$Patcher = '1.12.0', [hashtable]$Entries = @{})
+            [string]$Patcher = '1.12.0', [hashtable]$Entries = @{}, [string]$BuildIdentity = $testBuildIdentity.id)
         if (Test-Path -LiteralPath $Path) { Remove-Item -LiteralPath $Path -Force }
         $archive = [System.IO.Compression.ZipFile]::Open(
             $Path, [System.IO.Compression.ZipArchiveMode]::Create)
@@ -193,7 +195,8 @@ try {
             $writer = New-Object System.IO.StreamWriter($entry.Open())
             try {
                 $writer.Write("Manifest-Version: 1.0`nVersion: $Version`n" +
-                    "Timestamp: $Timestamp`nPatcher-Version: $Patcher`n`n")
+                    "Timestamp: $Timestamp`nPatcher-Version: $Patcher`n" +
+                    $(if ($BuildIdentity) { "HushGram-Build-Identity: $BuildIdentity`n" }) + "`n")
             } finally { $writer.Dispose() }
             foreach ($name in @($Entries.Keys | Sort-Object)) {
                 $writer = New-Object System.IO.StreamWriter($archive.CreateEntry($name).Open())
@@ -253,9 +256,14 @@ try {
             components = $components.ToArray()
             dependencies = @()
         }
+        $identityForSbom = if ($InputRoot -and (Test-Path -LiteralPath (Join-Path $InputRoot 'scripts/canonical-build-inputs.txt'))) {
+            Get-CanonicalBuildIdentity -Root $InputRoot
+        } else { $testBuildIdentity }
+        $document.metadata['properties'] = @([ordered]@{ name = 'hushgram:canonical-build-identity'
+            value = ($identityForSbom | ConvertTo-Json -Compress) })
         if ($InputRoot) {
-            $document.metadata['properties'] = @([ordered]@{ name = 'hushgram:build-inputs'
-                value = (Get-DependencyAuditInputs -Root $InputRoot | ConvertTo-Json -Compress) })
+            $document.metadata['properties'] += [ordered]@{ name = 'hushgram:build-inputs'
+                value = (Get-DependencyAuditInputs -Root $InputRoot | ConvertTo-Json -Compress) }
         }
         if ($LicenseLedger) {
             $document.metadata.properties = @($document.metadata.properties) + @(@{ name = 'hushgram:license-policy'; value = 'reviewed-artifacts-v1' },
@@ -272,6 +280,20 @@ try {
     $sbomFile = Join-Path $allowlistRoot 'patches-9.9.9.cdx.json'
     New-TestSbom -Path $sbomFile -Bundle $bundle
 
+    $goodSbom = [IO.File]::ReadAllBytes($sbomFile)
+    try {
+        foreach ($change in @(
+                { param($d) $d.metadata.properties = @() },
+                { param($d) $d.metadata.properties += $d.metadata.properties[0] },
+                { param($d) $d.metadata.properties[0].value = 1 },
+                { param($d) $i = $d.metadata.properties[0].value | ConvertFrom-Json
+                    $i.toolchainSha256 = 'f' * 64; $d.metadata.properties[0].value = $i | ConvertTo-Json -Compress })) {
+            New-TestSbom -Path $sbomFile -Bundle $bundle -Mutate $change
+            Assert-Throws { Read-SbomCanonicalBuildIdentity -Path $sbomFile } '*identity*' `
+                'An absent, duplicated, coerced or substituted SBOM production identity was accepted.'
+        }
+    } finally { [IO.File]::WriteAllBytes($sbomFile, $goodSbom) }
+
     $manifestFacts = Get-BundleManifestFacts -BundlePath $bundle
     Assert-True ($manifestFacts.version -eq '9.9.9') 'The bundle manifest version was not read.'
     Assert-True ($manifestFacts.timestamp -eq 1700000000000L) 'The bundle timestamp was not read.'
@@ -283,6 +305,7 @@ try {
     $declaredCodes = @{ '46.7.3' = [string[]]@('2024607030'); '46.6.1' = [string[]]@('2024606010') }
     $template = [ordered]@{
         schemaVersion = Get-ReleaseReceiptSchemaVersion
+        buildIdentity = $testBuildIdentity
         release   = [ordered]@{ version = '9.9.9'; tag = 'v9.9.9'
             commit = '0123456789abcdef0123456789abcdef01234567'
             commitTimestamp = $commitSeconds; patchCount = 2 }
@@ -290,8 +313,7 @@ try {
             sha256 = $bundleHash; timestamp = 1700000000000L }
         sbom      = [ordered]@{ file = 'patches-9.9.9.cdx.json'; sha256 = (Get-Sha256Hex -Path $sbomFile); components = 3 }
         toolchain = [ordered]@{ patcherVersion = '1.12.0'; managerFloor = '1.29.0' }
-        extension = [ordered]@{ dexPayloads = @([ordered]@{
-            name = 'extensions/instagram.mpe'; sizeBytes = 10; sha256 = ('A' * 64) }) }
+        extension = [ordered]@{ dexPayloads = @(Get-ExtensionPayloads -BundlePath $bundle) }
         targets   = @([ordered]@{
             source = [ordered]@{ file = 'stock.apkm'; package = 'com.example.host'
                 versionName = '46.7.3'; versionCode = '2024607030'; sha256 = ('B' * 64)
@@ -331,11 +353,46 @@ try {
 
     $valid = Test-TestReceipt -Receipt (New-TestReceipt)
     Assert-True $valid.Valid "A complete receipt was refused: $($valid.Reason)"
+    foreach ($identity in @('', ('hg1:' + ('f' * 64)))) {
+        $oddBundle = Join-Path $allowlistRoot 'identity-substitution.mpp'
+        New-TestBundle -Path $oddBundle -BuildIdentity $identity -Entries @{ 'extensions/instagram.mpe' = "dex`n035 payload" }
+        $oddReceipt = New-TestReceipt -Mutate {
+            param($r)
+            $r.bundle.sha256 = Get-Sha256Hex -Path $oddBundle
+            $r.bundle.sizeBytes = (Get-Item -LiteralPath $oddBundle).Length
+        }
+        $result = Test-ReleaseReceipt -Receipt $oddReceipt -ExpectedVersion '9.9.9' `
+            -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
+            -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
+            -ExpectedPackageVersions $declaredBuilds -ExpectedPackageVersionCodes $declaredCodes -BundlePath $oddBundle
+        Assert-True (-not $result.Valid -and $result.Reason -like '*identity*') `
+            "A missing or different bundle identity was not specifically refused: $($result.Reason)"
+    }
+    foreach ($historical in @(1, 2, 3)) {
+        $old = New-TestReceipt
+        $old.schemaVersion = $historical
+        $old.PSObject.Properties.Remove('buildIdentity')
+        if ($historical -lt 2) { $old.PSObject.Properties.Remove('sbom') }
+        $legacy = Test-ReleaseReceipt -Receipt $old -ExpectedVersion '9.9.9' -ExpectedPatchNames @('Alpha', 'Beta') `
+            -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
+            -ExpectedPackageVersions $declaredBuilds -ExpectedPackageVersionCodes $declaredCodes -BundlePath $bundle `
+            -ExpectedSchemaVersion $historical
+        Assert-True $legacy.Valid "Historical schema $historical was forced to supply a new identity: $($legacy.Reason)"
+    }
 
     # Every fact the receipt exists to pin, put in front of the check one at a time. A gate that
     # has never been shown to fail is a gate nobody has tested.
     $mutations = [ordered]@{
         'a receipt from a different schema'     = { param($r) $r.schemaVersion = 99 }
+        'no production identity'                = { param($r) $r.PSObject.Properties.Remove('buildIdentity') }
+        'another production identity'          = { param($r) $r.buildIdentity.id = 'hg1:' + ('f' * 64) }
+        'a changed code digest'                 = { param($r) $r.buildIdentity.sourceSha256 = 'f' * 64 }
+        'a changed catalog digest'              = { param($r) $r.buildIdentity.catalogSha256 = 'f' * 64 }
+        'a changed toolchain digest'            = { param($r) $r.buildIdentity.toolchainSha256 = 'f' * 64 }
+        'a substituted payload hash'            = { param($r) $r.extension.dexPayloads[0].sha256 = 'C' * 64 }
+        'a substituted payload name'            = { param($r) $r.extension.dexPayloads[0].name = 'extensions/foreign.mpe' }
+        'a substituted payload size'            = { param($r) $r.extension.dexPayloads[0].sizeBytes += 1 }
+        'a duplicate payload record'            = { param($r) $r.extension.dexPayloads += $r.extension.dexPayloads[0] }
         'a receipt for a different version'     = { param($r) $r.release.version = '9.9.8' }
         'a tag that does not match the version' = { param($r) $r.release.tag = 'v9.9.8' }
         'a short commit'                        = { param($r) $r.release.commit = '0123456' }
@@ -1466,10 +1523,10 @@ try {
     $bundleBytes = [IO.File]::ReadAllBytes($boundBundle)
     foreach ($bad in @(
         @{ Name = 'an absent producer identity'; Pattern = '*no unique build-input identity*'; Change = { param($d) $d.metadata.PSObject.Properties.Remove('properties') } },
-        @{ Name = 'a duplicate producer identity'; Pattern = '*no unique build-input identity*'; Change = { param($d) $d.metadata.properties += $d.metadata.properties[0] } },
-        @{ Name = 'a stale catalog identity'; Pattern = '*mismatched catalogSha256*'; Change = { param($d) $i = $d.metadata.properties[0].value | ConvertFrom-Json; $i.catalogSha256 = '0' * 64; $d.metadata.properties[0].value = $i | ConvertTo-Json -Compress } },
-        @{ Name = 'a stale source identity'; Pattern = '*mismatched sourceSha256*'; Change = { param($d) $i = $d.metadata.properties[0].value | ConvertFrom-Json; $i.sourceSha256 = '0' * 64; $d.metadata.properties[0].value = $i | ConvertTo-Json -Compress } },
-        @{ Name = 'a stale toolchain identity'; Pattern = '*mismatched toolchainSha256*'; Change = { param($d) $i = $d.metadata.properties[0].value | ConvertFrom-Json; $i.toolchainSha256 = '0' * 64; $d.metadata.properties[0].value = $i | ConvertTo-Json -Compress } },
+        @{ Name = 'a duplicate producer identity'; Pattern = '*no unique build-input identity*'; Change = { param($d) $d.metadata.properties += @($d.metadata.properties | Where-Object { $_.name -ceq 'hushgram:build-inputs' }) } },
+        @{ Name = 'a stale catalog identity'; Pattern = '*mismatched catalogSha256*'; Change = { param($d) $p = $d.metadata.properties | Where-Object { $_.name -ceq 'hushgram:build-inputs' }; $i = $p.value | ConvertFrom-Json; $i.catalogSha256 = '0' * 64; $p.value = $i | ConvertTo-Json -Compress } },
+        @{ Name = 'a stale source identity'; Pattern = '*mismatched sourceSha256*'; Change = { param($d) $p = $d.metadata.properties | Where-Object { $_.name -ceq 'hushgram:build-inputs' }; $i = $p.value | ConvertFrom-Json; $i.sourceSha256 = '0' * 64; $p.value = $i | ConvertTo-Json -Compress } },
+        @{ Name = 'a stale toolchain identity'; Pattern = '*mismatched toolchainSha256*'; Change = { param($d) $p = $d.metadata.properties | Where-Object { $_.name -ceq 'hushgram:build-inputs' }; $i = $p.value | ConvertFrom-Json; $i.toolchainSha256 = '0' * 64; $p.value = $i | ConvertTo-Json -Compress } },
         @{ Name = 'another bundle version'; Pattern = '*mismatched name or version*'; Change = { param($d) $d.metadata.component.version = '0.0.2' } },
         @{ Name = 'another bundle name'; Pattern = '*describes patches-0.0.2.mpp*'; Change = { param($d) $d.metadata.component.name = 'patches-0.0.2.mpp' } })) {
         try {
@@ -2285,7 +2342,7 @@ try {
     # release is held to the census, and .gitignore has to keep the receipt and the build out.
     $releaseFiles = @('patches-list.json', 'gradle.properties', 'README.md', 'CHANGELOG.md', 'gradle/libs.versions.toml',
         $bugFormRelative, '.gitignore', 'sources/instagram-sources.json', 'NOTICE', 'provenance.json',
-        'sources/carried-library-licenses.json')
+        'sources/carried-library-licenses.json', 'scripts/canonical-build-inputs.txt')
     foreach ($relative in $releaseFiles) { Copy-PreReleaseFile $relative $releaseRepo }
     $releaseLicenseLedger = Join-Path $releaseRepo 'sources/carried-library-licenses.json'
     $licenseFixtures = Get-Content -LiteralPath $releaseLicenseLedger -Raw | ConvertFrom-Json
@@ -2301,6 +2358,10 @@ try {
                 sha256 = ('3' * 64); declaredLicense = 'test publisher license fixture' } }
     }
     $licenseFixtures | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $releaseLicenseLedger -Encoding utf8
+    # These stand-ins have no compiler inputs. Their explicit boundary still includes every
+    # fixture production input and its own policy, separately from the all-tracked audit binding.
+    [IO.File]::WriteAllText((Join-Path $releaseRepo 'scripts/canonical-build-inputs.txt'),
+        "source file NOTICE`ncatalog file patches-list.json`ntoolchain file gradle.properties`ntoolchain tree gradle`ntoolchain file scripts/canonical-build-inputs.txt`n")
     # The ledger, dated today, so the census a release is held to passes and each case below is
     # refused for its own fact. The checked-in ledger's date moves with every audit.
     $releaseLedgerPath = Join-Path $releaseRepo 'sources/instagram-sources.json'
@@ -2387,6 +2448,7 @@ try {
         })
         $document = [ordered]@{
             schemaVersion = Get-ReleaseReceiptSchemaVersion
+            buildIdentity = (Get-CanonicalBuildIdentity -Root $releaseRepo)
             release   = [ordered]@{ version = $releaseVersionHere; tag = "v$releaseVersionHere"; commit = $Commit
                 commitTimestamp = $Seconds; patchCount = $releaseNames.Count }
             bundle    = [ordered]@{ file = "patches-$releaseVersionHere.mpp"; sizeBytes = 10; sha256 = ('E' * 64)
@@ -2593,7 +2655,7 @@ try {
         Remove-Item -LiteralPath $releaseBundle -Force -ErrorAction SilentlyContinue
         New-TestBundleArchive -Path $releaseBundle -Entries ([ordered]@{
             'META-INF/MANIFEST.MF' = ("Manifest-Version: 1.0`nVersion: $releaseVersionHere`nTimestamp: $Stamp`n" +
-                "Patcher-Version: $($releaseToolchain.PatcherVersion)`n`n")
+                "Patcher-Version: $($releaseToolchain.PatcherVersion)`nHushGram-Build-Identity: $((Get-CanonicalBuildIdentity -Root $releaseRepo).id)`n`n")
             'classes.dex' = "dex`n035" + ('patches' * 8)
             'extensions/instagram.mpe' = "dex`n035" + ('payload' * 8) })
     }
@@ -2804,12 +2866,12 @@ try {
         # during the patch runs, which take long enough for one, replaces it.
         [System.IO.File]::WriteAllBytes($releaseSbom, $cleanSbomBytes)
         $replacement = Join-Path $releaseRoot 'replacement.cdx.json'
-        New-TestSbom -Path $replacement -Bundle $releaseBundle -InputRoot $releaseRepo
+        New-TestSbom -Path $replacement -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -InputRoot $releaseRepo
         $duringPatch = Join-Path $tools 'during-patch.cmd'
         [System.IO.File]::WriteAllText($duringPatch, "@copy /y `"$replacement`" `"$releaseSbom`" >nul`r`n", [System.Text.Encoding]::ASCII)
         try {
             Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } `
-                "*does not pass validation: The receipt says patches-$releaseVersionHere.cdx.json hashes to*" `
+                '*canonical inputs or final artifacts changed while the fixtures*' `
                 'build-release-receipt.ps1 wrote a receipt naming an SBOM that was replaced while it patched.'
         } finally {
             Remove-Item -LiteralPath $duringPatch -Force -ErrorAction SilentlyContinue
@@ -3145,6 +3207,8 @@ Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-release-tooling.ps1')
     'pre-push.ps1 no longer runs scripts/test-release-tooling.ps1 when the release tooling changes.'
 Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-translations.ps1') `
     'pre-push.ps1 no longer checks translation imports and hosted setup.'
+Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-build-identity.ps1') `
+    'pre-push.ps1 no longer checks the production build identity boundary.'
 $prePushAst = Get-ScriptAst $prePush
 $releaseCalls = @($prePushAst.FindAll({ param($node)
         $node -is [System.Management.Automation.Language.StringConstantExpressionAst] -and

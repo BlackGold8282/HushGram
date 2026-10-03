@@ -75,7 +75,8 @@ val sourceDateEpoch: Long = run {
  * what the plugin first wrote, which does not matter: what matters is that two runs of this
  * produce the same bytes, and they do, because nothing here reads a clock.
  */
-fun pinBundleTimestamp(bundle: File, epochSeconds: Long) {
+fun pinBundleTimestamp(bundle: File, epochSeconds: Long, buildIdentity: String) {
+    require(buildIdentity.matches(Regex("hg1:[0-9a-f]{64}"))) { "The production build identity is invalid." }
     val stampMillis = epochSeconds * 1000L
     val names = mutableListOf<String>()
     val contents = mutableMapOf<String, ByteArray>()
@@ -95,8 +96,13 @@ fun pinBundleTimestamp(bundle: File, epochSeconds: Long) {
     val manifestName = "META-INF/MANIFEST.MF"
     val manifest = contents[manifestName]
         ?: throw GradleException("The bundle has no $manifestName: $bundle")
-    val pinned = String(manifest, Charsets.UTF_8)
+    val originalManifest = String(manifest, Charsets.UTF_8)
+    require(!originalManifest.contains("HushGram-Build-Identity:")) { "The unstamped bundle already has a build identity." }
+    val identityLine = "HushGram-Build-Identity: $buildIdentity"
+    val foldedIdentity = identityLine.take(70) + "\r\n " + identityLine.drop(70)
+    val pinned = originalManifest
         .replace(Regex("(?m)^Timestamp: [0-9]+"), "Timestamp: $stampMillis")
+        .replaceFirst(Regex("\\r?\\n\\r?\\n"), "\r\n$foldedIdentity\r\n\r\n")
     if (!pinned.contains("Timestamp: $stampMillis")) {
         throw GradleException("The bundle manifest has no Timestamp line to pin: $bundle")
     }
@@ -374,6 +380,10 @@ abstract class WriteReleaseSbom : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val buildInputs: RegularFileProperty
 
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val canonicalInputs: RegularFileProperty
+
     @get:Input
     abstract val runtimeGraph: Property<ResolvedComponentResult>
 
@@ -445,6 +455,7 @@ abstract class WriteReleaseSbom : DefaultTask() {
             if (reviewed.put("$purl\t$artifact", record) != null) throw GradleException("$purl/$artifact has duplicate license records.")
         }
         val usedLicenseRecords = sortedSetOf<String>()
+        val canonicalIdentity = canonicalInputs.get().asFile.readText(Charsets.UTF_8).trim()
 
         val bundleFiles = sortedSetOf<String>()
         val payloadHashes = sortedMapOf<String, String>()
@@ -604,6 +615,7 @@ abstract class WriteReleaseSbom : DefaultTask() {
                     property("hushgram:build-inputs", inputIdentity),
                     property("hushgram:license-policy", "reviewed-artifacts-v1"),
                     property("hushgram:license-ledger", Sbom.sha256(ledgerFile)),
+                    property("hushgram:canonical-build-identity", canonicalIdentity),
                     property("hushgram:covers",
                         "What $bundleName carries: the patch classes and the libraries the Morphe plugin bundles " +
                             "with them (:patches runtimeClasspath less every module :patches patcherProvidedClasspath " +
@@ -843,7 +855,8 @@ tasks {
             ),
             rootProject.file("patches-list.json").absolutePath,
             project.version.toString(),
-            layout.buildDirectory.file("release/bundle.sha256").get().asFile.absolutePath
+            layout.buildDirectory.file("release/bundle.sha256").get().asFile.absolutePath,
+            rootProject.layout.buildDirectory.file("reports/build-identity/canonical-inputs.json").get().asFile.absolutePath,
         )
     }
     // The extensions the bundle carries, found the way the Morphe plugin's patches plugin finds
@@ -880,8 +893,10 @@ tasks {
         description = "Writes the CycloneDX SBOM of the release bundle into build/release beside it"
         dependsOn("buildAndroid")
         dependsOn(rootProject.tasks.named("writeDependencyAuditInputs"))
+        dependsOn(rootProject.tasks.named("writeCanonicalBuildIdentity"))
         buildInputs.set(rootProject.layout.buildDirectory.file("reports/dependencies/build-inputs.json"))
         licenseLedger.set(rootProject.layout.projectDirectory.file("sources/carried-library-licenses.json"))
+        canonicalInputs.set(rootProject.layout.buildDirectory.file("reports/build-identity/canonical-inputs.json"))
         bundle.set(layout.buildDirectory.file("release/$releaseBundleName"))
         bundleVersion.set(project.version.toString())
         epochSeconds.set(sourceDateEpoch)
@@ -908,7 +923,11 @@ tasks {
         // Bind the producer itself to the same snapshot the SBOM records. A docs, policy or
         // future ledger edit must rebuild rather than label a previous bundle with new inputs.
         dependsOn(rootProject.tasks.named("writeDependencyAuditInputs"))
+        dependsOn(rootProject.tasks.named("writeCanonicalBuildIdentity"))
         inputs.file(rootProject.layout.buildDirectory.file("reports/dependencies/build-inputs.json"))
+        val canonicalFile = rootProject.layout.buildDirectory.file("reports/build-identity/canonical-inputs.json")
+        inputs.file(canonicalFile)
+        val verifyCanonicalIdentity = rootProject.extra["verifyCanonicalBuildIdentity"] as groovy.lang.Closure<*>
         // Resolved at configuration time. Reaching for project inside doLast is what the
         // configuration cache refuses, and Gradle 10 turns that refusal into an error.
         val bundleFile = layout.buildDirectory.file("libs/$releaseBundleName")
@@ -918,6 +937,7 @@ tasks {
         // release needs a bundle a clean checkout reproduces, and only this build saw the tree.
         val unheldChanges = if (sourceDateEpochFromEnvironment == null) uncommittedChanges else emptyList()
         doLast {
+            verifyCanonicalIdentity.call()
             // Emptied first, so the directory never holds a bundle of another version or a
             // checksum of another build: the release scripts take the one file they find.
             val directory = releaseDirectory.get().asFile
@@ -928,7 +948,10 @@ tasks {
             val releaseBundle = directory.resolve(releaseBundleName)
             bundleFile.get().asFile.copyTo(releaseBundle)
             // Before the checksum, so what is recorded is what a rebuild will produce.
-            pinBundleTimestamp(releaseBundle, pinnedEpoch)
+            val canonicalText = canonicalFile.get().asFile.readText(Charsets.UTF_8)
+            val identity = Regex("\"id\"\\s*:\\s*\"(hg1:[0-9a-f]{64})\"").find(canonicalText)?.groupValues?.get(1)
+                ?: throw GradleException("The canonical production inputs have no build identity.")
+            pinBundleTimestamp(releaseBundle, pinnedEpoch, identity)
             if (unheldChanges == null) {
                 logger.warn("git couldn't say whether the working tree matches HEAD, so $releaseBundleName is " +
                     "stamped 0 rather than a commit's time, and a clean checkout won't reproduce it.")
@@ -945,6 +968,7 @@ tasks {
                 .digest(releaseBundle.readBytes())
                 .joinToString("") { "%02x".format(it) }
             directory.resolve("bundle.sha256").writeText(digest)
+            verifyCanonicalIdentity.call()
         }
         finalizedBy(verifyBundle)
         finalizedBy(releaseSbom)
