@@ -64,7 +64,7 @@ Morphe's own guide is [Backup and keystore](https://github.com/MorpheApp/morphe-
 
 Default playback quality is in Manager's simple mode. It starts at Auto, so Instagram keeps choosing the quality until you change it in HushGram. Patches whose initial switches or patch-time changes alter behavior keep their opt-in selection.
 
-The source catalog has 47 patches for `com.instagram.android`, targeting Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The published v0.0.4 bundle has 46. View DM photos and videos anonymously and the new Meta AI message controls are unreleased. Their sender and inbox checks still need a test account.
+The source catalog has 47 patches for `com.instagram.android`, targeting Instagram 449.0.0.52.84 (arm64-v8a, build 385511871). The published v0.0.4 bundle has 46. The DM photo/video patch, new Meta AI message controls and trust/setup repairs are unreleased. Their live account checks are still pending. Source verification passed 627 patch tests and 1,326 runtime tests with no failures or skips. All 47 patches applied together to the supported build without forcing compatibility.
 
 | Patch | What it does |
 |---|---|
