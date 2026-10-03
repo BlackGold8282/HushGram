@@ -48,6 +48,7 @@ public class OverrideImportPageTest {
         NativeTable.reset();
         clearFeedback();
         OverrideDocumentsTest.HostActivity.noPicker = false;
+        OverrideImportTest.useTestTiming();
         RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
         OverrideImportTest.install();
     }
@@ -57,12 +58,14 @@ public class OverrideImportPageTest {
         if (host != null) host.close();
         PatchFamily.inBuildForTests = null;
         Settings.ALLOW_OVERRIDE_IMPORT.resetToDefault();
+        OverrideImportTest.restoreTiming();
         clearFeedback();
     }
 
     private static void clearFeedback() {
         HushgramPreferenceFragment.overrideImportFeedback = null;
         HushgramPreferenceFragment.overrideRestoreFeedback = null;
+        HushgramPreferenceFragment.overrideDiscardFeedback = null;
         HushgramPreferenceFragment.overrideExportFeedback = null;
         HushgramPreferenceFragment.overrideValidationFeedback = null;
     }
@@ -103,11 +106,13 @@ public class OverrideImportPageTest {
         assertFalse(allow.isChecked());
         assertNull(page.findPreference("hushgram_import_overrides"));
         assertNull(page.findPreference("hushgram_restore_overrides"));
+        assertNull(page.findPreference("hushgram_discard_overrides"));
         allow.setChecked(true);
         ShadowLooper.idleMainLooper();
         assertTrue(Settings.ALLOW_OVERRIDE_IMPORT.get());
         assertNotNull(page.findPreference("hushgram_import_overrides"));
         assertNotNull(page.findPreference("hushgram_restore_overrides"));
+        assertNotNull(page.findPreference("hushgram_discard_overrides"));
         page.searchSettings("restore previous");
         assertNotNull(page.getPreferenceScreen().findPreference("hushgram_restore_overrides"));
         page.searchSettings("");
@@ -115,6 +120,7 @@ public class OverrideImportPageTest {
         ShadowLooper.idleMainLooper();
         assertNull(page.findPreference("hushgram_import_overrides"));
         assertNull(page.findPreference("hushgram_restore_overrides"));
+        assertNull(page.findPreference("hushgram_discard_overrides"));
         assertEquals(0, NativeTable.captures);
     }
 
@@ -159,9 +165,59 @@ public class OverrideImportPageTest {
         click("hushgram_restore_overrides");
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
-        assertTrue(HushgramPreferenceFragment.overrideRestoreFeedback.startsWith("Couldn't restore overrides."));
+        assertEquals("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.",
+                HushgramPreferenceFragment.overrideRestoreFeedback);
+        click("hushgram_discard_overrides");
+        Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+        assertEquals("There's no saved copy to discard. Nothing changed.", HushgramPreferenceFragment.overrideDiscardFeedback);
         assertArrayEquals(before, Files.readAllBytes(NativeTable.file.toPath()));
         assertEquals(0, NativeTable.writes);
         assertEquals(0, NativeTable.tableCalls);
+    }
+
+    @Test public void anArmedStoreNamesBothWaysOutAndDiscardLetsImportsRunAgain() throws Exception {
+        Settings.ALLOW_OVERRIDE_IMPORT.save(true);
+        openHost();
+        java.io.File marker = OverrideImportTest.saved(host.get(), ".armed");
+        Files.createDirectories(marker.getParentFile().toPath());
+        Files.write(marker.toPath(), "1".getBytes(StandardCharsets.UTF_8));
+        byte[] file = changed();
+        Shadows.shadowOf(host.get().getContentResolver()).registerInputStream(DOCUMENT, new ByteArrayInputStream(file));
+        click("hushgram_import_overrides");
+        result(Shadows.shadowOf(host.get()).getNextStartedActivityForResult(), Activity.RESULT_OK, DOCUMENT);
+        assertEquals("An earlier import still needs Restore previous overrides, or Discard saved overrides if Restore can't run. "
+                + "Nothing changed.", HushgramPreferenceFragment.overrideImportFeedback);
+        assertEquals(0, NativeTable.writes);
+
+        click("hushgram_discard_overrides");
+        Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+        assertEquals("Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.",
+                HushgramPreferenceFragment.overrideDiscardFeedback);
+        assertFalse(marker.exists());
+        Shadows.shadowOf(host.get().getContentResolver()).registerInputStream(DOCUMENT, new ByteArrayInputStream(file));
+        click("hushgram_import_overrides");
+        result(Shadows.shadowOf(host.get()).getNextStartedActivityForResult(), Activity.RESULT_OK, DOCUMENT);
+        assertEquals("Imported 1 override changes. Restart Instagram to apply them.", HushgramPreferenceFragment.overrideImportFeedback);
+        assertTrue(page.findPreference("hushgram_discard_overrides").isEnabled());
+    }
+
+    @Test public void aSwitchTurnedOffWhileThePickerIsOpenReadsNeitherTheFileNorTheStore() throws Exception {
+        Settings.ALLOW_OVERRIDE_IMPORT.save(true);
+        openHost();
+        byte[] before = Files.readAllBytes(NativeTable.file.toPath());
+        ByteArrayInputStream document = new ByteArrayInputStream(changed());
+        Shadows.shadowOf(host.get().getContentResolver()).registerInputStream(DOCUMENT, document);
+        click("hushgram_import_overrides");
+        ShadowActivity.IntentForResult picked = Shadows.shadowOf(host.get()).getNextStartedActivityForResult();
+        Settings.ALLOW_OVERRIDE_IMPORT.save(false);
+        result(picked, Activity.RESULT_OK, DOCUMENT);
+        assertEquals("Allow importing overrides is off or HushGram is paused. Nothing changed.",
+                HushgramPreferenceFragment.overrideImportFeedback);
+        assertTrue(document.available() > 0);
+        assertEquals(0, NativeTable.captures);
+        assertEquals(0, NativeTable.writes);
+        assertArrayEquals(before, Files.readAllBytes(NativeTable.file.toPath()));
     }
 }

@@ -66,8 +66,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_open_developer_options", TRUE);
 
     /**
-     * Shows Import and Restore for native overrides. Off by default, and deliberately not a patch
-     * switch: Pause and a settings import never turn it on.
+     * Shows Import, Restore and Discard for native overrides, and OverrideImport checks it again
+     * before it reads the store. Off by default, and deliberately not a patch switch: Pause and a
+     * settings import never turn it on, and it answers off while HushGram is paused.
      */
     public static final BooleanSetting ALLOW_OVERRIDE_IMPORT =
             new BooleanSetting("hushgram_allow_override_import", FALSE);

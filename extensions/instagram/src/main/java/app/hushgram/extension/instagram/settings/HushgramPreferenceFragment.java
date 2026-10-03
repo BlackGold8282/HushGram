@@ -114,6 +114,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int EXPORT_OVERRIDES = 0x4849;
     private static final int VALIDATE_OVERRIDES = 0x484a;
     private static final int IMPORT_OVERRIDES = 0x484b;
+    /** Restore and Discard read HushGram's saved copy, so they never become a document request. */
+    private static final int RESTORE_OVERRIDES = 0, DISCARD_OVERRIDES = -1;
     private int documentRequest;
     private boolean changingConfiguration;
     private boolean changingOverrides;
@@ -126,9 +128,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable private Row validateOverrides;
     @Nullable static volatile String overrideExportFeedback, overrideValidationFeedback;
     /** Shown only while Allow importing overrides is on; absent rows can't be found or searched. */
-    @Nullable private Row importOverrides, restoreOverrides;
+    @Nullable private Row importOverrides, restoreOverrides, discardOverrides;
     @Nullable private PreferenceCategory developerSection;
-    @Nullable static volatile String overrideImportFeedback, overrideRestoreFeedback;
+    @Nullable static volatile String overrideImportFeedback, overrideRestoreFeedback, overrideDiscardFeedback;
 
     private String searchQuery = "";
     @Nullable private SearchRow search;
@@ -603,10 +605,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             restoreOverrides.setPersistent(false);
             restoreOverrides.setTitle(L10n.t("Restore previous overrides"));
             restoreOverrides.setSummary(L10n.t("Put back the overrides saved before the last import for this session and build."));
-            restoreOverrides.setOnPreferenceClickListener(row -> { exchangeOverrides(null, 0); return true; });
+            restoreOverrides.setOnPreferenceClickListener(row -> { exchangeOverrides(null, RESTORE_OVERRIDES); return true; });
+            discardOverrides = new Row(context);
+            discardOverrides.setKey("hushgram_discard_overrides");
+            discardOverrides.setPersistent(false);
+            discardOverrides.setTitle(L10n.t("Discard saved overrides"));
+            discardOverrides.setSummary(L10n.t("Forget the copy saved for Restore so imports can run again. "
+                    + "Instagram's overrides don't change."));
+            discardOverrides.setOnPreferenceClickListener(row -> { exchangeOverrides(null, DISCARD_OVERRIDES); return true; });
             if (Settings.ALLOW_OVERRIDE_IMPORT.get()) {
                 developer.addPreference(importOverrides);
                 developer.addPreference(restoreOverrides);
+                developer.addPreference(discardOverrides);
             }
         }
 
@@ -782,13 +792,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         try { super.updateUIAvailability(); } finally { showOverrideImport(); filterSettings(); }
     }
 
-    /** Import and Restore exist on the page, and in search, only while their switch is on. */
+    /** Import, Restore and Discard exist on the page, and in search, only while their switch is on. */
     private void showOverrideImport() {
         PreferenceCategory group = developerSection;
-        if (group == null || importOverrides == null || restoreOverrides == null) return;
+        if (group == null || importOverrides == null || restoreOverrides == null || discardOverrides == null) return;
         boolean allowed = Settings.ALLOW_OVERRIDE_IMPORT.get();
         List<Preference> rows = searchableRows.get(group);
-        for (Row row : new Row[]{importOverrides, restoreOverrides}) {
+        for (Row row : new Row[]{importOverrides, restoreOverrides, discardOverrides}) {
             if (allowed) {
                 if (rows != null && !rows.contains(row)) rows.add(row);
                 if (row.getParent() != group) group.addPreference(row);
@@ -866,6 +876,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             restoreOverrides.setEnabled(!busy);
             if (overrideRestoreFeedback != null) restoreOverrides.setSummary(overrideRestoreFeedback);
         }
+        if (discardOverrides != null) {
+            discardOverrides.setEnabled(!busy);
+            if (overrideDiscardFeedback != null) discardOverrides.setSummary(overrideDiscardFeedback);
+        }
         filterSettings();
     }
 
@@ -924,9 +938,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         else exportConfiguration(uri);
     }
 
-    /** Request 0 is Restore, which reads HushGram's saved copy instead of a document. */
+    /** Restore and Discard read HushGram's saved copy instead of a document. */
     private void exchangeOverrides(@Nullable Uri uri, int request) {
-        if (request == 0 && (documentRequest != 0 || changingConfiguration || changingOverrides)) return;
+        boolean saved = request == RESTORE_OVERRIDES || request == DISCARD_OVERRIDES;
+        if (saved && (documentRequest != 0 || changingConfiguration || changingOverrides)) return;
+        boolean importing = saved || request == IMPORT_OVERRIDES;
         boolean validating = request == VALIDATE_OVERRIDES;
         Context context = getContext();
         Activity activity = getActivity();
@@ -935,8 +951,17 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         showConfiguration();
         if (!Utils.runOnBackgroundThread(() -> {
             try {
-                if (request == 0) {
-                    overrideFeedback(0, overrideOutcome(OverrideImport.restore(activity), true));
+                // The rows hide while the switch is off or HushGram is paused, but either can change
+                // while a picker is open. Then neither the document nor the store is read.
+                if (importing && !Settings.ALLOW_OVERRIDE_IMPORT.get()) {
+                    Logger.printInfo(() -> "Override import refused while its switch is off");
+                    overrideFeedback(request, L10n.t("Allow importing overrides is off or HushGram is paused. Nothing changed."));
+                } else if (request == RESTORE_OVERRIDES) {
+                    overrideFeedback(request, overrideOutcome(OverrideImport.restore(activity), true));
+                } else if (request == DISCARD_OVERRIDES) {
+                    overrideFeedback(request, OverrideImport.discard(activity)
+                            ? L10n.t("Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.")
+                            : L10n.t("There's no saved copy to discard. Nothing changed."));
                 } else if (request == IMPORT_OVERRIDES) {
                     byte[] bytes;
                     try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
@@ -962,11 +987,26 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 }
             } catch (OverrideImport.RestoreFirst failure) {
                 Logger.printInfo(() -> "Override import refused until Restore runs");
-                overrideFeedback(request, L10n.t("An earlier import still needs Restore previous overrides. Nothing changed."));
+                overrideFeedback(request, L10n.t("An earlier import still needs Restore previous overrides, "
+                        + "or Discard saved overrides if Restore can't run. Nothing changed."));
+            } catch (OverrideImport.NotAllowed failure) {
+                Logger.printInfo(() -> "Override import refused while its switch is off");
+                overrideFeedback(request, L10n.t("Allow importing overrides is off or HushGram is paused. Nothing changed."));
+            } catch (OverrideImport.StoreChanging failure) {
+                Logger.printInfo(() -> "Override import refused while the native store was still changing");
+                overrideFeedback(request, L10n.t("Instagram is still saving an override change. Wait a moment and try again. Nothing changed."));
+            } catch (OverrideImport.NothingSaved failure) {
+                overrideFeedback(request, L10n.t("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed."));
+            } catch (OverrideImport.SavedCopyDoesntFit failure) {
+                Logger.printInfo(() -> "Override restore refused a saved copy from another build or schema");
+                overrideFeedback(request, L10n.t("Couldn't restore overrides. The saved copy doesn't fit this session and "
+                        + "Instagram build. Use Discard saved overrides if you don't need it. Nothing changed."));
             } catch (Exception failure) {
                 Logger.printInfo(() -> "Override document operation failed without native writes");
-                overrideFeedback(request, request == 0
-                        ? L10n.t("Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.")
+                overrideFeedback(request, request == RESTORE_OVERRIDES
+                        ? L10n.t("Couldn't restore overrides. Open settings from Home while signed in. Nothing changed.")
+                        : request == DISCARD_OVERRIDES
+                        ? L10n.t("Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.")
                         : request == IMPORT_OVERRIDES
                         ? L10n.t("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.")
                         : validating
@@ -989,16 +1029,22 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     ? L10n.t("Previous overrides restored. Restart Instagram to apply them.")
                     : L10n.f("Imported %1$d override changes. Restart Instagram to apply them.", result.changes);
             case ROLLED_BACK: return L10n.t("Instagram didn't keep the change, so the overrides were put back as they were.");
+            case PARTIAL: return result.blocked
+                    ? L10n.f("Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't "
+                    + "be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram "
+                    + "to apply the rest.", result.skipped)
+                    : L10n.f("Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't "
+                    + "be put back this way. Restart Instagram to apply the rest.", result.skipped);
             default: return L10n.t("Instagram didn't keep the change and the overrides couldn't be confirmed. "
                     + "Use Restore previous overrides, then restart Instagram.");
         }
     }
 
-    /** Request 0 is Restore. */
     private void overrideFeedback(int request, String message) {
         if (request == VALIDATE_OVERRIDES) overrideValidationFeedback = message;
         else if (request == IMPORT_OVERRIDES) overrideImportFeedback = message;
-        else if (request == 0) overrideRestoreFeedback = message;
+        else if (request == RESTORE_OVERRIDES) overrideRestoreFeedback = message;
+        else if (request == DISCARD_OVERRIDES) overrideDiscardFeedback = message;
         else overrideExportFeedback = message;
         Utils.showToastLong(message);
         Utils.runOnMainThread(this::showConfiguration);
