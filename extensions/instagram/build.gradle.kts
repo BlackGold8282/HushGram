@@ -178,7 +178,7 @@ tasks.withType<Test>().configureEach {
 // behavioral cases must all have passed, including the dialog cases that assert SDK_INT itself.
 tasks.register("verifyAndroidBoundaries") {
     group = "verification"
-    description = "Requires passing Android 9/10/17 settings, recovery, storage and Cancel cases."
+    description = "Requires passing Android 9/10/17 settings, recovery, storage, Cancel and provider caller cases."
     dependsOn("testDebugUnitTest")
     val results = layout.buildDirectory.dir("test-results/testDebugUnitTest")
     inputs.dir(results)
@@ -451,7 +451,18 @@ tasks.register("verifyAndroidBoundaries") {
                 "aMetaSignedBuildLeavesFamilyAppsToInstagram[28]", "aMetaSignedBuildLeavesFamilyAppsToInstagram",
                 "unknownOwnSignersGiveNoTrust[28]", "unknownOwnSignersGiveNoTrust",
                 "aThrowingSignerIsReportedAndLeftToInstagram[28]", "aThrowingSignerIsReportedAndLeftToInstagram",
-                "aThrowingPackageManagerIsReportedAndLeftToInstagram[28]", "aThrowingPackageManagerIsReportedAndLeftToInstagram")
+                "aThrowingPackageManagerIsReportedAndLeftToInstagram[28]", "aThrowingPackageManagerIsReportedAndLeftToInstagram"),
+            "app.hushgram.extension.instagram.misc.SameKeyProviderCallerTest" to listOf(
+                "exactlyNamedFamilyCallersWithCurrentMatchingKeysAreAccepted[28]", "exactlyNamedFamilyCallersWithCurrentMatchingKeysAreAccepted",
+                "aColdProviderReadsItsOwnContextWithoutSettingsOrCachedSigners[28]", "aColdProviderReadsItsOwnContextWithoutSettingsOrCachedSigners",
+                "everyCurrentSignerMustMatchAndSigningHistoryEarnsNoTrust[28]", "everyCurrentSignerMustMatchAndSigningHistoryEarnsNoTrust",
+                "metaSignedBuildsKeepTheNativePolicy[28]", "metaSignedBuildsKeepTheNativePolicy",
+                "anotherKeyOrUnlistedPackageIsRefused[28]", "anotherKeyOrUnlistedPackageIsRefused",
+                "callerUidMustIdentifyOneUnambiguousNamedPackage[28]", "callerUidMustIdentifyOneUnambiguousNamedPackage",
+                "callerAndSelfPackageRecordsMustAgreeWithTheirUids[28]", "callerAndSelfPackageRecordsMustAgreeWithTheirUids",
+                "aCallerInAnotherAndroidUserIsRefused[28]", "aCallerInAnotherAndroidUserIsRefused",
+                "oldSignatureArraysAndUnreadableCurrentSignersEarnNoTrust[28]", "oldSignatureArraysAndUnreadableCurrentSignersEarnNoTrust",
+                "missingPackagesAndContextFailuresKeepTheNativeDecision[28]", "missingPackagesAndContextFailuresKeepTheNativeDecision")
         )
         val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
         factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true)

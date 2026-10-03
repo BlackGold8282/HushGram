@@ -67,7 +67,8 @@ $aiPattern = "(?i)\b($assistant|anthropic|openai|chatgpt|codex|copilot|gemini)\b
 $buildPaths = '^(extensions/|patches/|gradle/|build\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|' +
     'NOTICE$|provenance\.json$|README\.md$|patches-list\.json$|sources/|' +
     'scripts/(DexDiff\.java|ResourceTableCheck\.java|MergeSplits\.java|injected-mutation-contracts\.txt|' +
-    'injected-register-removal-allowlist\.txt|verify-all-patches\.ps1|verify-injected-registers\.ps1)$)'
+    'injected-register-removal-allowlist\.txt|verify-all-patches\.ps1|verify-injected-registers\.ps1|' +
+    'test-android-boundaries\.ps1|pre-push\.ps1|script-wiring\.ps1)$)'
 $ledgerPaths = '^(sources/|scripts/(instagram-sources|test-instagram-sources|audit-instagram-sources)\.ps1$|NOTICE$|provenance\.json$)'
 $zero = '0' * 40
 
@@ -192,6 +193,12 @@ $releaseToolingPaths = @(
     'scripts/validate-release-facts.ps1'
 )
 $touchesReleaseTooling = @($changed | Where-Object { $_ -in $releaseToolingPaths }).Count -gt 0
+$androidBoundaryPaths = @(
+    'extensions/instagram/build.gradle.kts',
+    'extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/SameKeyProviderCallerTest.java',
+    'scripts/test-android-boundaries.ps1', 'scripts/pre-push.ps1', 'scripts/script-wiring.ps1'
+)
+$touchesAndroidBoundaries = @($changed | Where-Object { $_ -in $androidBoundaryPaths }).Count -gt 0
 $suites = @()
 if (@($changed | Where-Object {
     $_ -in @('gradlew', 'gradlew.bat', 'gradle/wrapper/gradle-wrapper.jar', 'gradle/wrapper/gradle-wrapper.properties',
@@ -320,6 +327,11 @@ try {
     & $gradle -p $gate --console=plain :patches:test :extensions:instagram:testDebugUnitTest :extensions:instagram:verifyAndroidBoundaries `
         :extensions:instagram:lint :extensions:shared:library:lint
     if ($LASTEXITCODE -ne 0) { Stop-Push 'tests or lint failed' }
+
+    if ($touchesAndroidBoundaries) {
+        & pwsh -NoProfile -File (Join-Path $gate 'scripts/test-android-boundaries.ps1') -Root $gate
+        if ($LASTEXITCODE -ne 0) { Stop-Push 'Android boundary gate self-tests failed' }
+    }
 
     $catalog = Join-Path $gate 'patches-list.json'
     $before = Get-Content -LiteralPath $catalog -Raw

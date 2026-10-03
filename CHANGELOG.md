@@ -5,6 +5,8 @@ Every HushGram release, newest first.
 ## Unreleased
 
 * **Instagram:** Turning all three suggestion switches under Feed off restores Instagram's own empty feed behavior in the same run. Removing a suggestion earlier no longer keeps the filtered feed's end state active. The startup and scrolling blank frames reported in #28 still need a separate reproduction.
+* **Tooling:** The Android boundary gate now requires every current-key provider caller case on Android 9 and Android 17. Its self-test removes or filters the generated results and checks skipped, failed and duplicate cases through the real Gradle task. It restores the original report and runs after the push gate's clean build.
+
 * **Tooling:** Both Gradle launchers verify the reviewed wrapper JAR and distribution checksum before wrapper code runs. Altered, missing or unreviewed wrappers stop direct builds and scripted builds with a useful error. The push gate exercises both launchers with a runnable replacement JAR.
 
 * **Instagram:** Override recovery keeps the selected saved copy through interrupted saves and moves. Cleanup failures stay visible even when changes have already applied. Restore removes temporary replacement copies after recovery finishes, and Discard can remove a damaged backup without reading it.
