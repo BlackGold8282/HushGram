@@ -193,6 +193,12 @@ $releaseToolingPaths = @(
 )
 $touchesReleaseTooling = @($changed | Where-Object { $_ -in $releaseToolingPaths }).Count -gt 0
 $suites = @()
+if (@($changed | Where-Object {
+    $_ -in @('gradlew', 'gradlew.bat', 'gradle/wrapper/gradle-wrapper.jar', 'gradle/wrapper/gradle-wrapper.properties',
+        'scripts/VerifyGradleWrapper.java', 'scripts/test-gradle-wrapper.ps1', 'scripts/pre-push.ps1')
+}).Count -gt 0) {
+    $suites += , @('scripts/test-gradle-wrapper.ps1', 'the Gradle wrapper changed, checking refusal before execution')
+}
 if ($touchesInjectedRegisterVerifier) {
     $suites += , @('scripts/test-injected-registers.ps1', 'the injected-register verifier changed, running its fixture tests')
 }

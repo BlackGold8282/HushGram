@@ -5,6 +5,8 @@ Every HushGram release, newest first.
 ## Unreleased
 
 * **Instagram:** Turning all three suggestion switches under Feed off restores Instagram's own empty feed behavior in the same run. Removing a suggestion earlier no longer keeps the filtered feed's end state active. The startup and scrolling blank frames reported in #28 still need a separate reproduction.
+* **Tooling:** Both Gradle launchers verify the reviewed wrapper JAR and distribution checksum before wrapper code runs. Altered, missing or unreviewed wrappers stop direct builds and scripted builds with a useful error. The push gate exercises both launchers with a runnable replacement JAR.
+
 * **Instagram:** Override recovery keeps the selected saved copy through interrupted saves and moves. Cleanup failures stay visible even when changes have already applied. Restore removes temporary replacement copies after recovery finishes, and Discard can remove a damaged backup without reading it.
 * **Instagram:** View stories anonymously cancels a saved batch when choosing marked stories or creating their batch fails, including an allocation failure. It no longer falls back to sending the original batch. Cancellation uses Instagram's own retry cleanup without allocating an empty batch. Turning the switch off or pausing keeps Instagram's usual behavior. Sender and reconnect checks remain pending.
 * **Instagram:** Import, Restore and Discard recheck their permission after reading native state. Turning Allow importing overrides off or pausing while an import waits now stops it before any typed write or recovery-file change.

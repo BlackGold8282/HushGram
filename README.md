@@ -282,6 +282,8 @@ You need JDK 17 or newer and the Android SDK. The Morphe patcher comes from GitH
 
 The v0.0.4 release uses Gradle 9.8.0, Android Gradle Plugin 9.1.0 and Kotlin 2.4.20. It was verified with Morphe Manager 1.32.0 and Desktop CLI 1.17.0, both using patcher 1.14.1.
 
+Both wrapper launchers check the reviewed Gradle version and publisher JAR checksum before loading any wrapper code. The distribution ZIP checksum stays pinned too. A wrapper update needs an independent review of [Gradle's official checksums](https://gradle.org/release-checksums/) and an update to `scripts/VerifyGradleWrapper.java`. Run `pwsh -File scripts/test-gradle-wrapper.ps1` to check authentic builds and refusal of altered JARs through the Windows and POSIX launchers.
+
 ```bash
 export GITHUB_ACTOR=<your GitHub user>
 export GITHUB_TOKEN=<a token with read:packages>
