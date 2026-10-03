@@ -433,6 +433,14 @@ once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->resumeHeldStory(IL
 # Instagram. The click is one arm of a lambda class's invoke, which holds no string of its own, so
 # the rule holds the call to one site in the whole APK, in an invoke.
 single-call Lapp/hushgram/extension/instagram/media/TapToPlay;->playButtonTapped(Ljava/lang/Object;)V in invoke
+# The Reels auto scroller's move to the next reel tells autoScrolled() right in front of its call
+# that moves the pager on, after its null check of the pager, so the call isn't first and follows no
+# call. The move is the one static method taking the scroller and a flag that carries its
+# scrollToNextReel marker; Up next's marker ends the same way but names another class. Left out,
+# Instagram's auto scroll stops at the first reel Tap to play holds; twice or elsewhere, it isn't the
+# hook the patch wrote. TapToPlayHookTest checks on each declared build that it sits right in front
+# of the pager's smooth scroll to the next item.
+once-call Lapp/hushgram/extension/instagram/media/TapToPlay;->autoScrolled()V in static (L*;Z)V holding android_purge_26_q2_ClipsAutoScroller_scrollToNextReel
 #
 # Resume long videos tells the extension first thing in IgVideoPlayerImpl's playback-started
 # callback, its stop, its pause, its bind and its seek, and where a video plays to its end or loops.

@@ -326,6 +326,15 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.ReelAutoScrollSettingsTest" to listOf(
                 "missingPatchHasNoAutoScrollSwitch[28]", "missingPatchHasNoAutoScrollSwitch",
                 "autoScrollSwitchStartsOnPersistsAndHonorsPause[28]", "autoScrollSwitchStartsOnPersistsAndHonorsPause"),
+            "app.hushgram.extension.instagram.media.TapToPlayTest" to listOf(
+                "autoScrollStartsTheReelItMovesToAndArmsIt[28]", "autoScrollStartsTheReelItMovesToAndArmsIt",
+                "aMoveStartsOnePlayerOnly[28]", "aMoveStartsOnePlayerOnly",
+                "aStartLaterThanALoadAfterTheMoveIsHeld[28]", "aStartLaterThanALoadAfterTheMoveIsHeld",
+                "anArmedPlayerOrNoPlayerLeavesTheMoveToTheNextReel[28]", "anArmedPlayerOrNoPlayerLeavesTheMoveToTheNextReel",
+                "aSwipeEndsAMoveNoStartHasUsed[28]", "aSwipeEndsAMoveNoStartHasUsed",
+                "theAutoScrollHookStartsTheNextReelThroughTheGate[28]", "theAutoScrollHookStartsTheNextReelThroughTheGate",
+                "offPausedOrNotReadyAMoveRecordsNothing[28]", "offPausedOrNotReadyAMoveRecordsNothing",
+                "aFailingMoveRecordsNothingAndTheReportSaysSo[28]", "aFailingMoveRecordsNothingAndTheReportSaysSo"),
             "app.hushgram.extension.instagram.settings.StorySeenSettingsTest" to listOf(
                 "missingPatchHasNoMarkAsSeenSwitch[28]", "missingPatchHasNoMarkAsSeenSwitch",
                 "markAsSeenSwitchStartsOffPersistsAndHonorsPause[28]", "markAsSeenSwitchStartsOffPersistsAndHonorsPause"),
