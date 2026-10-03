@@ -1278,6 +1278,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             field.setContentDescription(L10n.t("Search settings"));
             field.setMinimumHeight(touch);
             field.setText(searchQuery);
+            SearchFocus focus = new SearchFocus(row);
+            field.setAccessibilityDelegate(focus);
+            row.addOnAttachStateChangeListener(focus);
             row.addView(field, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
             Button clear = new Button(context);
             clear.setText("×");
@@ -1304,6 +1307,29 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             });
             return row;
         }
+    }
+
+    /** Keep ListView's stable row while its search input owns accessibility focus. */
+    static final class SearchFocus extends View.AccessibilityDelegate implements View.OnAttachStateChangeListener {
+        private final View row;
+        private boolean held;
+
+        SearchFocus(View row) { this.row = row; }
+
+        @Override public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+            super.onInitializeAccessibilityEvent(host, event);
+            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED) hold(true);
+            else if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED) hold(false);
+        }
+
+        private void hold(boolean value) {
+            if (value == held) return;
+            row.setHasTransientState(value);
+            held = value;
+        }
+
+        @Override public void onViewAttachedToWindow(View view) { }
+        @Override public void onViewDetachedFromWindow(View view) { hold(false); }
     }
 
     /**
@@ -2306,7 +2332,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
             super.onInitializeAccessibilityNodeInfo(host, info);
             AbsListView list = listOf(host);
-            int position = list == null ? AdapterView.INVALID_POSITION : list.getPositionForView(host);
+            int position = positionOf(host, list);
             if (position != AdapterView.INVALID_POSITION) {
                 list.onInitializeAccessibilityNodeInfoForItem(host, position, info);
             }
@@ -2315,8 +2341,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 info.setCheckable(true);
                 info.setChecked(((TwoStatePreference) preference).isChecked());
             }
-            if (preference.isEnabled() && !info.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK)) {
-                info.setClickable(true);
+            boolean enabled = position != AdapterView.INVALID_POSITION
+                    && host.isEnabled() && preference.isEnabled();
+            boolean clickable = enabled && preference.isSelectable();
+            info.setEnabled(enabled);
+            info.setClickable(clickable);
+            // AbsListView may have added a click for a disabled or no longer bound item.
+            info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+            if (clickable) {
                 info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
             }
         }
@@ -2332,14 +2364,26 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
         @Override
         public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
-            AbsListView list = listOf(host);
-            if (action == AccessibilityNodeInfo.ACTION_CLICK && list != null && preference.isEnabled()) {
-                int position = list.getPositionForView(host);
-                if (position != AdapterView.INVALID_POSITION) {
-                    return list.performItemClick(host, position, list.getItemIdAtPosition(position));
-                }
+            if (action == AccessibilityNodeInfo.ACTION_CLICK) {
+                AbsListView list = listOf(host);
+                int position = positionOf(host, list);
+                if (position == AdapterView.INVALID_POSITION || !host.isEnabled()
+                        || !preference.isEnabled() || !preference.isSelectable()) return false;
+                return list.performItemClick(host, position, list.getItemIdAtPosition(position));
             }
             return super.performAccessibilityAction(host, action, arguments);
+        }
+
+        /** A delayed service action must not target the replacement at this row's old position. */
+        private int positionOf(View host, @Nullable AbsListView list) {
+            if (list == null || preference.getParent() == null
+                    || !host.isAttachedToWindow() || !host.isShown()) {
+                return AdapterView.INVALID_POSITION;
+            }
+            int position = list.getPositionForView(host);
+            return position >= 0 && position < list.getCount()
+                    && list.getItemAtPosition(position) == preference
+                    ? position : AdapterView.INVALID_POSITION;
         }
 
         @Nullable

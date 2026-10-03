@@ -265,6 +265,7 @@
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/download/CarouselSaveTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/SettingsDialogBoundaryTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/SettingsSearchTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/SettingsRowAccessibilityTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/OverrideNavigationTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/OverrideDocumentsTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/OverrideExchangeTest.java",
