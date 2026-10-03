@@ -51,7 +51,7 @@ function Get-CanonicalBuildIdentity {
     $owners = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
     $rules = @(Get-Content -LiteralPath (Join-Path $Root $policyPath) | Where-Object { $_ -notmatch '^\s*(#|$)' })
     foreach ($rule in $rules) {
-        if ($rule -cnotmatch '^(source|catalog|toolchain) (file|tree|main|module) ([A-Za-z0-9_./-]+)$') {
+        if ($rule -cnotmatch '^(source|catalog|toolchain) (file|tree|production|module) ([A-Za-z0-9_./-]+)$') {
             throw 'The canonical input boundary has a malformed rule.'
         }
         $category, $kind, $path = $Matches[1], $Matches[2], $Matches[3]
@@ -64,7 +64,8 @@ function Get-CanonicalBuildIdentity {
             switch ($kind) {
                 file { $candidate -ceq $path }
                 tree { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) }
-                main { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and $candidate.Contains('/src/main/') }
+                production { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and
+                    $candidate.Substring($path.Length + 1) -cmatch '^(?:(?!src/)[^/]+/)+src/(main|release)/.+$' }
                 module { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and
                     -not $candidate.Contains('/src/') -and $candidate -cmatch '/build\.gradle(\.kts)?$' }
             }
@@ -73,7 +74,8 @@ function Get-CanonicalBuildIdentity {
             $included = switch ($kind) {
                 file { $candidate -ceq $path }
                 tree { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) }
-                main { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and $candidate.Contains('/src/main/') }
+                production { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and
+                    $candidate.Substring($path.Length + 1) -cmatch '^(?:(?!src/)[^/]+/)+src/(main|release)/.+$' }
                 module { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and
                     -not $candidate.Contains('/src/') -and $candidate -cmatch '/build\.gradle(\.kts)?$' }
             }
@@ -92,7 +94,7 @@ function Get-CanonicalBuildIdentity {
     }
     foreach ($name in $names) {
         if (-not $owners.ContainsKey($name)) { continue }
-        if ($name -match '[\r\n\t]' -or $name -match '(^|/)(build|\.gradle|src/test|src/androidTest)(/|$)') {
+        if ($name -match '[\r\n\t]' -or $name -match '(^|/)(build|\.gradle|src/debug|src/test|src/androidTest)(/|$)') {
             throw "A canonical input has an unsupported path: $name"
         }
         $file = Join-Path $Root $name

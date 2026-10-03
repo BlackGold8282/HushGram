@@ -5,7 +5,7 @@ Every HushGram release, newest first.
 ## Unreleased
 
 * **Instagram:** About and local diagnostic reports show the production build identity, so different source builds of the same version can be identified.
-* **Tooling:** New release receipts map the canonical source, catalog and toolchain identity to final bundle and extension hashes. Historical receipts keep their original reading rules.
+* **Tooling:** New release receipts map the canonical source, catalog and toolchain identity to final bundle and extension hashes. The identity includes Android release source sets, so a change there produces a different identity even when the version stays the same. Debug and test inputs stay excluded. Historical receipts keep their original reading rules.
 
 * **Instagram:** Turning all three suggestion switches under Feed off restores Instagram's own empty feed behavior in the same run. Removing a suggestion earlier no longer keeps the filtered feed's end state active. The startup and scrolling blank frames reported in #28 still need a separate reproduction.
 * **Tooling:** Every required Android boundary result now names its actual Android SDK, including the highest SDK in a test class. The gate refuses Android 16 results substituted for Android 17 and results with their platform label removed. All provider caller cases remain required. Self-tests also check missing, filtered, skipped, failed and duplicate results through the real Gradle task, then restore the original report.

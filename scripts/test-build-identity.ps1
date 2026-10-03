@@ -24,10 +24,16 @@ try {
     $minimal = [ordered]@{}
     foreach ($line in $policy -split '\r?\n' | Where-Object { $_ -notmatch '^\s*(#|$)' }) {
         $category, $kind, $path = $line -split ' ', 3
-        $name = switch ($kind) { file { $path }; tree { "$path/input.txt" }; main { "$path/component/src/main/input.txt" }; module { "$path/component/build.gradle.kts" } }
+        $name = switch ($kind) { file { $path }; tree { "$path/input.txt" }; production { "$path/component/src/main/input.txt" }; module { "$path/component/build.gradle.kts" } }
         $minimal[$name] = "$category $path`n"
     }
     $minimal['scripts/canonical-build-inputs.txt'] = $policy
+    $releaseInputs = @('extensions/instagram/src/release/java/ReleaseIdentity.java',
+        'extensions/instagram/src/release/kotlin/ReleaseIdentity.kt',
+        'extensions/instagram/src/release/res/values/identity.xml',
+        'extensions/shared/library/src/release/resources/identity.txt',
+        'extensions/future/library/src/release/java/FutureIdentity.java')
+    foreach ($name in $releaseInputs) { $minimal[$name] = "release compiler input $name`n" }
     $minimal['gradle.properties'] = "version=0.0.4`n"
     $minimal['README.md'] = "documentation`n"
     $minimal['patches/src/test/example.kt'] = "test only`n"
@@ -46,9 +52,14 @@ try {
     }
     $before = Get-CanonicalBuildIdentity -Root $roots[0]
     Assert-True ($before.id -ceq (Get-CanonicalBuildIdentity -Root $roots[1]).id) 'Machine paths changed the production identity.'
-    foreach ($name in @('README.md', 'patches/src/test/example.kt', 'scripts/dependency-graphs.init.gradle',
+    $excludedInputs = @('README.md', 'patches/src/test/example.kt', 'scripts/dependency-graphs.init.gradle',
             'patches/src/test/fixture/build.gradle.kts', 'extensions/instagram/src/test/fixture.pro',
-            'local.properties', 'build/generated/identity.json')) {
+            'extensions/instagram/src/debug/java/DebugOnly.java',
+            'extensions/instagram/src/androidTest/java/DeviceTest.java',
+            'extensions/instagram/src/releaseUnitTest/java/ReleaseTest.java',
+            'extensions/future/library/src/test/fixture/src/release/java/TestFixture.java',
+            'local.properties', 'build/generated/identity.json')
+    foreach ($name in $excludedInputs) {
         $file = Join-Path $roots[0] $name
         New-Item -ItemType Directory -Path (Split-Path -Parent $file) -Force | Out-Null
         [IO.File]::WriteAllText($file, 'different output or unrelated input')
@@ -71,6 +82,31 @@ try {
             Assert-Throws { Get-CanonicalBuildIdentity -Root $roots[0] } '*missing or linked*'
         } finally { [IO.File]::WriteAllBytes($file, $bytes) }
     }
+    foreach ($name in $releaseInputs) {
+        $file = Join-Path $roots[0] $name
+        $bytes = [IO.File]::ReadAllBytes($file)
+        try {
+            [IO.File]::AppendAllText($file, 'release-only working-byte change')
+            $after = Get-CanonicalBuildIdentity -Root $roots[0]
+            Assert-True ($after.id -cne $before.id -and $after.sourceSha256 -cne $before.sourceSha256 -and
+                $after.catalogSha256 -ceq $before.catalogSha256 -and $after.toolchainSha256 -ceq $before.toolchainSha256) "Release production input $name disappeared from the reader."
+            Remove-Item -LiteralPath $file -Force
+            Assert-Throws { Get-CanonicalBuildIdentity -Root $roots[0] } '*missing or linked*'
+        } finally { [IO.File]::WriteAllBytes($file, $bytes) }
+    }
+    $addedRelease = 'extensions/future/library/src/release/res/values/second.xml'
+    $releaseFile = Join-Path $roots[0] $addedRelease
+    New-Item -ItemType Directory -Path (Split-Path -Parent $releaseFile) -Force | Out-Null
+    [IO.File]::WriteAllText($releaseFile, 'first release resource')
+    Assert-Throws { Get-CanonicalBuildIdentity -Root $roots[0] } '*untracked canonical*'
+    Invoke-RepoGit -Root $roots[0] -Arguments @('add', $addedRelease) | Out-Null
+    $firstRelease = Get-CanonicalBuildIdentity -Root $roots[0]
+    Assert-True ($firstRelease.id -cne $before.id) 'A newly staged release resource disappeared from the reader.'
+    [IO.File]::WriteAllText($releaseFile, 'changed without updating the index')
+    Assert-True ((Get-CanonicalBuildIdentity -Root $roots[0]).id -cne $firstRelease.id) 'Release working bytes were replaced by the older staged bytes.'
+    [IO.File]::WriteAllText($releaseFile, 'first release resource')
+    Invoke-RepoGit -Root $roots[0] -Arguments @('rm', '--cached', $addedRelease) | Out-Null
+    Remove-Item -LiteralPath $releaseFile -Force
     $production = Join-Path $roots[0] 'extensions/instagram/src/main/second.java'
     [IO.File]::WriteAllText($production, 'new production input')
     Assert-Throws { Get-CanonicalBuildIdentity -Root $roots[0] } '*untracked canonical*'
@@ -79,7 +115,7 @@ try {
     Invoke-RepoGit -Root $roots[0] -Arguments @('rm', '--cached', $production) | Out-Null
     Remove-Item -LiteralPath $production -Force
     $fixturePolicy = Join-Path $roots[0] 'scripts/canonical-build-inputs.txt'
-    foreach ($bad in @('source tree ../outside', 'toolchain tree build', 'unknown file NOTICE')) {
+    foreach ($bad in @('source tree ../outside', 'toolchain tree build', 'unknown file NOTICE', 'source main extensions')) {
         [IO.File]::WriteAllText($fixturePolicy, $policy + "`n$bad`n")
         Assert-Throws { Get-CanonicalBuildIdentity -Root $roots[0] } '*canonical input boundary*'
     }
@@ -132,10 +168,14 @@ tasks.register('generatePatchesList') {
     [IO.File]::WriteAllText((Join-Path $producerRoot 'scripts/canonical-build-inputs.txt'), $policy + "`ntoolchain file build.gradle`n", [Text.UTF8Encoding]::new($false))
     Copy-Item -LiteralPath (Join-Path $Root 'scripts/build-inputs.gradle') -Destination (Join-Path $producerRoot 'scripts/build-inputs.gradle')
     Invoke-RepoGit -Root $producerRoot -Arguments @('add', '-A') | Out-Null
-    $launcher = Join-Path $Root $(if ($IsWindows) { 'gradlew.bat' } else { 'gradlew' })
+    $launcher = Join-Path $Root $(if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { 'gradlew.bat' } else { 'gradlew' })
     function Invoke-IdentityProducer([string[]]$Arguments, [string]$Refusal) {
-        $said = @(& $launcher '-p' $producerRoot '--console=plain' '--no-configuration-cache' @Arguments 2>&1)
-        $exitCode = $LASTEXITCODE
+        $priorErrorAction = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            $said = @(& $launcher '-p' $producerRoot '--console=plain' '--no-configuration-cache' @Arguments 2>&1)
+            $exitCode = $LASTEXITCODE
+        } finally { $ErrorActionPreference = $priorErrorAction }
         if ($Refusal) {
             Assert-True ($exitCode -ne 0 -and ($said -join "`n") -like $Refusal) "The real producer accepted a mid-build mutation or refused it for the wrong reason: $($said -join "`n")"
         } else {
@@ -147,14 +187,49 @@ tasks.register('generatePatchesList') {
         }
     }
     $produced = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
-    foreach ($name in @('patches/src/main/input.txt', 'gradle.properties')) {
+    foreach ($name in $excludedInputs) {
+        $file = Join-Path $producerRoot $name
+        New-Item -ItemType Directory -Path (Split-Path -Parent $file) -Force | Out-Null
+        [IO.File]::WriteAllText($file, 'different output or unrelated input')
+        if ($name -notin @('local.properties', 'build/generated/identity.json')) {
+            Invoke-RepoGit -Root $producerRoot -Arguments @('add', $name) | Out-Null
+        }
+    }
+    $excluded = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
+    Assert-True ($excluded.id -ceq $produced.id) 'Docs, debug or test inputs changed the real production identity.'
+    foreach ($name in $releaseInputs) {
+        $file = Join-Path $producerRoot $name
+        $bytes = [IO.File]::ReadAllBytes($file)
+        try {
+            [IO.File]::AppendAllText($file, 'release-only producer change')
+            $changedRelease = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
+            Assert-True ($changedRelease.id -cne $produced.id -and $changedRelease.sourceSha256 -cne $produced.sourceSha256 -and
+                $changedRelease.catalogSha256 -ceq $produced.catalogSha256 -and $changedRelease.toolchainSha256 -ceq $produced.toolchainSha256) "Release production input $name disappeared from the real producer."
+        } finally { [IO.File]::WriteAllBytes($file, $bytes) }
+    }
+    $releaseFile = Join-Path $producerRoot $addedRelease
+    New-Item -ItemType Directory -Path (Split-Path -Parent $releaseFile) -Force | Out-Null
+    [IO.File]::WriteAllText($releaseFile, 'first release resource')
+    Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity') -Refusal '*Stage new repository inputs before building an input-bound artifact*'
+    Invoke-RepoGit -Root $producerRoot -Arguments @('add', $addedRelease) | Out-Null
+    $stagedRelease = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
+    Assert-True ($stagedRelease.id -cne $produced.id) 'A newly staged release resource disappeared from the real producer.'
+    [IO.File]::WriteAllText($releaseFile, 'changed without updating the index')
+    $workingRelease = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
+    Assert-True ($workingRelease.id -cne $stagedRelease.id) 'The real producer hashed the older index instead of release working bytes.'
+    Remove-Item -LiteralPath $releaseFile -Force
+    Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity') -Refusal '*canonical build input is missing or linked*'
+    [IO.File]::WriteAllText($releaseFile, 'first release resource')
+    Invoke-RepoGit -Root $producerRoot -Arguments @('rm', '--cached', $addedRelease) | Out-Null
+    Remove-Item -LiteralPath $releaseFile -Force
+    foreach ($name in @('patches/src/main/input.txt', 'gradle.properties', $releaseInputs[0])) {
         $file = Join-Path $producerRoot $name
         $bytes = [IO.File]::ReadAllBytes($file)
         try {
             Invoke-IdentityProducer -Arguments @('mutateCanonicalInput', 'writeCanonicalBuildIdentity', "-PmutateInput=$name") -Refusal '*Canonical production source or toolchain inputs changed during the build*'
         } finally { [IO.File]::WriteAllBytes($file, $bytes) }
     }
-    foreach ($name in @('patches/src/main/input.txt', 'gradle.properties', 'patches-list.json')) {
+    foreach ($name in @('patches/src/main/input.txt', 'gradle.properties', 'patches-list.json', $releaseInputs[0])) {
         $file = Join-Path $producerRoot $name
         $bytes = [IO.File]::ReadAllBytes($file)
         try {

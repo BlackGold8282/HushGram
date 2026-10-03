@@ -74,7 +74,7 @@ def calculateCanonicalIdentity = {
         def groups = [source: [], catalog: [], toolchain: []]
         def owners = [:]
         new File(auditRoot, policy).readLines('UTF-8').findAll { !(it ==~ /\s*(#.*)?/) }.each { line ->
-            def match = line =~ /^(source|catalog|toolchain) (file|tree|main|module) ([A-Za-z0-9_.\/-]+)$/
+            def match = line =~ /^(source|catalog|toolchain) (file|tree|production|module) ([A-Za-z0-9_.\/-]+)$/
             if (!match.matches()) throw new GradleException('The canonical input boundary has a malformed rule.')
             def category = match[0][1], kind = match[0][2], path = match[0][3]
             if (path.startsWith('/') || path ==~ /.*(^|\/)\.\.(\/|$).*/ ||
@@ -83,7 +83,8 @@ def calculateCanonicalIdentity = {
             }
             def matched = names.findAll { name ->
                 kind == 'file' ? name == path : kind == 'tree' ? name.startsWith(path + '/') :
-                    kind == 'main' ? name.startsWith(path + '/') && name.contains('/src/main/') :
+                    kind == 'production' ? name.startsWith(path + '/') &&
+                        (name.substring(path.length() + 1) ==~ '^(?:(?!src/)[^/]+/)+src/(main|release)/.+$') :
                         name.startsWith(path + '/') && !name.contains('/src/') && name ==~ /.*\/build\.gradle(\.kts)?$/
             }
             if (matched.empty) throw new GradleException('A required canonical input is missing: ' + line)
@@ -97,7 +98,7 @@ def calculateCanonicalIdentity = {
         }
         def hash = { byte[] bytes -> MessageDigest.getInstance('SHA-256').digest(bytes).encodeHex().toString() }
         names.findAll { owners[it] }.each { name ->
-            if (name.find(/[\r\n\t]/) || name.find(/(^|\/)(build|\.gradle|src\/test|src\/androidTest)(\/|$)/)) {
+            if (name.find(/[\r\n\t]/) || name.find(/(^|\/)(build|\.gradle|src\/debug|src\/test|src\/androidTest)(\/|$)/)) {
                 throw new GradleException('A canonical input has an unsupported path: ' + name)
             }
             def file = new File(auditRoot, name)
