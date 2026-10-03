@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Disable analytics also skips contacts and location setup delivered through the direct screen presenter. It checks the same two setup screen identifiers and keeps the native path for ordinary screens and absent screen data. Fresh sign-in acceptance is still pending.
+
 * **Instagram:** Same-key provider trust now checks the caller's actual current signing key after Instagram's native decision. Only named family apps in the same Android user can qualify. Other provider policies and the original deep-link certificate answers stay intact. Threads Continue as still needs its live acceptance check.
 
 * **Instagram:** Added the opt-in source patch `View DM photos and videos anonymously`, with a separate switch that starts off. It holds back the visual photo/video opened receipt and completes Instagram's queued visual task locally. Ordinary message and voice receipts keep their existing path. Sender-side and native replay checks are still pending.

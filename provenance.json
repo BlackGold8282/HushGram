@@ -203,6 +203,7 @@
         "patches/src/test/kotlin/app/morphe/patches/instagram/misc/resignedtrust/SameKeyProvidersTest.kt",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/SameKeyProviderCallerTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/DmMediaSeenSettingsTest.java",
+        "patches/src/test/kotlin/app/morphe/patches/instagram/misc/analytics/AlternateSetupScreensTest.kt",
         "patches/src/test/kotlin/app/morphe/patches/instagram/metaai/ComposerButtonsHookTest.kt",
         "patches/src/test/kotlin/app/morphe/patches/instagram/metaai/InboxRowHookTest.kt",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/developeroptions/**",
