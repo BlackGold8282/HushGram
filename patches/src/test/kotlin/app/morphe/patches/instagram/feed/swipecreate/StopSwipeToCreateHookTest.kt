@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
@@ -27,11 +28,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import java.util.BitSet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -146,6 +149,75 @@ class StopSwipeToCreateHookTest {
                     assertHeld(what, setter, target, flag, reason.toString())
                     assertEquals("$what: what comes after the flag's read", Opcode.INVOKE_DIRECT, code[hold + 7].opcode)
                 }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
+     * A fling from Home is held too, since on each declared build every move a finger makes says
+     * [DRAG], letting go included. onFling moves nothing itself: it keeps the fling's velocity in a
+     * field. The one method that reads that field hands it to the release, the method that settles
+     * the panels when the finger lifts, which the end of a nested scroll runs as well. The release
+     * makes its move with [DRAG] in the reason the hook reads, or with a tap's own reason when a
+     * partly shown panel was tapped, and a nested scroll's steps say [DRAG] too. The only other way
+     * into the setter is setPosition, which buttons and links call with their own configs.
+     */
+    @Test
+    fun aFlingFromHomeSaysSwipeToo() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val what = bundle.name
+                val classes = FixtureDex.classes(bundle, setOf(container, config)).values
+                val site = PatchContexts.of(classes).findSwipeToCreate()
+                val methods = classes.single { it.type == container }.methods
+                val slot = classes.single { it.type == config }.methods.single { it.name == "<init>" }.parameterStoredIn(site.reasonField)
+
+                val fling = methods.single { it.name == "onFling" && it.parameterTypes.map(CharSequence::toString) == listOf(event, event, "F", "F") }
+                assertTrue("$what: onFling makes or hands on a config", fling.code().none { it.handlesAConfig() })
+                val kept = fling.code().filter { it.opcode == Opcode.IPUT }.map { it.reference() as FieldReference }
+                    .filter { it.definingClass == container && it.type == "F" }
+                assertEquals("$what: what onFling keeps", 1, kept.size)
+                val velocity = "field ${kept.single()}"
+
+                val handOffs = methods.flatMap { method ->
+                    val code = method.code()
+                    code.indices.mapNotNull { at ->
+                        val called = code[at].reference() as? MethodReference
+                        val floats = called?.takeIf { it.definingClass == container }?.parameterTypes?.indices
+                            ?.filter { called.parameterTypes[it].toString() == "F" }.orEmpty()
+                        if (floats.any { velocity in method.valuesReaching(at, code[at].argumentFor(called!!, it)) }) method.name to called!! else null
+                    }
+                }
+                assertEquals("$what: what hands the fling on", listOf("onTouchEvent"), handOffs.map { it.first })
+                val release = handOffs.single().second
+                assertEquals("$what: the release's shape", listOf(event, "F", "J"), release.parameterTypes.map(CharSequence::toString))
+                assertEquals(
+                    "$what: what runs the release",
+                    setOf("onTouchEvent", "onStopNestedScroll"),
+                    methods.filter { m -> m.code().any { it.referenceText() == release.toString() } }.map { it.name }.toSet(),
+                )
+
+                val movers = methods.filter { m -> m.code().any { (it.reference() as? MethodReference)?.name == SET_POSITION } }
+                assertEquals(
+                    "$what: what moves the panels",
+                    setOf(ON_SCROLL, "onNestedPreScroll", "onNestedScroll", release.name, "setPosition"),
+                    movers.map { it.name }.toSet(),
+                )
+                assertEquals(
+                    "$what: the reason each move is made with",
+                    mapOf(
+                        ON_SCROLL to listOf(setOf("\"$DRAG\"")),
+                        "onNestedPreScroll" to listOf(setOf("\"$DRAG\"")),
+                        "onNestedScroll" to listOf(setOf("\"$DRAG\"")),
+                        release.name to listOf(setOf("\"$DRAG\"", "\"tap_partially_visible_panel\"")),
+                        "setPosition" to emptyList(),
+                    ),
+                    movers.associate { it.name to it.reasonsMade(slot) },
+                )
                 checked += version
             }
         }
@@ -331,6 +403,81 @@ class StopSwipeToCreateHookTest {
 
     private fun MutableMethod.targetOf(index: Int): Int =
         (implementation!!.instructions[index] as BuilderOffsetInstruction).target.location.index
+
+    /** The index of the parameter this constructor stores in [field]. */
+    private fun Method.parameterStoredIn(field: String): Int {
+        val stores = code().filter { it.opcode == Opcode.IPUT_OBJECT && it.referenceText() == field }
+        assertEquals("$definingClass's stores to $field", 1, stores.size)
+        val register = (stores.single() as TwoRegisterInstruction).registerA
+        var at = implementation!!.registerCount - parameterTypes.sumOf { it.toString().width() }
+        parameterTypes.forEachIndexed { index, type ->
+            if (at == register) return index
+            at += type.toString().width()
+        }
+        error("$field is stored from v$register, which isn't a parameter")
+    }
+
+    /** For each config this method makes, every value that can reach the constructor's parameter [slot]. */
+    private fun Method.reasonsMade(slot: Int): List<Set<String>> {
+        val code = code()
+        return code.indices.filter { code[it].referenceText()?.startsWith("$config-><init>") == true }
+            .map { at -> valuesReaching(at, code[at].argumentFor(code[at].reference() as MethodReference, slot)) }
+    }
+
+    /** The register an invoke hands [called]'s parameter [index] in, past `this` on an instance call. */
+    private fun Instruction.argumentFor(called: MethodReference, index: Int): Int {
+        val self = if (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) 0 else 1
+        return arguments()[self + called.parameterTypes.take(index).sumOf { it.toString().width() }]
+    }
+
+    /** Whether this makes a config or hands one to a method. */
+    private fun Instruction.handlesAConfig(): Boolean {
+        val called = reference() as? MethodReference ?: return false
+        return called.definingClass == config || called.parameterTypes.any { it.toString() == config }
+    }
+
+    private fun String.width(): Int = if (this == "J" || this == "D") 2 else 1
+
+    /**
+     * What [register] can hold as the instruction at [index] runs, walking back along every path to
+     * what last wrote it: a loaded string in quotes, a field read as `field <reference>`, a move
+     * followed to its source, `entry` for what it held as the method began, and anything else by
+     * its opcode. A handler is reached from an instruction that threw before writing anything.
+     */
+    private fun Method.valuesReaching(index: Int, register: Int): Set<String> {
+        val flow = ControlFlow.of(this)
+        val code = flow.instructions
+        val normalIn = Array(code.size) { mutableListOf<Int>() }
+        val thrownIn = Array(code.size) { mutableListOf<Int>() }
+        flow.normal.forEachIndexed { from, to -> to.forEach { normalIn[it] += from } }
+        flow.exceptional.forEachIndexed { from, to -> to.forEach { thrownIn[it] += from } }
+        val values = sortedSetOf<String>()
+        val seen = BitSet()
+        val pending = ArrayDeque(listOf(index))
+        while (pending.isNotEmpty()) {
+            val at = pending.removeFirst()
+            if (seen[at]) continue
+            seen.set(at)
+            if (at == 0) values += "entry"
+            for (from in normalIn[at]) {
+                val instruction = code[from]
+                val written = (instruction as? OneRegisterInstruction)?.registerA
+                val writes = instruction.opcode.setsRegister() && written != null &&
+                    (written == register || (instruction.opcode.setsWideRegister() && written + 1 == register))
+                if (writes) values += valueWritten(from, instruction) else pending += from
+            }
+            pending += thrownIn[at]
+        }
+        return values
+    }
+
+    private fun Method.valueWritten(at: Int, instruction: Instruction): Set<String> = when (instruction.opcode) {
+        Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO -> setOf("\"${((instruction.reference()) as StringReference).string}\"")
+        Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16 ->
+            valuesReaching(at, (instruction as TwoRegisterInstruction).registerB)
+        Opcode.IGET, Opcode.IGET_OBJECT, Opcode.IGET_BOOLEAN, Opcode.SGET, Opcode.SGET_OBJECT -> setOf("field ${instruction.referenceText()}")
+        else -> setOf(instruction.opcode.name)
+    }
 
     private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 

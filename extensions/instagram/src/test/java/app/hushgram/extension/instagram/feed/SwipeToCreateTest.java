@@ -67,6 +67,7 @@ public class SwipeToCreateTest {
     @Test
     public void everyOtherMoveGoesOn() {
         assertEquals("the + button", 0, SwipeToCreate.hold(-1f, 0f, "camera_action_bar_button"));
+        assertEquals("a tap on a partly shown panel", 0, SwipeToCreate.hold(-1f, 0f, "tap_partially_visible_panel"));
         assertEquals("back to Home from the camera", 0, SwipeToCreate.hold(-0.6f, -1f, "swipe"));
         assertEquals("back to Home from the camera", 0, SwipeToCreate.hold(0f, -0.3f, "swipe"));
         assertEquals("toward the far side", 0, SwipeToCreate.hold(0.3f, 0f, "swipe"));

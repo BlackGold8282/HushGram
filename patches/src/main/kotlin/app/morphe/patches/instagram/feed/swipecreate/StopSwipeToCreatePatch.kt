@@ -56,7 +56,10 @@ internal const val CLAMPED_POSITION = "getClampedPosition"
 /** The container's drag handler, Android's name for a scroll gesture's step. */
 internal const val ON_SCROLL = "onScroll"
 
-/** The reason a finger drag gives for each move, which taps and links never give. */
+/**
+ * The reason a finger gives for each move: a drag's steps, and the move that settles the panels
+ * when it lets go, a fling included. Taps and links never give it.
+ */
 internal const val DRAG = "swipe"
 
 private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
