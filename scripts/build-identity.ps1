@@ -35,6 +35,46 @@ function Assert-CanonicalBuildIdentity {
     }
 }
 
+function Test-CanonicalInputSelection {
+    param([string]$Name, [string]$Kind, [string]$Path)
+    switch ($Kind) {
+        file { return $Name -ceq $Path }
+        tree { return $Name.StartsWith($Path + '/', [StringComparison]::Ordinal) }
+        production { return $Name.StartsWith($Path + '/', [StringComparison]::Ordinal) -and
+            $Name.Substring($Path.Length + 1) -cmatch '^(?:(?!src/)[^/]+/)+src/(main|release)/.+$' }
+        module { return $Name.StartsWith($Path + '/', [StringComparison]::Ordinal) -and
+            -not $Name.Contains('/src/') -and $Name -cmatch '/build\.gradle(\.kts)?$' }
+    }
+    return $false
+}
+
+function Assert-NoIgnoredCanonicalProductionInputs {
+    param([Parameter(Mandatory = $true)][string]$Root)
+    # Git's normal untracked list hides these, but compilers and Android packaging don't.
+    # Pathspecs avoid enumerating ordinary build output; the first source set excludes fixtures.
+    $ignored = @(Invoke-RepoGit -Root $Root -Arguments @('-c', 'core.quotepath=false', 'ls-files',
+        '--others', '--ignored', '--exclude-standard', '--', ':(glob)**/src/main/**', ':(glob)**/src/release/**'))
+    $candidates = @($ignored | Where-Object {
+        $_ -cmatch '^(?<module>(?:(?!src/)[^/]+/)+)src/(main|release)/(AndroidManifest\.xml|(?:java|kotlin)/.+\.(?:java|kt)|(?:res|resources|assets|aidl|rs|shaders|jni|jniLibs)/.+|l10n/.+\.tsv)$' -and
+            $Matches.module -notmatch '(^|/)(build|\.gradle)(/|$)'
+    })
+    if (-not $candidates.Count) { return }
+    $policy = Join-Path $Root 'scripts/canonical-build-inputs.txt'
+    if (-not (Test-Path -LiteralPath $policy -PathType Leaf)) { throw 'The canonical input boundary is missing.' }
+    foreach ($rule in Get-Content -LiteralPath $policy | Where-Object { $_ -notmatch '^\s*(#|$)' }) {
+        if ($rule -cnotmatch '^(source|catalog|toolchain) (file|tree|production|module) ([A-Za-z0-9_./-]+)$') {
+            throw 'The canonical input boundary has a malformed rule.'
+        }
+        $category, $kind, $path = $Matches[1], $Matches[2], $Matches[3]
+        if ($category -cne 'source') { continue }
+        foreach ($candidate in $candidates) {
+            if (Test-CanonicalInputSelection -Name $candidate -Kind $kind -Path $path) {
+                throw "An ignored canonical production input must be tracked before building or auditing: $candidate"
+            }
+        }
+    }
+}
+
 function Get-CanonicalBuildIdentity {
     param([Parameter(Mandatory = $true)][string]$Root)
     $names = @(Invoke-RepoGit -Root $Root -Arguments @('-c', 'core.quotepath=false', 'ls-files', '--cached') |
@@ -46,6 +86,7 @@ function Get-CanonicalBuildIdentity {
         Where-Object { $_ })
     $policyPath = 'scripts/canonical-build-inputs.txt'
     if ($names -cnotcontains $policyPath) { throw 'The canonical input boundary is not tracked.' }
+    Assert-NoIgnoredCanonicalProductionInputs -Root $Root
     $groups = [ordered]@{ source = [Collections.Generic.List[string]]::new()
         catalog = [Collections.Generic.List[string]]::new(); toolchain = [Collections.Generic.List[string]]::new() }
     $owners = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
@@ -59,26 +100,9 @@ function Get-CanonicalBuildIdentity {
             $path -match '(^|/)(build|\.gradle)(/|$)') {
             throw 'The canonical input boundary includes an output or escaping path.'
         }
-        $matched = @($names | Where-Object {
-            $candidate = $_
-            switch ($kind) {
-                file { $candidate -ceq $path }
-                tree { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) }
-                production { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and
-                    $candidate.Substring($path.Length + 1) -cmatch '^(?:(?!src/)[^/]+/)+src/(main|release)/.+$' }
-                module { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and
-                    -not $candidate.Contains('/src/') -and $candidate -cmatch '/build\.gradle(\.kts)?$' }
-            }
-        })
+        $matched = @($names | Where-Object { Test-CanonicalInputSelection -Name $_ -Kind $kind -Path $path })
         foreach ($candidate in $untracked) {
-            $included = switch ($kind) {
-                file { $candidate -ceq $path }
-                tree { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) }
-                production { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and
-                    $candidate.Substring($path.Length + 1) -cmatch '^(?:(?!src/)[^/]+/)+src/(main|release)/.+$' }
-                module { $candidate.StartsWith($path + '/', [StringComparison]::Ordinal) -and
-                    -not $candidate.Contains('/src/') -and $candidate -cmatch '/build\.gradle(\.kts)?$' }
-            }
+            $included = Test-CanonicalInputSelection -Name $candidate -Kind $kind -Path $path
             if ($included) { throw "An untracked canonical production input must be staged first: $candidate" }
         }
         if (-not $matched.Count) { throw "A required canonical input is missing: $category $kind $path" }

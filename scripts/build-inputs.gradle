@@ -71,6 +71,16 @@ def calculateCanonicalIdentity = {
         if (child.waitFor() != 0 || names.empty) throw new GradleException('Cannot enumerate canonical tracked inputs: ' + error)
         def policy = 'scripts/canonical-build-inputs.txt'
         if (!names.contains(policy)) throw new GradleException('The canonical input boundary is not tracked.')
+        def ignored = new ProcessBuilder('git', '-C', auditRoot.absolutePath, 'ls-files', '-z', '--others',
+                '--ignored', '--exclude-standard', '--', ':(glob)**/src/main/**', ':(glob)**/src/release/**')
+        ignored.environment().keySet().removeIf { it.startsWith('GIT_') }
+        def ignoredChild = ignored.start()
+        def ignoredNames = ignoredChild.inputStream.getText('UTF-8').split('\u0000').findAll { name ->
+            def input = name =~ /^(?<module>(?:(?!src\/)[^\/]+\/)+)src\/(main|release)\/(AndroidManifest\.xml|(?:java|kotlin)\/.+\.(?:java|kt)|(?:res|resources|assets|aidl|rs|shaders|jni|jniLibs)\/.+|l10n\/.+\.tsv)$/
+            input.matches() && !(input.group('module') =~ /(^|\/)(build|\.gradle)(\/|$)/).find()
+        }
+        def ignoredError = ignoredChild.errorStream.getText('UTF-8')
+        if (ignoredChild.waitFor() != 0) throw new GradleException('Cannot check ignored production inputs: ' + ignoredError)
         def groups = [source: [], catalog: [], toolchain: []]
         def owners = [:]
         new File(auditRoot, policy).readLines('UTF-8').findAll { !(it ==~ /\s*(#.*)?/) }.each { line ->
@@ -81,12 +91,17 @@ def calculateCanonicalIdentity = {
                     path ==~ /.*(^|\/)(build|\.gradle)(\/|$).*/) {
                 throw new GradleException('The canonical input boundary includes an output or escaping path.')
             }
-            def matched = names.findAll { name ->
+            def includes = { String name ->
                 kind == 'file' ? name == path : kind == 'tree' ? name.startsWith(path + '/') :
                     kind == 'production' ? name.startsWith(path + '/') &&
                         (name.substring(path.length() + 1) ==~ '^(?:(?!src/)[^/]+/)+src/(main|release)/.+$') :
                         name.startsWith(path + '/') && !name.contains('/src/') && name ==~ /.*\/build\.gradle(\.kts)?$/
             }
+            if (category == 'source') {
+                def hidden = ignoredNames.find { includes(it) }
+                if (hidden) throw new GradleException('An ignored canonical production input must be tracked before building or auditing: ' + hidden)
+            }
+            def matched = names.findAll { includes(it) }
             if (matched.empty) throw new GradleException('A required canonical input is missing: ' + line)
             matched.each { name ->
                 if (owners[name] && owners[name] != category) throw new GradleException('A canonical input has two categories: ' + name)

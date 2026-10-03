@@ -409,6 +409,7 @@ function Assert-DependencyInputsMatch {
 function Get-CurrentDependencyAuditSubject {
     param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)]$Graphs,
         [Parameter(Mandatory = $true)]$Sbom, [Parameter(Mandatory = $true)][string]$BundlePath)
+    Assert-NoIgnoredCanonicalProductionInputs -Root $Root
     $inputs = Get-DependencyAuditInputs -Root $Root
     if ((Get-Sha256Hex -Path $Graphs.Path) -cne $Graphs.Sha256) { throw 'The dependency graph bytes changed after they were read.' }
     Assert-DependencyInputsMatch -Expected $inputs -Actual $Graphs.Inputs -Label 'The dependency graph report'

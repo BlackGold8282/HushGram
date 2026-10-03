@@ -37,7 +37,9 @@ try {
     $minimal['gradle.properties'] = "version=0.0.4`n"
     $minimal['README.md'] = "documentation`n"
     $minimal['patches/src/test/example.kt'] = "test only`n"
-    $minimal['.gitignore'] = "build/`n.gradle/`nlocal.properties`n"
+    $minimal['.gitignore'] = "build/`n.gradle/`nlocal.properties`nignored-input/`n" +
+        "extensions/instagram/src/release/AndroidManifest.xml`n" +
+        "extensions/shared/library/src/main/l10n/ignored.tsv`n"
     $roots = @((Join-Path $scratch 'first'), (Join-Path $scratch 'different location'))
     foreach ($repo in $roots) {
         New-Item -ItemType Directory -Path $repo -Force | Out-Null
@@ -68,6 +70,52 @@ try {
         }
         Assert-True ((Get-CanonicalBuildIdentity -Root $roots[0]).id -ceq $before.id) "Unrelated $name changed the production identity."
     }
+    $ignoredExcludedInputs = @('extensions/instagram/src/debug/java/ignored-input/DebugOnly.java',
+        'extensions/instagram/src/test/java/ignored-input/TestOnly.java',
+        'extensions/instagram/src/androidTest/java/ignored-input/DeviceOnly.java',
+        'extensions/future/library/src/test/fixture/src/release/java/ignored-input/TestFixture.java',
+        'extensions/instagram/build/generated/src/main/java/Generated.java',
+        'extensions/instagram/.gradle/src/release/kotlin/Generated.kt',
+        'patches/build/generated/src/main/kotlin/Generated.kt',
+        'ignored-input/helper.gradle', 'extensions/instagram/src/release/java/ignored-input/notes.txt')
+    foreach ($name in $ignoredExcludedInputs) {
+        $file = Join-Path $roots[0] $name
+        New-Item -ItemType Directory -Path (Split-Path -Parent $file) -Force | Out-Null
+        [IO.File]::WriteAllText($file, 'ignored output or nonproduction file')
+    }
+    Assert-True ((Get-CanonicalBuildIdentity -Root $roots[0]).id -ceq $before.id) 'Ignored debug, test, generated or machine files changed the reader identity.'
+    $ignoredProductionInputs = @('patches/src/main/java/ignored-input/Hidden.java',
+        'patches/stub/src/main/kotlin/ignored-input/Hidden.kt',
+        'extensions/instagram/src/main/java/ignored-input/Main.java',
+        'extensions/instagram/src/release/java/ignored-input/Release.java',
+        'extensions/instagram/src/release/java/build/Hidden.java',
+        'extensions/instagram/src/release/kotlin/ignored-input/Release.kt',
+        'extensions/instagram/src/release/res/ignored-input/value.xml',
+        'extensions/shared/library/src/release/resources/ignored-input/notes.md',
+        'extensions/instagram/src/main/assets/ignored-input/value.bin',
+        'extensions/instagram/src/release/AndroidManifest.xml',
+        'extensions/shared/library/src/main/l10n/ignored.tsv',
+        'extensions/future/library/src/release/java/ignored-input/Future.java')
+    foreach ($name in $ignoredProductionInputs) {
+        $file = Join-Path $roots[0] $name
+        New-Item -ItemType Directory -Path (Split-Path -Parent $file) -Force | Out-Null
+        try {
+            [IO.File]::WriteAllText($file, 'ignored compiler or packaging input')
+            Assert-True (@(Invoke-RepoGit -Root $roots[0] -Arguments @('check-ignore', $name)).Count -eq 1) "The reader regression input is not ignored: $name"
+            Assert-Throws { Get-CanonicalBuildIdentity -Root $roots[0] } '*ignored canonical production input must be tracked*'
+        } finally { Remove-Item -LiteralPath $file -Force }
+    }
+    $forceStagedInput = $ignoredProductionInputs[0]
+    $forceStagedFile = Join-Path $roots[0] $forceStagedInput
+    [IO.File]::WriteAllText($forceStagedFile, 'explicitly tracked production input')
+    Invoke-RepoGit -Root $roots[0] -Arguments @('add', '--force', $forceStagedInput) | Out-Null
+    $forceStaged = Get-CanonicalBuildIdentity -Root $roots[0]
+    Assert-True ($forceStaged.id -cne $before.id) 'Explicitly staged input inside an ignored directory disappeared from the reader.'
+    [IO.File]::AppendAllText($forceStagedFile, 'new working bytes')
+    Assert-True ((Get-CanonicalBuildIdentity -Root $roots[0]).id -cne $forceStaged.id) 'Explicitly staged ignored-directory input used old index bytes.'
+    [IO.File]::WriteAllText($forceStagedFile, 'explicitly tracked production input')
+    Invoke-RepoGit -Root $roots[0] -Arguments @('rm', '--cached', $forceStagedInput) | Out-Null
+    Remove-Item -LiteralPath $forceStagedFile -Force
     foreach ($category in @('source', 'catalog', 'toolchain')) {
         $name = switch ($category) {
             source { 'patches/src/main/input.txt' }; catalog { 'patches-list.json' }; toolchain { 'gradle.properties' }
@@ -197,6 +245,40 @@ tasks.register('generatePatchesList') {
     }
     $excluded = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
     Assert-True ($excluded.id -ceq $produced.id) 'Docs, debug or test inputs changed the real production identity.'
+    foreach ($name in $ignoredExcludedInputs) {
+        $file = Join-Path $producerRoot $name
+        New-Item -ItemType Directory -Path (Split-Path -Parent $file) -Force | Out-Null
+        [IO.File]::WriteAllText($file, 'ignored output or nonproduction file')
+    }
+    $ignoredExcluded = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
+    Assert-True ($ignoredExcluded.id -ceq $produced.id) 'Ignored debug, test, generated or machine files changed the producer identity.'
+    foreach ($name in $ignoredProductionInputs) {
+        $file = Join-Path $producerRoot $name
+        New-Item -ItemType Directory -Path (Split-Path -Parent $file) -Force | Out-Null
+        try {
+            [IO.File]::WriteAllText($file, 'ignored compiler or packaging input')
+            Assert-True (@(Invoke-RepoGit -Root $producerRoot -Arguments @('check-ignore', $name)).Count -eq 1) "The producer regression input is not ignored: $name"
+            Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity') -Refusal '*ignored canonical production input must be tracked*'
+        } finally { Remove-Item -LiteralPath $file -Force }
+    }
+    $forceStagedFile = Join-Path $producerRoot $forceStagedInput
+    [IO.File]::WriteAllText($forceStagedFile, 'explicitly tracked production input')
+    Invoke-RepoGit -Root $producerRoot -Arguments @('add', '--force', $forceStagedInput) | Out-Null
+    $forceStaged = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
+    Assert-True ($forceStaged.id -cne $produced.id) 'Explicitly staged ignored-directory input disappeared from the producer.'
+    [IO.File]::AppendAllText($forceStagedFile, 'new working bytes')
+    $forceWorking = Invoke-IdentityProducer -Arguments @('writeCanonicalBuildIdentity')
+    Assert-True ($forceWorking.id -cne $forceStaged.id) 'The producer used old index bytes for a staged ignored-directory input.'
+    [IO.File]::WriteAllText($forceStagedFile, 'explicitly tracked production input')
+    Invoke-RepoGit -Root $producerRoot -Arguments @('rm', '--cached', $forceStagedInput) | Out-Null
+    Remove-Item -LiteralPath $forceStagedFile -Force
+    foreach ($task in @('mutateCanonicalInput', 'assembleFixture')) {
+        try {
+            $argument = if ($task -eq 'mutateCanonicalInput') { "-PmutateInput=$forceStagedInput" } else { "-PmutateAfterIdentity=$forceStagedInput" }
+            $tasks = if ($task -eq 'mutateCanonicalInput') { @($task, 'writeCanonicalBuildIdentity', $argument) } else { @($task, $argument) }
+            Invoke-IdentityProducer -Arguments $tasks -Refusal '*ignored canonical production input must be tracked*'
+        } finally { Remove-Item -LiteralPath $forceStagedFile -Force }
+    }
     foreach ($name in $releaseInputs) {
         $file = Join-Path $producerRoot $name
         $bytes = [IO.File]::ReadAllBytes($file)
