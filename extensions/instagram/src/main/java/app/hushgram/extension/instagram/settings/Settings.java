@@ -212,6 +212,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_explore_grid", TRUE);
 
     /**
+     * The row of notes at the top of your messages, its Map bubble included
+     * ({@link app.hushgram.extension.instagram.direct.NotesRow}). Read each time Instagram works out
+     * your messages again, so a change shows the next time they update. Off to start.
+     */
+    public static final BooleanSetting HIDE_NOTES_ROW =
+            new BooleanSetting("hushgram_hide_notes_row", FALSE);
+
+    /**
      * The New group button beside the share sheet's search bar, whichever form Instagram gives it,
      * and the button that sends to the people you picked there as a group.
      */

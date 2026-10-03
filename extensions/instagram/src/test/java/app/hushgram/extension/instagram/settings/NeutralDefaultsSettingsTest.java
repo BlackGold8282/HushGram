@@ -21,6 +21,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import app.hushgram.extension.instagram.direct.NotesRow;
 import app.hushgram.extension.instagram.profile.ProfileHighlights;
 import app.hushgram.extension.instagram.feed.SwipeToCreate;
 import app.hushgram.extension.instagram.reels.ReelScrolling;
@@ -42,15 +43,19 @@ public class NeutralDefaultsSettingsTest {
     @Rule public final SettingsContextRule settings = new SettingsContextRule();
     private BooleanSetting[] initiallyOff;
 
+    /** Stands in for the inbox's section enum. */
+    enum StockSection { SEARCH_BAR, TRAY }
+
     @Before public void prepare() {
         RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
         initiallyOff = new BooleanSetting[]{Settings.COPY_COMMENTS, Settings.SAVE_COMMENT_PHOTOS,
-                Settings.HIDE_HIGHLIGHTS, Settings.STOP_SWIPE_TO_CREATE, Settings.STOP_REELS_SCROLLING};
+                Settings.HIDE_HIGHLIGHTS, Settings.HIDE_NOTES_ROW, Settings.STOP_SWIPE_TO_CREATE,
+                Settings.STOP_REELS_SCROLLING};
         restoreDefaults();
         BaseSettings.SAFE_MODE.save(false);
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.COMMENT_COPY, PatchFamily.COMMENT_PHOTO,
-                PatchFamily.PROFILE_HIGHLIGHTS, PatchFamily.SWIPE_TO_CREATE,
+                PatchFamily.PROFILE_HIGHLIGHTS, PatchFamily.NOTES_ROW, PatchFamily.SWIPE_TO_CREATE,
                 PatchFamily.REEL_SCROLLING, PatchFamily.STORY_RING);
     }
 
@@ -159,6 +164,8 @@ public class NeutralDefaultsSettingsTest {
         for (int nativeValue : new int[]{0, 1, -7}) assertEquals(nativeValue, ReelScrolling.userInput(pager, nativeValue));
         assertEquals(1, ReelScrolling.pull());
         assertEquals(1, ProfileHighlights.keepTray());
+        Object[] sections = {StockSection.SEARCH_BAR, StockSection.TRAY};
+        assertSame(sections, NotesRow.sections(sections));
         assertEquals(0, SwipeToCreate.enabled());
         assertEquals(0, SwipeToCreate.hold(-1f, 0f, "swipe"));
         assertEquals(270f, StoryRing.size(270f), 0f);

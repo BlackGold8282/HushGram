@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** New patch, `Hide the notes row`, in Manager's simple mode with its switch off. Turn it on under Messages in HushGram settings and the row of notes at the top of your messages goes, along with the Map bubble that sits in it. Your chats, search and message requests stay where they are. Asked for in #17.
 * **Instagram:** HushGram's settings come in Korean now, translated by @BlackGold8282 in #36.
 * **Instagram:** Hide the Repost button now makes a final pass over Feed's repost icon and count after Instagram binds them, so the Feed reshare affordance goes away while the ordinary Share button stays.
 * **Instagram:** Following-list labels now wait for Instagram's row friendship status instead of trusting a stale profile fallback, so accounts won't show "Doesn't follow you" until their profile refreshes.

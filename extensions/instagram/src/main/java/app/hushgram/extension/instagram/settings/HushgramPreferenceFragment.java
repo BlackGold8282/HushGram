@@ -320,6 +320,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "search results stay.")));
         }
 
+        if (build.contains(PatchFamily.NOTES_ROW)) {
+            PreferenceCategory messages = category(screen, L10n.t("Messages"));
+            messages.addPreference(toggle(context, Settings.HIDE_NOTES_ROW, L10n.t("Hide the notes row"),
+                    L10n.t("Takes the row of notes off the top of your messages, the Map bubble in it too. "
+                            + "Your chats, search and requests stay.")));
+        }
+
         List<Preference> reels = new ArrayList<>();
         if (build.contains(PatchFamily.FEED_REELS)) {
             reels.add(toggle(context, Settings.HIDE_FEED_REELS, L10n.t("Hide Reels in the feed"),

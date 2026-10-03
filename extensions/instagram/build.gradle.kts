@@ -233,6 +233,16 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.settings.ProfileHighlightsSettingsTest" to listOf(
                 "missingPatchHasNoHighlightsSwitch[28]", "missingPatchHasNoHighlightsSwitch[37]",
                 "highlightsSwitchStartsOffPersistsAndHonorsPause[28]", "highlightsSwitchStartsOffPersistsAndHonorsPause[37]"),
+            "app.hushgram.extension.instagram.direct.NotesRowTest" to listOf(
+                "withTheSwitchOnTheRowIsLeftOut[28]", "withTheSwitchOnTheRowIsLeftOut[37]",
+                "offToStartAndOffKeepTheRow[28]", "offToStartAndOffKeepTheRow[37]",
+                "offPausedAndUnreadyKeepTheRow[28]", "offPausedAndUnreadyKeepTheRow[37]",
+                "aListWithoutTheRowGoesThroughAsItCame[28]", "aListWithoutTheRowGoesThroughAsItCame[37]",
+                "aThrowingSwitchKeepsTheRowAndIsReported[28]", "aThrowingSwitchKeepsTheRowAndIsReported[37]"),
+            "app.hushgram.extension.instagram.settings.NotesRowSettingsTest" to listOf(
+                "missingPatchHasNoNotesRowSwitch[28]", "missingPatchHasNoNotesRowSwitch[37]",
+                "notesRowSwitchStartsOffUnderMessagesPersistsAndHonorsPause[28]",
+                "notesRowSwitchStartsOffUnderMessagesPersistsAndHonorsPause[37]"),
             "app.hushgram.extension.instagram.feed.SwipeToCreateTest" to listOf(
                 "withTheSwitchOnASwipeTowardTheCameraIsHeld[28]", "withTheSwitchOnASwipeTowardTheCameraIsHeld[37]",
                 "everyOtherMoveGoesOn[28]", "everyOtherMoveGoesOn[37]",
