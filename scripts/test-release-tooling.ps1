@@ -209,7 +209,7 @@ try {
     function New-TestSbom {
         param([string]$Path, [string]$Bundle,
             [string[]]$Libraries = @('pkg:maven/com.google.code.gson/gson@2.14.0'), [scriptblock]$Mutate,
-            [string]$InputRoot)
+            [string]$InputRoot, [string]$LicenseLedger)
         $bundleName = Split-Path -Leaf $Bundle
         $facts = Get-BundleManifestFacts -BundlePath $Bundle
         $components = New-Object System.Collections.Generic.List[object]
@@ -218,6 +218,16 @@ try {
             $components.Add([ordered]@{ type = 'library'; 'bom-ref' = $purl; group = $parts.Groups[1].Value
                 name = $parts.Groups[2].Value; version = $parts.Groups[3].Value; scope = 'required'; purl = $purl
                 properties = @([ordered]@{ name = 'hushgram:carried-by'; value = $bundleName }) })
+            if ($LicenseLedger) {
+                $record = (Get-Content -LiteralPath $LicenseLedger -Raw | ConvertFrom-Json).artifacts |
+                    Where-Object { $_.purl -ceq $purl }
+                if (@($record).Count -ne 1) { throw "No unique reviewed license fixture for $purl." }
+                $component = $components[$components.Count - 1]
+                $component.hashes = @(@{ alg = 'SHA-256'; content = $record.sha256 })
+                $component.licenses = @(@{ license = $record.license })
+                $component.properties += @(@{ name = 'hushgram:artifact'; value = "$($record.file) sha256:$($record.sha256)" },
+                    @{ name = 'hushgram:license-evidence'; value = ($record | ConvertTo-Json -Depth 8 -Compress) })
+            }
         }
         $components.Add([ordered]@{ type = 'library'; 'bom-ref' = 'project:patches'; name = ':patches'
             version = $facts.version; scope = 'required'
@@ -246,6 +256,10 @@ try {
         if ($InputRoot) {
             $document.metadata['properties'] = @([ordered]@{ name = 'hushgram:build-inputs'
                 value = (Get-DependencyAuditInputs -Root $InputRoot | ConvertTo-Json -Compress) })
+        }
+        if ($LicenseLedger) {
+            $document.metadata.properties = @($document.metadata.properties) + @(@{ name = 'hushgram:license-policy'; value = 'reviewed-artifacts-v1' },
+                @{ name = 'hushgram:license-ledger'; value = (Get-FileHash -LiteralPath $LicenseLedger).Hash.ToLowerInvariant() })
         }
         if ($Mutate) { & $Mutate $document }
         Set-Content -LiteralPath $Path -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 12)
@@ -2270,8 +2284,23 @@ try {
     # The source ledger and the two files its rules hold an adopted source to go in as well: a
     # release is held to the census, and .gitignore has to keep the receipt and the build out.
     $releaseFiles = @('patches-list.json', 'gradle.properties', 'README.md', 'CHANGELOG.md', 'gradle/libs.versions.toml',
-        $bugFormRelative, '.gitignore', 'sources/instagram-sources.json', 'NOTICE', 'provenance.json')
+        $bugFormRelative, '.gitignore', 'sources/instagram-sources.json', 'NOTICE', 'provenance.json',
+        'sources/carried-library-licenses.json')
     foreach ($relative in $releaseFiles) { Copy-PreReleaseFile $relative $releaseRepo }
+    $releaseLicenseLedger = Join-Path $releaseRepo 'sources/carried-library-licenses.json'
+    $licenseFixtures = Get-Content -LiteralPath $releaseLicenseLedger -Raw | ConvertFrom-Json
+    # Stand-in artifact records let the advisory failure tests reach OSV. These hashes belong to
+    # test fixtures, not publisher binaries, and never enter the repository's reviewed ledger.
+    foreach ($fixture in @(@{ group = 'com.google.code.gson'; name = 'gson'; version = '2.8.8' },
+            @{ group = 'com.example'; name = 'unknown'; version = '1.0' })) {
+        $licenseFixtures.artifacts += [ordered]@{ purl = "pkg:maven/$($fixture.group)/$($fixture.name)@$($fixture.version)"
+            file = "$($fixture.name)-$($fixture.version).jar"; sha256 = ('2' * 64)
+            license = @{ id = 'Apache-2.0'; url = 'https://www.apache.org/licenses/LICENSE-2.0.txt' }
+            evidence = @{ url = ('https://repo.maven.apache.org/maven2/' + $fixture.group.Replace('.', '/') + '/' +
+                $fixture.name + '/' + $fixture.version + '/' + $fixture.name + '-' + $fixture.version + '.pom')
+                sha256 = ('3' * 64); declaredLicense = 'test publisher license fixture' } }
+    }
+    $licenseFixtures | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $releaseLicenseLedger -Encoding utf8
     # The ledger, dated today, so the census a release is held to passes and each case below is
     # refused for its own fact. The checked-in ledger's date moves with every audit.
     $releaseLedgerPath = Join-Path $releaseRepo 'sources/instagram-sources.json'
@@ -2571,7 +2600,7 @@ try {
     New-ReleaseBundle
     # And the SBOM buildAndroid writes beside it, listing a library OSV has nothing against.
     $releaseSbom = [System.IO.Path]::ChangeExtension($releaseBundle, '.cdx.json')
-    New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -InputRoot $releaseRepo
+    New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -InputRoot $releaseRepo
     $releaseGraph = Join-Path $releaseRoot 'current-graphs.json'
     $currentGraphs = $graphJson | ConvertFrom-Json
     $currentGraphs.inputs = Get-DependencyAuditInputs -Root $releaseRepo
@@ -2752,7 +2781,7 @@ try {
     # An OSV out of reach stops the run, and so does an SBOM of another build or none at all.
     $cleanSbomBytes = [System.IO.File]::ReadAllBytes($releaseSbom)
     try {
-        New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -Libraries @($gsonPurl) -InputRoot $releaseRepo
+        New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -Libraries @($gsonPurl) -InputRoot $releaseRepo
         Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } `
             '*high or critical*GHSA-4jrv-ppp4-jm57 (HIGH, CVE-2022-25647) in com.google.code.gson:gson 2.8.8*' `
             'build-release-receipt.ps1 wrote a receipt for a bundle carrying gson 2.8.8.'
@@ -2762,10 +2791,10 @@ try {
             (Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json).sbom.sha256 -ceq (Get-Sha256Hex -Path $releaseSbom)) `
             "An offline receipt run did not say the advisory check was skipped, or did not record the SBOM: $builderSaid"
         foreach ($refused in @(
-                @{ Name = 'an OSV out of reach'; Sbom = { New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -Libraries @('pkg:maven/com.example/unknown@1.0') -InputRoot $releaseRepo }
+                @{ Name = 'an OSV out of reach'; Sbom = { New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -Libraries @('pkg:maven/com.example/unknown@1.0') -InputRoot $releaseRepo }
                     Pattern = '*could not be asked about pkg:maven/com.example/unknown@1.0*fails closed*' },
                 @{ Name = 'an SBOM of another build'; Pattern = '*The SBOM does not describe the bundle*written for another build*'
-                    Sbom = { New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -InputRoot $releaseRepo -Mutate { param($d) $d.metadata.component.hashes[0].content = ('0' * 64) } } },
+                    Sbom = { New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -InputRoot $releaseRepo -Mutate { param($d) $d.metadata.component.hashes[0].content = ('0' * 64) } } },
                 @{ Name = 'no SBOM'; Sbom = { Remove-Item -LiteralPath $releaseSbom }; Pattern = "*No SBOM for the bundle: $releaseSbom*" })) {
             & $refused.Sbom
             Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } $refused.Pattern "build-release-receipt.ps1 went ahead with $($refused.Name)."
@@ -2804,7 +2833,7 @@ try {
                 @{ Name = 'a bundle built from another commit'; Stamp = ($releaseSeconds - 60) * 1000
                     Pattern = "*stamped $(($releaseSeconds - 60) * 1000), but commit $releaseCommit was made at $($releaseSeconds * 1000)*Nothing was patched*" })) {
             New-ReleaseBundle -Stamp $stamped.Stamp
-            New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -InputRoot $releaseRepo
+            New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -InputRoot $releaseRepo
             Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } $stamped.Pattern `
                 "build-release-receipt.ps1 went ahead with $($stamped.Name)."
             Assert-True (-not (Test-Path -LiteralPath $javaLog)) "build-release-receipt.ps1 patched with $($stamped.Name)."

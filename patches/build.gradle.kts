@@ -1,6 +1,7 @@
 import app.morphe.patches.gradle.ExtensionExtension
 import app.morphe.patches.gradle.ExtensionPlugin
 import app.morphe.patches.gradle.PatchesExtension
+import groovy.json.JsonSlurper
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
@@ -351,6 +352,10 @@ abstract class PayloadGraph : DefaultTask() {
 abstract class WriteReleaseSbom : DefaultTask() {
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract val licenseLedger: RegularFileProperty
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
     abstract val bundle: RegularFileProperty
 
     @get:Input
@@ -413,6 +418,33 @@ abstract class WriteReleaseSbom : DefaultTask() {
         val version = bundleVersion.get()
         val bundleHash = Sbom.sha256(bundleFile)
         val inputIdentity = buildInputs.get().asFile.readText(Charsets.UTF_8).trim()
+        val ledgerFile = licenseLedger.get().asFile
+        val ledger = JsonSlurper().parse(ledgerFile) as? Map<*, *>
+            ?: throw GradleException("The carried-library license ledger is not an object.")
+        if (ledger["schemaVersion"] != 1) throw GradleException("The carried-library license ledger schema is unsupported.")
+        val records = ledger["artifacts"] as? List<*>
+            ?: throw GradleException("The license ledger has no reviewed artifacts.")
+        val reviewed = linkedMapOf<String, Map<*, *>>()
+        for (value in records) {
+            val record = value as? Map<*, *> ?: throw GradleException("A license record is not an object.")
+            val purl = record["purl"] as? String ?: ""
+            val artifact = record["file"] as? String ?: ""
+            val coordinates = Regex("^pkg:maven/([^/@?#]+)/([^/@?#]+)@([^/@?#]+)$").matchEntire(purl)
+                ?: throw GradleException("A license record has no exact package URL.")
+            val (group, name, revision) = coordinates.destructured
+            val pom = "https://repo.maven.apache.org/maven2/${group.replace('.', '/')}/$name/$revision/$name-$revision.pom"
+            val license = record["license"] as? Map<*, *>
+            val evidence = record["evidence"] as? Map<*, *>
+            if (!artifact.matches(Regex("[A-Za-z0-9_.+\\-]+\\.jar")) ||
+                !(record["sha256"] as? String ?: "").matches(Regex("[0-9a-f]{64}")) ||
+                license?.get("id") != "Apache-2.0" || license["url"] != "https://www.apache.org/licenses/LICENSE-2.0.txt" ||
+                evidence?.get("url") != pom || !(evidence["sha256"] as? String ?: "").matches(Regex("[0-9a-f]{64}")) ||
+                (evidence["declaredLicense"] as? String).isNullOrBlank()) {
+                throw GradleException("$purl has invalid or unbound reviewed license evidence.")
+            }
+            if (reviewed.put("$purl\t$artifact", record) != null) throw GradleException("$purl/$artifact has duplicate license records.")
+        }
+        val usedLicenseRecords = sortedSetOf<String>()
 
         val bundleFiles = sortedSetOf<String>()
         val payloadHashes = sortedMapOf<String, String>()
@@ -527,12 +559,27 @@ abstract class WriteReleaseSbom : DefaultTask() {
             if (component.purl != null) entry["purl"] = component.purl
             val properties = mutableListOf(property("hushgram:carried-by", component.carriers.joinToString(", ")))
             for ((fileName, content) in component.artifacts) properties += property("hushgram:artifact", "$fileName sha256:$content")
+            if (component.purl != null) {
+                if (component.artifacts.isEmpty()) throw GradleException("${component.purl} has no artifact license evidence.")
+                var declared: Any? = null
+                for ((fileName, content) in component.artifacts) {
+                    val key = "${component.purl}\t$fileName"
+                    val record = reviewed[key] ?: throw GradleException("$key has no reviewed carried-library license record.")
+                    if (record["sha256"] != content) throw GradleException("$key differs from the reviewed licensed artifact.")
+                    if (declared != null && declared != record["license"]) throw GradleException("${component.purl} has conflicting artifact licenses.")
+                    declared = record["license"]
+                    usedLicenseRecords += key
+                    properties += property("hushgram:license-evidence", Sbom.json(record))
+                }
+                entry["licenses"] = listOf(linkedMapOf("license" to declared))
+            }
             if (component.purl == null && component.type == "library") {
                 properties += property("hushgram:first-party", "built from this repository")
             }
             entry["properties"] = properties
             entry
         }
+        if (usedLicenseRecords != reviewed.keys) throw GradleException("The license ledger lists artifacts this bundle does not carry.")
         val dependencies = listOf(linkedMapOf<String, Any?>("ref" to bundleName, "dependsOn" to bundleDependsOn.toList())) +
             components.values.map { linkedMapOf<String, Any?>("ref" to it.ref, "dependsOn" to it.dependsOn.toList()) }
 
@@ -555,6 +602,8 @@ abstract class WriteReleaseSbom : DefaultTask() {
                 ),
                 "properties" to listOf(
                     property("hushgram:build-inputs", inputIdentity),
+                    property("hushgram:license-policy", "reviewed-artifacts-v1"),
+                    property("hushgram:license-ledger", Sbom.sha256(ledgerFile)),
                     property("hushgram:covers",
                         "What $bundleName carries: the patch classes and the libraries the Morphe plugin bundles " +
                             "with them (:patches runtimeClasspath less every module :patches patcherProvidedClasspath " +
@@ -832,6 +881,7 @@ tasks {
         dependsOn("buildAndroid")
         dependsOn(rootProject.tasks.named("writeDependencyAuditInputs"))
         buildInputs.set(rootProject.layout.buildDirectory.file("reports/dependencies/build-inputs.json"))
+        licenseLedger.set(rootProject.layout.projectDirectory.file("sources/carried-library-licenses.json"))
         bundle.set(layout.buildDirectory.file("release/$releaseBundleName"))
         bundleVersion.set(project.version.toString())
         epochSeconds.set(sourceDateEpoch)

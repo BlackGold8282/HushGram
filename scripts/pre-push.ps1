@@ -172,6 +172,7 @@ $releaseToolingPaths = @(
     'gradle/libs.versions.toml',
     'patches-list.json',
     'sources/instagram-sources.json',
+    'sources/carried-library-licenses.json',
     'scripts/advisory-exceptions.txt',
     'scripts/audit-dependencies.ps1',
     'scripts/dependency-graphs.init.gradle',
@@ -189,6 +190,7 @@ $releaseToolingPaths = @(
     'scripts/release-receipt.ps1',
     'scripts/script-wiring.ps1',
     'scripts/test-release-tooling.ps1',
+    'scripts/test-carried-licenses.ps1',
     'scripts/PatchCoverage.java',
     'scripts/patch-coverage-expectations.json',
     'scripts/validate-release-facts.ps1'
@@ -218,6 +220,7 @@ if ($touchesInjectedRegisterDevice) {
 }
 if ($touchesReleaseTooling) {
     $suites += , @('scripts/test-release-tooling.ps1', 'the release tooling or a file it reads changed, running its contract tests')
+    $suites += , @('scripts/test-carried-licenses.ps1', 'checking reviewed carried-library license evidence')
 }
 if (@($changed | Where-Object {
     $_ -in @('scripts/gen-l10n.py', 'scripts/sync-l10n.py', 'scripts/crowdin-l10n.py',

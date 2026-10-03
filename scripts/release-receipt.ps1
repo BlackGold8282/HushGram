@@ -122,6 +122,68 @@ function Get-SbomSha256 {
     return $value
 }
 
+function Assert-SbomCarriedLicenses {
+    param($Document, [switch]$RequireCurrent, [string]$LedgerPath)
+    $policy = @($Document.metadata.properties | Where-Object { $_.name -ceq 'hushgram:license-policy' })
+    if ($policy.Count -eq 0 -and -not $RequireCurrent) { return } # Historical published SBOM.
+    if ($policy.Count -ne 1 -or $policy[0].value -cne 'reviewed-artifacts-v1') {
+        throw 'The SBOM lacks the reviewed carried-library license policy.'
+    }
+    $stamp = @($Document.metadata.properties | Where-Object { $_.name -ceq 'hushgram:license-ledger' })
+    if ($stamp.Count -ne 1 -or $stamp[0].value -cnotmatch '^[0-9a-f]{64}$') {
+        throw 'The SBOM lacks one valid license ledger SHA-256.'
+    }
+    $approved = @()
+    if ($RequireCurrent) {
+        if (-not (Test-Path -LiteralPath $LedgerPath -PathType Leaf)) { throw 'The reviewed license ledger is missing.' }
+        if ($stamp[0].value -cne (Get-FileHash -LiteralPath $LedgerPath -Algorithm SHA256).Hash.ToLowerInvariant()) {
+            throw 'The SBOM names another reviewed license ledger.'
+        }
+        $ledger = Get-Content -LiteralPath $LedgerPath -Raw | ConvertFrom-Json
+        if ($ledger.schemaVersion -ne 1 -or @($ledger.artifacts).Count -eq 0) { throw 'The license ledger schema is invalid.' }
+        $approved = @($ledger.artifacts)
+    }
+    foreach ($component in @($Document.components | Where-Object { $_.type -eq 'library' -and $_.purl })) {
+        $choices = @($component.licenses | Where-Object { $null -ne $_ })
+        if ($choices.Count -ne 1 -or $choices[0].license.id -cne 'Apache-2.0' -or
+                $choices[0].license.url -cne 'https://www.apache.org/licenses/LICENSE-2.0.txt') {
+            throw "The carried library $($component.purl) lacks its reviewed license."
+        }
+        $artifacts = @($component.properties | Where-Object { $_.name -ceq 'hushgram:artifact' })
+        $evidence = @($component.properties | Where-Object { $_.name -ceq 'hushgram:license-evidence' })
+        if ($artifacts.Count -eq 0 -or $evidence.Count -ne $artifacts.Count) {
+            throw "The carried library $($component.purl) lacks exact artifact license evidence."
+        }
+        $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+        foreach ($item in $evidence) {
+            try { $record = $item.value | ConvertFrom-Json } catch { throw 'The license evidence is not JSON.' }
+            $pom = 'https://repo.maven.apache.org/maven2/' + $component.group.Replace('.', '/') + '/' +
+                $component.name + '/' + $component.version + '/' + $component.name + '-' + $component.version + '.pom'
+            $artifact = "$($record.file) sha256:$($record.sha256)"
+            if ($record.purl -cne $component.purl -or $record.file -cnotmatch '^[A-Za-z0-9_.+\-]+\.jar$' -or
+                    $record.sha256 -cnotmatch '^[0-9a-f]{64}$' -or -not $seen.Add($record.file) -or
+                    @($artifacts | Where-Object { $_.value -ceq $artifact }).Count -ne 1 -or
+                    $record.license.id -cne $choices[0].license.id -or $record.license.url -cne $choices[0].license.url -or
+                    $record.evidence.url -cne $pom -or $record.evidence.sha256 -cnotmatch '^[0-9a-f]{64}$' -or
+                    -not $record.evidence.declaredLicense) {
+                throw "The carried library $($component.purl) has unbound or duplicate license evidence."
+            }
+            if ($artifacts.Count -eq 1 -and (Get-SbomSha256 -Component $component -Label 'licensed artifact') -cne $record.sha256) {
+                throw 'The licensed artifact hash does not match the component hash.'
+            }
+            if ($RequireCurrent) {
+                $matches = @($approved | Where-Object { $_.purl -ceq $record.purl -and $_.file -ceq $record.file })
+                if ($matches.Count -ne 1 -or $matches[0].sha256 -cne $record.sha256 -or
+                        $matches[0].license.id -cne $record.license.id -or $matches[0].license.url -cne $record.license.url -or
+                        $matches[0].evidence.url -cne $record.evidence.url -or $matches[0].evidence.sha256 -cne $record.evidence.sha256 -or
+                        $matches[0].evidence.declaredLicense -cne $record.evidence.declaredLicense) {
+                    throw "The carried artifact $($record.file) has no matching reviewed license record."
+                }
+            }
+        }
+    }
+}
+
 function Read-ReleaseSbom {
     <#
     .SYNOPSIS
@@ -138,7 +200,8 @@ function Read-ReleaseSbom {
         would a library with no package URL at all, which only the modules built from this
         repository may be, marked hushgram:first-party.
     #>
-    param([Parameter(Mandatory = $true)][string]$Path)
+    param([Parameter(Mandatory = $true)][string]$Path, [switch]$RequireReviewedLicenses,
+        [string]$LicenseLedger = (Join-Path (Split-Path -Parent $PSScriptRoot) 'sources/carried-library-licenses.json'))
 
     $Path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw "There is no SBOM at $Path." }
@@ -195,6 +258,7 @@ function Read-ReleaseSbom {
         $components.Add($entry)
     }
     if ($components.Count -eq 0) { throw "$name lists no component." }
+    Assert-SbomCarriedLicenses -Document $document -RequireCurrent:$RequireReviewedLicenses -LedgerPath $LicenseLedger
 
     return [pscustomobject]@{
         Path          = $Path

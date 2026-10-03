@@ -198,7 +198,8 @@ if (-not (Test-Path -LiteralPath $Sbom -PathType Leaf)) {
     throw "No SBOM for the bundle: $Sbom. :patches:buildAndroid writes it beside the bundle, so build again."
 }
 $Sbom = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Sbom)
-$sbomDocument = Read-ReleaseSbom -Path $Sbom
+$sbomDocument = Read-ReleaseSbom -Path $Sbom -RequireReviewedLicenses `
+    -LicenseLedger (Join-Path $Root 'sources/carried-library-licenses.json')
 $sbomBound = Test-ReleaseSbom -Sbom $sbomDocument -BundlePath $Bundle -BundleName (Split-Path -Leaf $Bundle)
 if (-not $sbomBound.Valid) { throw "The SBOM does not describe the bundle: $($sbomBound.Reason)" }
 if ($SkipAdvisoryCheck) {
