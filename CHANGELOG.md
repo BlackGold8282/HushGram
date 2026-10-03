@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Wrapper checks find Git Bash when Git hooks resolve an internal Git executable. The authentic Windows and POSIX launchers and every refusal-before-execution check remain required.
+
 * **Tooling:** Local builds default to two workers at low priority, with parallel project builds off. Patch tests use a 4 GB heap instead of 8 GB, and test JVMs limit their internal processor count to two. Build caching stays on.
 
 * **Support:** Bug reports offer direct messages, profiles and Explore, with a link to local diagnostics and build details. The settings guide separates confirmed suggestion controls from optional profile rows that still need checks, and the source guide matches the latest recorded census. Manager's story patch description matches the guide and keeps its pending sender check visible.

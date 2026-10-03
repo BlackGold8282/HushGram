@@ -70,9 +70,17 @@ class WrapperMarker {
     $launchers = @()
     if ($IsWindows) { $launchers += , @((Join-Path $caseRoot 'gradlew.bat'), @('--version')) }
     $shell = if ($IsWindows) {
-        Join-Path (Split-Path -Parent (Split-Path -Parent (Get-Command git).Source)) 'bin/bash.exe'
+        # Hooks prepend Git's internal executable directory, so git.exe need not be in cmd/.
+        $gitDirectory = Split-Path -Parent (Get-Command git).Source
+        while ($gitDirectory) {
+            $candidate = Join-Path $gitDirectory 'bin/bash.exe'
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) { $candidate; break }
+            $gitDirectory = Split-Path -Parent $gitDirectory
+        }
     } else { '/bin/sh' }
-    if (-not (Test-Path -LiteralPath $shell)) { throw "The POSIX wrapper test needs a shell: $shell" }
+    if (-not $shell -or -not (Test-Path -LiteralPath $shell -PathType Leaf)) {
+        throw 'The POSIX wrapper test needs Bash in the resolved Git installation.'
+    }
     $launchers += , @($shell, @((Join-Path $caseRoot 'gradlew'), '--version'))
 
     # A valid stand-in writes a marker if either launcher reaches the untrusted JAR.

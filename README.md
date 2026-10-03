@@ -292,6 +292,8 @@ Local builds use two workers at low priority, with parallel project builds off. 
 
 Both wrapper launchers check the reviewed Gradle version and publisher JAR checksum before loading any wrapper code. The distribution ZIP checksum stays pinned too. A wrapper update needs an independent review of [Gradle's official checksums](https://gradle.org/release-checksums/) and an update to `scripts/VerifyGradleWrapper.java`. Run `pwsh -File scripts/test-gradle-wrapper.ps1` to check authentic builds and refusal of altered JARs through the Windows and POSIX launchers.
 
+On Windows, these checks use Git Bash from the resolved Git installation, including when a Git hook selects an internal Git executable.
+
 ```bash
 export GITHUB_ACTOR=<your GitHub user>
 export GITHUB_TOKEN=<a token with read:packages>
