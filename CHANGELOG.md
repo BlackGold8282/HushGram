@@ -2,10 +2,9 @@
 
 Every HushGram release, newest first.
 
-## Unreleased
+## 0.0.4 (2026-10-02)
 
-### HushGram v0.0.4
-
+* **Instagram:** HushGram 0.0.4 adds eleven patches, for 46 in all, and still targets Instagram 449.0.0.52.84 (build 385511871, arm64-v8a) on Android 9 and newer.
 * **Instagram:** New patch, `Loop a story`, off until you pick it in Manager. A story plays again from the start when it ends, until you tap or swipe, through the loop Instagram is already trying out. Ads still move on. With Stop Story auto-advance on too, the stories that can loop do, and the rest, like ads, stay on screen until you tap or swipe. Its switch is under Stories. Asked for in #1, and piko had it first.
 * **Instagram:** New patch, `Show a story's exact time`, off until you pick it in Manager. A story's header says when it was posted, like Oct 2, 3:45 PM, instead of 3h, in your phone's language and with its 12 or 24-hour setting. Its switch is under Stories. Asked for in #1, and piko had it first.
 * **Instagram:** New patch, `Stop Reels scrolling`, off until you pick it in Manager. A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones, so you stay on the reel you opened. Its switch is under Reels, and a change takes a restart. Instagram's own auto scroll still moves on when a reel ends if you've turned it on. Asked for in #23.
@@ -27,31 +26,20 @@ Every HushGram release, newest first.
 * **Instagram:** New patch, `Keep Reels auto scroll on`, off until you pick it in Manager. Once you turn on Instagram's auto scroll in Reels, it stays on after Instagram restarts or you leave Reels, and when you turn it off it stays off. Its switch is under Reels. Asked for in #21.
 * **Instagram:** Keep a seek bar on Reels puts its time only on an ordinary reel's bar in Reels, never on an ad's bar or one elsewhere in the app, and each bar has one label that hides while its bar is hidden and leaves with it, so a scrolled or recycled reel can't keep an old or doubled time.
 * **Instagram:** Keep Reels auto scroll on no longer takes Instagram's saved auto scroll setting by itself as a sign you turned it on. Where Instagram goes by a timer or by memory instead, a long press on the Reels tab could leave that setting on, and turning auto scroll off with its switch then didn't stick.
-
 * **Instagram:** Copy comment only takes a comment menu renderer whose middle argument fits one register. A future build that made it a long or double would have shifted the selected comment's register, so it's refused before anything changes.
 * **Instagram:** Keep Reels auto scroll on now checks that Instagram's auto scroll switch saves the very choice it was handed, passed along only by plain copies, before it reads that choice. A build that saved anything else would have left HushGram remembering the wrong choice, so it's refused before anything changes.
 * **Instagram:** Keep Reels auto scroll on remembers what you pick with Instagram's own auto scroll switch, on or off, the moment Instagram takes it, instead of waiting until something asks again. Turning auto scroll on from the Playback menu and closing Instagram before a reel ended used to lose it. The Reels viewer and picture in picture, which read Instagram's in-memory setting directly, now get the remembered answer too.
 * **Instagram:** Hide highlights now follows the highlights row's type from the name Instagram gives it to the field it's kept in, instead of taking whichever row type is stored next. It also checks that nothing reads the row's number after the row it skips. A build set up any other way could have hidden the wrong row or crashed on profiles, so it's refused before anything changes.
-* **Instagram:** With Tap to play on, Instagram's own auto scroll in Reels no longer stops after one reel. When auto scroll moves on, that counts as a tap on the reel it moves to, so the reel plays, and when it ends auto scroll moves on again. The reel it moved to used to sit on its first frame and auto scroll never moved again. Feed videos, stories and a reel you open without a tap still wait for one, and a reel you pause still stops auto scroll there. It hasn't been tried on a phone yet. Refs #21
-
+* **Instagram:** With Tap to play on, Instagram's own auto scroll in Reels no longer stops after one reel. When auto scroll moves on, that counts as a tap on the reel it moves to, so the reel plays, and when it ends auto scroll moves on again. The reel it moved to used to sit on its first frame and auto scroll never moved again. Feed videos, stories and a reel you open without a tap still wait for one, and a reel you pause still stops auto scroll there. It hasn't been tried on a phone yet. Found while checking #21.
 * **Tooling:** The injected-register verifier no longer clears a shared phone's log buffer. It writes its own marker line, reads only what follows it, and stops with a plain message if the buffer has already rotated past the marker.
-
 * **Instagram:** Save all only shows on a carousel when at least one page would save with your Downloads switches. An all-photo carousel used to offer it with Download feed photos off, then report every page as skipped.
-
 * **Tooling:** Device identity checks read ADB's standard output separately from diagnostic messages. A successful daemon startup no longer rejects the selected phone or emulator, while command failures keep their full diagnostics and invalid identities still refuse installation.
-
-* **Tooling:** Prepare source version 0.0.4 with the audit corrections. The published release and source index remain at 0.0.3.
-
 * **Instagram:** A failed sign-in notice dismissal asks for a retry without claiming that storage was restored. Its earlier message could make that claim even when the write landed and rollback failed. All five translations carry the corrected feedback.
-
 * **Instagram:** Concurrent Android 9 saves keep separate hidden files and cleanup identities. Cancelling one leaves the other's bytes alone, and completed saves take different final names. A refused cleanup record removes its reserved file without touching finished media.
-
 * **Instagram:** Turning HushGram back on from its status card saves in the background instead of blocking settings. Both recovery controls stay disabled until the write finishes, duplicate taps are ignored, and failures leave the saved Pause choice visible for retry. Closing settings during recovery leaves detached controls alone.
-
 * **Tooling:** Troubleshooting now checks the Instagram build and other enabled patch sources before blaming a changed app. Report #11 succeeded after its other source was removed. Signing-conflict guidance explains which updates preserve data and that removing a differently signed app deletes its local data.
-
 * **Instagram:** Copy comment proves the original field-name and returned-object paths before applying its hook. Empty or null replacement text removes stale Copy actions while retaining the stock menu.
-* **Instagram:** Diagnostic export descriptions show the folder the writer actually uses. Android 9 shows Instagram's own external-files folder; Android 10 and newer show Download/Morphe. The row and chooser share the same path, including translated descriptions.
+* **Instagram:** Diagnostic export descriptions show the folder the writer actually uses. Android 9 shows Instagram's own external-files folder. Android 10 and newer show Download/Morphe. The row and chooser share the same path, including translated descriptions.
 * **Instagram:** A refused sign-in notice dismissal keeps the notice visible and explains the save failure. The diagnostic report chooser closes with its settings page, and a late tap cannot reopen it after teardown.
 * **Tooling:** Device installs and verifier runs require an exclusive lease and verified device identity. Updates keep installed data and permissions, replacement uninstalls refuse, and verification selects the device's actual instruction set. Windows emulator identity replies accept their native line endings.
 * **Tooling:** Protect translation replacement with an enforced Windows file transaction. Stale edits and conflicting writers refuse the import, existing readers retain complete old bytes, and unsupported storage refuses writes. Unchanged imports still preserve exact bytes.
@@ -59,7 +47,6 @@ Every HushGram release, newest first.
 * **Instagram:** Add read-only MetaConfig override export and file validation tied to the exact Instagram build and typed schema. Validation reports its result without applying any overrides.
 * **Tooling:** Refresh the settings, diagnostics and About captures from the published v0.0.3 bundle. Document their actual patch selection and verified build tools, and label source-only controls as unreleased.
 * **Instagram:** Add an optional Copy action to the common comment menu, with an off-by-default Comments switch. An explicit tap copies the original text, including literal markup and line breaks, and uses Instagram's own menu dismissal.
-
 * **Instagram:** Default playback quality is included in Manager's simple mode. Its initial Auto choice leaves playback unchanged. Patches that change behavior right away stay opt-in.
 * **Tooling:** Accept reordered numbered arguments within mixed translation formats while keeping bare arguments in their original order. Changed types, indices and argument counts still stop the import.
 * **Instagram:** Direct MetaConfig discovery now verifies the native editor and navigation objects reach the presenter, refusing overwritten values and unsafe branch entries before changing the app.
