@@ -189,7 +189,7 @@
         "https://github.com/SysAdminDoc/hushfeed"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Hushfacebook's resource table and injected-register gates with their fixture suites, and its source ledger scripts renamed from facebook-sources to instagram-sources. The contracts pin HushGram's own hooks, with a shared-call rule kind for a filter several methods call, the fixture writes its own contracts since HushGram's name Instagram's code, and the ledger rules are cut down to what an unreleased source needs, with a Meta-family package list, a standalone-patcher kind and retries for a forge that doesn't answer. The removal allowlist, ResourceTableCheck.java and script-wiring.ps1 are unchanged apart from their provenance note. Changed files say they were modified for HushGram."
+      "changes": "Hushfacebook's resource table and injected-register gates with their fixture suites, and its source ledger scripts renamed from facebook-sources to instagram-sources. The contracts pin HushGram's own hooks, with a shared-call rule kind for a filter several methods call and an exact native story-loop guard rule for its opcode, owner and parameter words. The fixture writes its own contracts since HushGram's name Instagram's code. Existing malformed cases stay exercised alongside the loop guard's seven refusal cases. The ledger rules are cut down to what an unreleased source needs, with a Meta-family package list, a standalone-patcher kind and retries for a forge that doesn't answer. The removal allowlist, ResourceTableCheck.java and script-wiring.ps1 are unchanged apart from their provenance note. Changed files say they were modified for HushGram."
     },
     {
       "paths": [

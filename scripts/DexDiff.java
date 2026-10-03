@@ -207,6 +207,9 @@ public class DexDiff {
      *   <li>"retry-call &lt;method reference&gt;" with the same selection clauses: once-call's checks,
      *       plus the exact typed null-selection backedge before the pending key is claimed. The
      *       selected local reaches the native builder, and no branch bypasses selection.
+     *   <li>"story-loop-call &lt;native method reference&gt;" with the same selection clauses:
+     *       the finished-story guard invokes that exact method with invoke-direct/range on
+     *       p0 and p1. The original handler keeps its own call to the same method.
      *   <li>"shared-call &lt;method reference&gt; [in [static|instance] &lt;shape&gt;] holding &lt;string&gt;
      *       [&lt;string&gt; ...]": exactly one method outside the bundle's own code loads every one of
      *       the strings and has the shape, as for start-call. That method calls the method reference
@@ -310,7 +313,7 @@ public class DexDiff {
         /** Whether this rule picks its method by strings and a shape: start-call, next-call, sole-call, once-call and shared-call. */
         boolean picks() {
             return kind.equals("start-call") || kind.equals("next-call") || kind.equals("sole-call")
-                    || kind.equals("once-call") || kind.equals("shared-call") || kind.equals("retry-call");
+                    || kind.equals("once-call") || kind.equals("shared-call") || kind.equals("retry-call") || kind.equals("story-loop-call");
         }
 
         /** How a rule that picks its method reads in the contract file, from its kind on. */
@@ -417,6 +420,7 @@ public class DexDiff {
             "sole-call", "sole-call <method reference> replacing <method reference>",
             "once-call", "once-call <method reference>",
             "retry-call", "retry-call <method reference>",
+            "story-loop-call", "story-loop-call <native method reference>",
             "shared-call", "shared-call <method reference>");
 
     /**
@@ -1684,6 +1688,16 @@ public class DexDiff {
             return;
         }
         List<Instruction> body = instructions(only.m);
+        if (contract.kind.equals("story-loop-call")) {
+            if (safeStoryLoopCall(only.m, contract.callee)) {
+                System.out.println("[diff] " + rule + ": guard invokes native loop check on {p0 .. p1} in " + only.method);
+            } else {
+                System.out.println("[diff] " + rule + ": unproved native loop call in " + only.method);
+                findings.add("contract: " + contract.callee + " in " + only.method
+                        + " must be the guard's invoke-direct/range {p0 .. p1}, with the stock call preserved");
+            }
+            return;
+        }
         List<Integer> sites = callSites(body, contract.callee);
         // Where else the hook went. A start-call or shared-call rule looks among the methods holding
         // its strings, since Hushfacebook's two tray rules sent the same call to two adapters and
@@ -1769,6 +1783,25 @@ public class DexDiff {
                         + registerList(hook) + ", but the clean build calls " + contract.replaced + " there " + there);
             }
         }
+    }
+
+    /** The guard's exact native owner, opcode and two adjacent parameter words, plus the stock ask. */
+    private static boolean safeStoryLoopCall(Method method, String callee) {
+        List<Instruction> body = instructions(method);
+        Opcode[] prefix = { Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ,
+                Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CHECK_CAST,
+                Opcode.INVOKE_DIRECT_RANGE, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN_VOID, Opcode.CHECK_CAST };
+        if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !method.getParameterTypes().equals(List.of("Ljava/lang/Object;"))
+                || !method.getReturnType().equals("V") || body.size() < prefix.length) return false;
+        for (int i = 0; i < prefix.length; i++) if (body.get(i).getOpcode() != prefix[i]) return false;
+        MethodReference check = calledMethod(body.get(7));
+        int self = method.getImplementation().getRegisterCount() - 2;
+        if (check == null || !check.toString().equals(callee) || !check.getDefiningClass().equals(method.getDefiningClass())
+                || !check.getReturnType().equals("Z") || !check.getParameterTypes().equals(List.of("Lcom/instagram/model/reels/ReelItem;"))
+                || !Arrays.equals(invokeRegisters(body.get(7)), new int[] { self, self + 1 })
+                || retryRegister(body.get(6)) != self + 1 || !referenceAt(body.get(6)).equals(check.getParameterTypes().get(0))
+                || callSites(body, callee).size() != 2) return false;
+        return true;
     }
 
     /** Exactly the emitted six-instruction cancellation, before native ownership or request creation. */

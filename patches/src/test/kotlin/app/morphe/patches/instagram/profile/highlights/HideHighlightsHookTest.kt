@@ -106,6 +106,8 @@ class HideHighlightsHookTest {
             classes(setup = siblingInTheTraysField) to "$row's setup doesn't store $REEL_TRAY",
             classes(setup = objectWrittenOverBeforeItsStore) to "$row's setup doesn't store $REEL_TRAY",
             classes(setup = jumpIntoTheStore) to "$row's setup doesn't store $REEL_TRAY",
+            classes(jumpIntoTray = 1) to "has a jump into the highlights tray's type read or add",
+            classes(jumpIntoTray = 2) to "has a jump into the highlights tray's type read or add",
         )
         for ((classes, expected) in cases) {
             val context = PatchContexts.of(classes)
@@ -328,6 +330,7 @@ class HideHighlightsHookTest {
         readTypeAfterAdd: Boolean = false,
         setup: String? = null,
         bioRow: Boolean = false,
+        jumpIntoTray: Int = 0,
     ): List<ClassDef> {
         val rowEnums = (0 until rowSetups).map { copy ->
             val type = if (copy == 0) row else "Lfixture/OtherRow;"
@@ -378,12 +381,14 @@ class HideHighlightsHookTest {
                 """.trimIndent()
                 methods += method(type, BUILD_ROWS, listOf(rowList, "Ljava/lang/Object;", "Ljava/lang/Object;"), "V", 3, body = """
                     $bio
-                    if-eqz p3, :tray
+                    if-eqz p3, :${when (jumpIntoTray) { 1 -> "trayType"; 2 -> "trayAdd"; else -> "tray" }}
                     if-nez p2, :past
                     :tray
                     sget-object v1, $row->${if (trayReads == 0) "bio" else "tray"}:$row
+                    :trayType
                     $typeRead
                     $between
+                    :trayAdd
                     $add
                     ${if (readAfterAdd) "invoke-interface { p1, v1 }, $rowList->keep(Ljava/lang/Object;)V" else ""}
                     ${if (readTypeAfterAdd) "invoke-interface { p1, v0 }, $rowList->keepType(I)V" else ""}

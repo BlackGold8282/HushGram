@@ -303,6 +303,10 @@ public class BadDexFixture {
     private static final String PENDING_ITEM_TAG =
             "null cannot be cast to non-null type T of com.instagram.store.PendingActionStore";
     private static final ImmutableMethodReference TO_RETRY = method(STORY_SEEN, "toRetry", OBJECT, OBJECT, OBJECT);
+    private static final String STORY_VIEWER = "Linstagram/features/stories/fragment/ReelViewerFragment;";
+    private static final String REEL_ITEM = "Lcom/instagram/model/reels/ReelItem;";
+    private static final String STORY_ADVANCE = "Lapp/hushgram/extension/fixture/stories/StoryAdvance;";
+    private static final ImmutableMethodReference STORY_LOOP_CHECK = method(STORY_VIEWER, "A1K", "Z", REEL_ITEM);
     private static final ImmutableMethodReference ITERATOR_HAS_NEXT =
             method("Ljava/util/Iterator;", "hasNext", "Z");
     /** A cache of seen stories beside the store, a class Instagram doesn't have. */
@@ -418,7 +422,8 @@ public class BadDexFixture {
             "shared-call Lapp/hushgram/extension/fixture/misc/Analytics;->setupScreen(Ljava/lang/String;)I in static (Landroid/content/Context;L*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;L*;L*;I)V holding FragmentActivity\\sis\\srequired\\sto\\sopen\\sCDS\\sbottom\\ssheet foa_bottom_sheet_config cds_bloks",
             "once-call Lapp/hushgram/extension/fixture/feed/SwipeToCreate;->enabled()I in instance (Lfixture/PositionConfig;)V calling instance Lfixture/SwipeContainer;->setEndPanelExtraParameter(Lfixture/PositionConfig;)V holding Lfixture/PositionConfig;->animate:Z",
             "once-call Lapp/hushgram/extension/fixture/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\\scannot\\sbe\\scast\\sto\\snon-null\\stype\\sT\\sof\\scom.instagram.store.PendingActionStore",
-            "retry-call Lapp/hushgram/extension/fixture/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\\scannot\\sbe\\scast\\sto\\snon-null\\stype\\sT\\sof\\scom.instagram.store.PendingActionStore");
+            "retry-call Lapp/hushgram/extension/fixture/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\\scannot\\sbe\\scast\\sto\\snon-null\\stype\\sT\\sof\\scom.instagram.store.PendingActionStore",
+            "story-loop-call Linstagram/features/stories/fragment/ReelViewerFragment;->A1K(Lcom/instagram/model/reels/ReelItem;)Z in instance (Ljava/lang/Object;)V holding fixture_finished_story");
 
     /**
      * One of the ShortcutManager calls the settings patch sends to SettingsEntry: its name, what it
@@ -2175,7 +2180,7 @@ public class BadDexFixture {
                 seenCache(Collections.<Instruction>emptyList(), false), storySeen(), storyRetryQueue(1, false, false),
                 tabBuilder(STATIC_CHECK, true, false), reelsTab(), dmReceipts(1, false), visualSeen(),
                 inboxSections(true), inboxFilter(), familyProviders(1, true, false), trustedProvider(), instagramSignature(),
-                setupPresenter(true), setupOpeners(true), setupData(), analyticsSetup(), swipeMovement(1), swipeConfig(), swipeGate());
+                setupPresenter(true), setupOpeners(true), setupData(), analyticsSetup(), swipeMovement(1), swipeConfig(), swipeGate(), storyLoopViewer("", true), storyAdvance());
     }
 
     /** The clean host, Facebook's classes as they ship, with the batcher's flush making [handOver]. */
@@ -2195,7 +2200,7 @@ public class BadDexFixture {
                 linkParsers(0, 0, false, false), menuOptions(0, false),
                 seenStore(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList(), false),
                 seenCache(Collections.<Instruction>emptyList(), false), tabBuilder(STATIC_CHECK, false, false),
-                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData(), storyRetryQueue(0, false, false), swipeMovement(0), swipeConfig());
+                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData(), storyRetryQueue(0, false, false), swipeMovement(0), swipeConfig(), storyLoopViewer("", false));
     }
 
     /**
@@ -2279,6 +2284,43 @@ public class BadDexFixture {
 
     private static List<ClassDef> good() {
         return patched(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST), switchHost(7), tryHost(CLEAN_TRY));
+    }
+
+    /** Stop's guard and the stock loop call. Every fault changes only the injected call. */
+    private static ClassDef storyLoopViewer(String fault, boolean guarded) {
+        List<Instruction> code = new ArrayList<>();
+        if (guarded) {
+            Instruction check = new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 2, 2, STORY_LOOP_CHECK);
+            if (fault.equals("opcode")) check = new ImmutableInstruction3rc(Opcode.INVOKE_VIRTUAL_RANGE, 2, 2, STORY_LOOP_CHECK);
+            else if (fault.equals("nonrange")) check = new ImmutableInstruction35c(Opcode.INVOKE_DIRECT, 2, 2, 3, 0, 0, 0, STORY_LOOP_CHECK);
+            else if (fault.equals("owner")) check = new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 2, 2, method("Lfixture/OtherViewer;", "A1K", "Z", REEL_ITEM));
+            else if (fault.equals("name")) check = new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 2, 2, method(STORY_VIEWER, "A1J", "Z", REEL_ITEM));
+            else if (fault.equals("receiver")) check = new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 1, 2, STORY_LOOP_CHECK);
+            else if (fault.equals("item")) check = new ImmutableInstruction35c(Opcode.INVOKE_DIRECT, 2, 2, 2, 0, 0, 0, STORY_LOOP_CHECK);
+            else if (fault.equals("missing")) check = invoke(method(STORY_ADVANCE, "hold", "Z"));
+            code.addAll(List.of(
+                    invoke(method(STORY_ADVANCE, "hold", "Z")), op(Opcode.MOVE_RESULT, 0),
+                    new ImmutableInstruction21t(Opcode.IF_NEZ, 0, 16),
+                    invoke(method(STORY_ADVANCE, "holdUnlessItLoops", "Z")), op(Opcode.MOVE_RESULT, 0),
+                    new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 11),
+                    new ImmutableInstruction21c(Opcode.CHECK_CAST, 3, new ImmutableTypeReference(REEL_ITEM)), check,
+                    op(Opcode.MOVE_RESULT, 0), new ImmutableInstruction21t(Opcode.IF_NEZ, 0, 3), op(Opcode.RETURN_VOID)));
+        }
+        code.addAll(List.of(new ImmutableInstruction21c(Opcode.CHECK_CAST, 3, new ImmutableTypeReference(REEL_ITEM)),
+                new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference("fixture_finished_story")),
+                new ImmutableInstruction35c(Opcode.INVOKE_DIRECT, 2, 2, 3, 0, 0, 0, STORY_LOOP_CHECK),
+                op(Opcode.MOVE_RESULT, 0), op(Opcode.RETURN_VOID)));
+        Method predicate = new ImmutableMethod(STORY_VIEWER, "A1K", List.of(new ImmutableMethodParameter(REEL_ITEM, null, null)), "Z",
+                AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue(), null, null,
+                body(3, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)));
+        return new ImmutableClassDef(STORY_VIEWER, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                List.of(define(STORY_VIEWER, "finished", "V", false, new ImmutableMethodImplementation(4, code, null, null), OBJECT), predicate));
+    }
+
+    private static ClassDef storyAdvance() {
+        return new ImmutableClassDef(STORY_ADVANCE, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                List.of(define(STORY_ADVANCE, "hold", "Z", true, body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0))),
+                        define(STORY_ADVANCE, "holdUnlessItLoops", "Z", true, body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)))));
     }
 
     private static List<ClassDef> withStaticHost(ImmutableMethodImplementation implementation) {
@@ -2865,6 +2907,9 @@ public class BadDexFixture {
         dexes.put("bad-same-key-provider-two-guards", replaced(good(), familyProviders(1, true, true)));
         dexes.put("bad-setup-presenter-guard-missing", replaced(good(), setupPresenter(false)));
         dexes.put("bad-story-retry-selection-missing", replaced(good(), storyRetryQueue(0, false, false)));
+        for (String fault : List.of("opcode", "nonrange", "owner", "name", "receiver", "item", "missing")) {
+            dexes.put("bad-story-loop-" + fault, replaced(good(), storyLoopViewer(fault, true)));
+        }
         dexes.put("bad-story-retry-selection-twice", replaced(good(), storyRetryQueue(2, false, false)));
         dexes.put("bad-story-retry-selection-decoy", replaced(good(), storyRetryQueue(0, true, false)));
         dexes.put("bad-story-retry-two-loops", replaced(good(), storyRetryQueue(1, false, true)));

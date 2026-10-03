@@ -118,6 +118,9 @@ internal fun BytecodePatchContext.findHighlightsRow(): HighlightsRowSite {
     val (rows, tray) = readers.singleOrNull()
         ?: refuse("expected one read of $field in ${header.type}->$BUILD_ROWS, found ${readers.size}")
     val code = rows.instructions()
+    if ((tray + 1..tray + 2).any { it in rows.jumpTargets() }) {
+        refuse("${header.type}->$BUILD_ROWS has a jump into the highlights tray's type read or add")
+    }
     val register = (code[tray] as OneRegisterInstruction).registerA
     val typeRead = code.getOrNull(tray + 1)
     val typeField = typeRead?.fieldReference()

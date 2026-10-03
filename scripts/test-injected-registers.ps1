@@ -910,6 +910,14 @@ try {
         "The good build's story retry was not selected once in its native loop.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $retryRouteRule`: selects before claim with a null snapshot-loop backedge in $retrySite")) `
         "The good build's story retry did not preserve its null cancellation route.`n$($good.Output -join "`n")"
+    $storyLoopCheck = 'Linstagram/features/stories/fragment/ReelViewerFragment;->A1K(Lcom/instagram/model/reels/ReelItem;)Z'
+    $storyLoopSite = 'Linstagram/features/stories/fragment/ReelViewerFragment;->finished(Ljava/lang/Object;)V'
+    $storyLoopRule = "story-loop-call $storyLoopCheck in instance (Ljava/lang/Object;)V holding fixture_finished_story"
+    $storyLoopRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*story-loop-call\s' })
+    Assert-True ($storyLoopRules.Count -eq 1 -and $storyLoopRules[0] -ceq $storyLoopRule) `
+        'The native loop contract has no exact opcode, owner and operand fixtures.'
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $storyLoopRule`: guard invokes native loop check on {p0 .. p1} in $storyLoopSite")) `
+        "The good guard's native loop call was not proved.`n$($good.Output -join "`n")"
 
     # HushGram's own contract file, which names Instagram's code: it parses, each rule kind it uses is
     # one the fixture's rules exercise, and its no-call rules are the fixture's. Each has its own
@@ -1108,6 +1116,13 @@ try {
         'bad-story-retry-claim-result' = 'contract'
         'bad-story-retry-builder-batch' = 'contract'
         'bad-story-retry-key-batch' = 'contract'
+        'bad-story-loop-opcode' = 'contract'
+        'bad-story-loop-nonrange' = 'contract'
+        'bad-story-loop-owner' = 'contract'
+        'bad-story-loop-name' = 'contract'
+        'bad-story-loop-receiver' = 'contract'
+        'bad-story-loop-item' = 'contract'
+        'bad-story-loop-missing' = 'contract'
         'bad-finder-stub-not-filled' = 'contract'
         'bad-finder-stub-extension-call' = 'contract'
         'bad-finder-stub-call-after-return' = 'contract'
@@ -1353,6 +1368,13 @@ try {
         $expected = "[diff] FAIL: contract: $retryHook in $retrySite must select its local batch before claim and take the typed null snapshot-loop backedge without mutation"
         Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $expected) `
             "$case did not fail only the cancellation route contract.`nExpected: $expected`nGot:`n$($fails -join "`n")"
+    }
+    foreach ($fault in @('opcode', 'nonrange', 'owner', 'name', 'receiver', 'item', 'missing')) {
+        $case = "bad-story-loop-$fault"
+        $fails = @((Get-Findings $badResults[$case]).Fails)
+        $expected = "[diff] FAIL: contract: $storyLoopCheck in $storyLoopSite must be the guard's invoke-direct/range {p0 .. p1}, with the stock call preserved"
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $expected) `
+            "$case did not fail only the native loop contract.`nExpected: $expected`nGot:`n$($fails -join "`n")"
     }
     # And against a clean build whose flush makes no executor call, the good build's stand-in has
     # nothing it took the place of.
