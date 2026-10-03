@@ -770,7 +770,8 @@ val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph"
 tasks.withType<Test>().configureEach {
     dependsOn(verifyBouncyCastleBuildGraph)
     // Whole-fixture proofs need more than Gradle's default 512 MiB test-worker heap.
-    maxHeapSize = "8g"
+    maxHeapSize = "4g"
+    jvmArgs("-XX:ActiveProcessorCount=2")
 }
 
 dependencies {

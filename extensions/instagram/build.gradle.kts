@@ -618,6 +618,7 @@ android {
                 .withPropertyName("patchSources")
                 .withPathSensitivity(PathSensitivity.RELATIVE)
             it.jvmArgs(
+                "-XX:ActiveProcessorCount=2",
                 "--add-opens=java.base/java.lang=ALL-UNNAMED",
                 "--add-opens=java.base/java.util=ALL-UNNAMED",
                 "--add-opens=java.base/java.io=ALL-UNNAMED",

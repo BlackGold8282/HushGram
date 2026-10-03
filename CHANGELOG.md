@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Local builds default to two workers at low priority, with parallel project builds off. Patch tests use a 4 GB heap instead of 8 GB, and test JVMs limit their internal processor count to two. Build caching stays on.
+
 * **Support:** Bug reports offer direct messages, profiles and Explore, with a link to local diagnostics and build details. The settings guide separates confirmed suggestion controls from optional profile rows that still need checks, and the source guide matches the latest recorded census. Manager's story patch description matches the guide and keeps its pending sender check visible.
 * **Instagram:** The source catalog makes six initially neutral controls available in Manager's simple mode. Copy comment, Save comment photo, Hide highlights, Stop swipe to create and Stop Reels scrolling still start off. Story ring size starts at Instagram's own size. Saved choices stay intact. Stop swipe to create checks its switch before making added native reads, so off, Pause and startup before settings are ready retain the original path. Installed startup checks remain pending.
 * **Tooling:** Refuse ignored compiler and packaging inputs in production source sets before building or certifying a current dependency audit. Git ignore rules can no longer hide shipped code from its build identity. Staged development inputs still use their current working bytes, and release receipts still require clean sources. Debug, test and generated files remain excluded.
