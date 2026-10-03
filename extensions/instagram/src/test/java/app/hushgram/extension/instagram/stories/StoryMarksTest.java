@@ -377,8 +377,8 @@ public class StoryMarksTest {
     }
 
     /**
-     * A batch the store retries goes through the same choice: held back, null cancels the request
-     * and retires its queue entry. With anonymity off Instagram's original goes through. No factory
+     * A batch the store retries goes through the same choice: held back, null skips the request
+     * before claiming its pending entry. With anonymity off Instagram's original goes through. No factory
      * failure may send the original while anonymity is active.
      */
     @Test

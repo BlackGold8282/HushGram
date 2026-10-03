@@ -124,6 +124,29 @@ public class StoryRetryTest {
                 new StoryMarks(() -> 1L), BROKEN));
     }
 
+    private void failedRetryGateKeepsEarlierHeldBatch(BooleanSupplier failing) {
+        Batch original = new Batch(MARKED, UNMARKED);
+        Batches batches = new Batches(Fault.NONE);
+        StoryMarks marks = new StoryMarks(() -> 1L);
+        assertNull(StorySeen.toRetry(ACCOUNT, original, batches, ON, OFF, marks, BROKEN));
+        for (int retry = 0; retry < 3; retry++) {
+            assertNull(StorySeen.toRetry(ACCOUNT, original, batches, failing, OFF, marks, BROKEN));
+        }
+        assertEquals(2, original.stories.size());
+        assertEquals(0, batches.allocations);
+        assertSame(original, StorySeen.toRetry(ACCOUNT, original, batches, OFF, OFF, marks, BROKEN));
+        assertSame("fresh sends keep their existing gate failure behavior", original,
+                StorySeen.toSend(ACCOUNT, original, batches, failing, OFF, marks, BROKEN));
+    }
+
+    @Test public void anonymityGateExceptionCannotReviveAnEarlierHeldRetry() {
+        failedRetryGateKeepsEarlierHeldBatch(() -> { throw new IllegalStateException("gate failed"); });
+    }
+
+    @Test public void anonymityGateAllocationFailureCannotReviveAnEarlierHeldRetry() {
+        failedRetryGateKeepsEarlierHeldBatch(() -> { throw new OutOfMemoryError("gate failed"); });
+    }
+
     @Test public void diagnosticsCannotCancelAValidMarkedSubset() {
         StoryMarks marks = new StoryMarks(() -> 1L);
         marks.toggle(ACCOUNT, "111");

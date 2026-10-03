@@ -27,17 +27,17 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * on null. Each caller has already cleared its own copy, so a batch held back is gone, and turning
  * the switch off lets the next batch through. A batch the store retries from what an earlier
  * session saved goes through {@link #toRetry} right before its request is built, and a batch held
- * back there is canceled and its native in-flight entry is retired without sending a request.
+ * back there takes the native loop's next-item branch before any ownership change or request.
  *
  * <p>With the second switch on, the stories you tapped Mark as seen on ({@link StorySeenButton})
  * still go out: the answer is then a batch of the extension's own, started empty by Instagram's own
  * constructor, holding those stories and nothing else. Marks belong to the account they were made
  * on, read from the store that sends. See {@link StoryMarks}.
  *
- * <p>It fails open, like the other hooks: the switch off, a pause, settings that aren't ready yet,
- * or a failure reading them send the views as Instagram would. A failure picking out the marked
- * stories holds the whole batch back, as the switch on does without marks. The diagnostics it
- * keeps are only counted: a failure there never changes what goes out.
+ * <p>The switch off, a pause or settings that aren't ready send views as Instagram would. A fresh
+ * send also fails open if reading the switch fails. A retry that can't read the switch stays held.
+ * A failure picking out the marked stories holds the whole batch back, as the switch on does
+ * without marks. The diagnostics it keeps are only counted: a failure there never changes what goes out.
  */
 public final class StorySeen {
     /** The diagnostic counter route: each batch of views Instagram went to send, and the ones held back. */
@@ -144,13 +144,20 @@ public final class StorySeen {
     @Nullable
     static Object toSend(@Nullable Object store, @Nullable Object batch, Batches batches, BooleanSupplier anonymous,
                          BooleanSupplier marking, StoryMarks marks, Diagnostics diagnostics) {
+        return choose(store, batch, batches, anonymous, marking, marks, diagnostics, false);
+    }
+
+    @Nullable
+    private static Object choose(@Nullable Object store, @Nullable Object batch, Batches batches, BooleanSupplier anonymous,
+                                 BooleanSupplier marking, StoryMarks marks, Diagnostics diagnostics, boolean retry) {
         saw(diagnostics);
         boolean holdBack;
         try {
             holdBack = anonymous.getAsBoolean();
         } catch (Throwable failure) {
             report(diagnostics, SEND_HOOK, failure);
-            return batch;
+            if (retry) counted(diagnostics, false);
+            return retry ? null : batch;
         }
         if (!holdBack) return batch;
         Object marked = null;
@@ -165,11 +172,11 @@ public final class StorySeen {
     }
 
     /**
-     * Asked right before the store builds the request for a batch it retries, one an earlier session
-     * saved to disk. Answers what {@link #toSend} does. A null answer cancels the request and lets
-     * the native retry loop retire its in-flight entry and finish disk cleanup. There is no empty
-     * factory fallback: an active anonymity selection or allocation failure cannot forward the
-     * original. Never throws.
+     * Asked after the retry loop looks up a saved batch, before it claims the pending entry.
+     * Answers what {@link #toSend} does on a successful switch read, and null if that read fails.
+     * A null answer takes the native snapshot-loop backedge,
+     * leaving the pending batch for another check on every retry. There is no empty factory fallback:
+     * an active anonymity selection or allocation failure cannot forward the original. Never throws.
      */
     @Nullable
     public static Object toRetry(Object store, Object batch) {
@@ -179,7 +186,7 @@ public final class StorySeen {
     @Nullable
     static Object toRetry(@Nullable Object store, Object batch, Batches batches, BooleanSupplier anonymous,
                           BooleanSupplier marking, StoryMarks marks, Diagnostics diagnostics) {
-        return toSend(store, batch, batches, anonymous, marking, marks, diagnostics);
+        return choose(store, batch, batches, anonymous, marking, marks, diagnostics, true);
     }
 
     /** Whether views are held back: the switch on, HushGram not paused and the settings read. */
@@ -242,10 +249,6 @@ public final class StorySeen {
 
     /** Filled in by the patch: hands [batch] to Instagram's send for [session]'s account. */
     public static void send(Object session, Object batch) {
-    }
-
-    /** Filled in by the patch: retires a canceled story retry through its owned native in-flight removal. */
-    public static void retireRetry(Object store, String key) {
     }
 
     /** Filled in by the patch: Instagram's user ID for the account [store], the store that sends, is for. */

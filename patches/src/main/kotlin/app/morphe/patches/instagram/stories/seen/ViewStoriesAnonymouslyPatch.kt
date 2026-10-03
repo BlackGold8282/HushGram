@@ -50,8 +50,8 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
  * extension's holding only the stories you marked, or none, and then the send returns, so a batch
  * held back is dropped, not kept for later. The store also retries batches, read back from what a
  * session before this one saved to disk; a second hook goes right before the retry builds its
- * request and, while views are held back, cancels it. The proven native queue retires that story
- * entry and finishes disk cleanup without constructing an empty batch. The only other call of
+ * request and, while views are held back, skips its native claim and request. The pending item is
+ * checked again on every retry, without changing either owned map or making an empty batch. The only other call of
  * the request on 449, the Reset NUX developer option, sends a batch it
  * makes right there with nothing but a NUX in it, and the patch refuses any build with another
  * route to the request ([findStorySeen]).

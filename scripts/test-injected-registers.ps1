@@ -794,7 +794,7 @@ try {
     $swapRun = 'Lfixture/EdgeSwap;->run()V'
     $swapHeld = '"sizeBefore" and "sizeAfter" with the shape instance ()V'
     $swapRule = "once-call $swapHook in instance ()V holding sizeBefore sizeAfter"
-    $retryHook = 'Lapp/hushgram/extension/fixture/stories/StorySeen;->retireRetry(Ljava/lang/Object;Ljava/lang/String;)V'
+    $retryHook = 'Lapp/hushgram/extension/fixture/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;'
     $retrySite = 'Lfixture/StoryRetryQueue;->run()V'
     $retryCall = 'Ljava/util/Iterator;->hasNext()Z'
     $retryTag = 'null cannot be cast to non-null type T of com.instagram.store.PendingActionStore'
@@ -802,6 +802,7 @@ try {
     $retryMany = "with the shape instance ()V and an instance call to $retryCall sit in a class holding ""$retryTag"""
     $retryRule = "once-call $retryHook in instance ()V calling instance $retryCall class-holding " +
         'null\scannot\sbe\scast\sto\snon-null\stype\sT\sof\scom.instagram.store.PendingActionStore'
+    $retryRouteRule = $retryRule.Replace('once-call ', 'retry-call ')
     $onceCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*once-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
     $allowHook = 'Lapp/hushgram/extension/fixture/download/VideoDownload;->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;'
@@ -877,8 +878,8 @@ try {
         'PendingReelSeenStateStore.deserializeFromDisk'
     $classRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '\sclass-holding\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($classRules.Count -eq 3 -and $classRules[0] -ceq $seenRule -and $classRules[1] -ceq $inboxRule -and
-        $classRules[2] -ceq $retryRule) `
+    Assert-True ($classRules.Count -eq 4 -and $classRules[0] -ceq $seenRule -and $classRules[1] -ceq $inboxRule -and
+        $classRules[2] -ceq $retryRule -and $classRules[3] -ceq $retryRouteRule) `
         "The contract file has a class-holding rule without exact negative coverage:`n$($classRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $seenRule`: first in $seenSend")) `
         "The good build's story seen guard was not reported first in the store's send.`n$($good.Output -join "`n")"
@@ -892,13 +893,15 @@ try {
     $tabHeld = """default"" with the shape static $tabShape and a static call to $tabCall"
     $callingRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\scalling\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($callingRules.Count -eq 3 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule -and
-        $callingRules[2] -ceq $retryRule) `
+    Assert-True ($callingRules.Count -eq 4 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule -and
+        $callingRules[2] -ceq $retryRule -and $callingRules[3] -ceq $retryRouteRule) `
         "The contract file has a calling rule without exact negative coverage:`n$($callingRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $tabRule`: once in $tabHome")) `
         "The good build's home tab call was not reported once in the home tab, picked by its static check.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $retryRule`: once in $retrySite")) `
-        "The good build's canceled story retry was not retired once in its native loop.`n$($good.Output -join "`n")"
+        "The good build's story retry was not selected once in its native loop.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $retryRouteRule`: selects before claim with a null snapshot-loop backedge in $retrySite")) `
+        "The good build's story retry did not preserve its null cancellation route.`n$($good.Output -join "`n")"
 
     # HushGram's own contract file, which names Instagram's code: it parses, each rule kind it uses is
     # one the fixture's rules exercise, and its no-call rules are the fixture's. Each has its own
@@ -1080,10 +1083,21 @@ try {
         'bad-same-key-provider-twice' = 'contract'
         'bad-same-key-provider-two-guards' = 'contract'
         'bad-setup-presenter-guard-missing' = 'contract'
-        'bad-story-retry-retire-missing' = 'contract'
-        'bad-story-retry-retire-twice' = 'contract'
-        'bad-story-retry-retire-decoy' = 'contract'
+        'bad-story-retry-selection-missing' = 'contract'
+        'bad-story-retry-selection-twice' = 'contract'
+        'bad-story-retry-selection-decoy' = 'contract'
         'bad-story-retry-two-loops' = 'contract'
+        'bad-story-retry-null-claims' = 'contract'
+        'bad-story-retry-null-returns' = 'contract'
+        'bad-story-retry-bypass' = 'contract'
+        'bad-story-retry-other-store' = 'contract'
+        'bad-story-retry-guard-type' = 'contract'
+        'bad-story-retry-nonnull' = 'contract'
+        'bad-story-retry-batch' = 'contract'
+        'bad-story-retry-result' = 'contract'
+        'bad-story-retry-claim-result' = 'contract'
+        'bad-story-retry-builder-batch' = 'contract'
+        'bad-story-retry-key-batch' = 'contract'
         'bad-finder-stub-not-filled' = 'contract'
         'bad-finder-stub-extension-call' = 'contract'
         'bad-finder-stub-call-after-return' = 'contract'
@@ -1308,17 +1322,25 @@ try {
             "can't say which one calls ${providerHook}: $providerSite, Lfixture/FamilyProviders;->otherPolicy()V"
         'bad-setup-presenter-guard-missing' = "[diff] FAIL: contract: $setupHook is not called in $setupSite, the one method holding " +
             "$setupHeld; the host methods that call it: $($setupOtherCalls -join ', ')"
-        'bad-story-retry-retire-missing' = "[diff] FAIL: contract: $retryHook is not called in $retrySite, the one method $retryOne"
-        'bad-story-retry-retire-twice' = "[diff] FAIL: contract: $retryHook has 2 call sites in $retrySite, and must have exactly one"
-        'bad-story-retry-retire-decoy' = "[diff] FAIL: contract: $retryHook is not called in $retrySite, the one method $retryOne; " +
+        'bad-story-retry-selection-missing' = "[diff] FAIL: contract: $retryHook is not called in $retrySite, the one method $retryOne"
+        'bad-story-retry-selection-twice' = "[diff] FAIL: contract: $retryHook has 2 call sites in $retrySite, and must have exactly one"
+        'bad-story-retry-selection-decoy' = "[diff] FAIL: contract: $retryHook is not called in $retrySite, the one method $retryOne; " +
             'the host methods that call it: Lfixture/StoryRetryQueue;->other()V'
         'bad-story-retry-two-loops' = "[diff] FAIL: contract: 2 methods $retryMany, and exactly one must, so the rule can't say " +
             "which one calls ${retryHook}: $retrySite, Lfixture/StoryRetryQueue;->runAgain()V"
     }
     foreach ($case in $newContractFails.GetEnumerator()) {
         $fails = @((Get-Findings $badResults[$case.Key]).Fails)
-        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+        $expectedCount = if ($case.Key -like 'bad-story-retry-*') { 2 } else { 1 }
+        Assert-True ($fails.Count -eq $expectedCount -and @($fails | Where-Object { $_ -cne $case.Value }).Count -eq 0) `
             "$($case.Key) did not fail only its expected contract.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
+    foreach ($fault in @('null-claims', 'null-returns', 'bypass', 'other-store', 'guard-type', 'nonnull', 'batch', 'result', 'claim-result', 'builder-batch', 'key-batch')) {
+        $case = "bad-story-retry-$fault"
+        $fails = @((Get-Findings $badResults[$case]).Fails)
+        $expected = "[diff] FAIL: contract: $retryHook in $retrySite must select its local batch before claim and take the typed null snapshot-loop backedge without mutation"
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $expected) `
+            "$case did not fail only the cancellation route contract.`nExpected: $expected`nGot:`n$($fails -join "`n")"
     }
     # And against a clean build whose flush makes no executor call, the good build's stand-in has
     # nothing it took the place of.

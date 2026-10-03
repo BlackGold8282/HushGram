@@ -28,6 +28,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -47,14 +50,12 @@ class StorySeenHookTest {
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         assertTrue(TO_SEND.substringAfter("->") in declared(STORY_SEEN, public = true))
         assertTrue(TO_RETRY.substringAfter("->") in declared(STORY_SEEN, public = true))
-        assertTrue(RETIRE_RETRY.substringAfter("->") in declared(STORY_SEEN, public = true))
         assertTrue(BIND_BUTTON.substringAfter("->") in declared(STORY_SEEN_BUTTON, public = true))
         val stubs = declared(STORY_SEEN, public = false) + declared(STORY_SEEN_BUTTON, public = false)
         for (stub in listOf(
             "emptyBatch()Ljava/lang/Object;", "seenStories(Ljava/lang/Object;)Ljava/util/Map;",
             "send(Ljava/lang/Object;Ljava/lang/Object;)V", "storeAccount(Ljava/lang/Object;)Ljava/lang/String;",
             "sessionAccount(Ljava/lang/Object;)Ljava/lang/String;", "storyId(Ljava/lang/Object;)Ljava/lang/String;",
-            "retireRetry(Ljava/lang/Object;Ljava/lang/String;)V",
             "itemView(Ljava/lang/Object;)Landroid/view/View;",
         )) {
             assertTrue("$stub is not in the extension: $stubs", stub in stubs)
@@ -63,7 +64,7 @@ class StorySeenHookTest {
 
     /**
      * The send asks first and goes on with what it's told, in the batch's own register, or returns.
-     * The retry asks right before its build. The store's other methods taking a batch, and the
+     * The retry asks before the native claim. The store's other methods taking a batch, and the
      * Reset NUX route making a batch of its own, stay as they are.
      */
     @Test
@@ -111,7 +112,7 @@ class StorySeenHookTest {
         context.holdBackStoryViews()
 
         for ((type, names) in listOf(
-            STORY_SEEN to listOf("emptyBatch", "seenStories", "send", "retireRetry", "storeAccount", "sessionAccount"),
+            STORY_SEEN to listOf("emptyBatch", "seenStories", "send", "storeAccount", "sessionAccount"),
             STORY_SEEN_BUTTON to listOf("storyId", "itemView"),
         )) {
             for (stub in context.mutableClassDefBy(type).methods.filter { it.name in names }) {
@@ -307,10 +308,10 @@ class StorySeenHookTest {
                 assertEquals(
                     "${bundle.name}: the hooks are in the send, the retry and the binder, and nowhere else",
                     setOf("${found.store}->${found.send} $TO_SEND", "${found.queue!!.owner}->${found.queue.run} $TO_RETRY",
-                        "${found.queue.owner}->${found.queue.run} $RETIRE_RETRY", "${found.binder}->${found.binderName} $BIND_BUTTON"),
+                        "${found.binder}->${found.binderName} $BIND_BUTTON"),
                     hooked.toSet(),
                 )
-                assertEquals("${bundle.name}: one call of each hook", 4, hooked.size)
+                assertEquals("${bundle.name}: one call of each hook", 3, hooked.size)
 
                 val binderClass = classes.single { it.type == found.binder }
                 assertRefused(classes + copyOf(binderClass, "Lfixture/SecondBinder;"), "story header binder")
@@ -351,6 +352,46 @@ class StorySeenHookTest {
             found += loaded
             wanted = loaded.values.mapNotNull { it.superclass }.filter { it !in found && it != OBJECT }.toSet()
         }
+        // Scan the original bundle for every reference to either dispatch entry, not just direct
+        // callers of the concrete batch request. A later caller can't bypass queue protection.
+        val bridges = found.values.flatMap { it.methods }.filter { method ->
+            !AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.map(Any::toString) == listOf(OBJECT) &&
+                method.returnType == request.returnType && method.code().any { it.referenceText() == requestKey }
+        }
+        val builderKeys = bridges.flatMap { bridge ->
+            listOf(bridge.toString(), "${found[bridge.definingClass]!!.superclass}->${bridge.name}($OBJECT)${bridge.returnType}",
+                "$OBJECT->${bridge.name}($OBJECT)${bridge.returnType}")
+        }.toSet()
+        val dispatchEntries = bridges.map { bridge -> bridge to found[found[bridge.definingClass]!!.superclass]!!.methods.single {
+            it.name == bridge.name && it.parameterTypes == bridge.parameterTypes && it.returnType == bridge.returnType } }
+        val builderCallers = FixtureDex.methodsWhere(bundle, { dex -> dex.methodSection.any { it.toString() in builderKeys } }) { method ->
+            method.code().any { instruction -> instruction.referenceText() in builderKeys || dispatchEntries.any { (bridge, build) ->
+                instruction.indirectlyCalls(bridge, build) } }
+        }
+        found += FixtureDex.classes(bundle, builderCallers.map { it.definingClass }.filter { it !in found }.toSet())
+        val reader = found.values.flatMap { it.methods }.single { method -> method.code().any { it.string() == "PendingReelSeenStateStore.deserializeFromDisk" } }
+        val claim = found.values.flatMap { it.methods }.single { method -> method.code().any {
+            it.string() == "null cannot be cast to non-null type T of com.instagram.store.PendingActionStore" } }
+        val helpers = (reader.code().filter { it.opcode == Opcode.INVOKE_VIRTUAL || it.opcode == Opcode.INVOKE_STATIC }
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.filter {
+                it.parameterTypes.map(Any::toString) == listOf(STRING) && it.returnType == "V" ||
+                    it.parameterTypes.map(Any::toString) == listOf(STRING, STRING) && it.returnType == STRING
+            } + claim.code().filter { it.opcode == Opcode.INVOKE_STATIC }
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }).map { it.definingClass }.toSet()
+        found += FixtureDex.classes(bundle, helpers.filter { it !in found }.toSet())
+        val extra = mutableSetOf<String>()
+        for (owner in helpers.mapNotNull { found[it] }) {
+            owner.methods.filter { it.parameterTypes.map(Any::toString) == listOf(STRING) && it.returnType == "V" && it.code().size == 7 }
+                .flatMap { it.code() }.forEach { instruction ->
+                    when (val reference = (instruction as? ReferenceInstruction)?.reference) {
+                        is TypeReference -> if (instruction.opcode == Opcode.NEW_INSTANCE) extra += reference.type
+                        is FieldReference -> if (instruction.opcode == Opcode.IGET_OBJECT) extra += reference.type
+                    }
+                }
+            owner.methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(Any::toString) == listOf(owner.type) }
+                .forEach { extra += it.returnType }
+        }
+        found += FixtureDex.classes(bundle, extra.filter { it !in found }.toSet())
         return (found.values + ExtensionDex.classDef(STORY_SEEN) + ExtensionDex.classDef(STORY_SEEN_BUTTON))
             .map { ImmutableClassDef.of(it) }.distinctBy { it.type }
     }
@@ -800,7 +841,7 @@ class StorySeenHookTest {
             classOf(VIEWER, emptyList(), emptyList()),
             ImmutableClassDef.of(ExtensionDex.classDef(STORY_SEEN)),
             ImmutableClassDef.of(ExtensionDex.classDef(STORY_SEEN_BUTTON)),
-        )
+        ) + storyQueueDiskHelpers()
     }
 
     private fun method(
@@ -875,7 +916,8 @@ class StorySeenHookTest {
         const val DELEGATE = "Lfixture/Delegate;"
         const val VIEWER = "Lfixture/Viewer;"
         const val OBJECT = "Ljava/lang/Object;"
+        private const val STRING = "Ljava/lang/String;"
         const val VIEW = "Landroid/view/View;"
-        val HOOKS = setOf(TO_SEND, TO_RETRY, RETIRE_RETRY, BIND_BUTTON)
+        val HOOKS = setOf(TO_SEND, TO_RETRY, BIND_BUTTON)
     }
 }
