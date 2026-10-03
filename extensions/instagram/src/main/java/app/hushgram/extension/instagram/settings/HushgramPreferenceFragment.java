@@ -100,6 +100,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static final String STAYS_WHILE_PAUSED = "Stays in while paused";
     /** The Before you sign in notice's key, which finds it on the screen. */
     static final String SIGN_IN_NOTICE_KEY = "hushgram_sign_in_notice";
+    private static final String SCREEN_KEY = "hushgram_settings_root";
 
     /** The first row, which says whether HushGram runs now and whether the next start changes that. */
     @Nullable
@@ -216,6 +217,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         ScreenColors.shown = null;
         Context context = themed(getContext());
         PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(context);
+        screen.setKey(SCREEN_KEY);
         setPreferenceScreen(screen);
         searchableRows.clear();
         searchAliases.clear();
@@ -1278,7 +1280,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             field.setContentDescription(L10n.t("Search settings"));
             field.setMinimumHeight(touch);
             field.setText(searchQuery);
-            SearchFocus focus = new SearchFocus(row);
+            SearchFocus focus = new SearchFocus(this, row);
             field.setAccessibilityDelegate(focus);
             row.addOnAttachStateChangeListener(focus);
             row.addView(field, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
@@ -1294,13 +1296,31 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             clear.setMinimumHeight(touch);
             clear.setEnabled(!searchQuery.isEmpty());
             clear.setVisibility(searchQuery.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-            clear.setOnClickListener(view -> field.setText(""));
+            clear.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    if (!SearchFocus.canAct(SearchRow.this, row, host)) {
+                        info.setEnabled(false);
+                        info.setClickable(false);
+                        info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                    }
+                }
+
+                @Override public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
+                    if (action == AccessibilityNodeInfo.ACTION_CLICK
+                            && !SearchFocus.canAct(SearchRow.this, row, host)) return false;
+                    return super.performAccessibilityAction(host, action, arguments);
+                }
+            });
+            clear.setOnClickListener(view -> {
+                if (SearchFocus.canAct(this, row, view)) field.setText("");
+            });
             row.addView(clear, new LinearLayout.LayoutParams(touch, LinearLayout.LayoutParams.WRAP_CONTENT));
             field.addTextChangedListener(new TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
                 @Override public void onTextChanged(CharSequence text, int start, int before, int count) { }
                 @Override public void afterTextChanged(Editable text) {
-                    searchSettings(text.toString());
+                    if (SearchFocus.canAct(SearchRow.this, row, field)) searchSettings(text.toString());
                     clear.setEnabled(text.length() > 0);
                     clear.setVisibility(text.length() == 0 ? View.INVISIBLE : View.VISIBLE);
                 }
@@ -1311,10 +1331,39 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** Keep ListView's stable row while its search input owns accessibility focus. */
     static final class SearchFocus extends View.AccessibilityDelegate implements View.OnAttachStateChangeListener {
+        private final Preference preference;
         private final View row;
         private boolean held;
 
-        SearchFocus(View row) { this.row = row; }
+        SearchFocus(Preference preference, View row) { this.preference = preference; this.row = row; }
+
+        private static boolean canAct(Preference preference, View row, View host) {
+            return host.isAttachedToWindow() && host.isShown() && RowSemantics.enabledViewTree(host)
+                    && preference.isEnabled()
+                    && RowSemantics.positionOf(preference, row, RowSemantics.listOf(row))
+                    != AdapterView.INVALID_POSITION;
+        }
+
+        @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+            super.onInitializeAccessibilityNodeInfo(host, info);
+            if (!canAct(preference, row, host)) {
+                info.setEnabled(false);
+                info.setClickable(false);
+                for (AccessibilityNodeInfo.AccessibilityAction action : new ArrayList<>(info.getActionList())) {
+                    if (action.getId() != AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS) info.removeAction(action);
+                }
+            }
+        }
+
+        @Override public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
+            if (action == AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS) {
+                boolean performed = super.performAccessibilityAction(host, action, arguments);
+                // Android omits the cleared event when accessibility is disabled.
+                hold(false);
+                return performed;
+            }
+            return canAct(preference, row, host) && super.performAccessibilityAction(host, action, arguments);
+        }
 
         @Override public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
             super.onInitializeAccessibilityEvent(host, event);
@@ -2332,7 +2381,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
             super.onInitializeAccessibilityNodeInfo(host, info);
             AbsListView list = listOf(host);
-            int position = positionOf(host, list);
+            int position = positionOf(preference, host, list);
             if (position != AdapterView.INVALID_POSITION) {
                 list.onInitializeAccessibilityNodeInfoForItem(host, position, info);
             }
@@ -2342,7 +2391,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 info.setChecked(((TwoStatePreference) preference).isChecked());
             }
             boolean enabled = position != AdapterView.INVALID_POSITION
-                    && host.isEnabled() && preference.isEnabled();
+                    && enabledViewTree(host) && preference.isEnabled();
             boolean clickable = enabled && preference.isSelectable();
             info.setEnabled(enabled);
             info.setClickable(clickable);
@@ -2366,8 +2415,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
             if (action == AccessibilityNodeInfo.ACTION_CLICK) {
                 AbsListView list = listOf(host);
-                int position = positionOf(host, list);
-                if (position == AdapterView.INVALID_POSITION || !host.isEnabled()
+                int position = positionOf(preference, host, list);
+                if (position == AdapterView.INVALID_POSITION || !enabledViewTree(host)
                         || !preference.isEnabled() || !preference.isSelectable()) return false;
                 return list.performItemClick(host, position, list.getItemIdAtPosition(position));
             }
@@ -2375,15 +2424,30 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
 
         /** A delayed service action must not target the replacement at this row's old position. */
-        private int positionOf(View host, @Nullable AbsListView list) {
+        private static int positionOf(Preference preference, View host, @Nullable AbsListView list) {
             if (list == null || preference.getParent() == null
                     || !host.isAttachedToWindow() || !host.isShown()) {
+                return AdapterView.INVALID_POSITION;
+            }
+            Preference root = preference;
+            while (root.getParent() != null) root = root.getParent();
+            if (!(root instanceof PreferenceScreen) || root.getPreferenceManager() == null
+                    || root.getPreferenceManager().findPreference(SCREEN_KEY) != root
+                    || ((PreferenceScreen) root).getRootAdapter() != list.getAdapter()) {
                 return AdapterView.INVALID_POSITION;
             }
             int position = list.getPositionForView(host);
             return position >= 0 && position < list.getCount()
                     && list.getItemAtPosition(position) == preference
                     ? position : AdapterView.INVALID_POSITION;
+        }
+
+        private static boolean enabledViewTree(View host) {
+            for (View view = host; view != null;
+                    view = view.getParent() instanceof View ? (View) view.getParent() : null) {
+                if (!view.isEnabled()) return false;
+            }
+            return true;
         }
 
         @Nullable

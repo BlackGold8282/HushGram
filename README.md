@@ -132,7 +132,7 @@ Captured on 2026-10-02 from the published v0.0.3 bundle with 33 of its 35 patche
 
 HushGram's settings also have **Search settings**. Search by a control's label or description in your phone's language, or by its English patch name. Contacts and location setup lead to Disable analytics. Following and Reels find their installed controls. Pause, diagnostics and any running save's Cancel stay available while searching. Clear the search to return to the same sections and choices. Search works offline. The query clears when settings closes or Android rebuilds the page, and it never becomes stored history.
 
-Unreleased settings changes keep accessibility clicks tied to the current enabled row. Disabled or removed controls and a closed page don't accept them. Search keeps accessibility focus on its input while filtering. Android 9 and 17 tests check the roles, labels and actions, including translated text. TalkBack and Switch Access still need checks in an installed build.
+Unreleased settings changes keep accessibility actions tied to the current page. Removed sections, disabled controls or containers, and a closed page won't accept them. Search keeps accessibility focus while filtering and stops accepting edits after the page closes. Android 9 and 17 tests check the roles, labels and actions, including translated text. TalkBack and Switch Access still need checks in an installed build.
 
 At the top, a card says whether HushGram is on or paused. Below it:
 

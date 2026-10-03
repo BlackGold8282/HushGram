@@ -429,7 +429,13 @@ tasks.register("verifyAndroidBoundaries") {
                 "missingFamiliesAndInformationalRowsOfferNoFeatureAction",
                 "accessibilitySearchAndClearKeepInputFocusAndRestoreTheSameControls",
                 "searchFocusHoldsBalanceAcrossRepeatedActionsAndPageTeardown",
-                "searchFocusNeverReleasesAnotherOwnersTransientState"
+                "searchFocusNeverReleasesAnotherOwnersTransientState",
+                "disablingAccessibilityThenClearingFocusReleasesSearchHold",
+                "retainedClosedSearchClearCannotAdvertiseOrPerformClick",
+                "aDisabledSettingsListCannotToggleItsChildSwitch",
+                "aRemovedSectionCannotStillToggleItsChildBeforeRebinding",
+                "aReplacedScreenCannotAcceptItsPreviousRowBeforeRebinding",
+                "searchControlsRespectDisabledAncestorsAndRejectClosedPageEdits"
             ).flatMap { listOf("$it[28]", it) },
             "app.hushgram.extension.instagram.settings.SettingsSearchTest" to listOf(
                 "clearingRestoresTheOriginalObjectsOrderAndChoices[28]", "clearingRestoresTheOriginalObjectsOrderAndChoices",

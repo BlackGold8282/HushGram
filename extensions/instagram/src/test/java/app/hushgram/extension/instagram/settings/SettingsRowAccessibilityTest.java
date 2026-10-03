@@ -506,6 +506,121 @@ public class SettingsRowAccessibilityTest {
     }
 
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void disablingAccessibilityThenClearingFocusReleasesSearchHold() throws Exception {
+        open(PatchFamily.HIDE_ADS);
+        View search = row(page.findPreference("hushgram_settings_search"));
+        EditText field = search.findViewWithTag("hushgram-settings-search");
+        assertTrue(field.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+        assertTrue(search.hasTransientState());
+        AccessibilityManager manager = (AccessibilityManager) RuntimeEnvironment.getApplication()
+                .getSystemService(Context.ACCESSIBILITY_SERVICE);
+        shadowOf(manager).setEnabled(false);
+        assertTrue(field.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS, null));
+        assertFalse(field.createAccessibilityNodeInfo().isAccessibilityFocused());
+        assertFalse("focus cleared without an accessibility event, but the search hold stayed", search.hasTransientState());
+        shadowOf(manager).setEnabled(true);
+        search.setHasTransientState(true);
+        assertTrue(field.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
+        shadowOf(manager).setEnabled(false);
+        assertTrue(field.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS, null));
+        assertTrue("clearing focus released another owner's hold", search.hasTransientState());
+        search.setHasTransientState(false);
+        assertFalse("search kept its own hold after accessibility stopped", search.hasTransientState());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void retainedClosedSearchClearCannotAdvertiseOrPerformClick() throws Exception {
+        open(PatchFamily.HIDE_ADS);
+        View search = row(page.findPreference("hushgram_settings_search"));
+        EditText field = search.findViewWithTag("hushgram-settings-search");
+        field.setText("ads");
+        layout();
+        Button clear = (Button) ((ViewGroup) field.getParent()).getChildAt(1);
+        assertTrue(clear.isAttachedToWindow());
+        controller.get().getFragmentManager().beginTransaction().remove(page).commitNow();
+        assertNull(page.getView());
+        AccessibilityNodeInfo node = clear.createAccessibilityNodeInfo();
+        boolean advertised = clickable(node);
+        boolean performed = clear.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null);
+        assertFalse("the closed search Clear still advertises click", advertised);
+        assertFalse("the closed search Clear still performs click", performed);
+        assertEquals("ads", field.getText().toString());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aDisabledSettingsListCannotToggleItsChildSwitch() throws Exception {
+        open(PatchFamily.HIDE_ADS);
+        View view = row(Settings.HIDE_ADS.key);
+        ListView list = page.getView().findViewById(android.R.id.list);
+        list.setEnabled(false);
+        boolean advertised = clickable(view.createAccessibilityNodeInfo());
+        boolean performed = view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null);
+        assertFalse("the disabled list still exposes a working row action", advertised);
+        assertFalse(performed);
+        assertFalse(Settings.HIDE_ADS.savedValue());
+        list.setEnabled(true);
+        host.setEnabled(false);
+        assertFalse(view.createAccessibilityNodeInfo().isEnabled());
+        assertFalse(clickable(view.createAccessibilityNodeInfo()));
+        assertFalse(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+        assertFalse(Settings.HIDE_ADS.savedValue());
+        host.setEnabled(true);
+        assertTrue(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+        assertTrue(Settings.HIDE_ADS.savedValue());
+    }
+
+    @Test public void aRemovedSectionCannotStillToggleItsChildBeforeRebinding() throws Exception {
+        open(PatchFamily.HIDE_ADS);
+        Preference preference = page.findPreference(Settings.HIDE_ADS.key);
+        View view = row(preference);
+        assertTrue(page.getPreferenceScreen().removePreference(preference.getParent()));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.HIDE_ADS.key));
+        boolean advertised = clickable(view.createAccessibilityNodeInfo());
+        boolean performed = view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null);
+        assertFalse("a removed category's child still exposes a working action", advertised);
+        assertFalse(performed);
+        assertFalse(Settings.HIDE_ADS.savedValue());
+    }
+
+    @Test public void aReplacedScreenCannotAcceptItsPreviousRowBeforeRebinding() throws Exception {
+        open(PatchFamily.HIDE_ADS);
+        View view = row(Settings.HIDE_ADS.key);
+        page.setPreferenceScreen(page.getPreferenceManager().createPreferenceScreen(page.getActivity()));
+        assertFalse(clickable(view.createAccessibilityNodeInfo()));
+        assertFalse(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+        assertFalse(Settings.HIDE_ADS.savedValue());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void searchControlsRespectDisabledAncestorsAndRejectClosedPageEdits() throws Exception {
+        open(PatchFamily.HIDE_ADS);
+        View search = row(page.findPreference("hushgram_settings_search"));
+        EditText field = search.findViewWithTag("hushgram-settings-search");
+        field.setText("ads");
+        layout();
+        Button clear = (Button) ((ViewGroup) field.getParent()).getChildAt(1);
+        ListView list = page.getView().findViewById(android.R.id.list);
+        Bundle changed = new Bundle();
+        changed.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, "following");
+        list.setEnabled(false);
+        assertFalse(clear.createAccessibilityNodeInfo().isEnabled());
+        assertFalse(clickable(clear.createAccessibilityNodeInfo()));
+        assertFalse(clear.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+        assertFalse(field.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SET_TEXT, changed));
+        assertEquals("ads", field.getText().toString());
+        list.setEnabled(true);
+        assertTrue(clear.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+        assertEquals("", field.getText().toString());
+        field.setText("ads");
+        layout();
+        controller.get().getFragmentManager().beginTransaction().remove(page).commitNow();
+        assertFalse(field.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SET_TEXT, changed));
+        assertEquals("ads", field.getText().toString());
+        assertFalse(clear.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+        assertEquals("ads", field.getText().toString());
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void searchFocusNeverReleasesAnotherOwnersTransientState() throws Exception {
         open(PatchFamily.HIDE_ADS);
         View search = row(page.findPreference("hushgram_settings_search"));
