@@ -25,9 +25,9 @@ internal const val PATCH = "View stories anonymously"
 val viewStoriesAnonymouslyPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "View stories anonymously",
-    description = "Keeps you off the viewer list of the stories you watch, because Instagram isn't told which " +
-        "ones you've seen. Replying or reacting still shows you, and stories you've watched keep showing as new. " +
-        "A second switch, off to start, adds a Mark as seen button to each story, so you can still show up on the ones you pick.",
+    description = "Holds story-view reports while its switch is on. Replying or reacting still shows you, " +
+        "and stories you've watched keep showing as new. An optional Mark as seen button selects stories to send. " +
+        "Its sender-side check is pending.",
     default = false,
 ) {
     category("Privacy")
