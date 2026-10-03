@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Support:** Bug reports offer direct messages, profiles and Explore, with a link to local diagnostics and build details. The settings guide separates the confirmed suggestion controls from optional profile rows that still need checks, and the source guide matches the latest recorded census.
+
 * **Tooling:** Local patching checks each selected bundle's exact targets and dependencies before merging or changing an APK. Reports identify the bundle by its hash and attribute initializer failures to their dependency owner. Conflicting selected extension definitions are refused, while compatible addons keep their native initialization. Bug reports now ask which sources and bundle versions were selected.
 * **Instagram:** Story retry patching checks that the native queue count and account reads leave pending batches alone. It refuses subclasses of the final story store, including inherited builder references hidden in encoded handles. A retry bridge with no executable DEX body also stops patching.
 
