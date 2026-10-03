@@ -99,6 +99,12 @@ class HideHighlightsHookTest {
             classes(between = "const/4 v0, 0x1") to "doesn't add a row by the highlights tray's type right after reading it",
             classes(add = "invoke-interface { p1, v0 }, $rowList->add(I)Z") to "doesn't add a row by the highlights tray's type",
             classes(readAfterAdd = true) to "reads v1 after adding the highlights tray",
+            classes(readTypeAfterAdd = true) to "reads v0, the row type's int, after adding the highlights tray",
+            classes(setup = nameToNoConstructor) to "$row's setup doesn't build a row type from $REEL_TRAY",
+            classes(setup = builtOnAStoredObject) to "$row's setup doesn't make the $REEL_TRAY row type with new-instance",
+            classes(setup = siblingInTheTraysField) to "$row's setup doesn't store $REEL_TRAY",
+            classes(setup = objectWrittenOverBeforeItsStore) to "$row's setup doesn't store $REEL_TRAY",
+            classes(setup = jumpIntoTheStore) to "$row's setup doesn't store $REEL_TRAY",
         )
         for ((classes, expected) in cases) {
             val context = PatchContexts.of(classes)
@@ -112,6 +118,26 @@ class HideHighlightsHookTest {
                 }
             }
         }
+    }
+
+    /**
+     * A setup that makes the tray first and stores a sibling before it still gives the tray's own
+     * field, followed through the registers, so the sibling's row, read and added the same way
+     * earlier in the list, is left alone.
+     */
+    @Test
+    fun aReorderedSetupStillFindsTheTraysOwnField() {
+        val context = PatchContexts.of(classes(setup = siblingStoredFirst, bioRow = true))
+
+        context.hide()
+
+        val rows = context.mutableClassDefBy(header).methods.single { it.name == BUILD_ROWS }
+        assertTrayAsked("the reordered stand-in", rows, register = 1)
+        val code = rows.code()
+        val keep = code.indexOfFirst { it.referenceText() == KEEP_TRAY }
+        assertEquals("the hidden row", "$row->tray:$row", code[keep + 3].referenceText())
+        assertEquals("the sibling's row", "$row->bio:$row", code[0].referenceText())
+        assertEquals("the sibling's add", "$rowList->add(I)V", code[2].referenceText())
     }
 
     /** In each declared build the header's tray row is found and asked for, once. */
@@ -200,6 +226,82 @@ class HideHighlightsHookTest {
 
     // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
 
+    private val rowInit = "$row-><init>(Ljava/lang/String;I)V"
+
+    /** The tray is made first, javac's way with the object before its name, and the bio stored before it. */
+    private val siblingStoredFirst = """
+        new-instance v3, $row
+        const-string v0, "$REEL_TRAY"
+        const/4 v1, 0x1
+        invoke-direct { v3, v0, v1 }, $rowInit
+        const-string v0, "ITEM_TYPE_BIO"
+        const/4 v1, 0x0
+        new-instance v2, $row
+        invoke-direct { v2, v0, v1 }, $rowInit
+        sput-object v2, $row->bio:$row
+        sput-object v3, $row->tray:$row
+        return-void
+    """
+
+    /** The name is loaded, but the constructor after it gets another one. */
+    private val nameToNoConstructor = """
+        const-string v0, "$REEL_TRAY"
+        const-string v2, "ITEM_TYPE_BIO"
+        const/4 v1, 0x1
+        new-instance v3, $row
+        invoke-direct { v3, v2, v1 }, $rowInit
+        sput-object v3, $row->tray:$row
+        const/4 v0, 0x0
+        return-void
+    """
+
+    /** The constructor that takes the name runs on an object read from a field, not a new one. */
+    private val builtOnAStoredObject = """
+        const-string v0, "$REEL_TRAY"
+        const/4 v1, 0x1
+        sget-object v3, $row->bio:$row
+        invoke-direct { v3, v0, v1 }, $rowInit
+        sput-object v3, $row->tray:$row
+        return-void
+    """
+
+    /** The tray's field holds the bio's object, and the tray's own object is never stored. */
+    private val siblingInTheTraysField = """
+        const-string v0, "ITEM_TYPE_BIO"
+        const/4 v1, 0x0
+        new-instance v2, $row
+        invoke-direct { v2, v0, v1 }, $rowInit
+        const-string v0, "$REEL_TRAY"
+        const/4 v1, 0x1
+        new-instance v3, $row
+        invoke-direct { v3, v0, v1 }, $rowInit
+        sput-object v2, $row->tray:$row
+        return-void
+    """
+
+    /** The register holding the tray's object is written over before the store. */
+    private val objectWrittenOverBeforeItsStore = """
+        const-string v0, "$REEL_TRAY"
+        const/4 v1, 0x1
+        new-instance v3, $row
+        invoke-direct { v3, v0, v1 }, $rowInit
+        sget-object v3, $row->bio:$row
+        sput-object v3, $row->tray:$row
+        return-void
+    """
+
+    /** A jump lands on the store, so on that path the register never held the tray's object. */
+    private val jumpIntoTheStore = """
+        const/4 v1, 0x1
+        if-eqz v1, :store
+        const-string v0, "$REEL_TRAY"
+        new-instance v3, $row
+        invoke-direct { v3, v0, v1 }, $rowInit
+        :store
+        sput-object v3, $row->tray:$row
+        return-void
+    """
+
     /**
      * The header's binder group, whose row list skips the tray when its check says so, and
      * otherwise reads the tray's row type, its int and adds it; and the row type enum, whose setup
@@ -216,20 +318,33 @@ class HideHighlightsHookTest {
         between: String = "",
         add: String = "invoke-interface { p1, v0 }, $rowList->add(I)V",
         readAfterAdd: Boolean = false,
+        readTypeAfterAdd: Boolean = false,
+        setup: String? = null,
+        bioRow: Boolean = false,
     ): List<ClassDef> {
         val rowEnums = (0 until rowSetups).map { copy ->
             val type = if (copy == 0) row else "Lfixture/OtherRow;"
             val names = (0 until trayNames).joinToString("\n") { "const-string v0, \"$REEL_TRAY\"" }
-            val store = if (trayStored) "sput-object v1, $type->tray:$type" else "sput-object v1, $type->name:Ljava/lang/Object;"
-            val setup = method(type, "<clinit>", emptyList(), "V", 2, static = true, body = """
+            val store = if (trayStored) "sput-object v3, $type->tray:$type" else "sput-object v3, $type->name:Ljava/lang/Object;"
+            // Shaped like Instagram 449's: each name goes to a constructor run on a copy of a new
+            // object, and the object itself is stored.
+            val body = setup.takeIf { copy == 0 } ?: """
                 const-string v0, "ITEM_TYPE_BIO"
-                sput-object v1, $type->bio:$type
+                const/4 v1, 0x0
+                new-instance v2, $type
+                invoke-direct { v2, v0, v1 }, $type-><init>(Ljava/lang/String;I)V
+                sput-object v2, $type->bio:$type
                 $names
+                const/4 v1, 0x1
+                new-instance v3, $type
+                move-object v4, v3
+                invoke-direct { v4, v0, v1 }, $type-><init>(Ljava/lang/String;I)V
                 $store
                 return-void
-            """)
+            """
+            val setupMethod = method(type, "<clinit>", emptyList(), "V", 5, static = true, body = body)
             classDef(
-                type, listOf(setup), superclass = "Ljava/lang/Enum;",
+                type, listOf(setupMethod), superclass = "Ljava/lang/Enum;",
                 fields = listOf("bio" to type, "tray" to type, "type" to "I", "shown" to "Z", "name" to "Ljava/lang/Object;"),
             )
         }
@@ -249,7 +364,13 @@ class HideHighlightsHookTest {
                 """)
             }
             if (copy == 0) {
+                val bio = if (!bioRow) "" else """
+                    sget-object v1, $row->bio:$row
+                    iget v0, v1, $row->type:I
+                    invoke-interface { p1, v0 }, $rowList->add(I)V
+                """.trimIndent()
                 methods += method(type, BUILD_ROWS, listOf(rowList, "Ljava/lang/Object;", "Ljava/lang/Object;"), "V", 3, body = """
+                    $bio
                     if-eqz p3, :tray
                     if-nez p2, :past
                     :tray
@@ -258,6 +379,7 @@ class HideHighlightsHookTest {
                     $between
                     $add
                     ${if (readAfterAdd) "invoke-interface { p1, v1 }, $rowList->keep(Ljava/lang/Object;)V" else ""}
+                    ${if (readTypeAfterAdd) "invoke-interface { p1, v0 }, $rowList->keepType(I)V" else ""}
                     :past
                     const/4 v1, 0x0
                     return-void

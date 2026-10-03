@@ -16,6 +16,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.extension.uniqueMethod
 import app.morphe.patches.instagram.misc.settings.settingsPatch
@@ -23,6 +24,7 @@ import app.morphe.patches.instagram.profile.suggested.BUILD_ROWS
 import app.morphe.patches.instagram.profile.suggested.HEADER_BIND
 import app.morphe.patches.instagram.profile.suggested.HEADER_CREATE
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
 import app.morphe.util.readsAfter
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -35,6 +37,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide highlights"
 internal const val PROFILE_HIGHLIGHTS = "$EXTENSION_PACKAGE/profile/ProfileHighlights;"
@@ -100,7 +103,7 @@ internal class HighlightsRowSite(
  * exactly once, since that's an update this patch hasn't seen: in the header binder's class, the
  * one [BUILD_ROWS] reading the field its row type enum's setup stores [REEL_TRAY] in, read once and
  * handed straight to the call that adds a row by its int type. Nothing after that call may read
- * the register the type was read into.
+ * the register the row type was read into, nor the one its int was: a skipped add writes neither.
  */
 internal fun BytecodePatchContext.findHighlightsRow(): HighlightsRowSite {
     val bind = uniqueMethod(PATCH, "profile header binder holding \"$HEADER_BIND\"", HighlightsHeaderBindFingerprint)
@@ -135,20 +138,108 @@ internal fun BytecodePatchContext.findHighlightsRow(): HighlightsRowSite {
     if (rows.readsAfter(tray + 2, register).isNotEmpty()) {
         refuse("${header.type}->$BUILD_ROWS reads v$register after adding the highlights tray")
     }
+    // On the skip the int's register keeps whatever it held before, another type or nothing, so
+    // a read after the add would get a stale value or fail verification where the paths meet.
+    if (rows.readsAfter(tray + 2, typeRegister).isNotEmpty()) {
+        refuse("${header.type}->$BUILD_ROWS reads v$typeRegister, the row type's int, after adding the highlights tray")
+    }
     return HighlightsRowSite(rows.definingClass, rows.name, rows.parameterTypes.map(CharSequence::toString), tray, register, field)
 }
 
-/** The static field [setup] stores the tray's row type in: the first of the enum's own type written after the name. */
+/**
+ * The static field [setup] stores the tray's row type in, followed through the registers rather
+ * than taken as the next store: the enum's own constructor that receives the [REEL_TRAY] name, the
+ * new-instance that made the object it runs on (through plain copies), and the first store of that
+ * same object into one of the enum's fields of its own type. Every step is straight code nothing
+ * jumps into, and nothing writes over the registers holding the name or the object in between, so
+ * a sibling stored first, or stored into the tray's field, is never taken for the tray.
+ */
 private fun trayField(setup: Method): String {
+    val enum = setup.definingClass
     val code = setup.instructions()
     val named = code.indices.filter { code[it].stringLoaded() == REEL_TRAY }
-    val at = named.singleOrNull() ?: refuse("${setup.definingClass}'s setup names $REEL_TRAY ${named.size} times")
-    return code.drop(at).firstNotNullOfOrNull { instruction ->
-        instruction.fieldReference()?.takeIf {
-            instruction.opcode == Opcode.SPUT_OBJECT && it.definingClass == setup.definingClass && it.type == setup.definingClass
+    val at = named.singleOrNull() ?: refuse("$enum's setup names $REEL_TRAY ${named.size} times")
+    val flow = try {
+        ControlFlow.of(setup)
+    } catch (failure: IllegalArgumentException) {
+        refuse("$enum's setup can't be followed: ${failure.message}")
+    }
+    val targets = setup.jumpTargets()
+    // Reached only from the instruction before it, so its registers hold what that one left.
+    fun straight(index: Int) = index in 1 until code.size && index !in targets && flow.normal[index - 1] == listOf(index)
+
+    // The constructor that receives the name, while a register still holds it.
+    val names = mutableSetOf((code[at] as OneRegisterInstruction).registerA)
+    var build = at + 1
+    while (true) {
+        if (names.isEmpty() || !straight(build)) refuse("$enum's setup doesn't build a row type from $REEL_TRAY")
+        val instruction = code[build]
+        if (instruction.constructs(enum) && instruction.argumentRegisters().drop(1).any { it in names }) break
+        names.follow(instruction)
+        build++
+    }
+
+    // The object it runs on, back through plain copies to the new-instance that made it.
+    val notMade = "$enum's setup doesn't make the $REEL_TRAY row type with new-instance"
+    var held = code[build].argumentRegisters().first()
+    var made = build
+    while (true) {
+        if (!straight(made)) refuse(notMade)
+        made--
+        val instruction = code[made]
+        if (!instruction.writes(held)) continue
+        if (instruction.opcode == Opcode.NEW_INSTANCE && instruction.typeReferenced() == enum) break
+        held = instruction.objectCopiedFrom() ?: refuse(notMade)
+    }
+
+    // The first store of that object after its constructor, while a register still holds it.
+    val objects = mutableSetOf(held)
+    var store = made + 1
+    while (true) {
+        if (objects.isEmpty() || !straight(store)) refuse("$enum's setup doesn't store $REEL_TRAY")
+        val instruction = code[store]
+        val field = instruction.fieldReference()
+        if (store > build && instruction.opcode == Opcode.SPUT_OBJECT && (instruction as OneRegisterInstruction).registerA in objects &&
+            field?.definingClass == enum && field.type == enum
+        ) {
+            return field.toString()
         }
-    }?.toString() ?: refuse("${setup.definingClass}'s setup doesn't store $REEL_TRAY")
+        objects.follow(instruction)
+        store++
+    }
 }
+
+/** Whether this runs a constructor of [type] itself. */
+private fun Instruction.constructs(type: String): Boolean {
+    if (opcode != Opcode.INVOKE_DIRECT && opcode != Opcode.INVOKE_DIRECT_RANGE) return false
+    val method = methodReference() ?: return false
+    return method.name == "<init>" && method.definingClass == type
+}
+
+/** Whether this writes [register], or a wide pair covering it. */
+private fun Instruction.writes(register: Int): Boolean {
+    if (!opcode.setsRegister()) return false
+    val written = (this as? OneRegisterInstruction)?.registerA ?: return false
+    return written == register || (opcode.setsWideRegister() && written + 1 == register)
+}
+
+/** The register a plain object copy reads, or null for anything else. */
+private fun Instruction.objectCopiedFrom(): Int? =
+    if (opcode in OBJECT_MOVES) (this as TwoRegisterInstruction).registerB else null
+
+/** Keeps a set of registers holding one value up to date past [instruction]: a plain copy of one joins it, any other write leaves. */
+private fun MutableSet<Int>.follow(instruction: Instruction) {
+    if (!instruction.opcode.setsRegister()) return
+    val written = (instruction as? OneRegisterInstruction)?.registerA ?: return
+    val copied = instruction.objectCopiedFrom()?.let { it in this } == true
+    remove(written)
+    if (instruction.opcode.setsWideRegister()) remove(written + 1)
+    if (copied) add(written)
+}
+
+private val OBJECT_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+
+private fun Instruction.typeReferenced(): String? = ((this as? ReferenceInstruction)?.reference as? TypeReference)?.type
 
 /**
  * Replaces the read of the tray's row type with a call to [KEEP_TRAY], which keeps the read's
