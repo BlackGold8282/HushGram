@@ -62,6 +62,21 @@ try {
     Save-Fixture $document
     $null = Read-ReleaseSbom -Path $path -RequireReviewedLicenses -LicenseLedger $ledgerPath
     $passed++
+    foreach ($missing in @($ledger.artifacts)) {
+        $document = New-LicenseFixture
+        $document.components = @($document.components | Where-Object { $_.purl -cne $missing.purl })
+        Save-Fixture $document
+        Must-Refuse { Read-ReleaseSbom -Path $path -RequireReviewedLicenses -LicenseLedger $ledgerPath } "an omitted carried library $($missing.purl)"
+    }
+    $document = New-LicenseFixture
+    $document.components = @(@{ type = 'file'; 'bom-ref' = 'extensions/instagram.mpe'
+        name = 'extensions/instagram.mpe'; hashes = @(@{alg = 'SHA-256'; content = ('1' * 64)}) })
+    Save-Fixture $document
+    Must-Refuse { Read-ReleaseSbom -Path $path -RequireReviewedLicenses -LicenseLedger $ledgerPath } 'an empty carried-library inventory'
+    $document = New-LicenseFixture
+    $document.components[0].type = 'file'
+    Save-Fixture $document
+    Must-Refuse { Read-ReleaseSbom -Path $path -RequireReviewedLicenses -LicenseLedger $ledgerPath } 'a carried library disguised as a file'
     foreach ($field in @('sha256', 'declaredLicense')) {
         $document = New-LicenseFixture
         $record = $document.components[0].properties[1].value | ConvertFrom-Json

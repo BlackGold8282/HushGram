@@ -28,7 +28,8 @@ if (-not $SbomPath) {
     $version = [regex]::Match((Get-Content -LiteralPath (Join-Path $Root 'gradle.properties') -Raw), '(?m)^version\s*=\s*(\S+)').Groups[1].Value
     $SbomPath = Join-Path $Root "patches/build/release/patches-$version.cdx.json"
 }
-$sbom = Read-ReleaseSbom -Path $SbomPath
+$sbom = Read-ReleaseSbom -Path $SbomPath -RequireReviewedLicenses `
+    -LicenseLedger (Join-Path $Root 'sources/carried-library-licenses.json')
 if (-not $BundlePath) { $BundlePath = Join-Path (Split-Path -Parent $SbomPath) $sbom.BundleName }
 $subject = Get-CurrentDependencyAuditSubject -Root $Root -Graphs $graphs -Sbom $sbom -BundlePath $BundlePath
 $allGraphs = @(Get-DependencyAuditGraphs -Graphs $graphs -Sbom $sbom)

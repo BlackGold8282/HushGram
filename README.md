@@ -297,7 +297,7 @@ export GITHUB_TOKEN=<a token with read:packages>
 
 The bundle lands in `patches/build/release/patches-<version>.mpp`, beside its SHA-256 and a CycloneDX SBOM (`patches-<version>.cdx.json`) listing every library that goes into it. Run `generatePatchesList` before `buildAndroid`, or the bundle loses its Android payload.
 
-The SBOM binds each carried library's Apache 2.0 license to its exact binary and publisher POM hashes in `sources/carried-library-licenses.json`. Gson, Kotlin stdlib and JetBrains annotations also have named notices in `NOTICE`. The build refuses an unreviewed artifact, and new release receipts require matching license evidence. Published historical receipts retain their original verification rules.
+The SBOM binds each carried library's Apache 2.0 license to its exact binary and publisher POM hashes in `sources/carried-library-licenses.json`. Gson, Kotlin stdlib and JetBrains annotations also have named notices in `NOTICE`. The build, current dependency audit and new release receipts require the complete reviewed inventory with matching evidence. Removing a library's SBOM entry doesn't bypass its license check. Published historical receipts retain their original verification rules.
 
 Tests: `./gradlew :patches:test :extensions:instagram:testDebugUnitTest`. Set `HUSHGRAM_FIXTURE_DIR` to a folder holding Instagram builds to run the tests that read real ones. Without it they skip and say so.
 

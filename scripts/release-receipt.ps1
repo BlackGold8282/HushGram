@@ -140,6 +140,7 @@ function Assert-SbomCarriedLicenses {
         throw 'The SBOM lacks one valid license ledger SHA-256.'
     }
     $approved = @()
+    $reviewedInventory = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     if ($RequireCurrent) {
         if (-not (Test-Path -LiteralPath $LedgerPath -PathType Leaf)) { throw 'The reviewed license ledger is missing.' }
         if ($stamp[0].value -cne (Get-FileHash -LiteralPath $LedgerPath -Algorithm SHA256).Hash.ToLowerInvariant()) {
@@ -185,6 +186,16 @@ function Assert-SbomCarriedLicenses {
                         $matches[0].evidence.declaredLicense -cne $record.evidence.declaredLicense) {
                     throw "The carried artifact $($record.file) has no matching reviewed license record."
                 }
+                if (-not $reviewedInventory.Add($record.purl + "`t" + $record.file)) {
+                    throw 'The SBOM repeats a reviewed carried license artifact.'
+                }
+            }
+        }
+    }
+    if ($RequireCurrent) {
+        foreach ($record in $approved) {
+            if (-not $reviewedInventory.Contains($record.purl + "`t" + $record.file)) {
+                throw "The SBOM omits the reviewed carried license artifact $($record.purl)/$($record.file)."
             }
         }
     }
