@@ -325,6 +325,32 @@ public class BadDexFixture {
     private static final int INSTANCE_CHECK = 1;
     private static final int NO_CHECK = 2;
 
+    private static final String DM_RECEIPTS = "Lfixture/DmReceipts;";
+    private static final String DM_SEEN = "Lapp/hushgram/extension/fixture/direct/VisualSeen;";
+    private static final ImmutableMethodReference DM_HOLD = method(DM_SEEN, "hold", "Z");
+    private static final String DM_ENDPOINT = "direct_v2/visual_threads/%s/item_seen/";
+    private static final String INBOX = "Lfixture/InboxSections;";
+    private static final String INBOX_ROW = "Lfixture/InboxRow;";
+    private static final String META_AI = "Lapp/hushgram/extension/fixture/metaai/MetaAi;";
+    private static final ImmutableMethodReference INBOX_FILTER = method(META_AI, "inboxRow", OBJECT, OBJECT);
+    private static final String INBOX_SECTION = "No section generator found for section type ";
+    private static final String FAMILY_PROVIDERS = "Lfixture/FamilyProviders;";
+    private static final String TRUSTED_PROVIDER = "Lcom/facebook/secure/content/delegate/TrustedCallerContentProviderDelegate;";
+    private static final ImmutableMethodReference PROVIDER_POLICY = method(TRUSTED_PROVIDER, "nativePolicy", OBJECT);
+    private static final String INSTAGRAM_SIGNATURE = "Lapp/hushgram/extension/fixture/misc/InstagramSignature;";
+    private static final ImmutableMethodReference SAME_KEY_CALLER = method(INSTAGRAM_SIGNATURE,
+            "isSameKeyFamilyProviderCaller", "Z", "Landroid/content/Context;");
+    private static final String PROVIDER_REFUSAL = "Component access not allowed for ";
+    private static final String PROVIDER_KILL_SWITCH = "Content Provider blocked by kill switch for ";
+    private static final String SETUP_OPENERS = "Lfixture/SetupOpeners;";
+    private static final String SETUP_PRESENTER = "Lfixture/SetupPresenter;";
+    private static final String SETUP_DATA = "Lfixture/SetupData;";
+    private static final String SETUP_CONFIG = "Lcom/instagram/bloks/hosting/IgBloksScreenConfig;";
+    private static final String ANALYTICS = "Lapp/hushgram/extension/fixture/misc/Analytics;";
+    private static final ImmutableMethodReference SETUP_SCREEN = method(ANALYTICS, "setupScreen", "I", "Ljava/lang/String;");
+    private static final List<String> SETUP_MARKERS = Arrays.asList(
+            "FragmentActivity is required to open CDS bottom sheet", "foa_bottom_sheet_config", "cds_bloks");
+
     /**
      * The rules the fixture's builds are held to, written beside the dex files as contracts.txt.
      * They're Hushfacebook's rules, which each kind was written for, under the fixture's extension
@@ -376,7 +402,12 @@ public class BadDexFixture {
             "shared-call Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding permalink XDTPermalinkResponse",
             "shared-call Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding story_item_to_share_url XDTStoryItemThirdPartySharingUrlResponse",
             "start-call Lapp/hushgram/extension/fixture/stories/StorySeen;->holdBack()Z in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk",
-            "once-call Lapp/hushgram/extension/fixture/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object; in static (Lcom/instagram/common/session/UserSession;)Lfixture/*; calling static L*;->*(Lcom/instagram/common/session/UserSession;)Z holding default");
+            "once-call Lapp/hushgram/extension/fixture/reels/ReelsTab;->tab(Ljava/lang/Object;)Ljava/lang/Object; in static (Lcom/instagram/common/session/UserSession;)Lfixture/*; calling static L*;->*(Lcom/instagram/common/session/UserSession;)Z holding default",
+            "start-call Lapp/hushgram/extension/fixture/direct/VisualSeen;->hold()Z in instance (L*;L*;L*;)V holding direct_v2/visual_threads/%s/item_seen/ raven_media",
+            "once-call Lapp/hushgram/extension/fixture/direct/VisualSeen;->hold()Z in instance (L*;L*;L*;)V holding direct_v2/visual_threads/%s/item_seen/ raven_media",
+            "once-call Lapp/hushgram/extension/fixture/metaai/MetaAi;->inboxRow(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;L*;L*;L*;)Z class-holding No\\ssection\\sgenerator\\sfound\\sfor\\ssection\\stype\\s",
+            "shared-call Lapp/hushgram/extension/fixture/misc/InstagramSignature;->isSameKeyFamilyProviderCaller(Landroid/content/Context;)Z in instance ()V calling instance Lcom/facebook/secure/content/delegate/TrustedCallerContentProviderDelegate;->*()L*; holding Component\\saccess\\snot\\sallowed\\sfor\\s Content\\sProvider\\sblocked\\sby\\skill\\sswitch\\sfor\\s",
+            "shared-call Lapp/hushgram/extension/fixture/misc/Analytics;->setupScreen(Ljava/lang/String;)I in static (Landroid/content/Context;L*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;L*;L*;I)V holding FragmentActivity\\sis\\srequired\\sto\\sopen\\sCDS\\sbottom\\ssheet foa_bottom_sheet_config cds_bloks");
 
     /**
      * One of the ShortcutManager calls the settings patch sends to SettingsEntry: its name, what it
@@ -1182,6 +1213,127 @@ public class BadDexFixture {
         return out;
     }
 
+    /** Visual and voice share an endpoint. Only the visual handler gets the opt-in guard. */
+    private static ClassDef dmReceipts(int guardCount, boolean late) {
+        List<Instruction> visual = new ArrayList<>();
+        if (!late) for (int i = 0; i < guardCount; i++) visual.addAll(Arrays.asList(invoke(DM_HOLD), op(Opcode.MOVE_RESULT, 0)));
+        visual.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(DM_ENDPOINT)));
+        visual.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference("raven_media")));
+        if (late) visual.add(invoke(method("Lfixture/NativeRequests;", "enqueue", "V")));
+        if (late) for (int i = 0; i < guardCount; i++) visual.addAll(Arrays.asList(invoke(DM_HOLD), op(Opcode.MOVE_RESULT, 0)));
+        visual.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(DM_RECEIPTS, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null, Arrays.asList(
+                define(DM_RECEIPTS, "visual", "V", false, body(5, visual.toArray(new Instruction[0])), OBJECT, OBJECT, OBJECT),
+                define(DM_RECEIPTS, "voice", "V", false, body(5,
+                        new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(DM_ENDPOINT)),
+                        new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference("voice_media")),
+                        op(Opcode.RETURN_VOID)), OBJECT, OBJECT, OBJECT)));
+    }
+
+    /** The inbox hook follows its row field read, while the selector is held by a sibling. */
+    private static ClassDef inboxSections(boolean hooked) {
+        List<Instruction> code = new ArrayList<>();
+        code.add(new ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 4, new ImmutableFieldReference(INBOX, "row", INBOX_ROW)));
+        if (hooked) code.addAll(Arrays.asList(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 0, 1, INBOX_FILTER),
+                op(Opcode.MOVE_RESULT_OBJECT, 0), new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(INBOX_ROW))));
+        code.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1));
+        code.add(op(Opcode.RETURN, 0));
+        return new ImmutableClassDef(INBOX, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null, Arrays.asList(
+                define(INBOX, "describe", "V", true, body(1,
+                        new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(INBOX_SECTION)), op(Opcode.RETURN_VOID))),
+                define(INBOX, "build", "Z", true, body(5, code.toArray(new Instruction[0])), OBJECT, OBJECT, OBJECT, OBJECT)));
+    }
+
+    private static ClassDef visualSeen() {
+        return new ImmutableClassDef(DM_SEEN, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(DM_SEEN, "hold", "Z", true, body(1,
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 1), op(Opcode.RETURN, 0)))));
+    }
+
+    private static ClassDef inboxFilter() {
+        return new ImmutableClassDef(META_AI, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(META_AI, "inboxRow", OBJECT, true, body(1, op(Opcode.RETURN_OBJECT, 0)), OBJECT)));
+    }
+
+    /** The inline gate has both markers; the query helper shares only the refusal marker. */
+    private static Method providerGate(String name, int calls, boolean inline) {
+        return providerGate(name, calls, inline, true);
+    }
+
+    private static Method providerGate(String name, int calls, boolean inline, boolean policyCaller) {
+        List<Instruction> code = new ArrayList<>();
+        if (policyCaller) code.addAll(Arrays.asList(
+                new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 2, 0, 0, 0, 0, PROVIDER_POLICY),
+                op(Opcode.MOVE_RESULT_OBJECT, 0)));
+        code.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+        for (int i = 0; i < calls; i++) code.addAll(Arrays.asList(
+                new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 0, 1, SAME_KEY_CALLER),
+                op(Opcode.MOVE_RESULT, 1)));
+        code.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 1, new ImmutableStringReference(PROVIDER_REFUSAL)));
+        if (inline) code.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 1, new ImmutableStringReference(PROVIDER_KILL_SWITCH)));
+        code.add(op(Opcode.RETURN_VOID));
+        return define(FAMILY_PROVIDERS, name, "V", false, body(3, code.toArray(new Instruction[0])));
+    }
+
+    private static ClassDef familyProviders(int inlineCalls, boolean hooked, boolean anotherPolicy) {
+        List<Method> methods = new ArrayList<>(Arrays.asList(providerGate("inlineGate", inlineCalls, true),
+                providerGate("queryHelper", hooked ? 1 : 0, false), providerGate("legacyPolicy", 0, true, false)));
+        if (anotherPolicy) methods.add(providerGate("otherPolicy", 1, true));
+        return new ImmutableClassDef(FAMILY_PROVIDERS, AccessFlags.PUBLIC.getValue(), TRUSTED_PROVIDER, null, null, null, null, methods);
+    }
+
+    private static ClassDef trustedProvider() {
+        return new ImmutableClassDef(TRUSTED_PROVIDER, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(TRUSTED_PROVIDER, "nativePolicy", OBJECT, false,
+                        body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0)))));
+    }
+
+    private static ClassDef instagramSignature() {
+        return new ImmutableClassDef(INSTAGRAM_SIGNATURE, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(INSTAGRAM_SIGNATURE, "isSameKeyFamilyProviderCaller", "Z", true,
+                        body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)), "Landroid/content/Context;")));
+    }
+
+    /** The direct presenter reads a nullable model; the three old routes keep their guards. */
+    private static ClassDef setupPresenter(boolean hooked) {
+        List<Instruction> code = new ArrayList<>();
+        if (hooked) code.addAll(Arrays.asList(
+                new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, 3), ifEqz(0, 11),
+                new ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 0, new ImmutableFieldReference(SETUP_DATA, "appId", "Ljava/lang/String;")),
+                invoke(SETUP_SCREEN, 0), op(Opcode.MOVE_RESULT, 0), ifEqz(0, 3), op(Opcode.RETURN_VOID)));
+        for (String marker : SETUP_MARKERS) code.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(marker)));
+        code.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(SETUP_PRESENTER, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(SETUP_PRESENTER, "show", "V", true, body(8, code.toArray(new Instruction[0])),
+                        CONTEXT, SETUP_DATA, SETUP_CONFIG, OBJECT, OBJECT, "I")));
+    }
+
+    private static ClassDef setupOpeners(boolean hooked) {
+        List<Method> methods = new ArrayList<>();
+        for (String name : Arrays.asList("fullScreen", "push", "sheet")) {
+            List<Instruction> code = new ArrayList<>();
+            if (hooked) code.addAll(Arrays.asList(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, 2),
+                    new ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 0, new ImmutableFieldReference(SETUP_OPENERS, "appId", "Ljava/lang/String;")),
+                    invoke(SETUP_SCREEN, 0), op(Opcode.MOVE_RESULT, 0), ifEqz(0, 3), op(Opcode.RETURN_VOID)));
+            code.add(op(Opcode.RETURN_VOID));
+            methods.add(define(SETUP_OPENERS, name, "V", false, body(5, code.toArray(new Instruction[0])), CONTEXT, SETUP_CONFIG));
+        }
+        return new ImmutableClassDef(SETUP_OPENERS, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null,
+                Collections.singletonList(new ImmutableField(SETUP_OPENERS, "appId", "Ljava/lang/String;", AccessFlags.PUBLIC.getValue(), null, null, null)), methods);
+    }
+
+    private static ClassDef analyticsSetup() {
+        return new ImmutableClassDef(ANALYTICS, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(ANALYTICS, "setupScreen", "I", true,
+                        body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)), "Ljava/lang/String;")));
+    }
+
+    private static ClassDef setupData() {
+        return new ImmutableClassDef(SETUP_DATA, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(), OBJECT, null, null, null,
+                Collections.singletonList(new ImmutableField(SETUP_DATA, "appId", "Ljava/lang/String;",
+                        AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(), null, null, null)), Collections.<Method>emptyList());
+    }
+
     /** [classes] with [extra] added to the host's class, the way a patch adds a helper to one of Facebook's. */
     private static List<ClassDef> withHostMethod(List<ClassDef> classes, Method extra) {
         List<ClassDef> out = new ArrayList<>();
@@ -1881,7 +2033,9 @@ public class BadDexFixture {
                 linkParsers(1, 1, false, false), linkFilter(), menuOptions(1, false), videoDownload(),
                 seenStore(seenGuard(), Collections.<Instruction>emptyList(), false),
                 seenCache(Collections.<Instruction>emptyList(), false), storySeen(),
-                tabBuilder(STATIC_CHECK, true, false), reelsTab());
+                tabBuilder(STATIC_CHECK, true, false), reelsTab(), dmReceipts(1, false), visualSeen(),
+                inboxSections(true), inboxFilter(), familyProviders(1, true, false), trustedProvider(), instagramSignature(),
+                setupPresenter(true), setupOpeners(true), setupData(), analyticsSetup());
     }
 
     /** The clean host, Facebook's classes as they ship, with the batcher's flush making [handOver]. */
@@ -1900,7 +2054,8 @@ public class BadDexFixture {
                 speedToast(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 linkParsers(0, 0, false, false), menuOptions(0, false),
                 seenStore(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList(), false),
-                seenCache(Collections.<Instruction>emptyList(), false), tabBuilder(STATIC_CHECK, false, false));
+                seenCache(Collections.<Instruction>emptyList(), false), tabBuilder(STATIC_CHECK, false, false),
+                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData());
     }
 
     /**
@@ -2559,6 +2714,14 @@ public class BadDexFixture {
         // contract: the home tab asking the flag reader's instance instead, a call matching the
         // rule's method reference that isn't static, so it doesn't count and no method answers.
         dexes.put("bad-home-tab-check-instance", replaced(good(), tabBuilder(INSTANCE_CHECK, true, false)));
+
+        dexes.put("bad-dm-visual-guard-late", replaced(good(), dmReceipts(1, true)));
+        dexes.put("bad-dm-visual-guard-twice", replaced(good(), dmReceipts(2, false)));
+        dexes.put("metai-inbox-row-missing", replaced(good(), inboxSections(false)));
+        dexes.put("bad-same-key-provider-missing", replaced(good(), familyProviders(0, true, false)));
+        dexes.put("bad-same-key-provider-twice", replaced(good(), familyProviders(2, true, false)));
+        dexes.put("bad-same-key-provider-two-guards", replaced(good(), familyProviders(1, true, true)));
+        dexes.put("bad-setup-presenter-guard-missing", replaced(good(), setupPresenter(false)));
 
         // contract: each start-call hook put first in a method that holds the rule's first string
         // but isn't the one the patch hooks. A rule naming only that string counted any method

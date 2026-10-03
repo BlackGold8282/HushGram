@@ -702,6 +702,8 @@ val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph"
 // has looked at. :patches:test is what scripts/pre-push.ps1 runs when a patch source changes.
 tasks.withType<Test>().configureEach {
     dependsOn(verifyBouncyCastleBuildGraph)
+    // Whole-fixture proofs need more than Gradle's default 512 MiB test-worker heap.
+    maxHeapSize = "8g"
 }
 
 dependencies {

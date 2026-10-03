@@ -86,8 +86,8 @@
     its class and its name). The call is left out, or put only in the fallback with the home tab
     left alone; the home tab's check is gone in one build and asked through an instance in another,
     so no method answers. Each is a build, and each fails that once-call rule for its own reason.
-    The contract file may hold no other rule with calling, and HushGram's may use it only while the
-    fixture's does.
+    The provider guard also uses calling instance to distinguish its kept policy getter from a
+    decoy holding both refusal strings. Each calling rule must have exact negative coverage.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
     fail with findings of its own category only, so a check that fires for the wrong reason fails
@@ -788,7 +788,7 @@ try {
     # The feed guard asks the extension once in the runnable that swaps an edge into the feed,
     # Download any video's call once in the short feed menu's list, picked by the fields it reads,
     # and Hide the Reels tab's once in the home tab, picked by the call it makes. The contract file's
-    # three once-call rules are those, so a rule this suite builds no bad fixtures for can't pass on
+    # once-call rules each have a targeted bad fixture, so an untested rule can't pass on
     # a count nobody checks.
     $swapHook = 'Lapp/hushgram/extension/fixture/feed/FeedFilter;->hideSwappedEdge(Ljava/lang/Object;Ljava/lang/Object;)Z'
     $swapRun = 'Lfixture/EdgeSwap;->run()V'
@@ -804,16 +804,26 @@ try {
     $tabShape = '(Lcom/instagram/common/session/UserSession;)Lfixture/*;'
     $tabCall = 'L*;->*(Lcom/instagram/common/session/UserSession;)Z'
     $tabRule = "once-call $tabHook in static $tabShape calling static $tabCall holding default"
-    Assert-True ($onceCallRules.Count -eq 3 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
-        $onceCallRules[2] -ceq $tabRule) `
-        "The contract file's once-call rules are not the swap guard, the menu list and the home tab this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
+    $dmHook = 'Lapp/hushgram/extension/fixture/direct/VisualSeen;->hold()Z'
+    $dmSite = 'Lfixture/DmReceipts;->visual(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V'
+    $dmRule = "once-call $dmHook in instance (L*;L*;L*;)V holding direct_v2/visual_threads/%s/item_seen/ raven_media"
+    $inboxHook = 'Lapp/hushgram/extension/fixture/metaai/MetaAi;->inboxRow(Ljava/lang/Object;)Ljava/lang/Object;'
+    $inboxSite = 'Lfixture/InboxSections;->build(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z'
+    $inboxRule = "once-call $inboxHook in static (L*;L*;L*;L*;)Z class-holding No\ssection\sgenerator\sfound\sfor\ssection\stype\s"
+    Assert-True ($onceCallRules.Count -eq 5 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
+        $onceCallRules[2] -ceq $tabRule -and $onceCallRules[3] -ceq $dmRule -and $onceCallRules[4] -ceq $inboxRule) `
+        "The contract file has a once-call rule without exact negative coverage:`n$($onceCallRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
         "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $allowRule`: once in $allowKept")) `
         "The good build's menu list call was not reported once in the list, picked by its fields.`n$($good.Output -join "`n")"
-    # Sanitize sharing links passes each link parser's link through one filter, which the other
-    # parser calls too. The fixture's two shared-call rules are those parsers, so a rule this suite
-    # builds no bad fixtures for can't pass on a count nobody checks.
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $dmRule`: once in $dmSite")) `
+        "The good build's visual guard was not reported once in the visual handler.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $inboxRule`: once in $inboxSite")) `
+        "The good build's inbox row call was not reported once in its native-shaped builder.`n$($good.Output -join "`n")"
+    # The link parsers, provider inline gate and direct setup presenter share hooks with other paths.
+    # Every shared-call rule here has targeted bad fixtures, so an untested rule cannot pass on a
+    # count nobody checks.
     $linkClean = 'Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String;'
     $postParser = 'Lfixture/LinkParsers;->post(Ljava/lang/Object;)Ljava/lang/Object;'
     $storyParser = 'Lfixture/LinkParsers;->story(Ljava/lang/Object;)Ljava/lang/Object;'
@@ -821,19 +831,33 @@ try {
     $postRule = "shared-call $linkClean in instance (*)Ljava/lang/Object; holding permalink XDTPermalinkResponse"
     $storyRule = "shared-call $linkClean in instance (*)Ljava/lang/Object; holding " +
         'story_item_to_share_url XDTStoryItemThirdPartySharingUrlResponse'
+    $providerHook = 'Lapp/hushgram/extension/fixture/misc/InstagramSignature;->isSameKeyFamilyProviderCaller(Landroid/content/Context;)Z'
+    $providerSite = 'Lfixture/FamilyProviders;->inlineGate()V'
+    $providerHelper = 'Lfixture/FamilyProviders;->queryHelper()V'
+    $providerCall = 'Lcom/facebook/secure/content/delegate/TrustedCallerContentProviderDelegate;->*()L*;'
+    $providerHeld = '"Component access not allowed for " and "Content Provider blocked by kill switch for " with the shape instance ()V and an instance call to ' + $providerCall
+    $providerRule = "shared-call $providerHook in instance ()V calling instance $providerCall holding Component\saccess\snot\sallowed\sfor\s " +
+        'Content\sProvider\sblocked\sby\skill\sswitch\sfor\s'
+    $setupHook = 'Lapp/hushgram/extension/fixture/misc/Analytics;->setupScreen(Ljava/lang/String;)I'
+    $setupShape = '(Landroid/content/Context;L*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;L*;L*;I)V'
+    $setupSite = 'Lfixture/SetupPresenter;->show(Landroid/content/Context;Lfixture/SetupData;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;Ljava/lang/Object;Ljava/lang/Object;I)V'
+    $setupHeld = '"FragmentActivity is required to open CDS bottom sheet", "foa_bottom_sheet_config" and "cds_bloks" with the shape static ' + $setupShape
+    $setupRule = "shared-call $setupHook in static $setupShape holding FragmentActivity\sis\srequired\sto\sopen\sCDS\sbottom\ssheet foa_bottom_sheet_config cds_bloks"
+    $setupOtherCalls = @('fullScreen', 'push', 'sheet') | ForEach-Object { "Lfixture/SetupOpeners;->$_(Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V" }
     $sharedCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*shared-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($sharedCallRules.Count -eq 2 -and $sharedCallRules[0] -ceq $postRule -and $sharedCallRules[1] -ceq $storyRule) `
-        "The contract file's shared-call rules are not the link parsers this suite builds bad fixtures for:`n$($sharedCallRules -join "`n")"
-    foreach ($pair in @(@($postRule, $postParser), @($storyRule, $storyParser))) {
+    Assert-True ($sharedCallRules.Count -eq 4 -and $sharedCallRules[0] -ceq $postRule -and $sharedCallRules[1] -ceq $storyRule -and
+        $sharedCallRules[2] -ceq $providerRule -and $sharedCallRules[3] -ceq $setupRule) `
+        "The contract file has a shared-call rule without exact negative coverage:`n$($sharedCallRules -join "`n")"
+    foreach ($pair in @(@($postRule, $postParser), @($storyRule, $storyParser), @($providerRule, $providerSite), @($setupRule, $setupSite))) {
         Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $($pair[0]): once in $($pair[1])")) `
-            "The good build's link filter call was not reported once in $($pair[1]).`n$($good.Output -join "`n")"
+            "The good build's shared hook was not reported once in $($pair[1]).`n$($good.Output -join "`n")"
     }
     # View stories anonymously puts its guard first in the send of Instagram's store of stories
     # you've seen, which holds no string, so its rule picks the send by what the store's methods hold
     # between them, and by its shape. The store's constructor takes two objects, so the send is the
     # one method of that shape only while a * in a class name stays in that name. The contract file's
-    # one class-holding rule is that guard, so a rule this suite builds no bad fixtures for can't pass
+    # class-holding rules each have a targeted bad fixture, so an untested rule can't pass
     # on a count nobody checks.
     $seenHook = 'Lapp/hushgram/extension/fixture/stories/StorySeen;->holdBack()Z'
     $seenSend = 'Lfixture/SeenStore;->send(Lfixture/SeenBatch;)V'
@@ -844,22 +868,22 @@ try {
         'PendingReelSeenStateStore.deserializeFromDisk'
     $classRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '\sclass-holding\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($classRules.Count -eq 1 -and $classRules[0] -ceq $seenRule) `
-        "The contract file's class-holding rules are not the story seen guard this suite builds bad fixtures for:`n$($classRules -join "`n")"
+    Assert-True ($classRules.Count -eq 2 -and $classRules[0] -ceq $seenRule -and $classRules[1] -ceq $inboxRule) `
+        "The contract file has a class-holding rule without exact negative coverage:`n$($classRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $seenRule`: first in $seenSend")) `
         "The good build's story seen guard was not reported first in the store's send.`n$($good.Output -join "`n")"
     # Hide the Reels tab passes the tab the home tab of Instagram's tab bar builder returns through
     # the extension. A fallback beside it holds the same string and has the same shape, so the rule
     # picks the home tab by the static session check it makes, written with a * in the check's class
-    # and name. The contract file's one rule with calling is that call, so a rule this suite builds
-    # no bad fixtures for can't pass on a count nobody checks.
+    # and name. The provider's kept policy getter supplies the second calling selector. Both have
+    # distinct bad fixtures, so a rule this suite doesn't exercise cannot pass on an unchecked count.
     $tabHome = 'Lfixture/TabBuilder;->home(Lcom/instagram/common/session/UserSession;)Lfixture/Tab;'
     $tabFallback = 'Lfixture/TabBuilder;->fallback(Lcom/instagram/common/session/UserSession;)Lfixture/Tab;'
     $tabHeld = """default"" with the shape static $tabShape and a static call to $tabCall"
     $callingRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\scalling\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($callingRules.Count -eq 1 -and $callingRules[0] -ceq $tabRule) `
-        "The contract file's rules with calling are not the home tab this suite builds bad fixtures for:`n$($callingRules -join "`n")"
+    Assert-True ($callingRules.Count -eq 2 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule) `
+        "The contract file has a calling rule without exact negative coverage:`n$($callingRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $tabRule`: once in $tabHome")) `
         "The good build's home tab call was not reported once in the home tab, picked by its static check.`n$($good.Output -join "`n")"
 
@@ -879,8 +903,8 @@ try {
     $classHolding = { param($Path) @(Get-Content -LiteralPath $Path | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\sclass-holding\s' }).Count }
     Assert-True ((& $classHolding $realContracts) -eq 0 -or (& $classHolding $contracts) -ne 0) `
         "HushGram's contract file picks methods by their class's strings, which the fixture doesn't exercise."
-    # Picking a method by a call it makes works the same for every kind too, and the fixture's home
-    # tab rule exercises it, so HushGram's file may say calling only while that rule is there.
+    # Picking a method by a call it makes works the same for every kind too. The fixture exercises
+    # both static home-tab and instance provider selectors before the real file can use calling.
     $calling = { param($Path) @(Get-Content -LiteralPath $Path | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\scalling\s' }).Count }
     Assert-True ((& $calling $realContracts) -eq 0 -or (& $calling $contracts) -ne 0) `
         "HushGram's contract file picks methods by a call they make, which the fixture doesn't exercise."
@@ -1036,6 +1060,13 @@ try {
         'bad-home-tab-hook-decoy' = 'contract'
         'bad-home-tab-check-gone' = 'contract'
         'bad-home-tab-check-instance' = 'contract'
+        'bad-dm-visual-guard-late' = 'contract'
+        'bad-dm-visual-guard-twice' = 'contract'
+        'metai-inbox-row-missing' = 'contract'
+        'bad-same-key-provider-missing' = 'contract'
+        'bad-same-key-provider-twice' = 'contract'
+        'bad-same-key-provider-two-guards' = 'contract'
+        'bad-setup-presenter-guard-missing' = 'contract'
         'bad-finder-stub-not-filled' = 'contract'
         'bad-finder-stub-extension-call' = 'contract'
         'bad-finder-stub-call-after-return' = 'contract'
@@ -1246,6 +1277,25 @@ try {
         $fails = @((Get-Findings $badResults[$case.Key]).Fails)
         Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
             "$($case.Key) did not fail with its own home tab finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
+    # Each new fixture must fail only the contract it deliberately breaks.
+    $inboxOne = 'with the shape static (L*;L*;L*;L*;)Z in a class holding "No section generator found for section type "'
+    $newContractFails = [ordered]@{
+        'bad-dm-visual-guard-late' = "[diff] FAIL: contract: $dmHook is called in $dmSite, but after a call, branch, switch, return or throw, not first"
+        'bad-dm-visual-guard-twice' = "[diff] FAIL: contract: $dmHook has 2 call sites in $dmSite, and must have exactly one"
+        'metai-inbox-row-missing' = "[diff] FAIL: contract: $inboxHook is not called in $inboxSite, the one method $inboxOne"
+        'bad-same-key-provider-missing' = "[diff] FAIL: contract: $providerHook is not called in $providerSite, the one method holding " +
+            "$providerHeld; the host methods that call it: $providerHelper"
+        'bad-same-key-provider-twice' = "[diff] FAIL: contract: $providerHook has 2 call sites in $providerSite, and must have exactly one"
+        'bad-same-key-provider-two-guards' = "[diff] FAIL: contract: 2 methods hold $providerHeld, and exactly one must, so the rule " +
+            "can't say which one calls ${providerHook}: $providerSite, Lfixture/FamilyProviders;->otherPolicy()V"
+        'bad-setup-presenter-guard-missing' = "[diff] FAIL: contract: $setupHook is not called in $setupSite, the one method holding " +
+            "$setupHeld; the host methods that call it: $($setupOtherCalls -join ', ')"
+    }
+    foreach ($case in $newContractFails.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+            "$($case.Key) did not fail only its expected contract.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
     }
     # And against a clean build whose flush makes no executor call, the good build's stand-in has
     # nothing it took the place of.
