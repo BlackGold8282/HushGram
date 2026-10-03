@@ -2941,6 +2941,8 @@ Write-Host '[release-tooling] release root and index push contracts passed'
 $prePush = Join-Path $PSScriptRoot 'pre-push.ps1'
 Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-release-tooling.ps1') `
     'pre-push.ps1 no longer runs scripts/test-release-tooling.ps1 when the release tooling changes.'
+Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-translations.ps1') `
+    'pre-push.ps1 no longer checks translation imports and hosted setup.'
 $prePushAst = Get-ScriptAst $prePush
 $releaseCalls = @($prePushAst.FindAll({ param($node)
         $node -is [System.Management.Automation.Language.StringConstantExpressionAst] -and

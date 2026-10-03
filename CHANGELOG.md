@@ -2,6 +2,10 @@
 
 Every HushGram release, newest first.
 
+## Unreleased
+
+* **Tooling:** Added local Crowdin setup with resumable draft imports and a review package for German, Spanish, Indonesian, Brazilian Portuguese, Turkish and the Korean pilot. Setup requires the owner's token, preserves existing reviewer work and never approves translations. Translation tests now run before a related push.
+
 ## 0.0.4 (2026-10-02)
 
 * **Instagram:** HushGram 0.0.4 adds eleven patches, for 46 in all, and still targets Instagram 449.0.0.52.84 (build 385511871, arm64-v8a) on Android 9 and newer.

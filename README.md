@@ -307,15 +307,15 @@ Verification reads coverage back from the patched APK and writes a separate cove
 
 ## Translating HushGram
 
-HushGram keeps its translations in UTF-8 TSV files under `extensions/shared/library/src/main/l10n`. The English text is the lookup key. The scripts need Python 3.12 or newer and stop with a one-line message on anything older. On Windows, use Python 3.13 to export the current source catalog and existing translations as flat JSON for Crowdin:
+HushGram keeps its translations in UTF-8 TSV files under `extensions/shared/library/src/main/l10n`. The English text is the lookup key. The scripts need Python 3.12 or newer and stop with a one-line message on anything older. On Windows, use Python 3.13 to prepare the source, draft translations and review worksheets for Crowdin:
 
 ```powershell
-py -3.13 scripts/sync-l10n.py export --output "path/to/translation-review"
+py -3.13 scripts/crowdin-l10n.py prepare --output "path/to/translation-review"
 ```
 
-Upload `en.json` as the source file and the five language files as existing translations. Identifiers are the full SHA-256 of each exact English key, so adding or moving a row doesn't change other identifiers. Changing the English creates a new identifier that needs review. Existing translations that match English are valid and should be kept when seeding the project.
+The folder must be new so a reviewer's edits stay intact. It contains `en.json`, the five language files and review worksheets, including a blank Korean pilot. Identifiers are the full SHA-256 of each exact English key, so adding or moving a row doesn't change other identifiers. Changing the English creates a new identifier that needs review. Existing translations that match English are valid and stay in the draft seeds.
 
-Create the hosted project from the authenticated account that will own it. Use English as the source language and Korean for the first volunteer pilot. Enable placeholder mismatch as an error. Export approved translations with untranslated strings skipped, because Crowdin's default export fills missing translations with English. See [Crowdin's export settings](https://support.crowdin.com/project-settings/export/) and [translation upload guide](https://support.crowdin.com/uploading-translations/). Importing a file locally doesn't approve its wording. Native review and checking the translated screens come separately.
+The account owner can run `crowdin-l10n.py setup --package "path/to/translation-review"` with a personal token in `CROWDIN_PERSONAL_TOKEN`. Setup creates the public project and imports drafts without approving them. It resumes recorded jobs and refuses to overwrite unrecorded reviewer work. [The translation guide](docs/translations.md) covers token permissions, placeholder QA and recovery. Export approved translations with untranslated strings skipped. Importing a file locally doesn't approve its wording, and the translated screens still need a native reader's check.
 
 Import a complete reviewed file, then regenerate the class the extension carries:
 

@@ -205,6 +205,14 @@ if ($touchesInjectedRegisterDevice) {
 if ($touchesReleaseTooling) {
     $suites += , @('scripts/test-release-tooling.ps1', 'the release tooling or a file it reads changed, running its contract tests')
 }
+if (@($changed | Where-Object {
+    $_ -in @('scripts/gen-l10n.py', 'scripts/sync-l10n.py', 'scripts/crowdin-l10n.py',
+        'scripts/test-l10n.py', 'scripts/test-crowdin-l10n.py', 'scripts/test-translations.ps1',
+        'scripts/pre-push.ps1', 'scripts/script-wiring.ps1') -or
+    $_ -like 'extensions/*/src/main/java/*' -or $_ -like 'extensions/shared/library/src/main/l10n/*'
+}).Count -gt 0) {
+    $suites += , @('scripts/test-translations.ps1', 'translation catalog or tooling changed, checking its tests')
+}
 foreach ($suite in $suites) {
     $suiteScript = Join-Path $Root $suite[0]
     if (-not (Test-Path -LiteralPath $suiteScript -PathType Leaf)) {
