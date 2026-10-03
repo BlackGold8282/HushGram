@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Following-list labels now wait for Instagram's row friendship status instead of trusting a stale profile fallback, so accounts won't show "Doesn't follow you" until their profile refreshes.
 * **Instagram:** Pure black dark mode now leaves bottom navigation icon colors alone when they share Instagram's dark Prism value, so the buttons stay visible on black backgrounds.
 
 * **Tooling:** Wrapper checks find Git Bash when Git hooks resolve an internal Git executable. The authentic Windows and POSIX launchers and every refusal-before-execution check remain required.
