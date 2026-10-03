@@ -297,6 +297,13 @@ public class BadDexFixture {
     private static final ImmutableMethodReference POST_BATCH = method(SEEN_BATCH, "post", "V");
     private static final String STORY_SEEN = "Lapp/hushgram/extension/fixture/stories/StorySeen;";
     private static final ImmutableMethodReference SEEN_HOLD_BACK = method(STORY_SEEN, "holdBack", "Z");
+    private static final String STORY_RETRY_QUEUE = "Lfixture/StoryRetryQueue;";
+    private static final String PENDING_ITEM_TAG =
+            "null cannot be cast to non-null type T of com.instagram.store.PendingActionStore";
+    private static final ImmutableMethodReference RETIRE_RETRY =
+            method(STORY_SEEN, "retireRetry", "V", OBJECT, "Ljava/lang/String;");
+    private static final ImmutableMethodReference ITERATOR_HAS_NEXT =
+            method("Ljava/util/Iterator;", "hasNext", "Z");
     /** A cache of seen stories beside the store, a class Instagram doesn't have. */
     private static final String SEEN_CACHE = "Lfixture/SeenCache;";
     /**
@@ -407,7 +414,8 @@ public class BadDexFixture {
             "once-call Lapp/hushgram/extension/fixture/direct/VisualSeen;->hold()Z in instance (L*;L*;L*;)V holding direct_v2/visual_threads/%s/item_seen/ raven_media",
             "once-call Lapp/hushgram/extension/fixture/metaai/MetaAi;->inboxRow(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;L*;L*;L*;)Z class-holding No\\ssection\\sgenerator\\sfound\\sfor\\ssection\\stype\\s",
             "shared-call Lapp/hushgram/extension/fixture/misc/InstagramSignature;->isSameKeyFamilyProviderCaller(Landroid/content/Context;)Z in instance ()V calling instance Lcom/facebook/secure/content/delegate/TrustedCallerContentProviderDelegate;->*()L*; holding Component\\saccess\\snot\\sallowed\\sfor\\s Content\\sProvider\\sblocked\\sby\\skill\\sswitch\\sfor\\s",
-            "shared-call Lapp/hushgram/extension/fixture/misc/Analytics;->setupScreen(Ljava/lang/String;)I in static (Landroid/content/Context;L*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;L*;L*;I)V holding FragmentActivity\\sis\\srequired\\sto\\sopen\\sCDS\\sbottom\\ssheet foa_bottom_sheet_config cds_bloks");
+            "shared-call Lapp/hushgram/extension/fixture/misc/Analytics;->setupScreen(Ljava/lang/String;)I in static (Landroid/content/Context;L*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;L*;L*;I)V holding FragmentActivity\\sis\\srequired\\sto\\sopen\\sCDS\\sbottom\\ssheet foa_bottom_sheet_config cds_bloks",
+            "once-call Lapp/hushgram/extension/fixture/stories/StorySeen;->retireRetry(Ljava/lang/Object;Ljava/lang/String;)V in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\\scannot\\sbe\\scast\\sto\\snon-null\\stype\\sT\\sof\\scom.instagram.store.PendingActionStore");
 
     /**
      * One of the ShortcutManager calls the settings patch sends to SettingsEntry: its name, what it
@@ -1805,11 +1813,40 @@ public class BadDexFixture {
         return new ImmutableClassDef(SEEN_CACHE, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null, methods);
     }
 
+    /** The shared pending-action loop and a sibling carrying its stable claim assertion. */
+    private static ClassDef storyRetryQueue(int hooks, boolean otherCall, boolean secondLoop) {
+        List<Method> methods = new ArrayList<>();
+        methods.add(define(STORY_RETRY_QUEUE, "claim", "Z", false, body(3,
+                new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(PENDING_ITEM_TAG)),
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 1), op(Opcode.RETURN, 0)), "Ljava/lang/String;"));
+        methods.add(storyRetryLoop("run", hooks, true));
+        methods.add(storyRetryLoop("other", otherCall ? 1 : 0, false));
+        if (secondLoop) methods.add(storyRetryLoop("runAgain", 0, true));
+        return new ImmutableClassDef(STORY_RETRY_QUEUE, AccessFlags.PUBLIC.getValue(), OBJECT,
+                null, null, null, null, methods);
+    }
+
+    private static Method storyRetryLoop(String name, int hooks, boolean iterator) {
+        List<Instruction> instructions = new ArrayList<>();
+        instructions.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+        instructions.add(new ImmutableInstruction11n(Opcode.CONST_4, 1, 0));
+        if (iterator) {
+            instructions.add(new ImmutableInstruction35c(Opcode.INVOKE_INTERFACE, 1, 0, 0, 0, 0, 0, ITERATOR_HAS_NEXT));
+            instructions.add(op(Opcode.MOVE_RESULT, 0));
+            instructions.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+        }
+        for (int i = 0; i < hooks; i++) instructions.add(invoke(RETIRE_RETRY, 0, 1));
+        instructions.add(op(Opcode.RETURN_VOID));
+        return define(STORY_RETRY_QUEUE, name, "V", false,
+                new ImmutableMethodImplementation(3, instructions, null, null));
+    }
+
     /** The extension's guard, static: it answers false. */
     private static ClassDef storySeen() {
         return new ImmutableClassDef(STORY_SEEN, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
-                OBJECT, null, null, null, null, Collections.singletonList(define(STORY_SEEN, "holdBack", "Z", true,
-                        body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)))));
+                OBJECT, null, null, null, null, Arrays.asList(define(STORY_SEEN, "holdBack", "Z", true,
+                        body(1, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0))),
+                        define(STORY_SEEN, "retireRetry", "V", true, body(2, op(Opcode.RETURN_VOID)), OBJECT, "Ljava/lang/String;")));
     }
 
     /**
@@ -2032,7 +2069,7 @@ public class BadDexFixture {
                 speedToast(toastHook(3), Collections.<Instruction>emptyList()), reelSpeed(),
                 linkParsers(1, 1, false, false), linkFilter(), menuOptions(1, false), videoDownload(),
                 seenStore(seenGuard(), Collections.<Instruction>emptyList(), false),
-                seenCache(Collections.<Instruction>emptyList(), false), storySeen(),
+                seenCache(Collections.<Instruction>emptyList(), false), storySeen(), storyRetryQueue(1, false, false),
                 tabBuilder(STATIC_CHECK, true, false), reelsTab(), dmReceipts(1, false), visualSeen(),
                 inboxSections(true), inboxFilter(), familyProviders(1, true, false), trustedProvider(), instagramSignature(),
                 setupPresenter(true), setupOpeners(true), setupData(), analyticsSetup());
@@ -2055,7 +2092,7 @@ public class BadDexFixture {
                 linkParsers(0, 0, false, false), menuOptions(0, false),
                 seenStore(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList(), false),
                 seenCache(Collections.<Instruction>emptyList(), false), tabBuilder(STATIC_CHECK, false, false),
-                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData());
+                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData(), storyRetryQueue(0, false, false));
     }
 
     /**
@@ -2722,6 +2759,10 @@ public class BadDexFixture {
         dexes.put("bad-same-key-provider-twice", replaced(good(), familyProviders(2, true, false)));
         dexes.put("bad-same-key-provider-two-guards", replaced(good(), familyProviders(1, true, true)));
         dexes.put("bad-setup-presenter-guard-missing", replaced(good(), setupPresenter(false)));
+        dexes.put("bad-story-retry-retire-missing", replaced(good(), storyRetryQueue(0, false, false)));
+        dexes.put("bad-story-retry-retire-twice", replaced(good(), storyRetryQueue(2, false, false)));
+        dexes.put("bad-story-retry-retire-decoy", replaced(good(), storyRetryQueue(0, true, false)));
+        dexes.put("bad-story-retry-two-loops", replaced(good(), storyRetryQueue(1, false, true)));
 
         // contract: each start-call hook put first in a method that holds the rule's first string
         // but isn't the one the patch hooks. A rule naming only that string counted any method

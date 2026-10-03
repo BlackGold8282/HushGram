@@ -39,6 +39,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 internal const val STORY_SEEN = "$EXTENSION_PACKAGE/stories/StorySeen;"
 internal const val TO_SEND = "$STORY_SEEN->toSend(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val TO_RETRY = "$STORY_SEEN->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+internal const val RETIRE_RETRY = "$STORY_SEEN->retireRetry(Ljava/lang/Object;Ljava/lang/String;)V"
 internal const val STORY_SEEN_BUTTON = "$EXTENSION_PACKAGE/stories/StorySeenButton;"
 internal const val BIND_BUTTON = "$STORY_SEEN_BUTTON->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
 
@@ -114,6 +115,7 @@ internal class StorySeenTargets(
     val item: Int,
     val holder: Int,
     val itemView: FieldReference,
+    val queue: StoryRetryQueue?,
     internal val stubs: StorySeenStubs,
 )
 
@@ -128,6 +130,7 @@ internal class StorySeenStubs(
     val emptyBatch: MutableMethod,
     val seenStories: MutableMethod,
     val sendBatch: MutableMethod,
+    val retireRetry: MutableMethod,
     val storeAccount: MutableMethod,
     val sessionAccount: MutableMethod,
     val storyId: MutableMethod,
@@ -165,7 +168,8 @@ private class Stories(val field: FieldReference, val add: Int)
 internal fun BytecodePatchContext.findStorySeen(): StorySeenTargets {
     val request = uniqueMethod(PATCH, "story seen request", StorySeenRequestFingerprint)
     val batch = request.definingClass
-    val store = uniqueMethod(PATCH, "pending story seen store", PendingStorySeenStoreFingerprint).definingClass
+    val storeReader = uniqueMethod(PATCH, "pending story seen store", PendingStorySeenStoreFingerprint)
+    val store = storeReader.definingClass
     val storeClass = classDefByOrNull(store) ?: refuse("$store isn't in this build")
     val batchClass = classDefByOrNull(batch) ?: refuse("$batch isn't in this build")
     requireSealedBatch(batchClass, request)
@@ -235,9 +239,11 @@ internal fun BytecodePatchContext.findStorySeen(): StorySeenTargets {
         if (!AccessFlags.PUBLIC.isSet(reachable.accessFlags)) refuse("${reachable.type} isn't public, so the extension can't reach it")
     }
 
+    val stubs = storySeenStubs()
+    val queue = retry?.let { findStoryRetryQueue(storeClass, it, storeReader) }
     return StorySeenTargets(
         batch, store, send.name, retry, getter.name, sessionGetter.definingClass, sessionGetter.name, reels, binder.definingClass,
-        binder.name, parameters, session, item, holder, itemView, storySeenStubs(),
+        binder.name, parameters, session, item, holder, itemView, queue, stubs,
     )
 }
 
@@ -730,7 +736,8 @@ private fun BytecodePatchContext.storySeenStubs(): StorySeenStubs {
                 it.parameterTypes.map(Any::toString) == parameters
         } ?: refuse("$owner has no static $returns $name(${parameters.joinToString("")})")
     for ((owner, methods, hook) in listOf(
-        Triple(STORY_SEEN, seen.methods, TO_SEND), Triple(STORY_SEEN, seen.methods, TO_RETRY), Triple(STORY_SEEN_BUTTON, button.methods, BIND_BUTTON),
+        Triple(STORY_SEEN, seen.methods, TO_SEND), Triple(STORY_SEEN, seen.methods, TO_RETRY),
+        Triple(STORY_SEEN, seen.methods, RETIRE_RETRY), Triple(STORY_SEEN_BUTTON, button.methods, BIND_BUTTON),
     )) {
         methods.singleOrNull {
             "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == hook.substringAfter("->") &&
@@ -743,6 +750,7 @@ private fun BytecodePatchContext.storySeenStubs(): StorySeenStubs {
         emptyBatch = emptyBatch,
         seenStories = stub(STORY_SEEN, seen.methods, "seenStories", listOf(OBJECT), MAP),
         sendBatch = stub(STORY_SEEN, seen.methods, "send", listOf(OBJECT, OBJECT), "V"),
+        retireRetry = stub(STORY_SEEN, seen.methods, "retireRetry", listOf(OBJECT, STRING), "V"),
         storeAccount = stub(STORY_SEEN, seen.methods, "storeAccount", listOf(OBJECT), STRING),
         sessionAccount = stub(STORY_SEEN, seen.methods, "sessionAccount", listOf(OBJECT), STRING),
         storyId = stub(STORY_SEEN_BUTTON, button.methods, "storyId", listOf(OBJECT), STRING),
@@ -769,27 +777,6 @@ internal fun BytecodePatchContext.hookStorySend(found: StorySeenTargets) {
             if-nez $batch, :send
             return-void
             :send
-            check-cast $batch, ${found.batch}
-        """,
-    )
-}
-
-/**
- * Puts the retry's hook right before its build of the seen request, handed the store and the batch:
- * the answer, never null, takes the batch's place for the request alone, since nothing reads the
- * batch after it.
- */
-internal fun BytecodePatchContext.hookStoryRetry(found: StorySeenTargets) {
-    val retry = found.retry ?: return
-    val method = mutableClassDefBy(found.store).methods.single {
-        it.name == retry.name && it.parameterTypes.map(Any::toString) == retry.parameters
-    }
-    val batch = method.parameterRegister(0)
-    method.addInstructionsWithLabels(
-        retry.build,
-        """
-            invoke-static/range { p0 .. $batch }, $TO_RETRY
-            move-result-object $batch
             check-cast $batch, ${found.batch}
         """,
     )
@@ -844,6 +831,13 @@ internal fun StorySeenTargets.fillStubs() {
             return-void
         """,
     )
+    queue?.let { native ->
+        stubs.retireRetry.addInstructionsWithLabels(0, """
+            check-cast p0, ${native.owner}
+            invoke-virtual/range { p0 .. p1 }, ${native.retire}
+            return-void
+        """)
+    }
     stubs.storeAccount.addInstructionsWithLabels(
         0,
         """

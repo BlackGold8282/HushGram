@@ -5,7 +5,7 @@ Every HushGram release, newest first.
 ## Unreleased
 
 * **Instagram:** Override recovery keeps the selected saved copy through interrupted saves and moves. Cleanup failures stay visible even when changes have already applied. Restore removes temporary replacement copies after recovery finishes, and Discard can remove a damaged backup without reading it.
-
+* **Instagram:** View stories anonymously cancels a saved batch when choosing marked stories or creating their batch fails, including an allocation failure. It no longer falls back to sending the original batch. Cancellation uses Instagram's own retry cleanup without allocating an empty batch. Turning the switch off or pausing keeps Instagram's usual behavior. Sender and reconnect checks remain pending.
 * **Instagram:** Import, Restore and Discard recheck their permission after reading native state. Turning Allow importing overrides off or pausing while an import waits now stops it before any typed write or recovery-file change.
 * **Instagram:** Added the opt-in source patch `View DM photos and videos anonymously`, with a separate switch that starts off. It holds back the visual photo/video opened receipt and completes Instagram's queued visual task locally. Ordinary message and voice receipts keep their existing path. Sender-side and native replay checks are still pending.
 * **Instagram:** `Hide Meta AI` now covers its optional message composer buttons through Instagram's existing visibility and layout path, and omits the optional inbox row through its native empty-row branch. Native fixture tests preserve ordinary controls and thread lists. An account with a real thread and active Meta AI row is still needed for the phone check.

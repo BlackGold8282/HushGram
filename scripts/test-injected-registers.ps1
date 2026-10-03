@@ -794,6 +794,14 @@ try {
     $swapRun = 'Lfixture/EdgeSwap;->run()V'
     $swapHeld = '"sizeBefore" and "sizeAfter" with the shape instance ()V'
     $swapRule = "once-call $swapHook in instance ()V holding sizeBefore sizeAfter"
+    $retryHook = 'Lapp/hushgram/extension/fixture/stories/StorySeen;->retireRetry(Ljava/lang/Object;Ljava/lang/String;)V'
+    $retrySite = 'Lfixture/StoryRetryQueue;->run()V'
+    $retryCall = 'Ljava/util/Iterator;->hasNext()Z'
+    $retryTag = 'null cannot be cast to non-null type T of com.instagram.store.PendingActionStore'
+    $retryOne = "with the shape instance ()V and an instance call to $retryCall in a class holding ""$retryTag"""
+    $retryMany = "with the shape instance ()V and an instance call to $retryCall sit in a class holding ""$retryTag"""
+    $retryRule = "once-call $retryHook in instance ()V calling instance $retryCall class-holding " +
+        'null\scannot\sbe\scast\sto\snon-null\stype\sT\sof\scom.instagram.store.PendingActionStore'
     $onceCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*once-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
     $allowHook = 'Lapp/hushgram/extension/fixture/download/VideoDownload;->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;'
@@ -810,8 +818,9 @@ try {
     $inboxHook = 'Lapp/hushgram/extension/fixture/metaai/MetaAi;->inboxRow(Ljava/lang/Object;)Ljava/lang/Object;'
     $inboxSite = 'Lfixture/InboxSections;->build(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z'
     $inboxRule = "once-call $inboxHook in static (L*;L*;L*;L*;)Z class-holding No\ssection\sgenerator\sfound\sfor\ssection\stype\s"
-    Assert-True ($onceCallRules.Count -eq 5 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
-        $onceCallRules[2] -ceq $tabRule -and $onceCallRules[3] -ceq $dmRule -and $onceCallRules[4] -ceq $inboxRule) `
+    Assert-True ($onceCallRules.Count -eq 6 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
+        $onceCallRules[2] -ceq $tabRule -and $onceCallRules[3] -ceq $dmRule -and $onceCallRules[4] -ceq $inboxRule -and
+        $onceCallRules[5] -ceq $retryRule) `
         "The contract file has a once-call rule without exact negative coverage:`n$($onceCallRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
         "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
@@ -868,7 +877,8 @@ try {
         'PendingReelSeenStateStore.deserializeFromDisk'
     $classRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '\sclass-holding\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($classRules.Count -eq 2 -and $classRules[0] -ceq $seenRule -and $classRules[1] -ceq $inboxRule) `
+    Assert-True ($classRules.Count -eq 3 -and $classRules[0] -ceq $seenRule -and $classRules[1] -ceq $inboxRule -and
+        $classRules[2] -ceq $retryRule) `
         "The contract file has a class-holding rule without exact negative coverage:`n$($classRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $seenRule`: first in $seenSend")) `
         "The good build's story seen guard was not reported first in the store's send.`n$($good.Output -join "`n")"
@@ -882,10 +892,13 @@ try {
     $tabHeld = """default"" with the shape static $tabShape and a static call to $tabCall"
     $callingRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\scalling\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($callingRules.Count -eq 2 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule) `
+    Assert-True ($callingRules.Count -eq 3 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule -and
+        $callingRules[2] -ceq $retryRule) `
         "The contract file has a calling rule without exact negative coverage:`n$($callingRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $tabRule`: once in $tabHome")) `
         "The good build's home tab call was not reported once in the home tab, picked by its static check.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $retryRule`: once in $retrySite")) `
+        "The good build's canceled story retry was not retired once in its native loop.`n$($good.Output -join "`n")"
 
     # HushGram's own contract file, which names Instagram's code: it parses, each rule kind it uses is
     # one the fixture's rules exercise, and its no-call rules are the fixture's. Each has its own
@@ -1067,6 +1080,10 @@ try {
         'bad-same-key-provider-twice' = 'contract'
         'bad-same-key-provider-two-guards' = 'contract'
         'bad-setup-presenter-guard-missing' = 'contract'
+        'bad-story-retry-retire-missing' = 'contract'
+        'bad-story-retry-retire-twice' = 'contract'
+        'bad-story-retry-retire-decoy' = 'contract'
+        'bad-story-retry-two-loops' = 'contract'
         'bad-finder-stub-not-filled' = 'contract'
         'bad-finder-stub-extension-call' = 'contract'
         'bad-finder-stub-call-after-return' = 'contract'
@@ -1291,6 +1308,12 @@ try {
             "can't say which one calls ${providerHook}: $providerSite, Lfixture/FamilyProviders;->otherPolicy()V"
         'bad-setup-presenter-guard-missing' = "[diff] FAIL: contract: $setupHook is not called in $setupSite, the one method holding " +
             "$setupHeld; the host methods that call it: $($setupOtherCalls -join ', ')"
+        'bad-story-retry-retire-missing' = "[diff] FAIL: contract: $retryHook is not called in $retrySite, the one method $retryOne"
+        'bad-story-retry-retire-twice' = "[diff] FAIL: contract: $retryHook has 2 call sites in $retrySite, and must have exactly one"
+        'bad-story-retry-retire-decoy' = "[diff] FAIL: contract: $retryHook is not called in $retrySite, the one method $retryOne; " +
+            'the host methods that call it: Lfixture/StoryRetryQueue;->other()V'
+        'bad-story-retry-two-loops' = "[diff] FAIL: contract: 2 methods $retryMany, and exactly one must, so the rule can't say " +
+            "which one calls ${retryHook}: $retrySite, Lfixture/StoryRetryQueue;->runAgain()V"
     }
     foreach ($case in $newContractFails.GetEnumerator()) {
         $fails = @((Get-Findings $badResults[$case.Key]).Fails)

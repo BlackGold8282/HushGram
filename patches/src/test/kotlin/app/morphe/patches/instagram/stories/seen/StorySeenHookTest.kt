@@ -47,12 +47,14 @@ class StorySeenHookTest {
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         assertTrue(TO_SEND.substringAfter("->") in declared(STORY_SEEN, public = true))
         assertTrue(TO_RETRY.substringAfter("->") in declared(STORY_SEEN, public = true))
+        assertTrue(RETIRE_RETRY.substringAfter("->") in declared(STORY_SEEN, public = true))
         assertTrue(BIND_BUTTON.substringAfter("->") in declared(STORY_SEEN_BUTTON, public = true))
         val stubs = declared(STORY_SEEN, public = false) + declared(STORY_SEEN_BUTTON, public = false)
         for (stub in listOf(
             "emptyBatch()Ljava/lang/Object;", "seenStories(Ljava/lang/Object;)Ljava/util/Map;",
             "send(Ljava/lang/Object;Ljava/lang/Object;)V", "storeAccount(Ljava/lang/Object;)Ljava/lang/String;",
             "sessionAccount(Ljava/lang/Object;)Ljava/lang/String;", "storyId(Ljava/lang/Object;)Ljava/lang/String;",
+            "retireRetry(Ljava/lang/Object;Ljava/lang/String;)V",
             "itemView(Ljava/lang/Object;)Landroid/view/View;",
         )) {
             assertTrue("$stub is not in the extension: $stubs", stub in stubs)
@@ -109,7 +111,7 @@ class StorySeenHookTest {
         context.holdBackStoryViews()
 
         for ((type, names) in listOf(
-            STORY_SEEN to listOf("emptyBatch", "seenStories", "send", "storeAccount", "sessionAccount"),
+            STORY_SEEN to listOf("emptyBatch", "seenStories", "send", "retireRetry", "storeAccount", "sessionAccount"),
             STORY_SEEN_BUTTON to listOf("storyId", "itemView"),
         )) {
             for (stub in context.mutableClassDefBy(type).methods.filter { it.name in names }) {
@@ -287,7 +289,7 @@ class StorySeenHookTest {
                 assertSendHooked("${bundle.name}: the send", send, found.batch)
                 val retryBefore = store.methods.single { it.name == retry.name && it.parameterTypes.map(Any::toString) == retry.parameters }
                 val retryAfter = context.mutableClassDefBy(found.store).methods.single { it.name == retry.name && it.parameterTypes.map(Any::toString) == retry.parameters }
-                assertEquals("${bundle.name}: the retry's size", retryBefore.code().size + 3, retryAfter.code().size)
+                assertEquals("${bundle.name}: the native retry bridge stays unchanged", retryBefore.code().map { it.opcode to it.referenceText() }, retryAfter.code().map { it.opcode to it.referenceText() })
                 assertRetryHooked("${bundle.name}: the retry", retryAfter, found.batch, retry.build)
                 val binder = context.mutableClassDefBy(found.binder).methods.single { it.name == found.binderName && it.parameterTypes.map(Any::toString) == found.binderParameters }
                 assertHeaderHooked("${bundle.name}: the header binder", binder, found.session, found.item, found.holder)
@@ -304,10 +306,11 @@ class StorySeenHookTest {
                 }
                 assertEquals(
                     "${bundle.name}: the hooks are in the send, the retry and the binder, and nowhere else",
-                    setOf("${found.store}->${found.send} $TO_SEND", "${found.store}->${retry.name} $TO_RETRY", "${found.binder}->${found.binderName} $BIND_BUTTON"),
+                    setOf("${found.store}->${found.send} $TO_SEND", "${found.queue!!.owner}->${found.queue.run} $TO_RETRY",
+                        "${found.queue.owner}->${found.queue.run} $RETIRE_RETRY", "${found.binder}->${found.binderName} $BIND_BUTTON"),
                     hooked.toSet(),
                 )
-                assertEquals("${bundle.name}: one call of each hook", 3, hooked.size)
+                assertEquals("${bundle.name}: one call of each hook", 4, hooked.size)
 
                 val binderClass = classes.single { it.type == found.binder }
                 assertRefused(classes + copyOf(binderClass, "Lfixture/SecondBinder;"), "story header binder")
@@ -324,7 +327,7 @@ class StorySeenHookTest {
      * the account's, then their superclasses up to the view holder base and the store's, and the
      * extension's two classes.
      */
-    private fun fixtureClasses(bundle: java.io.File): List<ClassDef> {
+    internal fun fixtureClasses(bundle: java.io.File): List<ClassDef> {
         val strings = setOf("media/seen/?reel=%s&live_vod=0", "pending_reel_seen_states_", "ReelViewerItemBinder.bindHeaderViews", "itemView may not be null")
         val found = mutableMapOf<String, ClassDef>()
         FixtureDex.forEach(bundle) { dex ->
@@ -409,38 +412,19 @@ class StorySeenHookTest {
     }
 
     /**
-     * The retry's three instructions at [build], where its build of the request was: a range call
+     * The retry's six instructions at [build], where its build of the request was: a range call
      * handing the store and the batch to [TO_RETRY], its answer moved into the batch's register and
-     * cast back to the batch, right before the build, which reads it as its receiver. No branch lands
-     * past the call into the hook.
+     * canceled with a typed null request, or cast back to the batch right before the native build.
      */
     private fun assertRetryHooked(what: String, retry: Method, batch: String, build: Int) {
         val code = retry.code()
-        assertEquals(
-            "$what: the hook's opcodes",
-            listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST),
-            code.subList(build, build + 3).map { it.opcode },
-        )
-        assertEquals("$what: the hook called", TO_RETRY, code[build].referenceText())
-        val register = retry.parameterRegisterNumber(0)
-        val call = code[build] as RegisterRangeInstruction
-        assertEquals("$what: the hook takes the store and the batch", retry.localRegisterCount() to 2, call.startRegister to call.registerCount)
-        assertEquals("$what: the batch follows the store", register, call.startRegister + 1)
-        assertEquals("$what: the answer replaces the batch", register, (code[build + 1] as OneRegisterInstruction).registerA)
-        assertEquals("$what: cast back to the batch", batch, code[build + 2].referenceText())
-        assertEquals("$what: the cast is of the batch's register", register, (code[build + 2] as OneRegisterInstruction).registerA)
-        assertTrue("$what: the build follows", code[build + 3].referenceText()!!.startsWith("$batch->"))
-        assertEquals("$what: the build's receiver is the answer", register, code[build + 3].namedRegisters().first())
-        assertEquals("$what: calls of the hook", 1, code.count { it.referenceText() == TO_RETRY })
-        val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
-        for ((index, instruction) in code.withIndex()) {
-            if (instruction !is OffsetInstruction) continue
-            val target = addresses[index] + instruction.codeOffset
-            assertTrue("$what: the branch at $index lands in the hook", target !in addresses.subList(build + 1, build + 4))
-        }
+        assertEquals("$what: native builder still receives the original typed batch", batch,
+            code.first { it.opcode == Opcode.CHECK_CAST }.referenceText())
+        assertTrue("$what: native builder still occupies the original location",
+            code[build].referenceText()!!.startsWith("$batch->"))
+        assertEquals("$what: the bridge holds no extension hook", 0, code.count { it.referenceText() in HOOKS })
     }
 
-    /** The binder's first four instructions: its account, story and holder moved to v0 to v2 and handed to [BIND_BUTTON]. */
     private fun assertHeaderHooked(what: String, binder: Method, session: Int, item: Int, holder: Int) {
         val code = binder.code()
         assertEquals(
@@ -488,7 +472,7 @@ class StorySeenHookTest {
      * answers its account; the account; the Reset NUX route; the story header binder; the view holder
      * base and a holder two classes down; the story class; and the extension's two classes.
      */
-    private fun standIns(
+    internal fun standIns(
         request: Boolean = true,
         storeReader: Boolean = true,
         sends: Int = 1,
@@ -692,11 +676,7 @@ class StorySeenHookTest {
             STORE,
             emptyList(),
             listOfNotNull(
-                if (storeReader) method(STORE, "A0L", emptyList(), "V", 2, """
-                    const-string v0, "pending_reel_seen_states_"
-                    const-string v0, "PendingReelSeenStateStore.deserializeFromDisk"
-                    return-void
-                """, static = false) else null,
+                if (storeReader) storyQueueReader(STORE, STORE_BASE) else null,
                 if (getter) method(STORE, "A00", listOf(USER_SESSION), STORE, 2, """
                     new-instance v0, $STORE
                     return-object v0
@@ -719,17 +699,7 @@ class StorySeenHookTest {
             ) + (0 until sends).map { copy -> method(STORE, if (copy == 0) "A0O" else "A0R", listOf(BATCH), "V", sendRegisters, sendBody, static = false) },
             superclass = STORE_BASE,
         )
-        val storeBase = classOf(
-            STORE_BASE,
-            emptyList(),
-            listOfNotNull(
-                if (storeSession) method(STORE_BASE, "A0H", emptyList(), USER_SESSION, 2, """
-                    const/4 v0, 0x0
-                    return-object v0
-                """, static = false) else null,
-            ),
-            abstract = true,
-        )
+        val storeBase = storyQueueBase(STORE_BASE, REQUEST, storeSession)
         val resetNux = classOf(
             RESET_NUX,
             emptyList(),
@@ -906,6 +876,6 @@ class StorySeenHookTest {
         const val VIEWER = "Lfixture/Viewer;"
         const val OBJECT = "Ljava/lang/Object;"
         const val VIEW = "Landroid/view/View;"
-        val HOOKS = setOf(TO_SEND, TO_RETRY, BIND_BUTTON)
+        val HOOKS = setOf(TO_SEND, TO_RETRY, RETIRE_RETRY, BIND_BUTTON)
     }
 }

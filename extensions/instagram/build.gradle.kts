@@ -270,7 +270,16 @@ tasks.register("verifyAndroidBoundaries") {
                 "aMarkBelongsToTheAccountItWasMadeOn[28]", "aMarkBelongsToTheAccountItWasMadeOn",
                 "withNoAccountNothingIsMarkedKeptOrSent[28]", "withNoAccountNothingIsMarkedKeptOrSent",
                 "aBatchThatCantStartEmptyKeepsTheMarkedStoriesForLater[28]", "aBatchThatCantStartEmptyKeepsTheMarkedStoriesForLater",
-                "aRetriedBatchHeldBackGoesOutEmpty[28]", "aRetriedBatchHeldBackGoesOutEmpty"),
+                "aRetriedBatchHeldBackIsCanceled[28]", "aRetriedBatchHeldBackIsCanceled"),
+            "app.hushgram.extension.instagram.stories.StoryRetryTest" to listOf(
+                "nullFactoryCancels", "throwingFactoryCancels", "allocationFailureCancels", "nonemptyFactoryCancels",
+                "unreadableMapCancels", "failingMapCancels", "failingAccountCancels", "noMarksNeedsNoEmptyFactory",
+                "offPreservesTheOriginalEvenWithBrokenAdapters", "failingMarkingSwitchCancels",
+                "diagnosticsCannotCancelAValidMarkedSubset", "aSecondAccountCannotUseTheFirstAccountsMark",
+                "repeatedFactoryFailuresKeepUnmarkedReceiptsPrivateAndTheMarkEligible",
+                "aRetryDelayedPastMarkExpiryCancelsInsteadOfSendingItsOriginal",
+                "accountTeardownCannotReviveHeldReceiptsOrMarks"
+            ).flatMap { listOf("$it[28]", it) },
             "app.hushgram.extension.instagram.stories.StorySeenButtonTest" to listOf(
                 "theButtonGoesBeforeTheMenuAndSaysWhatItDoes[28]", "theButtonGoesBeforeTheMenuAndSaysWhatItDoes",
                 "aTapMarksTheStoryAndASecondTapUndoesIt[28]", "aTapMarksTheStoryAndASecondTapUndoesIt",

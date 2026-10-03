@@ -506,11 +506,16 @@ once-call Lapp/hushgram/extension/instagram/media/QualityChoice;->firstChoice(Lj
 # or elsewhere, it isn't the guard the patch wrote.
 start-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
 once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
-# The store's retry of a batch an earlier session saved to disk builds the same request, so a second
-# guard goes right before that build, not first: the retry casts its batch first. It's the store's
-# one instance method taking an Object and answering the request (00CT.A0J on 449, a bridge). Left
-# out, a retried batch posts the stories in it; twice or elsewhere, it isn't the guard the patch wrote.
-once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (Ljava/lang/Object;)L*; class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+# The saved-story selection happens in the shared pending-action loop, immediately before its
+# story-specific builder call. It returns the original while off or paused, a marked-only batch,
+# or null to cancel before building. Stock request results and the story bridge stay unchanged.
+once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\scannot\sbe\scast\sto\snon-null\stype\sT\sof\scom.instagram.store.PendingActionStore
+# A canceled saved story batch retires its native in-flight key without building an empty batch.
+# The shared pending-action base has one instance void loop that uses Iterator.hasNext(), and its
+# claim method holds the stable non-null assertion below. Other pending-action stores still use
+# the stock request path. Native proof tests also require the story type check, the exact key,
+# the allocation-free retirement method, the loop backedge and the original monitor/disk cleanup.
+once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->retireRetry(Ljava/lang/Object;Ljava/lang/String;)V in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\scannot\sbe\scast\sto\snon-null\stype\sT\sof\scom.instagram.store.PendingActionStore
 # Its second switch hands each story on screen to StorySeenButton first thing in the story header
 # binder (05UI.A06 on 449), the one static method holding the trace section Instagram names after
 # it, behind three moves of its account, story and view holder into borrowed locals. Left out, no
