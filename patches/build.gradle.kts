@@ -365,6 +365,10 @@ abstract class WriteReleaseSbom : DefaultTask() {
     @get:Input
     abstract val sourceUrl: Property<String>
 
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val buildInputs: RegularFileProperty
+
     @get:Input
     abstract val runtimeGraph: Property<ResolvedComponentResult>
 
@@ -408,6 +412,7 @@ abstract class WriteReleaseSbom : DefaultTask() {
         val bundleName = bundleFile.name
         val version = bundleVersion.get()
         val bundleHash = Sbom.sha256(bundleFile)
+        val inputIdentity = buildInputs.get().asFile.readText(Charsets.UTF_8).trim()
 
         val bundleFiles = sortedSetOf<String>()
         val payloadHashes = sortedMapOf<String, String>()
@@ -549,6 +554,7 @@ abstract class WriteReleaseSbom : DefaultTask() {
                     "externalReferences" to listOf(linkedMapOf("type" to "vcs", "url" to sourceUrl.get())),
                 ),
                 "properties" to listOf(
+                    property("hushgram:build-inputs", inputIdentity),
                     property("hushgram:covers",
                         "What $bundleName carries: the patch classes and the libraries the Morphe plugin bundles " +
                             "with them (:patches runtimeClasspath less every module :patches patcherProvidedClasspath " +
@@ -824,6 +830,8 @@ tasks {
         group = "build"
         description = "Writes the CycloneDX SBOM of the release bundle into build/release beside it"
         dependsOn("buildAndroid")
+        dependsOn(rootProject.tasks.named("writeDependencyAuditInputs"))
+        buildInputs.set(rootProject.layout.buildDirectory.file("reports/dependencies/build-inputs.json"))
         bundle.set(layout.buildDirectory.file("release/$releaseBundleName"))
         bundleVersion.set(project.version.toString())
         epochSeconds.set(sourceDateEpoch)
@@ -847,6 +855,10 @@ tasks {
         output.set(layout.buildDirectory.file("release/$releaseSbomName"))
     }
     named("buildAndroid") {
+        // Bind the producer itself to the same snapshot the SBOM records. A docs, policy or
+        // future ledger edit must rebuild rather than label a previous bundle with new inputs.
+        dependsOn(rootProject.tasks.named("writeDependencyAuditInputs"))
+        inputs.file(rootProject.layout.buildDirectory.file("reports/dependencies/build-inputs.json"))
         // Resolved at configuration time. Reaching for project inside doLast is what the
         // configuration cache refuses, and Gradle 10 turns that refusal into an error.
         val bundleFile = layout.buildDirectory.file("libs/$releaseBundleName")

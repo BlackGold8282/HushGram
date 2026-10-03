@@ -1,0 +1,59 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+import groovy.json.JsonOutput
+import java.security.MessageDigest
+
+// Hash working bytes at the producer boundary, including future tracked ledgers. Git supplies
+// names only, never the index's older bytes. Ignored machine configuration and outputs stay out.
+def auditRoot = rootDir
+def auditOutput = layout.buildDirectory.file('reports/dependencies/build-inputs.json')
+tasks.register('writeDependencyAuditInputs') {
+    group = 'verification'
+    description = 'Records the repository inputs used by the current bundle and dependency audit.'
+    outputs.file(auditOutput)
+    outputs.upToDateWhen { false }
+    mustRunAfter(':patches:generatePatchesList')
+    doLast {
+        def process = new ProcessBuilder('git', '-C', auditRoot.absolutePath, 'ls-files', '-z', '--cached')
+        process.environment().keySet().removeIf { it.startsWith('GIT_') }
+        def child = process.start()
+        def names = new TreeSet<String>(child.inputStream.getText('UTF-8').split('\u0000').findAll { it })
+        def error = child.errorStream.getText('UTF-8')
+        if (child.waitFor() != 0 || names.empty) throw new GradleException('Cannot enumerate tracked build inputs: ' + error)
+        def untracked = new ProcessBuilder('git', '-C', auditRoot.absolutePath, 'ls-files', '-z', '--others', '--exclude-standard')
+        untracked.environment().keySet().removeIf { it.startsWith('GIT_') }
+        def untrackedChild = untracked.start()
+        def added = untrackedChild.inputStream.getText('UTF-8')
+        def addedError = untrackedChild.errorStream.getText('UTF-8')
+        if (untrackedChild.waitFor() != 0) throw new GradleException('Cannot check untracked build inputs: ' + addedError)
+        if (added) throw new GradleException('Stage new repository inputs before building an input-bound artifact.')
+        def hash = { byte[] bytes -> MessageDigest.getInstance('SHA-256').digest(bytes).encodeHex().toString() }
+        def groups = [source: [], catalog: [], toolchain: []]
+        names.each { name ->
+            if (name.contains('\n') || name.contains('\r') || name.contains('\t')) {
+                throw new GradleException('A tracked build input has an unsupported filename.')
+            }
+            def file = new File(auditRoot, name)
+            if (!file.isFile()) throw new GradleException('A tracked build input is missing: ' + name)
+            def group = name == 'patches-list.json' ? 'catalog' :
+                    (name.startsWith('gradle/') || name == 'gradle.properties' || name == 'settings.gradle.kts' ||
+                    name == 'build.gradle.kts' || name == 'gradlew' || name == 'gradlew.bat' ||
+                    name.endsWith('.gradle') || name.endsWith('.gradle.kts')) ? 'toolchain' : 'source'
+            groups[group].add(name + '\t' + hash(file.bytes) + '\n')
+        }
+        if (groups.catalog.size() != 1 || groups.toolchain.empty || groups.source.empty) {
+            throw new GradleException('Tracked inputs omit the source, catalog or toolchain.')
+        }
+        def version = new Properties()
+        new File(auditRoot, 'gradle.properties').withInputStream { version.load(it) }
+        if (!version.getProperty('version')) throw new GradleException('No current bundle version is pinned.')
+        def inputs = [schemaVersion: 1, version: version.getProperty('version')]
+        groups.each { name, entries -> inputs[name + 'Sha256'] = hash(entries.join('').getBytes('UTF-8')) }
+        inputs.inputSha256 = hash(groups.keySet().collect { it + ':' + inputs[it + 'Sha256'] + '\n' }.join('').getBytes('UTF-8'))
+        def output = auditOutput.get().asFile
+        output.parentFile.mkdirs()
+        output.setText(JsonOutput.prettyPrint(JsonOutput.toJson(inputs)) + '\n', 'UTF-8')
+    }
+}

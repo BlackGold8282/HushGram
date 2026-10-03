@@ -66,7 +66,7 @@ $assistant = @('c', 'l', 'a', 'u', 'd', 'e') -join ''
 $aiPattern = "(?i)\b($assistant|anthropic|openai|chatgpt|codex|copilot|gemini)\b"
 $buildPaths = '^(extensions/|patches/|gradle/|build\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|' +
     'NOTICE$|provenance\.json$|README\.md$|patches-list\.json$|sources/|' +
-    'scripts/(DexDiff\.java|ResourceTableCheck\.java|MergeSplits\.java|injected-mutation-contracts\.txt|' +
+    'scripts/(build-inputs\.gradle|DexDiff\.java|ResourceTableCheck\.java|MergeSplits\.java|injected-mutation-contracts\.txt|' +
     'injected-register-removal-allowlist\.txt|verify-all-patches\.ps1|verify-injected-registers\.ps1|' +
     'test-android-boundaries\.ps1|pre-push\.ps1|script-wiring\.ps1)$)'
 $ledgerPaths = '^(sources/|scripts/(instagram-sources|test-instagram-sources|audit-instagram-sources)\.ps1$|NOTICE$|provenance\.json$)'
@@ -175,6 +175,7 @@ $releaseToolingPaths = @(
     'scripts/advisory-exceptions.txt',
     'scripts/audit-dependencies.ps1',
     'scripts/dependency-graphs.init.gradle',
+    'scripts/build-inputs.gradle',
     'scripts/dependency-advisory-exceptions.txt',
     'scripts/apk-facts.ps1',
     'scripts/build-release-receipt.ps1',

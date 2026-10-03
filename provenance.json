@@ -246,6 +246,7 @@
         "scripts/VerifyGradleWrapper.java",
         "scripts/test-gradle-wrapper.ps1",
         "scripts/test-android-boundaries.ps1",
+        "scripts/build-inputs.gradle",
         "scripts/sync-l10n.py",
         "scripts/test-l10n.py",
         "scripts/crowdin-l10n.py",

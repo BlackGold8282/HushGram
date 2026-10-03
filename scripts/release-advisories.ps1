@@ -279,9 +279,10 @@ function Read-DependencyGraphs {
 
     try { $report = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -ErrorAction Stop }
     catch { throw "The dependency graph report cannot be read: $($_.Exception.Message)" }
-    if ($report.schemaVersion -ne 1 -or -not $report.graphs) {
-        throw 'The dependency graph report must use schema 1 and contain graphs.'
+    if ($report.schemaVersion -ne 2 -or -not $report.graphs) {
+        throw 'The dependency graph report must use schema 2 and contain bound graphs.'
     }
+    Assert-DependencyInputIdentity -Inputs $report.inputs -Label 'The dependency graph report'
     $scopes = @('settings-plugin', 'project-plugin', 'build', 'test', 'host-contract')
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     $libraries = @{}
@@ -293,6 +294,7 @@ function Read-DependencyGraphs {
         if (-not $seen.Add("$($graph.scope) $($graph.owner) $($graph.configuration)")) {
             throw 'The dependency graph report contains a duplicate graph.'
         }
+        $moduleRefs = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
         foreach ($library in @($graph.libraries)) {
             $purl = [regex]::Match([string]$library.purl, '^pkg:maven/([^/@?#]+)/([^/@?#]+)@([^/@?#]+)$')
             if (-not $library.group -or -not $library.name -or -not $library.version -or -not $purl.Success -or
@@ -301,7 +303,41 @@ function Read-DependencyGraphs {
                 [Uri]::UnescapeDataString($purl.Groups[3].Value) -cne $library.version) {
                 throw 'A dependency graph library is unresolved or its package URL names another coordinate.'
             }
+            if (-not $moduleRefs.Add([string]$library.purl)) { throw 'A dependency graph contains a duplicate library.' }
             $libraries[[string]$library.purl] = $library
+        }
+        $nodes = [System.Collections.Generic.Dictionary[string, object]]::new([System.StringComparer]::Ordinal)
+        foreach ($node in @($graph.dependencies)) {
+            $ref = [string]$node.ref
+            if (-not $ref -or -not $node.PSObject.Properties['dependsOn'] -or $nodes.ContainsKey($ref)) {
+                throw 'A dependency graph has a missing or duplicate edge node.'
+            }
+            $nodes.Add($ref, $node)
+        }
+        if ($graph.root -cne 'root' -or -not $nodes.ContainsKey('root')) {
+            throw 'A dependency graph omits its root-to-module edges.'
+        }
+        $expected = @('root') + @($graph.libraries | ForEach-Object { $_.purl })
+        foreach ($ref in $nodes.Keys) {
+            if ($ref -cnotin $expected -and -not $ref.StartsWith('project:')) {
+                throw 'A dependency graph edge names an unlisted library.'
+            }
+            $targets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            foreach ($target in @($nodes[$ref].dependsOn)) {
+                if (-not $nodes.ContainsKey([string]$target) -or -not $targets.Add([string]$target)) {
+                    throw 'A dependency graph has an unresolved or duplicate dependency edge.'
+                }
+            }
+        }
+        $reached = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        $queue = [System.Collections.Generic.Queue[string]]::new()
+        $queue.Enqueue('root')
+        while ($queue.Count) {
+            $ref = $queue.Dequeue()
+            if ($reached.Add($ref)) { foreach ($target in @($nodes[$ref].dependsOn)) { $queue.Enqueue([string]$target) } }
+        }
+        if ($nodes.Count -ne $reached.Count -or @($expected | Where-Object { -not $reached.Contains($_) }).Count) {
+            throw 'A dependency graph has a library or node not reachable from its root.'
         }
     }
     foreach ($scope in $scopes) {
@@ -309,8 +345,134 @@ function Read-DependencyGraphs {
             throw "The dependency graph report omits the $scope scope."
         }
     }
-    return [pscustomobject]@{ Path = $Path; Graphs = @($report.graphs)
+    return [pscustomobject]@{ Path = $Path; Sha256 = Get-Sha256Hex -Path $Path; Inputs = $report.inputs; Graphs = @($report.graphs)
         Libraries = @($libraries.Values | Sort-Object purl) }
+}
+
+function Assert-DependencyInputIdentity {
+    param($Inputs, [string]$Label)
+    if (-not $Inputs -or $Inputs.schemaVersion -ne 1 -or -not $Inputs.version) {
+        throw "$Label has no current build-input identity. Rebuild and regenerate the dependency audit."
+    }
+    foreach ($field in 'sourceSha256', 'catalogSha256', 'toolchainSha256', 'inputSha256') {
+        if ([string]$Inputs.$field -cnotmatch '^[0-9a-f]{64}$') { throw "$Label has an invalid $field build-input digest." }
+    }
+}
+
+function Get-DependencyAuditInputs {
+    param([Parameter(Mandatory = $true)][string]$Root)
+    $names = @(Invoke-RepoGit -Root $Root -Arguments @('-c', 'core.quotepath=false', 'ls-files', '--cached'))
+    if ($LASTEXITCODE -ne 0 -or -not $names.Count) { throw 'Cannot enumerate tracked build inputs.' }
+    $added = @(Invoke-RepoGit -Root $Root -Arguments @('ls-files', '--others', '--exclude-standard'))
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot check untracked build inputs.' }
+    if ($added.Count) { throw 'Stage new repository inputs before building or certifying an input-bound artifact.' }
+    $sorted = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($name in $names) {
+        if (-not $name -or $name -match '[\r\n\t]' -or $name.StartsWith('"') -or -not $sorted.Add($name)) {
+            throw 'A tracked build input has an unsupported or duplicate filename.'
+        }
+    }
+    $groups = [ordered]@{ source = [Text.StringBuilder]::new(); catalog = [Text.StringBuilder]::new(); toolchain = [Text.StringBuilder]::new() }
+    foreach ($name in $sorted) {
+        $path = Join-Path $Root $name
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "A tracked build input is missing: $name" }
+        $group = if ($name -ceq 'patches-list.json') { 'catalog' } elseif (
+            $name.StartsWith('gradle/') -or $name -cin @('gradle.properties', 'settings.gradle.kts', 'build.gradle.kts', 'gradlew', 'gradlew.bat') -or
+            $name.EndsWith('.gradle') -or $name.EndsWith('.gradle.kts')) { 'toolchain' } else { 'source' }
+        [void]$groups[$group].Append("$name`t$((Get-Sha256Hex -Path $path).ToLowerInvariant())`n")
+    }
+    if (@($groups.Values | Where-Object { -not $_.Length }).Count) { throw 'Tracked inputs omit the source, catalog or toolchain.' }
+    $version = [regex]::Match((Get-Content -LiteralPath (Join-Path $Root 'gradle.properties') -Raw), '(?m)^version\s*=\s*(\S+)').Groups[1].Value
+    if (-not $version) { throw 'No current bundle version is pinned.' }
+    $inputs = [ordered]@{ schemaVersion = 1; version = $version }
+    $combined = [Text.StringBuilder]::new()
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        foreach ($group in $groups.Keys) {
+            $digest = ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($groups[$group].ToString())) | ForEach-Object { '{0:x2}' -f $_ }) -join ''
+            $inputs["${group}Sha256"] = $digest
+            [void]$combined.Append("${group}:$digest`n")
+        }
+        $inputs.inputSha256 = ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($combined.ToString())) | ForEach-Object { '{0:x2}' -f $_ }) -join ''
+    } finally { $sha.Dispose() }
+    return [pscustomobject]$inputs
+}
+
+function Assert-DependencyInputsMatch {
+    param($Expected, $Actual, [string]$Label)
+    Assert-DependencyInputIdentity -Inputs $Actual -Label $Label
+    foreach ($field in 'version', 'sourceSha256', 'catalogSha256', 'toolchainSha256', 'inputSha256') {
+        if ($Actual.$field -cne $Expected.$field) { throw "$Label has stale or mismatched $field build inputs. Rebuild and regenerate the dependency audit." }
+    }
+}
+
+function Get-CurrentDependencyAuditSubject {
+    param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)]$Graphs,
+        [Parameter(Mandatory = $true)]$Sbom, [Parameter(Mandatory = $true)][string]$BundlePath)
+    $inputs = Get-DependencyAuditInputs -Root $Root
+    if ((Get-Sha256Hex -Path $Graphs.Path) -cne $Graphs.Sha256) { throw 'The dependency graph bytes changed after they were read.' }
+    Assert-DependencyInputsMatch -Expected $inputs -Actual $Graphs.Inputs -Label 'The dependency graph report'
+    $document = Get-Content -LiteralPath $Sbom.Path -Raw | ConvertFrom-Json
+    $recorded = @($document.metadata.properties | Where-Object name -CEQ 'hushgram:build-inputs')
+    if ($recorded.Count -ne 1) { throw 'The current SBOM has no unique build-input identity. Rebuild it.' }
+    try { $sbomInputs = $recorded[0].value | ConvertFrom-Json -ErrorAction Stop }
+    catch { throw 'The current SBOM build-input identity cannot be read.' }
+    Assert-DependencyInputsMatch -Expected $inputs -Actual $sbomInputs -Label 'The current SBOM'
+    $bundleName = "patches-$($inputs.version).mpp"
+    $sbomName = "patches-$($inputs.version).cdx.json"
+    if ((Split-Path -Leaf $BundlePath) -cne $bundleName -or (Split-Path -Leaf $Sbom.Path) -cne $sbomName -or
+        $Sbom.BundleVersion -cne $inputs.version) { throw 'The current SBOM or bundle has a mismatched name or version.' }
+    if ((Get-Sha256Hex -Path $Sbom.Path) -cne $Sbom.Sha256) { throw 'The current SBOM bytes changed after they were read.' }
+    $bound = Test-ReleaseSbom -Sbom $Sbom -BundlePath $BundlePath -BundleName $bundleName
+    if (-not $bound.Valid) { throw "The current SBOM does not describe the bundle: $($bound.Reason)" }
+    return [ordered]@{ inputs = $inputs
+        bundle = [ordered]@{ name = $bundleName; version = $inputs.version; sha256 = Get-Sha256Hex -Path $BundlePath }
+        sbom = [ordered]@{ name = $sbomName; sha256 = $Sbom.Sha256 }
+        graphReport = [ordered]@{ name = Split-Path -Leaf $Graphs.Path; sha256 = $Graphs.Sha256
+            graphsSha256 = Get-DependencyGraphsDigest -Graphs (Get-DependencyAuditGraphs -Graphs $Graphs -Sbom $Sbom) } }
+}
+
+function Get-DependencyAuditGraphs {
+    param($Graphs, $Sbom)
+    return @($Graphs.Graphs) + @([pscustomobject]@{ scope = 'shipped'; owner = 'bundle'
+        configuration = Split-Path -Leaf $Sbom.Path; libraries = @($Sbom.Libraries)
+        dependencies = (Get-Content -LiteralPath $Sbom.Path -Raw | ConvertFrom-Json).dependencies })
+}
+
+function Get-DependencyGraphsDigest {
+    param([object[]]$Graphs)
+    $json = ConvertTo-Json -InputObject $Graphs -Depth 16 -Compress
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($json)) | ForEach-Object { '{0:x2}' -f $_ }) -join '' }
+    finally { $sha.Dispose() }
+}
+
+function Read-CurrentDependencyAdvisoryReport {
+    param([Parameter(Mandatory = $true)][string]$Path, [Parameter(Mandatory = $true)]$Subject,
+        [datetime]$Now = [datetime]::UtcNow)
+    try { $report = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -ErrorAction Stop }
+    catch { throw 'The current dependency advisory report cannot be read.' }
+    if ($report.schemaVersion -ne 2 -or $report.valid -isnot [bool] -or -not $report.valid) {
+        throw 'The current dependency advisory report is uncertified or uses an old schema.'
+    }
+    Assert-DependencyInputsMatch -Expected $Subject.inputs -Actual $report.subject.inputs -Label 'The advisory report'
+    foreach ($part in 'bundle', 'sbom', 'graphReport') {
+        foreach ($field in @($Subject[$part].Keys)) {
+            if ($report.subject.$part.$field -cne $Subject[$part][$field]) { throw "The advisory report names a different $part $field." }
+        }
+    }
+    if ((Get-DependencyGraphsDigest -Graphs $report.graphs) -cne $Subject.graphReport.graphsSha256) {
+        throw 'The advisory report contains substituted dependency graphs.'
+    }
+    try { $stamp = [DateTimeOffset]::Parse((ConvertTo-UtcStamp $report.checkedAt)).UtcDateTime }
+    catch { throw 'The advisory report has no valid check date.' }
+    if ($stamp -gt $Now.AddMinutes(5) -or $stamp -lt $Now.AddDays(-1)) { throw 'The advisory report is stale or dated in the future. Run the current audit again.' }
+    foreach ($scope in 'shipped', 'settings-plugin', 'project-plugin', 'build', 'test', 'host-contract') {
+        if (-not $report.scopeVerdicts.PSObject.Properties[$scope] -or $report.scopeVerdicts.$scope.Valid -isnot [bool] -or
+            -not $report.scopeVerdicts.$scope.Valid -or
+            -not @($report.graphs | Where-Object scope -CEQ $scope).Count) { throw "The advisory report omits or refuses the $scope scope." }
+    }
+    return $report
 }
 
 function Get-SbomAdvisories {

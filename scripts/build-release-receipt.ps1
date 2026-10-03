@@ -76,6 +76,8 @@ param(
     [string]$OutputPath,
     # The SBOM :patches:buildAndroid writes beside the bundle, named for it. Defaults to that.
     [string]$Sbom,
+    # A freshly resolved, input-bound report. Without one the full dependency audit resolves it.
+    [string]$DependencyGraph,
     # For working with no network only: OSV isn't asked about the SBOM's libraries, and the run
     # says so. The index push asks again, so a release can't go out on it.
     [switch]$SkipAdvisoryCheck
@@ -199,8 +201,17 @@ $Sbom = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(
 $sbomDocument = Read-ReleaseSbom -Path $Sbom
 $sbomBound = Test-ReleaseSbom -Sbom $sbomDocument -BundlePath $Bundle -BundleName (Split-Path -Leaf $Bundle)
 if (-not $sbomBound.Valid) { throw "The SBOM does not describe the bundle: $($sbomBound.Reason)" }
-Invoke-ReleaseAdvisoryGate -Sbom $sbomDocument -ExceptionsPath (Join-Path $PSScriptRoot 'advisory-exceptions.txt') `
-    -SkipAdvisoryCheck:$SkipAdvisoryCheck
+if ($SkipAdvisoryCheck) {
+    # Offline preparation still verifies the producer's input identity. It cannot certify
+    # tooling advisories, and published receipt readers keep their historical rules.
+    if (-not $DependencyGraph) { $DependencyGraph = Join-Path $Root 'build/reports/dependencies/all-graphs.json' }
+    Get-CurrentDependencyAuditSubject -Root $Root -Graphs (Read-DependencyGraphs -Path $DependencyGraph) `
+        -Sbom $sbomDocument -BundlePath $Bundle | Out-Null
+    Invoke-ReleaseAdvisoryGate -Sbom $sbomDocument -ExceptionsPath (Join-Path $PSScriptRoot 'advisory-exceptions.txt') `
+        -SkipAdvisoryCheck
+} else {
+    & (Join-Path $PSScriptRoot 'audit-dependencies.ps1') -Root $Root -GraphPath $DependencyGraph -SbomPath $Sbom -BundlePath $Bundle
+}
 
 function Get-ExtensionPayloads {
     <#
