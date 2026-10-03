@@ -202,6 +202,9 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # else calls hold().
 start-call Lapp/hushgram/extension/instagram/stories/StoryAdvance;->hold()Z in instance (Ljava/lang/Object;)V calling static L*;->*(Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelItem;)Z holding userSession Required\svalue\swas\snull.
 once-call Lapp/hushgram/extension/instagram/stories/StoryAdvance;->hold()Z in instance (Ljava/lang/Object;)V calling static L*;->*(Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelItem;)Z holding userSession Required\svalue\swas\snull.
+# Its guard asks holdUnlessItLoops() once, right after hold(), in the same handler. Left out, the
+# stories Loop a story can't loop move on while both are on.
+once-call Lapp/hushgram/extension/instagram/stories/StoryAdvance;->holdUnlessItLoops()Z in instance (Ljava/lang/Object;)V calling static L*;->*(Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelItem;)Z holding userSession Required\svalue\swas\snull.
 # Show a story's exact time asks label() in front of the long-to-double in the story item's time
 # label, the item's one instance method taking a Context and answering a String. The label holds
 # no string, so the rule names one only ReelItem's methods hold on 449. Left out, every story says

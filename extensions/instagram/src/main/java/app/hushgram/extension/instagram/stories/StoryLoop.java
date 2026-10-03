@@ -23,8 +23,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * answers the test's read through {@link #loop(int)}.
  *
  * <p>Stop Story auto-advance asks {@link #takesOver()} first thing when a story is done. A video
- * that loops never reports that it's done, so for photos to behave the same, Loop wins whenever
- * both are on, and Stop holds nothing while it does.
+ * that loops never reports that it's done, so for photos to behave the same, Loop wins for every
+ * story it loops: with both on, Stop asks the viewer's loop check about the finished item itself
+ * and lets it through when the check says yes. A story the check turns down never reaches
+ * {@link #loop(int)}, can't loop, and Stop still holds it.
  */
 public final class StoryLoop {
     /** Whether the patch is in this build, when a test says so instead of {@link SettingsStatus}. */
@@ -51,8 +53,9 @@ public final class StoryLoop {
     }
 
     /**
-     * True while this build has the patch and it's looping stories, so a finished story is
-     * Loop's to handle and Stop Story auto-advance stands aside. Never throws.
+     * True while this build has the patch and it's looping stories, so Stop Story auto-advance
+     * leaves a finished story to the loop check: it stands aside for one the check loops and holds
+     * one the check turns down. Never throws.
      */
     static boolean takesOver() {
         try {

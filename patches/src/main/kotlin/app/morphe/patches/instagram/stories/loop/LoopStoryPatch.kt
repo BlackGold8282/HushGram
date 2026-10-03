@@ -18,6 +18,7 @@ import app.morphe.patches.instagram.misc.flags.findFlagLoads
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.instagram.stories.autoadvance.STORY_VIEWER
 import app.morphe.patches.instagram.stories.autoadvance.StoryItemDoneFingerprint
+import app.morphe.patches.instagram.stories.autoadvance.instagramCode
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -85,7 +86,8 @@ internal fun BytecodePatchContext.findStoryLoop(): FlagLoad {
     if (read.type != STORY_VIEWER || read.parameters != listOf(STORY_ITEM) || read.returnType != "Z") {
         refuse("$flag is read in $where(${read.parameters.joinToString("")})${read.returnType}, not in the story viewer's check of one story item")
     }
-    val asks = done.implementation?.instructions.orEmpty().count {
+    // Stop Story auto-advance's guard asks the check too when both are on; only Instagram's own ask counts.
+    val asks = instagramCode(done).count {
         val called = (it as? ReferenceInstruction)?.reference as? MethodReference
         called != null && called.definingClass == STORY_VIEWER && called.name == read.name && called.returnType == "Z" &&
             called.parameterTypes.map(CharSequence::toString) == listOf(STORY_ITEM)

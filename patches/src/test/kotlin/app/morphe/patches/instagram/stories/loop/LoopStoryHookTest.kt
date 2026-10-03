@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.instagram.stories.autoadvance.HOLD
+import app.morphe.patches.instagram.stories.autoadvance.HOLD_UNLESS_IT_LOOPS
 import app.morphe.patches.instagram.stories.autoadvance.STORY_VIEWER
 import app.morphe.patches.instagram.stories.autoadvance.holdFinishedStories
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -62,9 +63,14 @@ class LoopStoryHookTest {
         assertEquals("the finished story handler was touched", handlerSize(), viewer.methods.single { it.name == "FrS" }.code().size)
     }
 
-    /** Stop Story auto-advance and Loop a story patch the same build in either order. */
+    /**
+     * Stop Story auto-advance and Loop a story patch the same build in either order. Stop's guard
+     * asks the same loop check Loop answers, and Loop still finds Instagram's one ask of it past
+     * the guard's own.
+     */
     @Test
     fun stopAndLoopPatchTogetherInEitherOrder() {
+        val check = "$STORY_VIEWER->plays($storyItem)Z"
         for (stopFirst in listOf(true, false)) {
             val context = PatchContexts.of(classes())
             if (stopFirst) context.holdFinishedStories()
@@ -75,7 +81,10 @@ class LoopStoryHookTest {
             assertLoopAnswered("stop first $stopFirst", viewer.methods.single { it.name == "plays" })
             val handler = viewer.methods.single { it.name == "FrS" }.code()
             assertEquals("stop first $stopFirst: the hold", HOLD, handler.first().referenceText())
-            assertEquals("stop first $stopFirst: handler size", handlerSize() + 4, handler.size)
+            assertEquals("stop first $stopFirst: the guard's second hook", HOLD_UNLESS_IT_LOOPS, handler[3].referenceText())
+            assertEquals("stop first $stopFirst: handler size", handlerSize() + 11, handler.size)
+            assertEquals("stop first $stopFirst: asks of the loop check", 2, handler.count { it.referenceText() == check })
+            assertEquals("stop first $stopFirst: the guard's ask", check, handler[7].referenceText())
         }
     }
 

@@ -340,7 +340,11 @@ tasks.register("verifyAndroidBoundaries") {
             "app.hushgram.extension.instagram.stories.StoryLoopTest" to listOf(
                 "onEveryStoryLoops[28]", "onEveryStoryLoops",
                 "offPausedAndUnreadyKeepInstagramsAnswer[28]", "offPausedAndUnreadyKeepInstagramsAnswer",
-                "loopWinsOverStopWhileItsLooping[28]", "loopWinsOverStopWhileItsLooping",
+                "bothOnAStoryThatCanLoopLoops[28]", "bothOnAStoryThatCanLoopLoops",
+                "bothOnAStoryThatCantLoopIsStillHeld[28]", "bothOnAStoryThatCantLoopIsStillHeld",
+                "stopAloneHoldsEveryStory[28]", "stopAloneHoldsEveryStory",
+                "loopAloneLeavesStopOutOfIt[28]", "loopAloneLeavesStopOutOfIt",
+                "pausedAndUnreadyHoldNothing[28]", "pausedAndUnreadyHoldNothing",
                 "withoutTheLoopPatchStopHoldsAsBefore[28]", "withoutTheLoopPatchStopHoldsAsBefore"),
             "app.hushgram.extension.instagram.settings.StoryLoopSettingsTest" to listOf(
                 "missingPatchHasNoStoryLoopSwitch[28]", "missingPatchHasNoStoryLoopSwitch",
