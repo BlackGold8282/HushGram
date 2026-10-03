@@ -1010,11 +1010,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 overrideFeedback(request, L10n.t("Couldn't restore overrides. The saved copy doesn't fit this session and "
                         + "Instagram build. Use Discard saved overrides if you don't need it. Nothing changed."));
             } catch (Exception failure) {
-                Logger.printInfo(() -> "Override document operation failed without native writes");
+                Logger.printInfo(() -> "Override document operation failed before native mutation");
                 overrideFeedback(request, request == RESTORE_OVERRIDES
                         ? L10n.t("Couldn't restore overrides. Open settings from Home while signed in. Nothing changed.")
                         : request == DISCARD_OVERRIDES
-                        ? L10n.t("Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.")
+                        ? L10n.t("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.")
                         : request == IMPORT_OVERRIDES
                         ? L10n.t("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.")
                         : validating
@@ -1029,14 +1029,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     private static String overrideOutcome(OverrideImport.Result result, boolean restoring) {
+        String message;
         switch (result.outcome) {
-            case UNCHANGED: return restoring
+            case UNCHANGED: message = restoring
                     ? L10n.t("The current overrides already match the saved copy. Nothing changed.")
-                    : L10n.t("This file matches the current overrides. Nothing changed.");
-            case APPLIED: return restoring
+                    : L10n.t("This file matches the current overrides. Nothing changed."); break;
+            case APPLIED: message = restoring
                     ? L10n.t("Previous overrides restored. Restart Instagram to apply them.")
-                    : L10n.f("Imported %1$d override changes. Restart Instagram to apply them.", result.changes);
-            case ROLLED_BACK: return L10n.t("Instagram didn't keep the change, so the overrides were put back as they were.");
+                    : L10n.f("Imported %1$d override changes. Restart Instagram to apply them.", result.changes); break;
+            case ROLLED_BACK: message = L10n.t("Instagram didn't keep the change, so the overrides were put back as they were."); break;
             case PARTIAL: return result.blocked
                     ? L10n.f("Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't "
                     + "be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram "
@@ -1046,6 +1047,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             default: return L10n.t("Instagram didn't keep the change and the overrides couldn't be confirmed. "
                     + "Use Restore previous overrides, then restart Instagram.");
         }
+        return result.blocked ? message + " " + L10n.t("Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.") : message;
     }
 
     private void overrideFeedback(int request, String message) {

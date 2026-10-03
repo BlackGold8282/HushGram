@@ -46,7 +46,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(706);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -182,12 +182,12 @@ public final class L10nTranslations {
     private static void fillDe1(Map<String, String> table) {
         table.put("Couldn't copy comment",
                 "Kommentar konnte nicht kopiert werden");
-        table.put("Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.",
-                "Die gespeicherte Kopie konnte nicht verworfen werden. \u00d6ffne die Einstellungen auf der Startseite, w\u00e4hrend du angemeldet bist. Es wurde nichts ge\u00e4ndert.");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "HushGram-Einstellungen konnten nicht exportiert werden. Versuche eine andere Datei.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "Die \u00dcberschreibungen konnten nicht exportiert werden. Die ausgew\u00e4hlte Datei ist m\u00f6glicherweise unvollst\u00e4ndig. Instagrams \u00dcberschreibungen wurden nicht ge\u00e4ndert.");
+        table.put("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.",
+                "Die gespeicherten Kopien konnten nicht vollst\u00e4ndig verworfen werden. Versuche Gespeicherte \u00dcberschreibungen verwerfen erneut. Die \u00dcberschreibungen von Instagram wurden nicht ge\u00e4ndert.");
         table.put("Couldn't hide this notice. Try again.",
                 "Dieser Hinweis konnte nicht ausgeblendet werden. Versuche es noch einmal.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
@@ -520,6 +520,8 @@ public final class L10nTranslations {
                 "Fix f\u00fcr neu signierte Builds");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Zeichnet Patch-Aktivit\u00e4t auf und zeigt Fehler f\u00fcr einen Fehlerbericht. Im Alltag ausgeschaltet lassen.");
+        table.put("Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.",
+                "Die Wiederherstellungsdateien konnten nicht vollst\u00e4ndig bereinigt werden. Nutze Vorherige \u00dcberschreibungen wiederherstellen oder Gespeicherte \u00dcberschreibungen verwerfen.");
         table.put("Reels",
                 "Reels");
         table.put("Remembered playback positions restored.",
@@ -544,11 +546,11 @@ public final class L10nTranslations {
                 "Lange Videos fortsetzen");
         table.put("Retry",
                 "Erneut versuchen");
-        table.put("Ring size",
-                "Ringgr\u00f6\u00dfe");
     }
 
     private static void fillDe4(Map<String, String> table) {
+        table.put("Ring size",
+                "Ringgr\u00f6\u00dfe");
         table.put("Sanitize sharing links",
                 "Geteilte Links bereinigen");
         table.put("Save",
@@ -667,11 +669,11 @@ public final class L10nTranslations {
                 "Die aktuellen \u00dcberschreibungen entsprechen bereits der gespeicherten Kopie. Es wurde nichts ge\u00e4ndert.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Der Diagnosebericht lie\u00df sich noch nicht speichern. Versuche es gleich noch einmal.");
-        table.put("The diagnostic report couldn't be saved. Try again.",
-                "Der Diagnosebericht lie\u00df sich nicht speichern. Versuche es noch einmal.");
     }
 
     private static void fillDe5(Map<String, String> table) {
+        table.put("The diagnostic report couldn't be saved. Try again.",
+                "Der Diagnosebericht lie\u00df sich nicht speichern. Versuche es noch einmal.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "Die Datei %1$s lie\u00df sich nicht entfernen. L\u00f6sche sie aus %2$s, um HushGram wieder einzuschalten.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
@@ -779,7 +781,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(706);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -915,12 +917,12 @@ public final class L10nTranslations {
     private static void fillEs1(Map<String, String> table) {
         table.put("Couldn't copy comment",
                 "No se pudo copiar el comentario");
-        table.put("Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.",
-                "No se pudo descartar la copia guardada. Abre los ajustes desde Inicio con la sesi\u00f3n iniciada. Nada ha cambiado.");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "No se pudieron exportar los ajustes de HushGram. Prueba otro archivo.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "No se pudieron exportar los valores personalizados. El archivo elegido podr\u00eda estar incompleto. Los valores de Instagram no han cambiado.");
+        table.put("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.",
+                "No se pudieron descartar todas las copias guardadas. Vuelve a intentar Descartar valores guardados. Los valores de Instagram no han cambiado.");
         table.put("Couldn't hide this notice. Try again.",
                 "No se pudo ocultar este aviso. Int\u00e9ntalo de nuevo.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
@@ -1253,6 +1255,8 @@ public final class L10nTranslations {
                 "Arreglo para la nueva firma");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Registra la actividad de los parches y muestra errores para un informe. D\u00e9jalo desactivado en el uso normal.");
+        table.put("Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.",
+                "No se termin\u00f3 de limpiar la recuperaci\u00f3n. Usa Restaurar valores anteriores o Descartar valores guardados.");
         table.put("Reels",
                 "Reels");
         table.put("Remembered playback positions restored.",
@@ -1277,11 +1281,11 @@ public final class L10nTranslations {
                 "Reanudar videos largos");
         table.put("Retry",
                 "Reintentar");
-        table.put("Ring size",
-                "Tama\u00f1o de los anillos");
     }
 
     private static void fillEs4(Map<String, String> table) {
+        table.put("Ring size",
+                "Tama\u00f1o de los anillos");
         table.put("Sanitize sharing links",
                 "Limpiar enlaces compartidos");
         table.put("Save",
@@ -1400,11 +1404,11 @@ public final class L10nTranslations {
                 "Los valores actuales ya coinciden con la copia guardada. Nada ha cambiado.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Todav\u00eda no se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo en un momento.");
-        table.put("The diagnostic report couldn't be saved. Try again.",
-                "No se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
     }
 
     private static void fillEs5(Map<String, String> table) {
+        table.put("The diagnostic report couldn't be saved. Try again.",
+                "No se pudo guardar el informe de diagn\u00f3stico. Int\u00e9ntalo de nuevo.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "No se pudo eliminar el archivo %1$s. B\u00f3rralo de %2$s para volver a activar HushGram.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
@@ -1512,7 +1516,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(706);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -1648,12 +1652,12 @@ public final class L10nTranslations {
     private static void fillIn1(Map<String, String> table) {
         table.put("Couldn't copy comment",
                 "Tidak dapat menyalin komentar");
-        table.put("Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.",
-                "Salinan tersimpan tidak dapat dibuang. Buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "Pengaturan HushGram tidak dapat diekspor. Coba file lain.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "Nilai pengganti tidak dapat diekspor. Berkas yang dipilih mungkin tidak lengkap. Nilai pengganti Instagram tidak berubah.");
+        table.put("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.",
+                "Salinan tersimpan belum selesai dibuang. Coba Buang nilai pengganti tersimpan lagi. Nilai pengganti Instagram tidak berubah.");
         table.put("Couldn't hide this notice. Try again.",
                 "Pemberitahuan ini tidak dapat disembunyikan. Coba lagi.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
@@ -1986,6 +1990,8 @@ public final class L10nTranslations {
                 "Perbaikan build yang ditandatangani ulang");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.");
+        table.put("Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.",
+                "Pembersihan pemulihan belum selesai. Gunakan Pulihkan nilai pengganti sebelumnya atau Buang nilai pengganti tersimpan.");
         table.put("Reels",
                 "Reels");
         table.put("Remembered playback positions restored.",
@@ -2010,11 +2016,11 @@ public final class L10nTranslations {
                 "Lanjutkan video panjang");
         table.put("Retry",
                 "Coba lagi");
-        table.put("Ring size",
-                "Ukuran lingkaran");
     }
 
     private static void fillIn4(Map<String, String> table) {
+        table.put("Ring size",
+                "Ukuran lingkaran");
         table.put("Sanitize sharing links",
                 "Bersihkan tautan berbagi");
         table.put("Save",
@@ -2133,11 +2139,11 @@ public final class L10nTranslations {
                 "Nilai pengganti saat ini sudah sama dengan salinan tersimpan. Tidak ada yang berubah.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.");
-        table.put("The diagnostic report couldn't be saved. Try again.",
-                "Laporan diagnostik tidak dapat disimpan. Coba lagi.");
     }
 
     private static void fillIn5(Map<String, String> table) {
+        table.put("The diagnostic report couldn't be saved. Try again.",
+                "Laporan diagnostik tidak dapat disimpan. Coba lagi.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushGram lagi.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
@@ -2245,7 +2251,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(706);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -2381,12 +2387,12 @@ public final class L10nTranslations {
     private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Couldn't copy comment",
                 "N\u00e3o foi poss\u00edvel copiar o coment\u00e1rio");
-        table.put("Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.",
-                "N\u00e3o foi poss\u00edvel descartar a c\u00f3pia salva. Abra as configura\u00e7\u00f5es pela p\u00e1gina inicial com a sess\u00e3o iniciada. Nada mudou.");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "N\u00e3o foi poss\u00edvel exportar as configura\u00e7\u00f5es do HushGram. Tente outro arquivo.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "N\u00e3o foi poss\u00edvel exportar os valores personalizados. O arquivo escolhido pode estar incompleto. Os valores do Instagram n\u00e3o mudaram.");
+        table.put("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.",
+                "N\u00e3o foi poss\u00edvel descartar todas as c\u00f3pias salvas. Tente Descartar valores salvos novamente. Os valores do Instagram n\u00e3o mudaram.");
         table.put("Couldn't hide this notice. Try again.",
                 "N\u00e3o foi poss\u00edvel ocultar este aviso. Tente novamente.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
@@ -2719,6 +2725,8 @@ public final class L10nTranslations {
                 "Corre\u00e7\u00e3o para vers\u00e3o com nova assinatura");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Registra a atividade dos patches e mostra os erros para um relat\u00f3rio de problema. Mantenha desativado durante o uso normal.");
+        table.put("Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.",
+                "A limpeza da recupera\u00e7\u00e3o n\u00e3o terminou. Use Restaurar valores anteriores ou Descartar valores salvos.");
         table.put("Reels",
                 "Reels");
         table.put("Remembered playback positions restored.",
@@ -2743,11 +2751,11 @@ public final class L10nTranslations {
                 "Retomar v\u00eddeos longos");
         table.put("Retry",
                 "Tentar novamente");
-        table.put("Ring size",
-                "Tamanho dos an\u00e9is");
     }
 
     private static void fillPt_rBR4(Map<String, String> table) {
+        table.put("Ring size",
+                "Tamanho dos an\u00e9is");
         table.put("Sanitize sharing links",
                 "Limpar links compartilhados");
         table.put("Save",
@@ -2866,11 +2874,11 @@ public final class L10nTranslations {
                 "Os valores atuais j\u00e1 correspondem \u00e0 c\u00f3pia salva. Nada mudou.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "O relat\u00f3rio de diagn\u00f3stico ainda n\u00e3o p\u00f4de ser salvo. Tente de novo em instantes.");
-        table.put("The diagnostic report couldn't be saved. Try again.",
-                "N\u00e3o foi poss\u00edvel salvar o relat\u00f3rio de diagn\u00f3stico. Tente de novo.");
     }
 
     private static void fillPt_rBR5(Map<String, String> table) {
+        table.put("The diagnostic report couldn't be saved. Try again.",
+                "N\u00e3o foi poss\u00edvel salvar o relat\u00f3rio de diagn\u00f3stico. Tente de novo.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "N\u00e3o foi poss\u00edvel remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushGram.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
@@ -2978,7 +2986,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(704);
+        Map<String, String> table = new HashMap<>(706);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -3114,12 +3122,12 @@ public final class L10nTranslations {
     private static void fillTr1(Map<String, String> table) {
         table.put("Couldn't copy comment",
                 "Yorum kopyalanamad\u0131");
-        table.put("Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.",
-                "Kay\u0131tl\u0131 kopya at\u0131lamad\u0131. Oturum a\u00e7\u0131kken Ana Sayfa'dan ayarlar\u0131 a\u00e7\u0131n. Hi\u00e7bir \u015fey de\u011fi\u015fmedi.");
         table.put("Couldn't export HushGram settings. Try another file.",
                 "HushGram ayarlar\u0131 d\u0131\u015fa aktar\u0131lamad\u0131. Ba\u015fka bir dosya deneyin.");
         table.put("Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.",
                 "Ge\u00e7ersiz k\u0131lmalar d\u0131\u015fa aktar\u0131lamad\u0131. Se\u00e7ilen dosya eksik olabilir. Instagram'\u0131n ge\u00e7ersiz k\u0131lmalar\u0131 de\u011fi\u015fmedi.");
+        table.put("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.",
+                "Kay\u0131tl\u0131 kopyalar tamamen at\u0131lamad\u0131. Kay\u0131tl\u0131 ge\u00e7ersiz k\u0131lmalar\u0131 at se\u00e7ene\u011fini tekrar deneyin. Instagram'\u0131n ge\u00e7ersiz k\u0131lmalar\u0131 de\u011fi\u015fmedi.");
         table.put("Couldn't hide this notice. Try again.",
                 "Bu bildirim gizlenemedi. Tekrar dene.");
         table.put("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.",
@@ -3452,6 +3460,8 @@ public final class L10nTranslations {
                 "Yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
                 "Hata raporu i\u00e7in yama etkinli\u011fini kaydeder ve hatalar\u0131 g\u00f6sterir. Normal kullan\u0131mda kapal\u0131 b\u0131rak\u0131n.");
+        table.put("Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.",
+                "Kurtarma temizli\u011fi tamamlanmad\u0131. \u00d6nceki ge\u00e7ersiz k\u0131lmalar\u0131 geri y\u00fckle veya Kay\u0131tl\u0131 ge\u00e7ersiz k\u0131lmalar\u0131 at se\u00e7ene\u011fini kullan\u0131n.");
         table.put("Reels",
                 "Reels");
         table.put("Remembered playback positions restored.",
@@ -3476,11 +3486,11 @@ public final class L10nTranslations {
                 "Uzun videolara kald\u0131\u011f\u0131n yerden devam et");
         table.put("Retry",
                 "Yeniden dene");
-        table.put("Ring size",
-                "Halka boyutu");
     }
 
     private static void fillTr4(Map<String, String> table) {
+        table.put("Ring size",
+                "Halka boyutu");
         table.put("Sanitize sharing links",
                 "Payla\u015f\u0131m ba\u011flant\u0131lar\u0131n\u0131 temizle");
         table.put("Save",
@@ -3599,11 +3609,11 @@ public final class L10nTranslations {
                 "Ge\u00e7erli ge\u00e7ersiz k\u0131lmalar kay\u0131tl\u0131 kopyayla zaten ayn\u0131. Hi\u00e7bir \u015fey de\u011fi\u015fmedi.");
         table.put("The diagnostic report couldn't be saved yet. Try again in a moment.",
                 "Tan\u0131lama raporu hen\u00fcz kaydedilemedi. Birazdan tekrar dene.");
-        table.put("The diagnostic report couldn't be saved. Try again.",
-                "Tan\u0131lama raporu kaydedilemedi. Tekrar dene.");
     }
 
     private static void fillTr5(Map<String, String> table) {
+        table.put("The diagnostic report couldn't be saved. Try again.",
+                "Tan\u0131lama raporu kaydedilemedi. Tekrar dene.");
         table.put("The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.",
                 "%1$s dosyas\u0131 kald\u0131r\u0131lamad\u0131. HushGram'u yeniden a\u00e7mak i\u00e7in onu %2$s i\u00e7inden sil.");
         table.put("The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.",
