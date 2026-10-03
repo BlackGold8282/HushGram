@@ -349,7 +349,7 @@ HushGram keeps its translations in UTF-8 TSV files under `extensions/shared/libr
 py -3.13 scripts/crowdin-l10n.py prepare --output "path/to/translation-review"
 ```
 
-The folder must be new so a reviewer's edits stay intact. It contains `en.json`, the five language files and review worksheets, including a blank Korean pilot. Identifiers are the full SHA-256 of each exact English key, so adding or moving a row doesn't change other identifiers. Changing the English creates a new identifier that needs review. Existing translations that match English are valid and stay in the draft seeds.
+The folder must be new so a reviewer's edits stay intact. It contains `en.json`, the six language files and a review worksheet for each. Identifiers are the full SHA-256 of each exact English key, so adding or moving a row doesn't change other identifiers. Changing the English creates a new identifier that needs review. Existing translations that match English are valid and stay in the draft seeds.
 
 The account owner can run `crowdin-l10n.py setup --package "path/to/translation-review"` with a personal token in `CROWDIN_PERSONAL_TOKEN`. Setup creates the public project and imports drafts without approving them. It resumes recorded jobs and refuses to overwrite unrecorded reviewer work. [The translation guide](docs/translations.md) covers token permissions, placeholder QA and recovery. Export approved translations with untranslated strings skipped. Importing a file locally doesn't approve its wording, and the translated screens still need a native reader's check.
 
@@ -361,7 +361,7 @@ py -3.13 scripts/gen-l10n.py
 py -3.13 scripts/test-l10n.py
 ```
 
-For an existing language, `--partial` keeps every row absent from the download. Blank values are rejected. A new language needs a complete file and an explicit `--new-language`, such as `--language ko --new-language`. Indonesian's `id` maps to `in.tsv`, and `pt-BR` maps to `pt-rBR.tsv`.
+For an existing language, `--partial` keeps every row absent from the download. Blank values are rejected. A new language needs a complete file and an explicit `--new-language`, such as `--language ja --new-language`. Indonesian's `id` maps to `in.tsv`, and `pt-BR` maps to `pt-rBR.tsv`.
 
 Each import validates the input before atomically replacing one table. Unchanged imports keep the original bytes, including comments and line endings. Missing required rows, duplicate or unknown identifiers, malformed JSON and incompatible formatting stop the import. Files may contain up to 4,096 entries and take up to 2 MiB. Each string has an 8,192-character limit. Numbered Java arguments may move, while bare arguments keep their order. Width, flags and date conversions need a reviewed extension to the current format contract.
 

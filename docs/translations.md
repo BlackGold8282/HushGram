@@ -10,7 +10,7 @@ Use Python 3.13 on Windows with a writable NTFS folder. No extra packages are ne
 py -3.13 scripts/crowdin-l10n.py prepare --output build/translation-review
 ```
 
-The output folder must be new. This protects a reviewer's edits. The package contains the English source JSON, the existing five language JSON files, and one review CSV per language. A blank Korean worksheet is included for the first volunteer pilot. `manifest.json` binds the uploads to the current catalog. `REVIEW.txt` explains the worksheets.
+The output folder must be new. This protects a reviewer's edits. The package contains the English source JSON, the existing six language JSON files, and one review CSV per language. `manifest.json` binds the uploads to the current catalog. `REVIEW.txt` explains the worksheets.
 
 Every worksheet starts with `pending` in `review_status`. A native reader records `accepted` or `change`, the replacement if needed, their notes and name. Check these points before calling a language reviewed:
 
@@ -19,7 +19,7 @@ Every worksheet starts with `pending` in `review_status`. A native reader record
 * Quantity forms agree with the listed plural category. The `english_key` is a lookup key and can include a category suffix. Translate `english_text`.
 * The translated screens fit at large text sizes. Check line wrapping and the controls beside long labels. For a language that reads right to left, check its real locale too.
 
-Spreadsheet review records don't approve translations on Crowdin or write into HushGram. A maintainer applies the reviewed wording to the TSV table and keeps the review record with its evidence. Don't change the identifiers or English keys. The existing German, Spanish, Indonesian, Brazilian Portuguese and Turkish seeds are drafts for this review. Korean starts empty.
+Spreadsheet review records don't approve translations on Crowdin or write into HushGram. A maintainer applies the reviewed wording to the TSV table and keeps the review record with its evidence. Don't change the identifiers or English keys. The existing German, Spanish, Indonesian, Brazilian Portuguese and Turkish seeds are drafts for this review. Korean came from a volunteer translator and goes through the same review.
 
 ## Set up Crowdin
 
@@ -56,6 +56,6 @@ py -3.13 scripts/test-l10n.py
 py -3.13 scripts/test-crowdin-l10n.py
 ```
 
-Korean needs a complete reviewed catalog and `--language ko --new-language` in place of the existing-language import. Indonesian uses `id` on Crowdin and `in.tsv` locally. Brazilian Portuguese uses `pt-BR` on Crowdin and `pt-rBR.tsv` locally. `sync-l10n.py` validates exact keys, formatting, plural variants and text before committing a TSV change.
+A language HushGram doesn't have yet needs a complete reviewed catalog and an explicit `--new-language`. Indonesian uses `id` on Crowdin and `in.tsv` locally. Brazilian Portuguese uses `pt-BR` on Crowdin and `pt-rBR.tsv` locally. `sync-l10n.py` validates exact keys, formatting, plural variants and text before committing a TSV change.
 
 Run the normal extension build and catalog tests after importing, then check the translated screens on a leased test device. Hosted setup tests verify preparation, request contracts and refusal/retry behavior with a simulated service. They don't prove access to a real account or native language quality.

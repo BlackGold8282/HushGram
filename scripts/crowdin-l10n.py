@@ -141,7 +141,7 @@ def prepare(root, output):
         "Write accepted or change in review_status, a replacement when needed, notes and your name.\n"
         "Keep format arguments unchanged. Numbered arguments may move. Bare arguments keep their order.\n"
         "Plural variants use english_text as their source and plural_category for the quantity form.\n"
-        "The Korean worksheet is blank for the volunteer pilot. The other JSON files are draft seeds.\n"
+        "Every JSON file is a draft seed until a native reader reviews it.\n"
         "Worksheet decisions do not approve Crowdin translations or import them into the app.\n"
         "A maintainer applies reviewed corrections to TSV, regenerates the runtime table, then checks screens.\n"
         "Use docs/translations.md for hosted setup and the full review checklist.\n",

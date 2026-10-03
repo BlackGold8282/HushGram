@@ -4,6 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** HushGram's settings come in Korean now, translated by @BlackGold8282 in #36.
 * **Instagram:** Hide the Repost button now makes a final pass over Feed's repost icon and count after Instagram binds them, so the Feed reshare affordance goes away while the ordinary Share button stays.
 * **Instagram:** Following-list labels now wait for Instagram's row friendship status instead of trusting a stale profile fallback, so accounts won't show "Doesn't follow you" until their profile refreshes.
 * **Instagram:** Pure black dark mode now leaves bottom navigation icon colors alone when they share Instagram's dark Prism value, so the buttons stay visible on black backgrounds.
