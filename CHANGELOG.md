@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Local patching checks each selected bundle's exact targets and dependencies before merging or changing an APK. Reports identify the bundle by its hash and attribute initializer failures to their dependency owner. Conflicting selected extension definitions are refused, while compatible addons keep their native initialization. Bug reports now ask which sources and bundle versions were selected.
+
 * **Instagram:** About and local diagnostic reports show the production build identity, so different source builds of the same version can be identified.
 * **Tooling:** New release receipts map the canonical source, catalog and toolchain identity to final bundle and extension hashes. The identity includes Android release source sets, so a change there produces a different identity even when the version stays the same. Debug and test inputs stay excluded. Historical receipts keep their original reading rules.
 

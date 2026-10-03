@@ -226,6 +226,14 @@ if ($touchesReleaseTooling) {
     $suites += , @('scripts/test-carried-licenses.ps1', 'checking reviewed carried-library license evidence')
 }
 if (@($changed | Where-Object {
+    $_ -in @('scripts/InspectPatchBundle.java', 'scripts/CompositionFixture.java', 'scripts/CompositionInitializer.java',
+        'scripts/patch-sources.ps1', 'scripts/patch-with-sources.ps1', 'scripts/test-source-composition.ps1',
+        'scripts/patch-target.ps1', 'scripts/apk-facts.ps1', 'scripts/common.ps1', 'scripts/patch-report.ps1',
+        'scripts/pre-push.ps1', 'scripts/script-wiring.ps1')
+}).Count -gt 0) {
+    $suites += , @('scripts/test-source-composition.ps1', 'selected-source tooling changed, checking targets and native dependency ownership')
+}
+if (@($changed | Where-Object {
     $_ -in @('scripts/build-inputs.gradle', 'scripts/canonical-build-inputs.txt', 'scripts/build-identity.ps1',
         'scripts/test-build-identity.ps1', 'scripts/release-receipt.ps1', 'patches/build.gradle.kts',
         'scripts/pre-push.ps1', 'scripts/script-wiring.ps1')

@@ -64,6 +64,14 @@ body:
     validations:
       required: true
   - type: textarea
+    id: selected_sources
+    attributes:
+      label: Which patch sources were enabled for Instagram?
+      description: List every selected source and its bundle version, including HushGram. Morphe Manager shows them under Sources. On desktop, include each selected bundle's name and version. If you ran the local source preflight, attach its source-diagnostic.json too. Don't include account details or sign-in tokens.
+      placeholder: HushGram 0.0.4 only, or HushGram 0.0.4 with another named bundle and its version.
+    validations:
+      required: true
+  - type: textarea
     id: selected_patches
     attributes:
       label: Which patches did you select?

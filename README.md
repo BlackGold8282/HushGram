@@ -317,6 +317,20 @@ The shipped SBOM still describes only what the bundle carries. The host-contract
 
 To apply every patch to a real build and check the result, run `scripts/verify-all-patches.ps1 -Apk <instagram .apks> -DesktopJar <morphe-desktop jar> -WorkDir <scratch folder>`. It patches without forcing anything, then compares the patched manifest to Meta's. [CONTRIBUTING.md](CONTRIBUTING.md) has the rest.
 
+For a local selection of more than one source, `scripts/patch-with-sources.ps1` checks the actual bundles before merging or patching an APK. It records each bundle's name, version and SHA-256, including the selected patches' unnamed dependencies. It refuses a declared version or build-code mismatch and conflicting selected extension definitions. An unused patch doesn't enter that check. Compatible addons keep the patcher's own extension merging and initialization. This local tool doesn't change Morphe Manager's source selection.
+
+Create a selection file such as `selected-sources.json`. Bundle paths are relative to that file, and patch names belong to their own bundle. `"*"` selects every patch for the input APK's package:
+
+```json
+{"schemaVersion":1,"sources":[{"bundle":"patches/build/release/patches-0.0.4.mpp","patches":["*"]}]}
+```
+
+```powershell
+pwsh -File scripts/patch-with-sources.ps1 -Apk <original Instagram APK or split bundle> -Selections selected-sources.json -DesktopJar <morphe-desktop jar> -WorkDir <scratch folder> -InspectOnly
+```
+
+The local `source-diagnostic.json` contains the selected bundle identities and dependency graph. `-FailureLog <error file>` attributes an existing log against those selected bundles, without claiming they were the original run's bundles. Unknown or ambiguous owners stay unknown. Remove `-InspectOnly` to produce an unsigned APK without forcing compatibility. This is a preflight and local patching check, not proof of installed behavior. The retained [Piko v3.10.0-dev.9](https://github.com/crimera/piko/releases/tag/v3.10.0-dev.9) declares Instagram 439.0.0.37.89 (384510827), so it is refused alongside HushGram on 449.0.0.52.84 (385511871). Other selections are checked on their own. [Morphe's source guide](https://github.com/MorpheApp/morphe-manager/blob/main/docs/patch-sources.md) explains its per-app selections.
+
 Verification reads coverage back from the patched APK and writes a separate coverage report. `scripts/patch-coverage-expectations.json` pins required and optional targets to an exact Instagram version and version code. The 449 fixture requires every reviewed target in those three families. A missing required target stops certification even if the family applied. An explicitly optional absence stays visible. Forced runs on unreviewed builds record counts with `reviewed: false`. Schema 3 receipts carry this same input-derived coverage. Older receipts keep their own schema checks and don't certify these new fields.
 
 ## Translating HushGram
