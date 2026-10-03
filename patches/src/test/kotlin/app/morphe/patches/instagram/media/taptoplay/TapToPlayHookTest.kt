@@ -193,6 +193,7 @@ class TapToPlayHookTest {
             Scroller(moveTakesAnInt = true) to "the move, found 0",
             Scroller(secondMoveCall = true) to "the move, found 2",
             Scroller(moveOnOther = true) to "doesn't move the pager it reads",
+            Scroller(pagerOffAnother = true) to "doesn't move the pager it reads",
             Scroller(jumpToMove = true) to "jumps straight to the move",
             Scroller(jumpBetween = true) to "between the pager's read",
             Scroller(scrollerWrittenOver = true) to "writes over parameter 0 (v8)",
@@ -939,6 +940,8 @@ class TapToPlayHookTest {
         val secondMoveCall: Boolean = false,
         /** The move is called on a pager read from the scroller's own field. */
         val moveOnOther: Boolean = false,
+        /** The move is called on the pager field read off another scroller the scroller holds. */
+        val pagerOffAnother: Boolean = false,
         /** The no-pager path jumps straight to the move. */
         val jumpToMove: Boolean = false,
         /** The no-pager path jumps to the null check between the pager's read and the move. */
@@ -970,7 +973,8 @@ class TapToPlayHookTest {
             const/4 v4, 0x1
             iput-boolean v4, p0, $scrollerType->A07:Z
             ${if (s.scrollerWrittenOver) "iget-object p0, p0, $scrollerType->A0E:$session" else ""}
-            ${if (s.moveOnOther) "iget-object v0, p0, $scrollerType->A0S:$pager" else pagerRead}
+            ${if (s.pagerOffAnother) "iget-object v5, p0, $scrollerType->A0T:$scrollerBase" else ""}
+            ${if (s.moveOnOther) "iget-object v0, p0, $scrollerType->A0S:$pager" else if (s.pagerOffAnother) "iget-object v0, v5, $scrollerBase->A02:$pager" else pagerRead}
             :check
             if-eqz v0, :moved
             :move
@@ -991,7 +995,7 @@ class TapToPlayHookTest {
         )
         val scrollerClass = ImmutableClassDef(
             scrollerType, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, if (s.extendsObject) objectType else scrollerBase, null, null, null,
-            listOf(field(scrollerType, "A00", "I"), field(scrollerType, "A07", "Z"), field(scrollerType, "A0E", session), field(scrollerType, "A0S", pager)),
+            listOf(field(scrollerType, "A00", "I"), field(scrollerType, "A07", "Z"), field(scrollerType, "A0E", session), field(scrollerType, "A0S", pager), field(scrollerType, "A0T", scrollerBase)),
             listOf(move),
         )
         val upNextClass = classDef(upNext, listOf(method(upNext, "A00", listOf(upNext, "Z"), "V", 3, static = true, body = """
