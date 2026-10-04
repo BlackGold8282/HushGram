@@ -2349,6 +2349,25 @@ param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$SkipTestResults
         $said = Invoke-Facts -Strict
         Assert-True ($said -like "*$runtimeQuoted runtime tests, $patchQuoted patch tests*") `
             "The strict check did not count the results the description quotes: $said"
+        # A second top-level test class in one Kotlin file gets a result of its own. It is one of
+        # the run's classes, neither left over from a deleted one nor optional. The nested class is
+        # part of PatchTest and needs no result.
+        $kotlinTests = Join-Path $factsRoot 'patches/src/test/kotlin/fixture'
+        New-Item -ItemType Directory -Path $kotlinTests -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $kotlinTests 'PatchTest.kt') -Encoding UTF8 -Value (
+            "package fixture`n`nclass PatchTest {`n    class NestedHelperTest`n}`n`n" +
+            "@RunWith(Parameterized::class)`nclass PatchRefusalTest(private val variant: String)`n")
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Set-Content -LiteralPath (Join-Path $factsRoot "$patchResults/TEST-fixture.PatchRefusalTest.xml") -Encoding UTF8 -Value (
+            '<?xml version="1.0" encoding="UTF-8"?><testsuite name="fixture.PatchRefusalTest" tests="1" ' +
+            'skipped="0" failures="0" errors="0"><testcase name="t1" classname="fixture.PatchRefusalTest"/></testsuite>')
+        $said = Invoke-Facts -Strict
+        Assert-True ($said -like "*$patchQuoted patch tests*") `
+            "A second test class in one Kotlin file was refused or left out of the count: $said"
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Assert-Throws { Invoke-Facts -Strict } '*missing 1 of 2 test classes*PatchRefusalTest*' `
+            'A run without the second test class a Kotlin file declares was accepted.'
+        Remove-Item -LiteralPath (Join-Path $factsRoot 'patches/src') -Recurse -Force
         Write-FactsResults $patchResults 'PatchTest' $patchQuoted -Skipped 1
         Assert-Throws { Invoke-Facts -Strict } '*skipped 1 test*' 'A strict check accepted a skipped fixture test.'
         Write-FactsResults $patchResults 'PatchTest' ($patchQuoted + 1)
