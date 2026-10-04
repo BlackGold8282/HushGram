@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** TalkBack reads each settings switch's name and explanation instead of announcing only its state. Action rows expose their current value or disabled reason too. TalkBack and Switch Access checks cover right-to-left layout, 200% text, paused choices and refusal of stale actions.
+
 * **Instagram:** A late result from an earlier settings or override file picker can't cancel a newer picker or write to the older file. Each request keeps its own identity through screen recreation.
 
 * **Instagram:** Show a Reel seek thumb adds an optional white circular handle to Instagram's own Reel seek bar. It starts off and works independently of Keep a seek bar. Native taps, dragging and accessibility seeking remain available. Turning it off or pausing restores Instagram's appearance.

@@ -30,6 +30,7 @@ import android.preference.SwitchPreference;
 import android.preference.TwoStatePreference;
 import android.text.Layout;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.util.Linkify;
 import android.util.TypedValue;
@@ -2540,6 +2541,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 list.onInitializeAccessibilityNodeInfoForItem(host, position, info);
             }
             info.setClassName(role.getName());
+            // A Switch role reads its own label instead of aggregating descendant TextViews.
+            CharSequence title = preference.getTitle(), summary = preference.getSummary();
+            info.setContentDescription(TextUtils.isEmpty(summary) ? title : TextUtils.isEmpty(title)
+                    ? summary : TextUtils.concat(title, "\n", summary));
             if (preference instanceof TwoStatePreference) {
                 info.setCheckable(true);
                 info.setChecked(((TwoStatePreference) preference).isChecked());
