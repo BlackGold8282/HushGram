@@ -22,6 +22,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.lang.reflect.Proxy;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * The saved points stay within their bounds: at most {@link ResumePoints#MAX_POINTS}, the least
  * recently saved going first, none older than {@link ResumePoints#KEEP_MS}, and a value that
@@ -37,6 +40,38 @@ public class ResumePointsTest {
     public void start() {
         file = RuntimeEnvironment.getApplication().getSharedPreferences(ResumePoints.FILE, Context.MODE_PRIVATE);
         file.edit().clear().commit();
+    }
+
+    @Test
+    @Config(sdk = {28, 30, 37})
+    public void failedCleanupWritesRetryForNewAndLoadedStores() {
+        for (boolean loaded : new boolean[]{false, true}) {
+            file.edit().clear().putString("old", ResumePoints.encode(90_000, NOW)).commit();
+            AtomicBoolean fail = new AtomicBoolean(true);
+            SharedPreferences failing = (SharedPreferences) Proxy.newProxyInstance(
+                    SharedPreferences.class.getClassLoader(), new Class<?>[]{SharedPreferences.class}, (proxy, method, args) -> {
+                        if (!method.getName().equals("edit")) return method.invoke(file, args);
+                        SharedPreferences.Editor editor = file.edit();
+                        return Proxy.newProxyInstance(SharedPreferences.Editor.class.getClassLoader(),
+                                new Class<?>[]{SharedPreferences.Editor.class}, (editProxy, editMethod, editArgs) -> {
+                                    if (editMethod.getName().equals("apply") && fail.getAndSet(false)) {
+                                        throw new IllegalStateException("storage unavailable");
+                                    }
+                                    Object result = editMethod.invoke(editor, editArgs);
+                                    return result == editor ? editProxy : result;
+                                });
+                    });
+            ResumePoints points = new ResumePoints(failing);
+            if (loaded) assertNotNull(points.get("old", NOW));
+            boolean failed = false;
+            try { points.dropExpired(NOW + ResumePoints.KEEP_MS + 1); }
+            catch (IllegalStateException expected) { failed = true; }
+            assertTrue("cleanup did not reach the failing editor", failed);
+            assertTrue(file.contains("old"));
+            points.dropExpired(NOW + ResumePoints.KEEP_MS + 1);
+            assertFalse("retry forgot a failed deletion", file.contains("old"));
+            assertEquals(0, points.size(NOW + ResumePoints.KEEP_MS + 1));
+        }
     }
 
     @Test

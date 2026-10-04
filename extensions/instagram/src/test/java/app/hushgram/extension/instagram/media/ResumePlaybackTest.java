@@ -13,6 +13,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.SystemClock;
 
 import org.junit.After;
@@ -27,6 +28,11 @@ import org.robolectric.shadows.ShadowLooper;
 
 import java.util.Collections;
 import java.util.List;
+import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import app.hushgram.extension.instagram.media.ResumePlaybackForTests.Player;
 import app.hushgram.extension.instagram.media.ResumePlaybackForTests.ProductType;
@@ -35,6 +41,7 @@ import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.WorkerPoolForTests;
 import app.hushgram.extension.shared.diagnostics.FeedFilterCounters;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.HushgramPause;
@@ -64,7 +71,9 @@ public class ResumePlaybackTest {
     }
 
     @After
-    public void restore() {
+    public void restore() throws Exception {
+        // A process reset must not hand its queued aging work to the next test's store.
+        Utils.awaitBackgroundTasksForTests();
         PauseForTests.resume();
         Settings.RESUME_LONG_VIDEOS.resetToDefault();
         ResumePlaybackForTests.forget();
@@ -428,6 +437,106 @@ public class ResumePlaybackTest {
     }
 
     @Test
+    @Config(sdk = {28, 30, 37})
+    public void rejectedAgingRetriesOnTheNextStart() throws Exception {
+        Settings.RESUME_LONG_VIDEOS.save(false);
+        SharedPreferences file = RuntimeEnvironment.getApplication()
+                .getSharedPreferences(ResumePoints.FILE, Context.MODE_PRIVATE);
+        file.edit().putString("expired", ResumePoints.encode(90_000,
+                System.currentTimeMillis() - ResumePoints.KEEP_MS - 60_000)).commit();
+        try (WorkerPoolForTests ignored = WorkerPoolForTests.fill()) {
+            ResumePlayback.started(new Object());
+            assertTrue(file.contains("expired"));
+        }
+        ResumePlayback.started(new Object());
+        Utils.awaitBackgroundTasksForTests();
+        assertFalse("a refused cleanup was treated as completed", file.contains("expired"));
+    }
+
+    @Test
+    @Config(sdk = {28, 30, 37})
+    public void failedAgingReadRetriesWithoutLosingLivePoints() throws Exception {
+        Settings.RESUME_LONG_VIDEOS.save(false);
+        SharedPreferences file = RuntimeEnvironment.getApplication()
+                .getSharedPreferences(ResumePoints.FILE, Context.MODE_PRIVATE);
+        long now = System.currentTimeMillis();
+        file.edit().putString("expired", ResumePoints.encode(90_000, now - ResumePoints.KEEP_MS - 60_000))
+                .putString("live", ResumePoints.encode(120_000, now)).commit();
+        AtomicInteger reads = new AtomicInteger();
+        SharedPreferences failing = (SharedPreferences) Proxy.newProxyInstance(
+                SharedPreferences.class.getClassLoader(), new Class<?>[]{SharedPreferences.class}, (proxy, method, args) -> {
+                    if (method.getName().equals("getAll") && reads.incrementAndGet() == 1) {
+                        throw new IllegalStateException("storage unavailable");
+                    }
+                    return method.invoke(file, args);
+                });
+        ResumePoints points = new ResumePoints(failing);
+        ResumePlayback.pointsForTests = points;
+        ResumePlayback.started(new Object());
+        Utils.awaitBackgroundTasksForTests();
+        assertTrue(file.contains("expired"));
+        ResumePlayback.started(new Object());
+        Utils.awaitBackgroundTasksForTests();
+        assertFalse("a failed read was treated as completed", file.contains("expired"));
+        assertEquals(120_000, points.get("live", now).positionMs);
+        assertEquals(2, reads.get());
+    }
+
+    @Test
+    @Config(sdk = {28, 30, 37})
+    public void aQueuedCleanupCannotAgeAReplacementProcessStore() throws Exception {
+        Settings.RESUME_LONG_VIDEOS.save(false);
+        SharedPreferences file = RuntimeEnvironment.getApplication()
+                .getSharedPreferences(ResumePoints.FILE, Context.MODE_PRIVATE);
+        Field field = ResumePlayback.class.getDeclaredField("POINTS_LOCK");
+        field.setAccessible(true);
+        synchronized (field.get(null)) {
+            ResumePlayback.started(new Object());
+            ResumePlaybackForTests.forget();
+            file.edit().putString("replacement", ResumePoints.encode(90_000,
+                    System.currentTimeMillis() - ResumePoints.KEEP_MS - 60_000)).commit();
+        }
+        Utils.awaitBackgroundTasksForTests();
+        assertTrue("old queued work aged the replacement store", file.contains("replacement"));
+        ResumePlayback.started(new Object());
+        Utils.awaitBackgroundTasksForTests();
+        assertFalse(file.contains("replacement"));
+    }
+
+    @Test
+    @Config(sdk = {28, 30, 37})
+    public void overlappingStartsShareOneCleanup() throws Exception {
+        Settings.RESUME_LONG_VIDEOS.save(false);
+        SharedPreferences file = RuntimeEnvironment.getApplication()
+                .getSharedPreferences(ResumePoints.FILE, Context.MODE_PRIVATE);
+        CountDownLatch reading = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        AtomicInteger reads = new AtomicInteger();
+        SharedPreferences slow = (SharedPreferences) Proxy.newProxyInstance(
+                SharedPreferences.class.getClassLoader(), new Class<?>[]{SharedPreferences.class}, (proxy, method, args) -> {
+                    if (method.getName().equals("getAll")) {
+                        reads.incrementAndGet();
+                        reading.countDown();
+                        if (!release.await(5, TimeUnit.SECONDS)) throw new AssertionError("reader was not released");
+                    }
+                    return method.invoke(file, args);
+                });
+        ResumePlayback.pointsForTests = new ResumePoints(slow);
+        try {
+            ResumePlayback.started(new Object());
+            assertTrue(reading.await(5, TimeUnit.SECONDS));
+            for (int i = 0; i < 20; i++) ResumePlayback.started(new Object());
+        } finally {
+            release.countDown();
+        }
+        Utils.awaitBackgroundTasksForTests();
+        ResumePlayback.started(new Object());
+        Utils.awaitBackgroundTasksForTests();
+        assertEquals(1, reads.get());
+    }
+
+    @Test
+    @Config(sdk = {28, 30, 37})
     public void onlyTheFirstVideoStartOfAProcessAgesThePoints() throws Exception {
         Settings.RESUME_LONG_VIDEOS.save(false);
         android.content.SharedPreferences file = RuntimeEnvironment.getApplication()

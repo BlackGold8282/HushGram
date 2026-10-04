@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Expired playback positions are retried on the next video start if the worker queue is full or reading their private store fails. Failed cleanup no longer leaves the in-memory history marked as loaded.
+
 * **Instagram:** Settings recovery also handles a page that fails while Android restores it after rotation. A working page keeps its pending file-picker request through recreation.
 
 * **Instagram:** Settings search keeps actions reachable when their labels change. Searching for remembered positions still shows Undo after clearing them, including when you reopen settings before its deadline.

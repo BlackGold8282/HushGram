@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -170,7 +170,9 @@ public final class ResumePlayback {
 
     private static final Players PLAYERS = new Players();
     private static final Object POINTS_LOCK = new Object();
-    private static final AtomicBoolean AGED = new AtomicBoolean();
+    private static final Object AGED = new Object();
+    /** Null until submitted; the request owns completion, including across test process resets. */
+    private static final AtomicReference<Object> aging = new AtomicReference<>();
     @Nullable
     private static ResumePoints points;
     /** The only Undo copy is in this process. Every access is under POINTS_LOCK. */
@@ -565,15 +567,26 @@ public final class ResumePlayback {
      * nothing reads the points, so they'd stay for good otherwise.
      */
     private static void ageOnce() {
-        if (!Utils.settingsReady() || !AGED.compareAndSet(false, true)) return;
-        Utils.runOnBackgroundThread(() -> {
+        if (!Utils.settingsReady() || aging.get() != null) return;
+        Object request = new Object();
+        if (!aging.compareAndSet(null, request)) return;
+        if (!Utils.runOnBackgroundThread(() -> {
             try {
-                ResumePoints store = points();
-                if (store != null) store.dropExpired(System.currentTimeMillis());
+                ResumePoints store;
+                synchronized (POINTS_LOCK) {
+                    if (aging.get() != request) return;
+                    store = points();
+                }
+                if (store != null) {
+                    store.dropExpired(System.currentTimeMillis());
+                    aging.compareAndSet(request, AGED);
+                }
             } catch (Throwable failure) {
                 Logger.printException(() -> "Resume long videos: could not age the saved points", failure);
+            } finally {
+                aging.compareAndSet(request, null);
             }
-        });
+        })) aging.compareAndSet(request, null);
     }
 
     /** The saved points, read the first time they're needed. Null outside the main process. */
@@ -752,12 +765,12 @@ public final class ResumePlayback {
     static void forget() {
         PLAYERS.clear();
         synchronized (POINTS_LOCK) {
+            aging.set(null);
             points = null;
             clearedPoints = null;
             clearedStore = null;
             undoUntil = 0;
         }
-        AGED.set(false);
         access = PATCHED;
         later = ON_MAIN_LOOPER;
         pointsForTests = null;
