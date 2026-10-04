@@ -139,6 +139,120 @@ public class NavigationSettingsTest {
         assertEquals(0, shown());
     }
 
+    @Test public void retainedListenerCannotCallAReplacedNativeHandler() {
+        nativeBind(NativeTab.FEED, nativeListener);
+        View.OnLongClickListener old = shadowOf(button).getOnLongClickListener();
+        AtomicInteger replacement = new AtomicInteger();
+        nativeBind(NativeTab.FEED, view -> { replacement.incrementAndGet(); return true; });
+        Settings.NAVIGATION_SETTINGS_TARGET.save(NavigationTarget.OFF);
+        assertFalse(old.onLongClick(button));
+        assertEquals(0, stock.get());
+        assertEquals(0, replacement.get());
+        assertTrue(button.performLongClick());
+        assertEquals(1, replacement.get());
+        assertEquals(0, shown());
+    }
+
+    @Test public void retainedListenerCannotOpenAfterTabReplacementOrTeardown() {
+        nativeBind(NativeTab.FEED, nativeListener);
+        View.OnLongClickListener old = shadowOf(button).getOnLongClickListener();
+        nativeBind(NativeTab.CLIPS, nativeListener);
+        assertFalse(old.onLongClick(button));
+        assertEquals(0, shown());
+        assertTrue(button.performLongClick());
+        assertEquals(1, stock.get());
+        Settings.NAVIGATION_SETTINGS_TARGET.save(NavigationTarget.CLIPS);
+        nativeBind(NativeTab.CLIPS, nativeListener);
+        View.OnLongClickListener removed = shadowOf(button).getOnLongClickListener();
+        button.setOnLongClickListener(NavigationSettings.remember(button, NativeTab.CLIPS, null));
+        assertFalse(removed.onLongClick(button));
+        assertEquals(1, stock.get());
+        assertEquals(0, shown());
+    }
+
+    @Test public void factoryRebindInvalidatesAWrapperWithNoNativeHandler() {
+        NavigationSettings.bind(button, NativeTab.FEED);
+        View.OnLongClickListener old = shadowOf(button).getOnLongClickListener();
+        NavigationSettings.bind(button, NativeTab.FEED);
+        assertFalse(old.onLongClick(button));
+        assertTrue(button.performLongClick());
+        assertEquals(1, shown());
+    }
+
+    @Test public void factoryTabMismatchInvalidatesItsOldBinding() {
+        nativeBind(NativeTab.FEED, nativeListener);
+        View.OnLongClickListener old = shadowOf(button).getOnLongClickListener();
+        NavigationSettings.bind(button, NativeTab.CLIPS);
+        assertFalse(old.onLongClick(button));
+        assertEquals(0, stock.get());
+        assertEquals(0, shown());
+    }
+
+    @Test public void aBindingCannotActOnAnotherAttachedButton() {
+        nativeBind(NativeTab.FEED, nativeListener);
+        View another = new View(activity);
+        bar.addView(another, new LinearLayout.LayoutParams(60, 60));
+        another.layout(60, 0, 120, 60);
+        assertFalse(shadowOf(button).getOnLongClickListener().onLongClick(another));
+        assertEquals(0, stock.get());
+        assertEquals(0, shown());
+    }
+
+    @Test @Config(sdk = 37)
+    public void staleHapticRequestsCannotReachAnOldNativeHandler() {
+        AtomicInteger haptics = new AtomicInteger();
+        nativeBind(NativeTab.FEED, new View.OnLongClickListener() {
+            @Override public boolean onLongClick(View view) { return true; }
+            @Override public boolean onLongClickUseDefaultHapticFeedback(View view) {
+                haptics.incrementAndGet();
+                return true;
+            }
+        });
+        View.OnLongClickListener old = shadowOf(button).getOnLongClickListener();
+        nativeBind(NativeTab.FEED, nativeListener);
+        Settings.NAVIGATION_SETTINGS_TARGET.save(NavigationTarget.OFF);
+        assertFalse(old.onLongClickUseDefaultHapticFeedback(button));
+        assertEquals(0, haptics.get());
+        assertTrue(shadowOf(button).getOnLongClickListener().onLongClickUseDefaultHapticFeedback(button));
+    }
+
+    @Test @Config(sdk = 37)
+    public void retainedHapticRequestsRequireALiveVisibleEnabledOwner() {
+        AtomicInteger haptics = new AtomicInteger();
+        nativeBind(NativeTab.FEED, new View.OnLongClickListener() {
+            @Override public boolean onLongClick(View view) { return true; }
+            @Override public boolean onLongClickUseDefaultHapticFeedback(View view) {
+                haptics.incrementAndGet();
+                return true;
+            }
+        });
+        View.OnLongClickListener retained = shadowOf(button).getOnLongClickListener();
+        Runnable[] invalidate = {
+                () -> button.setEnabled(false),
+                () -> bar.setVisibility(View.GONE),
+                () -> bar.removeView(button),
+                () -> controller.windowFocusChanged(false),
+                () -> controller.windowFocusChanged(false).pause().stop().destroy()
+        };
+        Runnable[] restore = {
+                () -> button.setEnabled(true),
+                () -> bar.setVisibility(View.VISIBLE),
+                () -> bar.addView(button, new LinearLayout.LayoutParams(60, 60)),
+                () -> controller.windowFocusChanged(true),
+                () -> { }
+        };
+        for (int state = 0; state < invalidate.length; state++) {
+            invalidate[state].run();
+            for (NavigationTarget target : new NavigationTarget[] {NavigationTarget.FEED, NavigationTarget.OFF}) {
+                Settings.NAVIGATION_SETTINGS_TARGET.save(target);
+                assertFalse("state " + state + ", " + target,
+                        retained.onLongClickUseDefaultHapticFeedback(button));
+            }
+            restore[state].run();
+        }
+        assertEquals(0, haptics.get());
+    }
+
     @Test public void aPausedStartKeepsTheNativeHandlerAndTheNextStartBindsTheSavedGesture() {
         PauseForTests.pause(HushgramPause.Reason.SWITCH);
         nativeBind(NativeTab.FEED, nativeListener);

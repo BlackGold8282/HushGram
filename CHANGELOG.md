@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Replaced navigation-tab listeners can no longer open settings or call an old native action. Each callback belongs to its current button binding, including tabs with no native long-press handler.
+
 * **Instagram:** Settings backups now include the chosen navigation tab for opening HushGram. Import reports when the change needs a restart, and Undo preserves any choice made after the import. Older backups leave this choice unchanged.
 
 * **Instagram:** Verified About and saved diagnostic reports on two Galaxy S22 builds sharing version 0.0.5. Each showed its own production identity matching the bundle and external receipt, with installed patch facts and no account identifiers, media URLs or tokens in either report.

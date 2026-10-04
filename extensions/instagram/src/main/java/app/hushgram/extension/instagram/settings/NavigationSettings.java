@@ -25,36 +25,51 @@ public final class NavigationSettings {
     private static final class Binding {
         final String tab;
         final WeakReference<View.OnLongClickListener> original;
+        final boolean hadOriginal;
         Binding(String tab, View.OnLongClickListener original) {
             this.tab = tab;
             this.original = new WeakReference<>(original);
+            this.hadOriginal = original != null;
         }
     }
 
     public static View.OnLongClickListener remember(View view, Object tab, View.OnLongClickListener original) {
         if (original instanceof Press) original = ((Press) original).original;
-        if (view == null || !(tab instanceof Enum<?>)) return original;
+        if (view == null) return original;
+        Binding binding = null;
         synchronized (nativeBindings) {
-            if (original == null) nativeBindings.remove(view);
-            else nativeBindings.put(view, new Binding(((Enum<?>) tab).name(), original));
+            if (original == null || !(tab instanceof Enum<?>)) nativeBindings.remove(view);
+            else {
+                binding = new Binding(((Enum<?>) tab).name(), original);
+                nativeBindings.put(view, binding);
+            }
         }
         // A native null setter is teardown. Only the factory may add an entry to a tab without one.
-        return original != null && selected(tab) ? new Press(((Enum<?>) tab).name(), original) : original;
+        return binding != null && selected(tab) ? new Press(binding, original) : original;
     }
 
     public static void bind(View view, Object tab) {
-        if (view == null || !selected(tab)) return;
-        String name = ((Enum<?>) tab).name();
+        if (view == null) return;
         View.OnLongClickListener original = null;
+        Binding next;
         synchronized (nativeBindings) {
             Binding binding = nativeBindings.get(view);
-            if (binding != null) {
-                if (!binding.tab.equals(name)) return;
-                original = binding.original.get();
-                if (original == null) return;
+            if (!(tab instanceof Enum<?>) || (binding != null && !binding.tab.equals(((Enum<?>) tab).name()))) {
+                nativeBindings.remove(view);
+                return;
             }
+            if (!selected(tab)) return;
+            if (binding != null) {
+                original = binding.original.get();
+                if (original == null && binding.hadOriginal) {
+                    nativeBindings.remove(view);
+                    return;
+                }
+            }
+            next = new Binding(((Enum<?>) tab).name(), original);
+            nativeBindings.put(view, next);
         }
-        view.setOnLongClickListener(new Press(name, original));
+        view.setOnLongClickListener(new Press(next, original));
     }
 
     private static boolean selected(Object tab) {
@@ -62,23 +77,30 @@ public final class NavigationSettings {
     }
 
     private static final class Press implements View.OnLongClickListener {
-        private final String tab;
+        private final Binding binding;
         private final View.OnLongClickListener original;
-        Press(String tab, View.OnLongClickListener original) { this.tab = tab; this.original = original; }
+        Press(Binding binding, View.OnLongClickListener original) { this.binding = binding; this.original = original; }
 
         @Override public boolean onLongClick(View view) {
             // Retained or programmatic actions on a removed/disabled button must do nothing.
+            synchronized (nativeBindings) {
+                if (nativeBindings.get(view) != binding) return false;
+            }
             Activity owner = ownerOf(view);
             if (owner == null) return false;
             if (Utils.settingsReady() && Settings.NAVIGATION_SETTINGS_TARGET.get() != NavigationTarget.OFF
-                    && Settings.NAVIGATION_SETTINGS_TARGET.get().name().equals(tab)
+                    && Settings.NAVIGATION_SETTINGS_TARGET.get().name().equals(binding.tab)
                     && SettingsEntry.requestOpen(owner)) return true;
             return original != null && original.onLongClick(view);
         }
 
         @Override public boolean onLongClickUseDefaultHapticFeedback(View view) {
+            synchronized (nativeBindings) {
+                if (nativeBindings.get(view) != binding) return false;
+            }
+            if (ownerOf(view) == null) return false;
             // Before API 34 Android never calls this method. Native handlers keep their choice.
-            return (Utils.settingsReady() && Settings.NAVIGATION_SETTINGS_TARGET.get().name().equals(tab))
+            return (Utils.settingsReady() && Settings.NAVIGATION_SETTINGS_TARGET.get().name().equals(binding.tab))
                     || original == null || Build.VERSION.SDK_INT < 34
                     || original.onLongClickUseDefaultHapticFeedback(view);
         }

@@ -131,6 +131,8 @@ If the settings page can't open, including after rotating your phone, tap **Retr
 
 Settings stays open if Android recreates Instagram's screen while a backup or override file picker is in front. Choosing a file completes the original request, and cancelling returns to settings. Settings and diagnostic exports show their progress and last result on their own row until Instagram restarts. Closing settings doesn't interrupt an export that's already writing. A cancelled settings export says so, and you can retry a failed one.
 
+Reused navigation buttons ignore callbacks from their previous bindings, including old haptic requests. The current tab keeps its selected settings entry or native action.
+
 Each settings or override file picker keeps its own request identity. A late result from an earlier picker can't consume the current choice or write to the older document.
 
 <p>
