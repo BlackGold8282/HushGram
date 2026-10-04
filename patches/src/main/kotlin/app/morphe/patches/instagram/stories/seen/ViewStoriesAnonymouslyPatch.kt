@@ -26,8 +26,7 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "View stories anonymously",
     description = "Holds story-view reports while its switch is on. Replying or reacting still shows you, " +
-        "and stories you've watched keep showing as new. An optional Mark as seen button selects stories to send. " +
-        "Its sender-side check is pending.",
+        "and stories you've watched keep showing as new. An optional Mark as seen button selects stories to send.",
     default = false,
 ) {
     category("Privacy")

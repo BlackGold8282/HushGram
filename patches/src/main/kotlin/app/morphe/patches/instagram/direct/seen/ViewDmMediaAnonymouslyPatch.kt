@@ -23,7 +23,7 @@ internal const val PATCH = "View DM photos and videos anonymously"
 val viewDmMediaAnonymouslyPatch = bytecodePatch(
     name = "View DM photos and videos anonymously",
     description = "Adds an off-by-default switch to hold back the opened receipt for view-once photos and " +
-        "videos in messages. Ordinary chat and voice receipts keep Instagram's behavior. Sender-side verification is pending.",
+        "videos in messages. Ordinary chat and voice receipts keep Instagram's behavior.",
     default = false,
 ) {
     category("Privacy")

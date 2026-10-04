@@ -114,8 +114,8 @@ The source catalog has 48 patches for `com.instagram.android`, targeting Instagr
 | `Story ring size` | Draws the rings in the stories row at the top of Home smaller, so more fit on the screen, or larger. Pick the size in HushGram's settings. | Included |
 | `Tap to play` | Videos, reels and stories wait for your tap instead of starting by themselves. Feed videos show a play button, the way they do when Instagram saves mobile data. | Opt-in |
 | `Turn off double tap to like` | Stops a double tap on a post or a reel from liking it, and the heart doesn't show. A single tap still does what it did, and the Like button still likes. | Opt-in |
-| `View DM photos and videos anonymously` | Adds an off-by-default switch to hold back the opened receipt for view-once photos and videos in messages. Ordinary chat and voice receipts keep Instagram's behavior. Sender-side verification is pending. | Opt-in |
-| `View stories anonymously` | Holds story-view reports while its switch is on. Replying or reacting still shows you, and stories you've watched keep showing as new. An optional Mark as seen button selects stories to send. Its sender-side check is pending. | Opt-in |
+| `View DM photos and videos anonymously` | Adds an off-by-default switch to hold back the opened receipt for view-once photos and videos in messages. Ordinary chat and voice receipts keep Instagram's behavior. | Opt-in |
+| `View stories anonymously` | Holds story-view reports while its switch is on. Replying or reacting still shows you, and stories you've watched keep showing as new. An optional Mark as seen button selects stories to send. | Opt-in |
 
 The 23 opt-in patches stay out of this expansion. Their switches already start on and alter behavior, or they change colors while patching. Keep Reels auto scroll on also preserves a native choice that Instagram may otherwise forget. The DM photo/video switch starts off, but its sender and replay checks are still pending. Original-449 fixtures and Android unit tests check the six added controls' initial and off/Pause paths. Installed startup and interaction checks remain pending.
 
