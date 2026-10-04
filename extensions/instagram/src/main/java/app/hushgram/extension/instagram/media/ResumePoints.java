@@ -88,18 +88,19 @@ final class ResumePoints {
         edit.apply();
     }
 
-    /** Drops every point past its age now, rather than when it's next read. */
+    /** Durably drops expired points on the cleanup worker, including failed earlier writes. */
     synchronized void dropExpired(long now) {
         load(now);
-        SharedPreferences.Editor edit = null;
+        SharedPreferences.Editor edit = store.edit();
         List<String> expired = new ArrayList<>();
         for (Map.Entry<String, Point> point : points.entrySet()) {
             if (!expired(point.getValue(), now)) continue;
             expired.add(point.getKey());
-            if (edit == null) edit = store.edit();
             edit.remove(point.getKey());
         }
-        if (edit != null) edit.apply();
+        // apply() and failed commit() can already have changed the preferences memory map.
+        // Commit even with no new removals so a retry still flushes that pending disk state.
+        if (!edit.commit()) throw new IllegalStateException("Could not persist expired resume point cleanup");
         for (String key : expired) points.remove(key);
     }
 

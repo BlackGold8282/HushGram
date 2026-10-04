@@ -210,10 +210,13 @@ public class ClearResumeHistoryTest {
                 SharedPreferences.class.getClassLoader(), new Class<?>[]{SharedPreferences.class}, (proxy, method, args) -> {
                     if (!method.getName().equals("edit")) return method.invoke(file, args);
                     SharedPreferences.Editor editor = file.edit();
+                    boolean[] clearing = {false};
                     return Proxy.newProxyInstance(SharedPreferences.Editor.class.getClassLoader(),
                             new Class<?>[]{SharedPreferences.Editor.class}, (editProxy, editMethod, editArgs) -> {
+                                if (editMethod.getName().equals("clear")) clearing[0] = true;
                                 Object result = editMethod.invoke(editor, editArgs);
-                                if (editMethod.getName().equals("commit") && commits.incrementAndGet() == 1) return false;
+                                if (editMethod.getName().equals("commit") && clearing[0]
+                                        && commits.incrementAndGet() == 1) return false;
                                 return result == editor ? editProxy : result;
                             });
                 });
@@ -221,6 +224,7 @@ public class ClearResumeHistoryTest {
         boolean failed = false;
         try { ResumePlayback.clearHistory(); } catch (IllegalStateException expected) { failed = true; }
         assertTrue(failed);
+        assertEquals("failed clear did not attempt its rollback", 2, commits.get());
         assertFalse(ResumePlayback.canUndoHistory());
         assertEquals(60_000, new ResumePoints(file).get("id", now).positionMs);
     }

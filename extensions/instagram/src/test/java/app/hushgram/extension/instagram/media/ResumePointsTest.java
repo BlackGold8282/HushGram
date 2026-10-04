@@ -23,7 +23,10 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The saved points stay within their bounds: at most {@link ResumePoints#MAX_POINTS}, the least
@@ -54,7 +57,8 @@ public class ResumePointsTest {
                         SharedPreferences.Editor editor = file.edit();
                         return Proxy.newProxyInstance(SharedPreferences.Editor.class.getClassLoader(),
                                 new Class<?>[]{SharedPreferences.Editor.class}, (editProxy, editMethod, editArgs) -> {
-                                    if (editMethod.getName().equals("apply") && fail.getAndSet(false)) {
+                                    if ((editMethod.getName().equals("apply") || editMethod.getName().equals("commit"))
+                                            && fail.getAndSet(false)) {
                                         throw new IllegalStateException("storage unavailable");
                                     }
                                     Object result = editMethod.invoke(editor, editArgs);
@@ -71,6 +75,50 @@ public class ResumePointsTest {
             points.dropExpired(NOW + ResumePoints.KEEP_MS + 1);
             assertFalse("retry forgot a failed deletion", file.contains("old"));
             assertEquals(0, points.size(NOW + ResumePoints.KEEP_MS + 1));
+        }
+    }
+
+    @Test
+    @Config(sdk = {28, 30, 37})
+    public void diskFailureRetriesEvenAfterPreferencesMemoryChanged() {
+        long later = NOW + ResumePoints.KEEP_MS + 1;
+        for (boolean loaded : new boolean[]{false, true}) {
+            file.edit().clear().putString("old", ResumePoints.encode(90_000, NOW))
+                    .putString("live", ResumePoints.encode(120_000, later)).commit();
+            Map<String, Object> durable = new HashMap<>(file.getAll());
+            AtomicInteger commits = new AtomicInteger();
+            SharedPreferences failing = (SharedPreferences) Proxy.newProxyInstance(
+                    SharedPreferences.class.getClassLoader(), new Class<?>[]{SharedPreferences.class}, (proxy, method, args) -> {
+                        if (!method.getName().equals("edit")) return method.invoke(file, args);
+                        SharedPreferences.Editor editor = file.edit();
+                        return Proxy.newProxyInstance(SharedPreferences.Editor.class.getClassLoader(),
+                                new Class<?>[]{SharedPreferences.Editor.class}, (editProxy, editMethod, editArgs) -> {
+                                    // Android changes its memory map even when the disk write fails.
+                                    Object result = editMethod.invoke(editor, editArgs);
+                                    if (editMethod.getName().equals("commit")) {
+                                        if (commits.incrementAndGet() <= 2) return false;
+                                        durable.clear();
+                                        durable.putAll(file.getAll());
+                                        return true;
+                                    }
+                                    return result == editor ? editProxy : result;
+                                });
+                    });
+            ResumePoints points = new ResumePoints(failing);
+            if (loaded) assertNotNull(points.get("old", NOW));
+            for (int attempt = 0; attempt < 2; attempt++) {
+                boolean failed = false;
+                try { points.dropExpired(later); }
+                catch (IllegalStateException expected) { failed = true; }
+                assertTrue("disk failure was reported as successful cleanup", failed);
+                assertFalse("the fixture must model memory already changing", file.contains("old"));
+                assertTrue("the failed disk write must retain the old record", durable.containsKey("old"));
+            }
+            points.dropExpired(later);
+            assertEquals(3, commits.get());
+            assertFalse(durable.containsKey("old"));
+            assertEquals(ResumePoints.encode(120_000, later), durable.get("live"));
+            assertEquals(120_000, points.get("live", later).positionMs);
         }
     }
 

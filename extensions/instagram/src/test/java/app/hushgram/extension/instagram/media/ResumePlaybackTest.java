@@ -27,7 +27,9 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.CountDownLatch;
@@ -480,6 +482,50 @@ public class ResumePlaybackTest {
         assertFalse("a failed read was treated as completed", file.contains("expired"));
         assertEquals(120_000, points.get("live", now).positionMs);
         assertEquals(2, reads.get());
+    }
+
+    @Test
+    @Config(sdk = {28, 30, 37})
+    public void failedDiskAgingRetriesOnStartsUntilDurableThenStops() throws Exception {
+        Settings.RESUME_LONG_VIDEOS.save(false);
+        SharedPreferences file = RuntimeEnvironment.getApplication()
+                .getSharedPreferences(ResumePoints.FILE, Context.MODE_PRIVATE);
+        long now = System.currentTimeMillis();
+        file.edit().putString("expired", ResumePoints.encode(90_000, now - ResumePoints.KEEP_MS - 60_000))
+                .putString("live", ResumePoints.encode(120_000, now)).commit();
+        Map<String, Object> durable = new HashMap<>(file.getAll());
+        AtomicInteger commits = new AtomicInteger();
+        SharedPreferences failing = (SharedPreferences) Proxy.newProxyInstance(
+                SharedPreferences.class.getClassLoader(), new Class<?>[]{SharedPreferences.class}, (proxy, method, args) -> {
+                    if (!method.getName().equals("edit")) return method.invoke(file, args);
+                    SharedPreferences.Editor editor = file.edit();
+                    return Proxy.newProxyInstance(SharedPreferences.Editor.class.getClassLoader(),
+                            new Class<?>[]{SharedPreferences.Editor.class}, (editProxy, editMethod, editArgs) -> {
+                                Object result = editMethod.invoke(editor, editArgs);
+                                if (editMethod.getName().equals("commit")) {
+                                    assertFalse("cleanup blocked the UI thread", Utils.isCurrentlyOnMainThread());
+                                    if (commits.incrementAndGet() <= 2) return false;
+                                    durable.clear();
+                                    durable.putAll(file.getAll());
+                                    return true;
+                                }
+                                return result == editor ? editProxy : result;
+                            });
+                });
+        ResumePlayback.pointsForTests = new ResumePoints(failing);
+        for (int attempt = 0; attempt < 2; attempt++) {
+            ResumePlayback.started(new Object());
+            Utils.awaitBackgroundTasksForTests();
+            assertTrue(durable.containsKey("expired"));
+        }
+        ResumePlayback.started(new Object());
+        Utils.awaitBackgroundTasksForTests();
+        assertFalse("failed persistence was treated as completed aging", durable.containsKey("expired"));
+        assertEquals(ResumePoints.encode(120_000, now), durable.get("live"));
+        assertEquals(3, commits.get());
+        ResumePlayback.started(new Object());
+        Utils.awaitBackgroundTasksForTests();
+        assertEquals("successful aging was repeated", 3, commits.get());
     }
 
     @Test
