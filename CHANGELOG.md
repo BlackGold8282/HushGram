@@ -2,6 +2,10 @@
 
 Every HushGram release, newest first.
 
+## Unreleased
+
+* **Tooling:** The release check counts every top-level test class a Kotlin test file declares, so a second class in one file no longer reads as left over from a deleted one and the index push goes through.
+
 ## 0.0.5 (2026-10-03)
 
 * **Instagram:** HushGram 0.0.5 adds two patches, for 48 in all, and still targets Instagram 449.0.0.52.84 (build 385511871, arm64-v8a) on Android 9 and newer.
