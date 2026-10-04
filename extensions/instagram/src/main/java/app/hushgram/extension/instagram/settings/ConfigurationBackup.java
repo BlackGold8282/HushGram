@@ -70,6 +70,7 @@ public final class ConfigurationBackup {
             settings.put(Settings.FILENAME_TEMPLATE.key, Settings.FILENAME_TEMPLATE);
         }
         settings.put(BaseSettings.DEBUG.key, BaseSettings.DEBUG);
+        settings.put(Settings.NAVIGATION_SETTINGS_TARGET.key, Settings.NAVIGATION_SETTINGS_TARGET);
         return settings;
     }
 

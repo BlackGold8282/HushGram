@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Settings backups now include the chosen navigation tab for opening HushGram. Import reports when the change needs a restart, and Undo preserves any choice made after the import. Older backups leave this choice unchanged.
+
 * **Instagram:** Verified About and saved diagnostic reports on two Galaxy S22 builds sharing version 0.0.5. Each showed its own production identity matching the bundle and external receipt, with installed patch facts and no account identifiers, media URLs or tokens in either report.
 
 * **Instagram:** Settings can be opened by a long press on one chosen navigation tab. The choice starts off and replaces that tab's usual long-press action. Normal taps and other tabs keep their native behavior. Turning it off or pausing restores the native handler. Restart Instagram after changing the chosen tab. Galaxy S22 checks cover Home and Reels, native Home developer options, Off/Pause/Resume, both recovery entries, signed-out routing and the chooser at 200% text in right-to-left layout.
