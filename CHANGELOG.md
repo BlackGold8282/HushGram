@@ -9,7 +9,6 @@ Every HushGram release, newest first.
 * **Tooling:** smali now matches the commit patcher 1.15.0 asks for. The old pin was one commit behind it but sorted higher, so Gradle had been compiling and testing against the older dexlib2. The fixture gates move to desktop CLI 1.18.0.
 * **Instagram:** New patch, `Hide the notes row`, in Manager's simple mode with its switch off. Turn it on under Messages in HushGram settings and the row of notes at the top of your messages goes, along with the Map bubble that sits in it. Your chats, search and message requests stay where they are. Asked for in #17.
 * **Instagram:** HushGram's settings come in Korean now, translated by @BlackGold8282 in #36.
-* **Instagram:** Hide the Repost button now makes a final pass over Feed's repost icon and count after Instagram binds them, so the Feed reshare affordance goes away while the ordinary Share button stays.
 * **Instagram:** Following-list labels now wait for Instagram's row friendship status instead of trusting a stale profile fallback, so accounts won't show "Doesn't follow you" until their profile refreshes.
 * **Instagram:** Pure black dark mode now leaves bottom navigation icon colors alone when they share Instagram's dark Prism value, so the buttons stay visible on black backgrounds.
 * **Tooling:** Wrapper checks find Git Bash when Git hooks resolve an internal Git executable. The authentic Windows and POSIX launchers and every refusal-before-execution check remain required.
