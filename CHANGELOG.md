@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Settings:** If the settings page can't open, the dialog keeps an explanation, Retry and Back. Retry removes any partial page, and buttons from an old or closed dialog can't reopen it.
+
 * **Tooling:** Verification fixtures find the compiler beside the selected Java executable when Java comes from PATH.
 
 * **Instagram:** Hide the Repost button covers another Feed layout and rows that skipped the hide check. Reused rows restore their previous state when you turn the switch off or pause HushGram. Share stays in place.
