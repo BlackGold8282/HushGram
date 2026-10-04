@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Show a Reel seek thumb adds an optional white circular handle to Instagram's own Reel seek bar. It starts off and works independently of Keep a seek bar. Native taps, dragging and accessibility seeking remain available. Turning it off or pausing restores Instagram's appearance.
+
 * **Instagram:** Settings and diagnostic exports keep their progress and last result on the export row until Instagram restarts. Closing settings keeps a running export going, cancellation has its own message, and duplicate or stale callbacks can't replace a newer result.
 
 * **Instagram:** Settings and pending backup or override file requests survive Instagram restarting their screen behind Android's file picker. Returning from the picker restores the original page and delivers its result once.

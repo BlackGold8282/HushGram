@@ -368,6 +368,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting REEL_SEEK_BAR =
             new BooleanSetting("hushgram_reel_seek_bar", TRUE);
 
+    /** A visible thumb on the native ordinary-Reel scrubber, independent of keeping its bar shown. */
+    public static final BooleanSetting REEL_SEEK_THUMB =
+            new BooleanSetting("hushgram_reel_seek_thumb", FALSE);
+
     /**
      * Instagram's auto scroll in Reels stays the way you last set it after a restart and after
      * you leave Reels ({@link app.hushgram.extension.instagram.reels.ReelAutoScroll}). Read each
