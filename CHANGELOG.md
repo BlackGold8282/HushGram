@@ -4,7 +4,7 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
-* **Instagram:** Settings can be opened by a long press on one chosen navigation tab. The choice starts off and replaces that tab's usual long-press action. Normal taps and other tabs keep their native behavior. Turning it off or pausing restores the native handler. Restart Instagram after changing the chosen tab.
+* **Instagram:** Settings can be opened by a long press on one chosen navigation tab. The choice starts off and replaces that tab's usual long-press action. Normal taps and other tabs keep their native behavior. Turning it off or pausing restores the native handler. Restart Instagram after changing the chosen tab. Galaxy S22 checks cover Home and Reels, native Home developer options, Off/Pause/Resume, both recovery entries, signed-out routing and the chooser at 200% text in right-to-left layout.
 
 * **Instagram:** TalkBack reads each settings switch's name and explanation instead of announcing only its state. Action rows expose their current value or disabled reason too. TalkBack and Switch Access checks cover right-to-left layout, 200% text, paused choices and refusal of stale actions.
 
