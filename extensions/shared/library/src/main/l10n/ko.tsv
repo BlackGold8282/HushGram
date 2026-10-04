@@ -358,3 +358,9 @@ Holds back seen receipts for view-once photos and videos. Media still expires. T
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	저장된 복사본을 삭제하는 작업을 완료하지 못하였습니다. ‘저장된 재정의 삭제’를 다시 시도하세요. Instagram의 기본 재정의 설정은 변경되지 않았습니다
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	복구 작업을 완료하지 못하였습니다. ‘이전 재정의 복원’ 또는 ‘저장된 재정의 삭제’를 사용하세요
 Restored %1$d settings. Kept %2$d newer choices.	설정 %1$d개를 복원했습니다. 이후에 변경한 선택 %2$d개는 유지했습니다.
+Preparing diagnostic report...	진단 보고서 준비 중...
+Saving diagnostic report...	진단 보고서 저장 중...
+Diagnostic report saved.	진단 보고서가 저장되었습니다.
+Choose a file for the settings export.	설정을 내보낼 파일을 선택하세요.
+Exporting HushGram settings...	HushGram 설정 내보내는 중...
+Settings export cancelled.	설정 내보내기가 취소되었습니다.

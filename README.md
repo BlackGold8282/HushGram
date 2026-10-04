@@ -127,7 +127,7 @@ Long-press Instagram's icon on your home screen and tap **HushGram settings**. O
 
 If the settings page can't open, including after rotating your phone, tap **Retry** in the dialog or use **Back** to return to Instagram.
 
-Settings stays open if Android recreates Instagram's screen while a backup or override file picker is in front. Choosing a file completes the original request, and cancelling returns to settings.
+Settings stays open if Android recreates Instagram's screen while a backup or override file picker is in front. Choosing a file completes the original request, and cancelling returns to settings. Settings and diagnostic exports show their progress and last result on their own row until Instagram restarts. Closing settings doesn't interrupt an export that's already writing. A cancelled settings export says so, and you can retry a failed one.
 
 <p>
   <img src="assets/settings-switches.png" alt="Published HushGram v0.0.3 settings, showing the on status and Ads and privacy controls" width="270">

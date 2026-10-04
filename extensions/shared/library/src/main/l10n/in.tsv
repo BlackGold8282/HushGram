@@ -358,3 +358,9 @@ Holds back seen receipts for view-once photos and videos. Media still expires. T
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	Salinan tersimpan belum selesai dibuang. Coba Buang nilai pengganti tersimpan lagi. Nilai pengganti Instagram tidak berubah.
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	Pembersihan pemulihan belum selesai. Gunakan Pulihkan nilai pengganti sebelumnya atau Buang nilai pengganti tersimpan.
 Restored %1$d settings. Kept %2$d newer choices.	%1$d pengaturan dipulihkan. %2$d pilihan yang lebih baru dipertahankan.
+Preparing diagnostic report...	Menyiapkan laporan diagnostik...
+Saving diagnostic report...	Menyimpan laporan diagnostik...
+Diagnostic report saved.	Laporan diagnostik disimpan.
+Choose a file for the settings export.	Pilih file untuk mengekspor pengaturan.
+Exporting HushGram settings...	Mengekspor pengaturan HushGram...
+Settings export cancelled.	Ekspor pengaturan dibatalkan.

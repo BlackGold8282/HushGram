@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Settings and diagnostic exports keep their progress and last result on the export row until Instagram restarts. Closing settings keeps a running export going, cancellation has its own message, and duplicate or stale callbacks can't replace a newer result.
+
 * **Instagram:** Settings and pending backup or override file requests survive Instagram restarting their screen behind Android's file picker. Returning from the picker restores the original page and delivers its result once.
 
 * **Instagram:** Expired playback positions are retried on the next video start if the worker queue is full or their private store can't be read or written. Cleanup only counts as finished after a confirmed disk write, even when a failed write already changed the in-memory preferences.

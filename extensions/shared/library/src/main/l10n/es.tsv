@@ -358,3 +358,9 @@ Holds back seen receipts for view-once photos and videos. Media still expires. T
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	No se pudieron descartar todas las copias guardadas. Vuelve a intentar Descartar valores guardados. Los valores de Instagram no han cambiado.
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	No se terminó de limpiar la recuperación. Usa Restaurar valores anteriores o Descartar valores guardados.
 Restored %1$d settings. Kept %2$d newer choices.	Se restauraron %1$d ajustes. Se conservaron %2$d elecciones posteriores.
+Preparing diagnostic report...	Preparando el informe de diagnóstico...
+Saving diagnostic report...	Guardando el informe de diagnóstico...
+Diagnostic report saved.	Informe de diagnóstico guardado.
+Choose a file for the settings export.	Elige un archivo para exportar los ajustes.
+Exporting HushGram settings...	Exportando los ajustes de HushGram...
+Settings export cancelled.	Exportación de ajustes cancelada.

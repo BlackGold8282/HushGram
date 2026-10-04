@@ -358,3 +358,9 @@ Holds back seen receipts for view-once photos and videos. Media still expires. T
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	Die gespeicherten Kopien konnten nicht vollständig verworfen werden. Versuche Gespeicherte Überschreibungen verwerfen erneut. Die Überschreibungen von Instagram wurden nicht geändert.
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	Die Wiederherstellungsdateien konnten nicht vollständig bereinigt werden. Nutze Vorherige Überschreibungen wiederherstellen oder Gespeicherte Überschreibungen verwerfen.
 Restored %1$d settings. Kept %2$d newer choices.	%1$d Einstellungen wiederhergestellt. %2$d neuere Auswahlen beibehalten.
+Preparing diagnostic report...	Diagnosebericht wird vorbereitet...
+Saving diagnostic report...	Diagnosebericht wird gespeichert...
+Diagnostic report saved.	Diagnosebericht gespeichert.
+Choose a file for the settings export.	Wähle eine Datei für den Einstellungsexport.
+Exporting HushGram settings...	HushGram-Einstellungen werden exportiert...
+Settings export cancelled.	Einstellungsexport abgebrochen.
