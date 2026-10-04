@@ -11,7 +11,9 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.SystemClock;
+import android.view.accessibility.AccessibilityManager;
 
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -33,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
@@ -113,6 +116,61 @@ public class ClearResumeHistoryTest {
         ResumePlaybackForTests.runLater();
         assertTrue(opened.seeks.isEmpty());
         assertTrue(new ResumePoints(file).size(System.currentTimeMillis()) == 0);
+    }
+
+    @Test @Config(sdk = {28, 29, 37})
+    public void undoUsesTheRecommendedInteractiveWindowOrTheLegacyFallback() {
+        AccessibilityManager manager = RuntimeEnvironment.getApplication()
+                .getSystemService(AccessibilityManager.class);
+        for (int recommendation : new int[]{10_000, 30_000, 120_000}) {
+            if (Build.VERSION.SDK_INT >= 29) {
+                Shadows.shadowOf(manager).setInteractiveUiTimeout(recommendation);
+                Shadows.shadowOf(manager).setNonInteractiveUiTimeout(0);
+            }
+            points.put("id", 60_000, System.currentTimeMillis());
+            ResumePlayback.clearHistory();
+            int window = Build.VERSION.SDK_INT >= 29 ? recommendation : 10_000;
+            SystemClock.sleep(window - 1);
+            assertTrue("Undo ended before the recommended window", ResumePlayback.canUndoHistory());
+            SystemClock.sleep(1);
+            ShadowLooper.idleMainLooper();
+            assertFalse(ResumePlayback.canUndoHistory());
+        }
+    }
+
+    @Test @Config(sdk = {29, 37})
+    public void undoAlsoRespectsTheRecommendedReadingTime() {
+        AccessibilityManager manager = RuntimeEnvironment.getApplication()
+                .getSystemService(AccessibilityManager.class);
+        Shadows.shadowOf(manager).setInteractiveUiTimeout(10_000);
+        Shadows.shadowOf(manager).setNonInteractiveUiTimeout(120_000);
+        points.put("id", 60_000, System.currentTimeMillis());
+        ResumePlayback.clearHistory();
+        SystemClock.sleep(30_000);
+        assertTrue("Undo omitted the text content flag", ResumePlayback.canUndoHistory());
+    }
+
+    @Test @Config(sdk = {28, 29, 37})
+    public void staleActionAndExpiryCannotConsumeTheNextClear() {
+        points.put("first", 60_000, System.currentTimeMillis());
+        ResumePlayback.clearHistory();
+        long old = ResumePlayback.undoHistoryToken();
+        long firstDeadline = ResumePlayback.undoHistoryDeadline(old);
+        SystemClock.sleep(5_000);
+        points.put("second", 70_000, System.currentTimeMillis());
+        ResumePlayback.clearHistory();
+        long current = ResumePlayback.undoHistoryToken();
+        assertTrue(old != current);
+        assertEquals(0, ResumePlayback.undoHistoryDeadline(old));
+        assertFalse(ResumePlayback.undoHistory(old));
+        SystemClock.sleep(firstDeadline - SystemClock.elapsedRealtime());
+        ShadowLooper.idleMainLooper();
+        assertTrue(ResumePlayback.canUndoHistory());
+        assertTrue(ResumePlayback.undoHistory(current));
+        assertEquals(1, points.size(System.currentTimeMillis()));
+        assertNotNull(points.get("second", System.currentTimeMillis()));
+        assertFalse(ResumePlayback.undoHistory(current));
+        assertEquals(0, ResumePlayback.undoHistoryToken());
     }
 
     @Test public void clearingWhileOffAndPausedLeavesOtherSettingsAlone() {

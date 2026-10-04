@@ -18,6 +18,9 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -51,7 +54,9 @@ import androidx.annotation.Nullable;
 
 import java.text.NumberFormat;
 import java.text.Normalizer;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -109,7 +114,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     @Nullable private Row clearPositions;
     private boolean changingPositions;
-    private boolean positionsUndoShown;
+    private final Handler undoRefresh = new Handler(Looper.getMainLooper());
+    private final Runnable refreshUndo = () -> {
+        showClearPositions();
+        showConfiguration();
+    };
     private static final int EXPORT_CONFIGURATION = 0x4847;
     private static final int IMPORT_CONFIGURATION = 0x4848;
     private static final int EXPORT_OVERRIDES = 0x4849;
@@ -193,11 +202,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Override
     public void onPause() {
         SaveControl.unwatch(saves);
+        undoRefresh.removeCallbacks(refreshUndo);
         super.onPause();
     }
 
     @Override
     public void onDestroyView() {
+        undoRefresh.removeCallbacks(refreshUndo);
         for (Dialog dialog : new ArrayList<>(shownDialogs)) dialog.dismiss();
         shownDialogs.clear();
         clearPositions = null;
@@ -461,10 +472,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 clearPositions.setKey("hushgram_clear_resume_points");
                 clearPositions.setPersistent(false);
                 clearPositions.actsAtOnce = true;
-                clearPositions.setOnPreferenceClickListener(p -> {
-                    changePositions();
-                    return true;
-                });
                 playback.addPreference(clearPositions);
                 showClearPositions();
             }
@@ -673,14 +680,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         importConfiguration.setKey("hushgram_import_configuration");
         importConfiguration.setPersistent(false);
         importConfiguration.setTitle(L10n.t("Import HushGram settings"));
-        importConfiguration.setSummary(L10n.t("Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds."));
+        importConfiguration.setSummary(L10n.t("Choose a settings file. Valid choices apply together. Unsupported keys are skipped. The Undo row shows its deadline."));
         importConfiguration.setOnPreferenceClickListener(p -> { pickConfiguration(true); return true; });
         backup.addPreference(mark(importConfiguration, SettingsIcons.EXPORT));
         undoConfiguration = new Row(context);
         undoConfiguration.setKey("hushgram_undo_configuration");
         undoConfiguration.setPersistent(false);
         undoConfiguration.setTitle(L10n.t("Undo settings import"));
-        undoConfiguration.setOnPreferenceClickListener(p -> { changeConfiguration(null, true); return true; });
         backup.addPreference(mark(undoConfiguration, SettingsIcons.DELETE));
         showConfiguration();
 
@@ -872,12 +878,24 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (importConfiguration != null) importConfiguration.setEnabled(!busy);
         if (importConfiguration != null && importFeedback != null) importConfiguration.setSummary(importFeedback);
         if (undoConfiguration != null) {
-            boolean undo = ConfigurationBackup.canUndo();
-            undoConfiguration.setEnabled(!busy && undo);
-            undoConfiguration.setSummary(undo
-                    ? L10n.t("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.")
+            Row row = undoConfiguration;
+            long token = ConfigurationBackup.undoToken();
+            long deadline = ConfigurationBackup.undoDeadline(token);
+            row.setEnabled(!busy && deadline != 0);
+            row.setSummary(deadline != 0
+                    ? L10n.f("Undo is available until %1$s. Restarting Instagram discards Undo.",
+                    DateFormat.getTimeInstance(DateFormat.MEDIUM, L10n.locale(row.getContext())).format(
+                            new Date(System.currentTimeMillis() + Math.max(0, deadline - SystemClock.elapsedRealtime()))))
                     : L10n.t("No settings import to undo."));
+            row.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override public boolean onPreferenceClick(Preference preference) {
+                    if (isResumed() && undoConfiguration == row && row.isEnabled()
+                            && row.getOnPreferenceClickListener() == this) changeConfiguration(null, token);
+                    return true;
+                }
+            });
         }
+        scheduleUndoExpiry();
         if (exportOverrides != null) {
             exportOverrides.setEnabled(!busy);
             if (overrideExportFeedback != null) exportOverrides.setSummary(overrideExportFeedback);
@@ -952,7 +970,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             exchangeOverrides(uri, request);
             return;
         }
-        if (request == IMPORT_CONFIGURATION) changeConfiguration(uri, false);
+        if (request == IMPORT_CONFIGURATION) changeConfiguration(uri, 0);
         else exportConfiguration(uri);
     }
 
@@ -1091,8 +1109,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     /** Undo always remains Undo, even if its expiration callback hasn't reached the screen yet. */
-    private void changeConfiguration(@Nullable Uri uri, boolean undo) {
+    private void changeConfiguration(@Nullable Uri uri, long token) {
         if (changingConfiguration) return;
+        boolean undo = uri == null;
         Context context = getContext();
         if (context == null) return;
         changingConfiguration = true;
@@ -1100,7 +1119,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (!Utils.runOnBackgroundThread(() -> {
             try {
                 ConfigurationBackup.Result result;
-                if (undo) result = ConfigurationBackup.undo();
+                if (undo) result = ConfigurationBackup.undo(token);
                 else {
                     byte[] bytes;
                     try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
@@ -1112,7 +1131,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 }
                 if (result == null) showImportFeedback(L10n.t("Undo has expired."));
                 else {
-                    String message = undo ? L10n.t("Settings restored.")
+                    String message = undo ? result.skipped == 0 ? L10n.t("Settings restored.")
+                            : L10n.f("Restored %1$d settings. Kept %2$d newer choices.", result.applied, result.skipped)
                             : L10n.f("Imported %1$d settings. Skipped %2$d unsupported keys.", result.applied, result.skipped);
                     if (result.restart) message += " " + L10n.t("Restart Instagram to apply these choices.");
                     showImportFeedback(message);
@@ -1150,7 +1170,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             changingOverrides = false;
             if (isAdded() && getPreferenceScreen() != null) updateUIToSettingValues();
             showConfiguration();
-            Utils.runOnMainThreadDelayed(this::showConfiguration, ConfigurationBackup.UNDO_WINDOW_MS);
         });
     }
 
@@ -1158,29 +1177,50 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private void showClearPositions() {
         Row row = clearPositions;
         if (row == null) return;
-        boolean undo = ResumePlayback.canUndoHistory();
-        positionsUndoShown = undo;
+        long token = ResumePlayback.undoHistoryToken();
+        long deadline = ResumePlayback.undoHistoryDeadline(token);
+        boolean undo = deadline != 0;
         row.setEnabled(!changingPositions);
         row.setTitle(changingPositions ? L10n.t("Updating remembered positions...")
                 : undo ? L10n.t("Undo cleared positions") : L10n.t("Clear remembered positions"));
         row.setSummary(undo
-                ? L10n.t("You can restore the cleared positions once within 10 seconds.")
+                ? L10n.f("Undo is available until %1$s.",
+                DateFormat.getTimeInstance(DateFormat.MEDIUM, L10n.locale(row.getContext())).format(
+                        new Date(System.currentTimeMillis() + Math.max(0, deadline - SystemClock.elapsedRealtime()))))
                 : L10n.t("Up to 200 positions, kept for 30 days. Tap to clear them from this device."));
+        row.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override public boolean onPreferenceClick(Preference preference) {
+                if (isResumed() && clearPositions == row && row.isEnabled()
+                        && row.getOnPreferenceClickListener() == this) changePositions(token);
+                return true;
+            }
+        });
+        scheduleUndoExpiry();
         filterSettings();
     }
 
+    /** Reopening only schedules the remainder of the original monotonic deadline. */
+    private void scheduleUndoExpiry() {
+        undoRefresh.removeCallbacks(refreshUndo);
+        if (!isResumed()) return;
+        long configuration = ConfigurationBackup.undoDeadline(ConfigurationBackup.undoToken());
+        long positions = ResumePlayback.undoHistoryDeadline(ResumePlayback.undoHistoryToken());
+        long next = configuration == 0 ? positions : positions == 0 ? configuration : Math.min(configuration, positions);
+        if (next != 0) undoRefresh.postDelayed(refreshUndo, Math.max(0, next - SystemClock.elapsedRealtime()));
+    }
+
     /** Disk commits run on the existing worker, with immediate feedback and no confirmation. */
-    private void changePositions() {
+    private void changePositions(long token) {
         if (changingPositions) return;
         // Honor the action the row offered. An expired Undo must never become another clear
         // while its delayed refresh is still waiting on the main thread.
-        boolean undo = positionsUndoShown;
+        boolean undo = token != 0;
         changingPositions = true;
         showClearPositions();
         if (!Utils.runOnBackgroundThread(() -> {
             try {
                 if (undo) {
-                    boolean restored = ResumePlayback.undoHistory();
+                    boolean restored = ResumePlayback.undoHistory(token);
                     Utils.showToastShort(restored ? L10n.t("Remembered playback positions restored.")
                             : L10n.t("Undo has expired."));
                 } else {
@@ -1194,7 +1234,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 Utils.runOnMainThread(() -> {
                     changingPositions = false;
                     showClearPositions();
-                    Utils.runOnMainThreadDelayed(this::showClearPositions, ResumePlayback.UNDO_WINDOW_MS);
                 });
             }
         })) {

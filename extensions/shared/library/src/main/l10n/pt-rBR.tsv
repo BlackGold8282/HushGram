@@ -257,7 +257,7 @@ Turn on Default playback quality to use this choice.	Ative Qualidade de reprodu�
 Updating remembered positions...	Atualizando posições salvas...
 Undo cleared positions	Restaurar posições apagadas
 Clear remembered positions	Apagar posições salvas
-You can restore the cleared positions once within 10 seconds.	Você pode restaurar as posições apagadas uma vez em até 10 segundos.
+Undo is available until %1$s.	Você pode desfazer até %1$s.
 Up to 200 positions, kept for 30 days. Tap to clear them from this device.	Até 200 posições, guardadas por 30 dias. Toque para apagá-las deste dispositivo.
 Remembered playback positions restored.	Posições de reprodução salvas restauradas.
 Undo has expired.	O prazo para restaurar terminou.
@@ -267,9 +267,9 @@ Settings backup	Backup das configurações
 Export HushGram settings	Exportar configurações do HushGram
 Choose a file for your installed patches' settings. Accounts and history stay on this device.	Escolha um arquivo para as configurações dos patches instalados. As contas e o histórico ficam neste dispositivo.
 Import HushGram settings	Importar configurações do HushGram
-Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Escolha um arquivo de configurações. As opções válidas são aplicadas juntas; as chaves incompatíveis são ignoradas. Você pode desfazer por 10 segundos.
+Choose a settings file. Valid choices apply together. Unsupported keys are skipped. The Undo row shows its deadline.	Escolha um arquivo de configurações. As opções válidas são aplicadas juntas. As chaves incompatíveis são ignoradas. A linha Desfazer mostra o prazo.
 Undo settings import	Desfazer importação das configurações
-Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Restaure as opções anteriores uma vez em até 10 segundos. Reiniciar o Instagram descarta essa opção.
+Undo is available until %1$s. Restarting Instagram discards Undo.	Você pode desfazer até %1$s. Reiniciar o Instagram descarta essa opção.
 No settings import to undo.	Não há importação de configurações para desfazer.
 No document picker is available. Your settings haven't changed.	Nenhum seletor de documentos está disponível. Suas configurações não mudaram.
 Couldn't use that settings file. Your settings haven't changed.	Não foi possível usar esse arquivo de configurações. Suas configurações não mudaram.
@@ -357,3 +357,4 @@ View DM photos and videos anonymously	Ver fotos e vídeos de mensagens anonimame
 Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	Não envia confirmações de visualização de fotos e vídeos de visualização única. A mídia continua expirando. Este recurso de teste começa desativado.
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	Não foi possível descartar todas as cópias salvas. Tente Descartar valores salvos novamente. Os valores do Instagram não mudaram.
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	A limpeza da recuperação não terminou. Use Restaurar valores anteriores ou Descartar valores salvos.
+Restored %1$d settings. Kept %2$d newer choices.	%1$d configurações restauradas. %2$d escolhas mais recentes foram mantidas.
