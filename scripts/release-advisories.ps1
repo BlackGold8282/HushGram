@@ -136,9 +136,9 @@ function Get-Cvss3BaseScore {
     $metrics = @{}
     foreach ($part in @($Vector -split '/' | Select-Object -Skip 1)) {
         $pair = $part -split ':', 2
-        if ($pair.Count -ne 2 -or $pair[0] -cnotmatch '^[A-Z]+$' -or
+        if ($pair.Count -ne 2 -or $pair[0] -cnotmatch '^[A-Z]+\z' -or
             -not $allowed.ContainsKey($pair[0]) -or $metrics.ContainsKey($pair[0]) -or
-            $pair[1] -cnotmatch "^[$($allowed[$pair[0]])]$") { return $null }
+            $pair[1] -cnotmatch "^[$($allowed[$pair[0]])]\z") { return $null }
         $metrics[$pair[0]] = $pair[1]
     }
     # A metric the vector leaves out reads as '', which neither check below lets through.
@@ -157,7 +157,7 @@ function Get-Cvss3BaseScore {
     foreach ($name in $weights.Keys) {
         $letter = [string]$metrics[$name]
         # Case matters in a vector, and a hashtable's keys don't.
-        if ($letter -cnotmatch '^[A-Z]$' -or -not $weights[$name].ContainsKey($letter)) { return $null }
+        if ($letter -cnotmatch '^[A-Z]\z' -or -not $weights[$name].ContainsKey($letter)) { return $null }
         $value[$name] = [double]$weights[$name][$letter]
     }
 
@@ -283,6 +283,10 @@ function Get-AdvisorySeverity {
     }
     if ($levels.Count -gt 1 -and $null -ne $level -and $rank[$level] -lt 3) {
         $unread = 'applicable minor severity assessments conflict'
+    }
+    if ($unread -and $level -in @('HIGH', 'CRITICAL')) {
+        return [pscustomobject]@{ Level = $level; Serious = $true
+            Why = "$why; additional severity needs review: $unread" }
     }
     if ($null -eq $level -or $unread) {
         return [pscustomobject]@{ Level = 'UNRATED'; Serious = $true
@@ -572,7 +576,7 @@ function Get-SbomAdvisories {
     $findings = New-Object System.Collections.Generic.List[object]
     foreach ($library in @($Sbom.Libraries)) {
         $reported = @(@(Invoke-OsvQuery -Purl $library.Purl) + @(Get-VendorAdvisories -Library $library))
-        $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; HIGH = 3; CRITICAL = 4; UNRATED = 5 }
+        $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; UNRATED = 2.5; HIGH = 3; CRITICAL = 4 }
         # OSV aliases denote the same vulnerability. Join overlapping identities before
         # choosing severity, including a record that bridges two earlier groups.
         $groups = @()
@@ -595,6 +599,11 @@ function Get-SbomAdvisories {
             } | Sort-Object { $rank[$_.Severity.Level] } -Descending)
             $advisory = $rated[0].Record
             $severity = $rated[0].Severity
+            $unrated = @($rated.Severity | Where-Object { $_.Level -eq 'UNRATED' })
+            if ($severity.Level -in @('HIGH', 'CRITICAL') -and $unrated.Count) {
+                $severity = [pscustomobject]@{ Level = $severity.Level; Serious = $true
+                    Why = $severity.Why + '; ' + (($unrated.Why | Sort-Object -Unique) -join '; ') }
+            }
             if (-not $severity.Serious -and @($rated.Severity.Level | Sort-Object -Unique).Count -gt 1) {
                 $severity = [pscustomobject]@{ Level = 'UNRATED'; Serious = $true
                     Why = 'Publisher or alias severity assessments conflict, so this finding needs review' }

@@ -1329,6 +1329,12 @@ try {
     }
     foreach ($case in @(
             @{ Name = 'low label and v4'; Fields = @{ severity = @($v4Vector) }; Level = 'UNRATED' },
+            @{ Name = 'critical label and v4'; Fields = @{ database_specific = @{ severity = 'CRITICAL' }; severity = @($v4Vector) }; Level = 'CRITICAL' },
+            @{ Name = 'high label and malformed vector'; Fields = @{ database_specific = @{ severity = 'HIGH' };
+                severity = @(@{ type = 'CVSS_V3'; score = 'broken' }) }; Level = 'HIGH' },
+            @{ Name = 'critical vector and v4'; Fields = @{ severity = @($criticalVector, $v4Vector) }; Level = 'CRITICAL' },
+            @{ Name = 'optional metric trailing newline'; Fields = @{ severity = @(@{ type = 'CVSS_V3';
+                score = $lowVector.score + "/E:X`n" }) }; Level = 'UNRATED' },
             @{ Name = 'low label and malformed v3'; Fields = @{ severity = @(@{ type = 'CVSS_V3'; score = 'CVSS:3.1/AV:N' }) }; Level = 'UNRATED' },
             @{ Name = 'low label and malformed v4'; Fields = @{ severity = @(@{ type = 'CVSS_V4'; score = 'broken' }) }; Level = 'UNRATED' },
             @{ Name = 'null severity'; Fields = @{ severity = @($null) }; Level = 'UNRATED' },
@@ -1411,6 +1417,20 @@ try {
             -not (Test-AdvisoryFindings -Findings $actual -Exceptions @($review) -Scope test).Valid) `
             'An alias exception was lost or escaped its reviewed dependency scope.'
     }
+    foreach ($known in @('HIGH', 'CRITICAL')) {
+        foreach ($reverse in @($false, $true)) {
+            $mixed = @(
+                @{ id = 'GHSA-fixture-rated'; aliases = @('CVE-fixture-mixed'); database_specific = @{ severity = $known } },
+                @{ id = 'GHSA-fixture-unread'; aliases = @('CVE-fixture-mixed'); severity = @($v4Vector) })
+            if ($reverse) { [array]::Reverse($mixed) }
+            $osvAnswers = @{ $gsonPurl = (@{ vulns = $mixed } | ConvertTo-Json -Depth 8 -Compress) }
+            $actual = @(Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl)))
+            Assert-True ($actual.Count -eq 1 -and $actual[0].Severity.Level -ceq $known -and
+                $actual[0].Severity.Why -match 'needs review' -and $actual[0].Aliases.Count -eq 2 -and
+                -not (Test-AdvisoryFindings -Findings $actual).Valid) `
+                'Unread alias evidence erased a known serious rating or its review requirement.'
+        }
+    }
     $aliasRecords[1].database_specific.severity = 'MODERATE'
     $osvAnswers = @{ $gsonPurl = (@{ vulns = $aliasRecords } | ConvertTo-Json -Depth 8 -Compress) }
     Assert-True ((Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl))).Severity.Level -ceq 'UNRATED') `
@@ -1422,6 +1442,9 @@ try {
             ($criticalVector.score + '/E:H/E:U'),
             ($criticalVector.score + '/UNKNOWN:H'),
             ($criticalVector.score + '/E:Z'),
+            ($criticalVector.score + "/E:X`n"),
+            ($criticalVector.score + "/E:X`r`n"),
+            ($criticalVector.score + "/E:X`t"),
             ($criticalVector.score + '/'),
             $criticalVector.score.Replace('/AV:N', '/av:N'),
             $criticalVector.score.Replace('CVSS:', 'cvss:'))) {
