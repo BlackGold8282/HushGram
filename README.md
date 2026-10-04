@@ -279,7 +279,7 @@ HushGram doesn't collect anything and has no server. The one connection it opens
 
 The diagnostic report stays on your phone until you copy or share it yourself.
 
-Source builds show an `hg1:` identity beneath Version in About and as `source_build` in local diagnostic reports. It identifies the production source behind the bundle even when its version hasn't changed. The installed patch families still describe the patches selected for that app. The identity doesn't contain account information or send anything off your phone.
+Source builds show an `hg1:` identity beneath Version in About and as `source_build` in local diagnostic reports. It identifies the production source behind the bundle even when its version hasn't changed. The installed patch families still describe the patches selected for that app. The identity doesn't contain account information or send anything off your phone. On a Galaxy S22, two production builds of version 0.0.5 showed distinct identities in About and saved reports, each matching its bundle and external release receipt. Both reports included installed patch families without account identifiers, media URLs or tokens.
 
 ## Where the patches come from
 
