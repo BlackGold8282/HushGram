@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Settings recovery also handles a page that fails while Android restores it after rotation. A working page keeps its pending file-picker request through recreation.
+
 * **Instagram:** Settings search keeps actions reachable when their labels change. Searching for remembered positions still shows Undo after clearing them, including when you reopen settings before its deadline.
 
 * **Instagram:** Settings import and playback-history Undo follow Android's accessibility timeout and show their deadline. Reopening settings doesn't extend it. Old taps can't undo newer operations, and settings Undo keeps choices changed after the import.

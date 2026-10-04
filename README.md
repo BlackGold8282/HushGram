@@ -125,7 +125,7 @@ The other patches keep their switches in `HushGram settings`, so Morphe Manager 
 
 Long-press Instagram's icon on your home screen and tap **HushGram settings**. Or, inside Instagram, open **Settings and activity** from the menu on your profile and tap **HushGram settings** at the top. The screen opens over Instagram, and the shortcut works before you sign in too.
 
-If the settings page can't open, tap **Retry** in the dialog or use **Back** to return to Instagram.
+If the settings page can't open, including after rotating your phone, tap **Retry** in the dialog or use **Back** to return to Instagram.
 
 <p>
   <img src="assets/settings-switches.png" alt="Published HushGram v0.0.3 settings, showing the on status and Ads and privacy controls" width="270">
