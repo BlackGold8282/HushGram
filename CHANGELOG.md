@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Settings and pending backup or override file requests survive Instagram restarting their screen behind Android's file picker. Returning from the picker restores the original page and delivers its result once.
+
 * **Instagram:** Expired playback positions are retried on the next video start if the worker queue is full or reading their private store fails. Failed cleanup no longer leaves the in-memory history marked as loaded.
 
 * **Instagram:** Settings recovery also handles a page that fails while Android restores it after rotation. A working page keeps its pending file-picker request through recreation.

@@ -94,5 +94,6 @@ val settingsPatch = bytecodePatch(
         // A launcher that shows no shortcuts on a long press still gets there from Instagram's
         // own settings.
         addSettingsRow()
+        preserveSettingsState()
     }
 }
