@@ -129,6 +129,8 @@ If the settings page can't open, including after rotating your phone, tap **Retr
 
 Settings stays open if Android recreates Instagram's screen while a backup or override file picker is in front. Choosing a file completes the original request, and cancelling returns to settings. Settings and diagnostic exports show their progress and last result on their own row until Instagram restarts. Closing settings doesn't interrupt an export that's already writing. A cancelled settings export says so, and you can retry a failed one.
 
+Each settings or override file picker keeps its own request identity. A late result from an earlier picker can't consume the current choice or write to the older document.
+
 <p>
   <img src="assets/settings-switches.png" alt="Published HushGram v0.0.3 settings, showing the on status and Ads and privacy controls" width="270">
   <img src="assets/settings-pause-and-diagnostics.png" alt="Published HushGram v0.0.3 settings, showing Pause, Debug mode and diagnostic report controls" width="270">

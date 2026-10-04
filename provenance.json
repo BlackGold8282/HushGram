@@ -235,6 +235,7 @@
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/SettingsHostRestorationTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/ExportFeedbackTest.java",
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/reels/ReelSeekThumbTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/DocumentRequestIdentityTest.java",
         "extensions/shared/library/src/main/java/app/hushgram/extension/shared/settings/preference/ExportStatus.java",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/comment/**",
         "patches/src/test/kotlin/app/morphe/patches/instagram/misc/comment/**",

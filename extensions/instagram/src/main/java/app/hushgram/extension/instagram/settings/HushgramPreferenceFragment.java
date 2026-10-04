@@ -127,7 +127,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int IMPORT_OVERRIDES = 0x484b;
     /** Restore and Discard read HushGram's saved copy, so they never become a document request. */
     private static final int RESTORE_OVERRIDES = 0, DISCARD_OVERRIDES = -1;
+    /** Framework fragment callbacks run on the main thread. Never reuse a code across pages. */
+    private static int documentSequence = IMPORT_OVERRIDES;
     private int documentRequest;
+    private int documentCode;
     @Nullable private String configurationExportToken;
     private boolean changingConfiguration;
     private boolean changingOverrides;
@@ -173,6 +176,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     public void onCreate(Bundle state) {
         if (state != null) {
             documentRequest = state.getInt("hushgram_document_request", 0);
+            // Older saved pages used the operation itself as their Android request code.
+            documentCode = state.getInt("hushgram_document_code", documentRequest);
+            documentSequence = Math.max(documentSequence,
+                    Math.max(documentCode, state.getInt("hushgram_document_sequence", 0)));
             configurationExportToken = state.getString("hushgram_configuration_export");
             if (documentRequest == EXPORT_CONFIGURATION) {
                 ExportStatus.State current = ExportStatus.CONFIGURATION.state();
@@ -183,6 +190,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 } else if (!current.active || !current.choosing || !current.token.equals(configurationExportToken)) {
                     // This saved bundle predates a result already claimed by the original page.
                     documentRequest = 0;
+                    documentCode = 0;
                 }
             }
         }
@@ -193,6 +201,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     public void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putInt("hushgram_document_request", documentRequest);
+        state.putInt("hushgram_document_code", documentCode);
+        state.putInt("hushgram_document_sequence", documentSequence);
         state.putString("hushgram_configuration_export", configurationExportToken);
     }
 
@@ -967,19 +977,25 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     private void pickConfiguration(boolean importing) {
         if (documentRequest != 0 || changingConfiguration || changingOverrides || ExportStatus.CONFIGURATION.active()) return;
+        if (documentSequence == Integer.MAX_VALUE) {
+            Utils.showToastLong(L10n.t("Couldn't start the settings operation. Try again."));
+            return;
+        }
         if (!importing) {
             configurationExportToken = ExportStatus.CONFIGURATION.begin(L10n.t("Choose a file for the settings export."), true);
             if (configurationExportToken == null) return;
         }
         documentRequest = importing ? IMPORT_CONFIGURATION : EXPORT_CONFIGURATION;
+        documentCode = ++documentSequence;
         showConfiguration();
         Intent picker = new Intent(importing ? Intent.ACTION_OPEN_DOCUMENT : Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType("application/json");
         if (!importing) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-settings.json");
         try {
-            startActivityForResult(picker, documentRequest);
+            startActivityForResult(picker, documentCode);
         } catch (ActivityNotFoundException | SecurityException failure) {
             documentRequest = 0;
+            documentCode = 0;
             if (!importing) ExportStatus.CONFIGURATION.finish(configurationExportToken,
                     L10n.t("No document picker is available. Your settings haven't changed."));
             showConfiguration();
@@ -989,26 +1005,35 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     private void pickOverrides(int request) {
         if (documentRequest != 0 || changingConfiguration || changingOverrides || ExportStatus.CONFIGURATION.active()) return;
+        if (documentSequence == Integer.MAX_VALUE) {
+            Utils.showToastLong(L10n.t("Couldn't start the settings operation. Try again."));
+            return;
+        }
         documentRequest = request;
+        documentCode = ++documentSequence;
         showConfiguration();
         boolean exporting = request == EXPORT_OVERRIDES;
         Intent picker = new Intent(exporting ? Intent.ACTION_CREATE_DOCUMENT : Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType("application/json");
         if (exporting) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-overrides.json");
-        try { startActivityForResult(picker, documentRequest); }
+        try { startActivityForResult(picker, documentCode); }
         catch (ActivityNotFoundException | SecurityException failure) {
             documentRequest = 0;
+            documentCode = 0;
             overrideFeedback(request, L10n.t("No document picker is available. Overrides haven't changed."));
             showConfiguration();
         }
     }
 
     @Override
-    public void onActivityResult(int request, int result, Intent data) {
-        super.onActivityResult(request, result, data);
+    public void onActivityResult(int code, int result, Intent data) {
+        super.onActivityResult(code, result, data);
+        if (code != documentCode) return;
+        int request = documentRequest;
         boolean overrides = request == EXPORT_OVERRIDES || request == VALIDATE_OVERRIDES || request == IMPORT_OVERRIDES;
-        if (request != documentRequest || (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION && !overrides)) return;
+        if (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION && !overrides) return;
         documentRequest = 0;
+        documentCode = 0;
         if (request == EXPORT_CONFIGURATION) {
             ExportStatus.State current = ExportStatus.CONFIGURATION.state();
             if (current == null || !current.active || !current.choosing || !current.token.equals(configurationExportToken)) {
