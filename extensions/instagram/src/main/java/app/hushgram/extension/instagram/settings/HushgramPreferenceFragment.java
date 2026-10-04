@@ -755,7 +755,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 Preference row = group.getPreference(j);
                 rows.add(row);
                 String key = row.getKey();
-                StringBuilder aliases = new StringBuilder();
+                StringBuilder aliases = new StringBuilder(row == clearPositions
+                        ? L10n.t("Clear remembered positions")
+                        : row.getTitle() == null ? "" : row.getTitle().toString());
                 for (PatchFamily family : build) {
                     boolean belongs = family.switches.stream().anyMatch(setting -> setting.key.equals(key));
                     belongs |= family == PatchFamily.STORY_RING && Settings.STORY_RING_SCALE.key.equals(key);
