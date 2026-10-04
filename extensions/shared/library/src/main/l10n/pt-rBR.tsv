@@ -366,3 +366,19 @@ Exporting HushGram settings...	Exportando as configurações do HushGram...
 Settings export cancelled.	Exportação das configurações cancelada.
 Show a Reel seek thumb	Mostrar controle circular nos Reels
 Adds a white circular handle to Instagram's Reel seek bar. Drag to seek. Ads keep their own bar.	Adiciona um controle circular branco à barra dos Reels do Instagram. A navegação continua como antes, e os anúncios mantêm a própria barra.
+# Chosen navigation long-press settings entry. Account tab availability varies.
+Settings entry	Acesso às configurações
+Open settings with a tab long press	Abrir configurações ao manter uma aba pressionada
+Choose a tab	Escolher uma aba
+Home	Início
+Search	Pesquisar
+Profile	Perfil
+Create (+)	Criar (+)
+Camera	Câmera
+Activity	Atividade
+Creator tools	Ferramentas do criador
+Home feed picker	Seletor do Início
+Custom tab	Aba personalizada
+Off	Desativado
+Tab long presses keep Instagram's own action. Choose one to open HushGram instead.	Manter uma aba pressionada continua usando a ação do Instagram. Escolha uma para abrir o HushGram no lugar dela.
+Long-press %1$s to open HushGram instead of that tab's usual action. Normal taps and other tabs stay the same. Only tabs your account shows can be used. Restart Instagram after changing it.	Mantenha %1$s pressionado para abrir o HushGram no lugar da ação normal dessa aba. Os toques normais e as outras abas continuam iguais. Só é possível usar as abas que sua conta mostra. Reinicie o Instagram depois de mudar.

@@ -133,9 +133,14 @@ public class SettingsRowAccessibilityTest {
         assertTrue("preference is missing from the actual list", position >= 0);
         View attached = list.getChildAt(position - list.getFirstVisiblePosition());
         if (attached != null) return attached;
-        list.clearFocus();
-        list.setSelection(position);
-        layout();
+        // Selection is keyboard focus, not a touch scroll. The search input can retain focus
+        // on API 28 and leave an off-screen selection unlaid out, especially at 200% text.
+        for (int step = 0; step < list.getCount() * 2
+                && (position < list.getFirstVisiblePosition() || position > list.getLastVisiblePosition()); step++) {
+            int direction = position < list.getFirstVisiblePosition() ? -1 : 1;
+            list.scrollListBy(direction * Math.max(1, list.getHeight() / 2));
+            layout();
+        }
         View view = list.getChildAt(position - list.getFirstVisiblePosition());
         assertNotNull("the selected row isn't attached: wanted " + position + ", first "
                 + list.getFirstVisiblePosition() + ", children " + list.getChildCount(), view);
@@ -202,7 +207,8 @@ public class SettingsRowAccessibilityTest {
         open(PatchFamily.values());
         for (String key : new String[]{"hushgram_export_configuration", "action_export_diagnostic_report",
                 "action_clear_diagnostic_data", Settings.SAVE_FOLDER.key, Settings.FILENAME_TEMPLATE.key,
-                Settings.DOWNLOAD_QUALITY.key, Settings.PLAYBACK_QUALITY.key, Settings.STORY_RING_SCALE.key}) {
+                Settings.DOWNLOAD_QUALITY.key, Settings.PLAYBACK_QUALITY.key, Settings.STORY_RING_SCALE.key,
+                Settings.NAVIGATION_SETTINGS_TARGET.key}) {
             Preference preference = page.findPreference(key);
             assertNotNull(key, preference);
             View view = row(preference);
@@ -491,6 +497,26 @@ public class SettingsRowAccessibilityTest {
         assertEquals(DownloadQuality.SMALLEST.name(), preference.getValue());
         assertEquals(DownloadQuality.SMALLEST, Settings.DOWNLOAD_QUALITY.savedValue());
         assertTrue(readable(row(preference)).contains(preference.getSummary()));
+    }
+
+    @Test public void anAccessibleNavigationChoiceSavesAndAnnouncesItsSelectedTab() throws Exception {
+        open();
+        HushgramPreferenceFragment.NavigationRow preference = (HushgramPreferenceFragment.NavigationRow)
+                page.findPreference(Settings.NAVIGATION_SETTINGS_TARGET.key);
+        View view = row(preference);
+        assertTrue(view.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+        AlertDialog dialog = (AlertDialog) preference.getDialog();
+        assertTrue(dialog.isShowing());
+        ShadowLooper.idleMainLooper();
+        ListView choices = dialog.getListView();
+        int selected = preference.findIndexOfValue(NavigationTarget.PROFILE.name());
+        assertTrue(choices.performItemClick(choices.getAdapter().getView(selected, null, choices),
+                selected, choices.getItemIdAtPosition(selected)));
+        ShadowLooper.idleMainLooper();
+        assertFalse(dialog.isShowing());
+        assertEquals(NavigationTarget.PROFILE, Settings.NAVIGATION_SETTINGS_TARGET.savedValue());
+        assertTrue(preference.getSummary().toString().contains("Profile"));
+        assertRoleLabel(row(preference), preference);
     }
 
     @Test public void missingFamiliesAndInformationalRowsOfferNoFeatureAction() throws Exception {

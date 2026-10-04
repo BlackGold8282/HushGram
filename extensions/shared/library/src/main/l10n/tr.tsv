@@ -366,3 +366,19 @@ Exporting HushGram settings...	HushGram ayarları dışa aktarılıyor...
 Settings export cancelled.	Ayar dışa aktarma işlemi iptal edildi.
 Show a Reel seek thumb	Reel ilerleme tutamacını göster
 Adds a white circular handle to Instagram's Reel seek bar. Drag to seek. Ads keep their own bar.	Instagram Reel ilerleme çubuğuna beyaz yuvarlak bir tutamaç ekler. İleri ve geri sarma aynı şekilde çalışır, reklamlar kendi çubuklarını korur.
+# Chosen navigation long-press settings entry. Account tab availability varies.
+Settings entry	Ayarlara erişim
+Open settings with a tab long press	Sekmeye uzun basarak ayarları aç
+Choose a tab	Sekme seç
+Home	Ana Sayfa
+Search	Ara
+Profile	Profil
+Create (+)	Oluştur (+)
+Camera	Kamera
+Activity	Hareketler
+Creator tools	İçerik üretici araçları
+Home feed picker	Ana Sayfa seçici
+Custom tab	Özel sekme
+Off	Kapalı
+Tab long presses keep Instagram's own action. Choose one to open HushGram instead.	Sekmelere uzun basmak Instagram işlemini korur. Bunun yerine HushGram açmak için bir sekme seç.
+Long-press %1$s to open HushGram instead of that tab's usual action. Normal taps and other tabs stay the same. Only tabs your account shows can be used. Restart Instagram after changing it.	Sekmenin normal işlemi yerine HushGram açmak için %1$s üzerine uzun bas. Normal dokunuşlar ve diğer sekmeler aynı kalır. Yalnızca hesabının gösterdiği sekmeler kullanılabilir. Değiştirdikten sonra Instagram uygulamasını yeniden başlat.

@@ -31,6 +31,10 @@ import app.hushgram.extension.shared.settings.StringSetting;
  */
 @SuppressWarnings("unused")
 public class Settings extends BaseSettings {
+    /** Navigation listeners are installed at native tab binding, so the choice applies after restart. */
+    public static final EnumSetting<NavigationTarget> NAVIGATION_SETTINGS_TARGET =
+            new EnumSetting<>("hushgram_navigation_settings_target", NavigationTarget.OFF, true);
+
     /** Sponsored posts, reels and stories: the ad injector is told no ad went in. */
     public static final BooleanSetting HIDE_ADS =
             new BooleanSetting("hushgram_hide_ads", TRUE);

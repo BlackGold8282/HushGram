@@ -89,7 +89,7 @@ There are 48 patches for `com.instagram.android`, checked against Instagram 449.
 | `Hide the notes row` | Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay. | Included |
 | `Hide the Reels tab` | Takes the Reels tab off the tab bar, and a start or a notification meant for it opens Home. Reels in your feed and reels people send you still open, and a change to the switch shows once Instagram restarts. | Opt-in |
 | `Hide the Repost button` | Takes the Repost button and its count off posts and reels, so nothing gets reposted by mistake. Share still sends a post or reel to someone. | Opt-in |
-| `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too. | Included |
+| `HushGram settings` | Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity. You can also choose one tab whose long press opens HushGram. That choice starts off. Turn features on or off, pause HushGram and export diagnostics. The licenses are there too. | Included |
 | `Keep a seek bar on Reels` | Keeps Instagram's seek bar under every reel, short ones too, with the time played and the reel's length above it, like 0:10 / 0:55. Ads keep Instagram's own rules. | Opt-in |
 | `Keep Reels auto scroll on` | Once you turn on Instagram's auto scroll in Reels, it stays on after Instagram restarts or you leave Reels, until you turn it off yourself. | Opt-in |
 | `Keep the reel speed` | Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play at 2x too, until you slide the lock off, hold the edge and let go, or Instagram restarts. | Included |
@@ -120,6 +120,8 @@ There are 48 patches for `com.instagram.android`, checked against Instagram 449.
 The 23 opt-in patches stay out of this expansion. Their switches already start on and alter behavior, or they change colors while patching. Keep Reels auto scroll on also preserves a native choice that Instagram may otherwise forget. The DM photo/video switch starts off. Original-449 fixtures and Android unit tests check the six added controls' initial and off/Pause paths.
 
 The other patches keep their switches in `HushGram settings`, so Morphe Manager includes it whenever any of them is picked. Any of the rest can be left out when you patch.
+
+In HushGram settings, Settings entry lets you choose one navigation tab to open HushGram with a long press. It starts Off. Your choice replaces only that tab's long-press action, including Home's developer options or Reels' auto scroll if you choose one of those tabs. Normal taps and other tabs stay the same. Only tabs your account shows can be used. Restart Instagram after changing the choice. The launcher shortcut and the row in Instagram's own settings stay available. This source addition has native fixture and Android 9/17 runtime coverage; its installed gesture and account-routing checks are still pending. Refs [#31](https://github.com/SysAdminDoc/HushGram/issues/31).
 
 ## Settings
 

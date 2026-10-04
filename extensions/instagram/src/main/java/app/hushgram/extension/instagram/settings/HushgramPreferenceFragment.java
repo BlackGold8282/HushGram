@@ -295,6 +295,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         // The export row below reads this; registering twice keeps one.
         PatchFamily.registerDiagnostics();
         Set<PatchFamily> build = PatchFamily.inThisBuild();
+        PreferenceCategory entry = category(screen, L10n.t("Settings entry"));
+        entry.addPreference(navigationRow(context));
 
         List<Preference> privacy = new ArrayList<>();
         if (build.contains(PatchFamily.HIDE_ADS)) {
@@ -1738,6 +1740,42 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * The quality a video save asks for. The list's values are the setting's own names, which is
      * what the shared page syncs a list by, and the summary says what the choice does.
      */
+    static NavigationRow navigationRow(Context context) {
+        NavigationRow row = new NavigationRow(context);
+        row.setKey(Settings.NAVIGATION_SETTINGS_TARGET.key);
+        row.setTitle(L10n.t("Open settings with a tab long press"));
+        row.setDialogTitle(L10n.t("Choose a tab"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        NavigationTarget[] targets = NavigationTarget.values();
+        CharSequence[] labels = new CharSequence[targets.length];
+        CharSequence[] values = new CharSequence[targets.length];
+        for (int i = 0; i < targets.length; i++) {
+            labels[i] = navigationLabel(targets[i]);
+            values[i] = targets[i].name();
+        }
+        row.setEntries(labels);
+        row.setEntryValues(values);
+        row.setValue(Settings.NAVIGATION_SETTINGS_TARGET.savedValue().name());
+        return row;
+    }
+
+    static String navigationLabel(NavigationTarget target) {
+        switch (target) {
+            case FEED: return L10n.t("Home");
+            case SEARCH: return L10n.t("Search");
+            case CLIPS: return L10n.t("Reels");
+            case DIRECT: return L10n.t("Messages");
+            case PROFILE: return L10n.t("Profile");
+            case SHARE: return L10n.t("Create (+)");
+            case CREATION: return L10n.t("Camera");
+            case NEWS: return L10n.t("Activity");
+            case PRODUCER_PROFILE_PANEL: return L10n.t("Creator tools");
+            case FEED_SWITCHER: return L10n.t("Home feed picker");
+            case DYNAMIC_TAB: return L10n.t("Custom tab");
+            default: return L10n.t("Off");
+        }
+    }
+
     static QualityRow qualityRow(Context context) {
         QualityRow row = new QualityRow(context);
         row.setKey(Settings.DOWNLOAD_QUALITY.key);
@@ -1913,7 +1951,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** The quality rows' and the ring size's summaries are sentences of their own rather than the chosen entry. */
     @Override
     protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
-        if (listPreference instanceof QualityRow) {
+        if (listPreference instanceof NavigationRow) {
+            ((NavigationRow) listPreference).showSummary();
+        } else if (listPreference instanceof QualityRow) {
             ((QualityRow) listPreference).showSummary();
         } else if (listPreference instanceof PlaybackQualityRow) {
             ((PlaybackQualityRow) listPreference).showSummary();
@@ -2329,6 +2369,35 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * The download quality's row. Its summary follows its value, whoever sets it: the person, the
      * shared page syncing it from the setting, or an import.
      */
+    static final class NavigationRow extends ListPreference {
+        private String summary;
+        NavigationRow(Context context) { super(context); }
+        @Override public void setValue(String value) { super.setValue(value); showSummary(); }
+        void showSummary() {
+            NavigationTarget target = NavigationTarget.OFF;
+            for (NavigationTarget candidate : NavigationTarget.values()) {
+                if (candidate.name().equals(getValue())) target = candidate;
+            }
+            summary = target == NavigationTarget.OFF
+                    ? L10n.t("Tab long presses keep Instagram's own action. Choose one to open HushGram instead.")
+                    : L10n.f("Long-press %1$s to open HushGram instead of that tab's usual action. "
+                            + "Normal taps and other tabs stay the same. Only tabs your account shows can be used. "
+                            + "Restart Instagram after changing it.", navigationLabel(target));
+            setSummary(summary);
+        }
+        @Override public CharSequence getSummary() { return summary != null ? summary : super.getSummary(); }
+        @Override protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+        @Override protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
     static final class QualityRow extends ListPreference {
         QualityRow(Context context) {
             super(context);

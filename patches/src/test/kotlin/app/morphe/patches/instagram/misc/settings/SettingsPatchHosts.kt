@@ -31,7 +31,14 @@ internal object SettingsPatchHosts {
     const val SETTINGS_SCREEN = "Lfixture/SettingsScreenFragment;"
     const val STATE_HOST = "Lfixture/BaseActivity;"
 
-    fun all(): List<ClassDef> = listOf(application(), mainActivity(), settingsScreen(), stateHost())
+    fun all(): List<ClassDef> {
+        val navigation = NavigationEntryHosts.classes()
+        val main = mainActivity()
+        val factory = navigation.single { it.type == MAIN_ACTIVITY }
+        val combined = ImmutableClassDef(main.type, main.accessFlags, main.superclass, main.interfaces,
+            main.sourceFile, main.annotations, main.fields, main.methods + factory.methods)
+        return listOf(application(), combined, settingsScreen(), stateHost()) + navigation.filter { it.type != MAIN_ACTIVITY }
+    }
 
     fun stateHost(): ClassDef {
         val remove = ImmutableMethodReference("Landroid/os/BaseBundle;", "remove", listOf("Ljava/lang/String;"), "V")

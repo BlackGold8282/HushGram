@@ -421,6 +421,18 @@ public final class SettingsEntry {
         }
     }
 
+    /** Queues a gesture through the shortcut's same resume/account handoff, without starting a tab. */
+    static boolean requestOpen(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
+        if (!closedByUser && ((host != null && host.get() == activity)
+                || (openPending && SystemClock.elapsedRealtime() - requestedAt <= REQUEST_LIFETIME_MS))) return true;
+        closedByUser = false;
+        requestedAt = SystemClock.elapsedRealtime();
+        openPending = true;
+        OpenWhenResumed.openWhenSettled(activity);
+        return true;
+    }
+
     /** Called by the screen when the person closes it, so it isn't reopened. */
     static void onClosedByUser() {
         closedByUser = true;
