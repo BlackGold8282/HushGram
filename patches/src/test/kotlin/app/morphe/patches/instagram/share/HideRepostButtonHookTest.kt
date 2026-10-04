@@ -12,6 +12,7 @@ import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -22,10 +23,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction12x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
@@ -42,7 +46,7 @@ import org.junit.Test
 class HideRepostButtonHookTest {
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(HIDE_REPOSTS, REPOSTS_ELIGIBLE, REPOSTS_FEED_UFI)) {
+        for (hook in listOf(HIDE_REPOSTS, REPOSTS_ELIGIBLE, REPOSTS_FEED_UFI, REPOSTS_FEED_COMPONENT, REPOSTS_FEED_RESTORE)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -122,6 +126,37 @@ class HideRepostButtonHookTest {
     }
 
     @Test
+    fun aNativeBranchToShareCannotSkipHidingRepost() {
+        val context = PatchContexts.of(listOf(feedUfiBinder(branchToShare = true)))
+        context.hideFeedUfi(context.findFeedUfiSite())
+        val code = context.mutableClassDefBy(UFI_BINDER).methods.single().implementation!!.instructions
+        val branch = code.filterIsInstance<BuilderOffsetInstruction>().single()
+        val hide = code.indexOfFirst { it.names(REPOSTS_FEED_UFI) }
+        assertEquals("The native no-count branch must enter the hide, not jump over it", hide - 2, branch.target.location.index)
+    }
+
+    @Test
+    fun theComponentRendererHidesItsWholeResultBeforeNativeDrawing() {
+        val context = PatchContexts.of(listOf(feedComponent()))
+        val render = context.findFeedRepostComponent()
+        context.hideFeedComponent(render)
+        assertComponentGuarded(context.mutableClassDefBy(render.definingClass).methods.single())
+    }
+
+    @Test
+    fun missingAmbiguousOrChangedComponentRenderersFailThePatch() {
+        assertThrows(PatchException::class.java) { PatchContexts.of(classes()).findFeedRepostComponent() }
+        assertThrows(PatchException::class.java) {
+            PatchContexts.of(listOf(feedComponent(), feedComponent("Lfixture/OtherComponent;"))).findFeedRepostComponent()
+        }
+        assertThrows(PatchException::class.java) {
+            PatchContexts.of(listOf(feedComponent(label = 123))).findFeedRepostComponent()
+        }
+        val noLocals = PatchContexts.of(listOf(feedComponent(registers = 2)))
+        assertThrows(PatchException::class.java) { noLocals.hideFeedComponent(noLocals.findFeedRepostComponent()) }
+    }
+
+    @Test
     fun noModelFailsThePatch() {
         val context = PatchContexts.of(classes().filter { it.type != MEDIA })
         assertThrows(PatchException::class.java) { context.findRepostSites() }
@@ -151,10 +186,16 @@ class HideRepostButtonHookTest {
                 val sites = context.findRepostSites()
                 assertEquals("${bundle.name}: tree reads ${sites.reads.map { "${it.type}->${it.name}" }}", 6, sites.reads.size)
                 val feedUfi = context.findFeedUfiSite()
+                val component = context.findFeedRepostComponent()
+                val branchesToShare = context.mutableClassDefBy(feedUfi.type).methods.single { it.name == feedUfi.name }
+                    .implementation!!.instructions.filterIsInstance<BuilderOffsetInstruction>()
+                    .filter { it.target.location.index == feedUfi.insert }
+                assertTrue("${bundle.name}: expected native repost branches converging on Share", branchesToShare.isNotEmpty())
                 context.guardRepostGetter(sites.getter)
                 val byMethod = sites.reads.groupBy { Triple(it.type, it.name, it.parameters) }
                 byMethod.values.forEach { context.filterRepostReads(it) }
                 context.hideFeedUfi(feedUfi)
+                context.hideFeedComponent(component)
 
                 assertGetterGuarded("${bundle.name} ${sites.getter}", context.mutableClassDefBy(MEDIA).methods.single {
                     it.name == sites.getter && it.parameterTypes.isEmpty()
@@ -171,6 +212,9 @@ class HideRepostButtonHookTest {
                     it.name == feedUfi.name && it.parameterTypes.map(CharSequence::toString) == feedUfi.parameters
                 }
                 assertFeedUfiHidden("${bundle.name} ${feedUfi.type}->${feedUfi.name}", feedMethod, feedUfi.icon, feedUfi.count)
+                val hide = feedMethod.implementation!!.instructions.indexOfFirst { it.names(REPOSTS_FEED_UFI) }
+                branchesToShare.forEach { assertEquals("${bundle.name}: a native branch skipped hiding", hide - 2, it.target.location.index) }
+                assertComponentGuarded(context.mutableClassDefBy(component.definingClass).methods.single { it.name == component.name })
                 checked++
             }
         }
@@ -212,6 +256,8 @@ class HideRepostButtonHookTest {
     ) {
         val code = method.implementation!!.instructions.toList()
         val at = code.indexOfFirst { it.names(REPOSTS_FEED_UFI) }
+        assertEquals("$what: restore before native binding", 3, code.indexOfFirst { it.names(REPOSTS_FEED_RESTORE) })
+        assertEquals("$what: one restore", 1, code.count { it.names(REPOSTS_FEED_RESTORE) })
         assertTrue("$what: feed UFI hook missing", at > 1)
         assertEquals("$what: one feed UFI hook", 1, code.count { it.names(REPOSTS_FEED_UFI) })
         val icon = code[at - 2]
@@ -230,6 +276,20 @@ class HideRepostButtonHookTest {
 
     private fun assertField(what: String, expected: FieldReference, instruction: Instruction) {
         assertEquals(what, expected.toString(), ((instruction as ReferenceInstruction).reference as FieldReference).toString())
+    }
+
+    private fun assertComponentGuarded(method: Method) {
+        val code = method.implementation!!.instructions.toList()
+        assertEquals(1, code.count { it.names(REPOSTS_FEED_COMPONENT) })
+        assertTrue(code[0].names(REPOSTS_FEED_COMPONENT))
+        assertEquals(Opcode.MOVE_RESULT, code[1].opcode)
+        assertEquals(Opcode.IF_EQZ, code[2].opcode)
+        assertEquals(0, (code[3] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.RETURN_OBJECT, code[4].opcode)
+        assertEquals(0, (code[4] as OneRegisterInstruction).registerA)
+        assertEquals(5, (code[2] as BuilderOffsetInstruction).target.location.index)
+        assertEquals(Opcode.NOP, code[5].opcode)
+        assertTrue("Off must reach the untouched native renderer", code.size > 6)
     }
 
     private fun Instruction.names(reference: String) = (this as? ReferenceInstruction)?.reference?.toString() == reference
@@ -261,9 +321,10 @@ class HideRepostButtonHookTest {
             if (dropsAnswer) ImmutableInstruction10x(Opcode.NOP) else ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, answer),
         )
 
-        fun method(type: String, name: String, returnType: String, registers: Int, code: List<Instruction>, static: Boolean = false) =
+        fun method(type: String, name: String, returnType: String, registers: Int, code: List<Instruction>, static: Boolean = false,
+                   parameters: List<String> = emptyList()) =
             ImmutableMethod(
-                type, name, emptyList(), returnType,
+                type, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returnType,
                 AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or (if (static) AccessFlags.STATIC.value else 0),
                 null, null, ImmutableMethodImplementation(registers, code, null, null),
             )
@@ -281,17 +342,35 @@ class HideRepostButtonHookTest {
             ImmutableInstruction22c(Opcode.IPUT_OBJECT, 0, holder, field),
         )
 
-        fun feedUfiBinder() = classOf(
+        fun feedUfiBinder(branchToShare: Boolean = false) = classOf(
             UFI_BINDER,
             listOf(
                 method(
                     UFI_BINDER, "bind", "V", 6,
-                    view(REPOSTS_UFI_ICON_ID, UFI_ICON_FIELD, BOUNCY) +
+                    listOf(ImmutableInstruction12x(Opcode.MOVE_OBJECT, 4, 5)) +
+                        view(REPOSTS_UFI_ICON_ID, UFI_ICON_FIELD, BOUNCY) +
                         view(REPOSTS_UFI_COUNT_ID, UFI_COUNT_FIELD, TEXT) +
+                        (if (branchToShare) listOf(ImmutableInstruction21t(Opcode.IF_EQZ, 1, 2)) else emptyList()) +
                         ImmutableInstruction22c(Opcode.IGET_OBJECT, 2, 4, UFI_SHARE_FIELD) +
                         ImmutableInstruction10x(Opcode.RETURN_VOID),
+                    parameters = listOf(UFI_HOLDER),
                 ),
             ),
+        )
+
+        fun feedComponent(type: String = "Lfixture/RepostComponent;", label: Int = REPOSTS_LABEL_ID, registers: Int = 3) = classOf(
+            type,
+            listOf(ImmutableMethod(
+                type, "render", listOf(ImmutableMethodParameter("Lfixture/Scope;", null, null)), "Lfixture/Component;",
+                AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                ImmutableMethodImplementation(registers, listOf(
+                    ImmutableInstruction31i(Opcode.CONST, 0, REPOSTS_UFI_ICON_ID),
+                    ImmutableInstruction31i(Opcode.CONST, 0, label),
+                    ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference("android.widget.Button")),
+                    ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                    ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+                ), null, null),
+            )),
         )
 
         /**

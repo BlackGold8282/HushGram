@@ -630,6 +630,10 @@ once-call Lapp/hushgram/extension/instagram/share/ShareSheet;->hideGroupSend()Z 
 # state hold strings of their own and get shared-call rules. The repost button's use case reads it
 # twice, and the repost action and one more button state load no string of their own, so they get
 # none. HideRepostButtonHookTest checks on the 449 fixture that all six are filtered.
+# The Feed view binder and component renderer are selected by resource IDs, which this rule
+# format cannot express. The same fixture test checks every incoming branch at the view hide
+# and the component's single early guard; its only string, android.widget.Button, is shared
+# by unrelated renderers and cannot safely select this one.
 start-call Lapp/hushgram/extension/instagram/share/RepostButton;->hide()Z in instance ()Ljava/lang/Boolean; holding enable_media_notes_production
 once-call Lapp/hushgram/extension/instagram/share/RepostButton;->hide()Z in instance ()Ljava/lang/Boolean; holding enable_media_notes_production
 shared-call Lapp/hushgram/extension/instagram/share/RepostButton;->eligible(Ljava/lang/Boolean;)Ljava/lang/Boolean; holding MediaUfiUseCase#getUiState

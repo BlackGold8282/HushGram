@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Hide the Repost button covers another Feed layout and rows that skipped the hide check. Reused rows restore their previous state when you turn the switch off or pause HushGram. Share stays in place.
+
 * **Tooling:** Advisory checks now hold unread or conflicting severity for review, including CVSS 4 beside a low label. Package ratings stay tied to the queried dependency and version, aliases retain the strongest evidence, and malformed or repeated CVSS 3 metrics are refused.
 
 * **Tooling:** The release check counts every top-level test class a Kotlin test file declares, so a second class in one file no longer reads as left over from a deleted one and the index push goes through.

@@ -12,10 +12,13 @@ import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.requireLocals
+import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.getFreeRegisterProvider
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -34,6 +37,8 @@ private const val PATCH = "Hide the Repost button"
 internal const val HIDE_REPOSTS = "$EXTENSION_PACKAGE/share/RepostButton;->hide()Z"
 internal const val REPOSTS_ELIGIBLE = "$EXTENSION_PACKAGE/share/RepostButton;->eligible(Ljava/lang/Boolean;)Ljava/lang/Boolean;"
 internal const val REPOSTS_FEED_UFI = "$EXTENSION_PACKAGE/share/RepostButton;->feedUfi(Landroid/view/View;Landroid/view/View;)V"
+internal const val REPOSTS_FEED_COMPONENT = "$EXTENSION_PACKAGE/share/RepostButton;->feedComponent()Z"
+internal const val REPOSTS_FEED_RESTORE = "$EXTENSION_PACKAGE/share/RepostButton;->restoreFeedUfi(Landroid/view/View;Landroid/view/View;)V"
 
 /** The post model, a kept name. */
 internal const val MEDIA = "Lcom/instagram/feed/media/Media;"
@@ -53,6 +58,7 @@ private const val UFI_COUNT = "Lcom/instagram/common/ui/base/IgTextView;"
 /** Feed's inflated repost icon and count in Instagram 449. */
 internal const val REPOSTS_UFI_ICON_ID = 0x7f0b35bc
 internal const val REPOSTS_UFI_COUNT_ID = 0x7f0b35bb
+internal const val REPOSTS_LABEL_ID = 0x7f136d26
 
 /** How far before a tree read its hash may be loaded, for a branch or two in between. */
 private const val HASH_REACH = 4
@@ -78,6 +84,7 @@ val hideRepostButtonPatch = bytecodePatch(
         guardRepostGetter(sites.getter)
         sites.reads.groupBy { Triple(it.type, it.name, it.parameters) }.values.forEach(::filterRepostReads)
         hideFeedUfi(findFeedUfiSite())
+        hideFeedComponent(findFeedRepostComponent())
         enableStatus("repostButton")
     }
 }
@@ -163,6 +170,43 @@ internal fun BytecodePatchContext.findFeedUfiSite(): FeedUfiSite {
     }
     return sites.singleOrNull()
         ?: refuse("expected one Feed UFI repost binder, found ${sites.size}")
+}
+
+/** The component-backed Feed row has its own Repost renderer, separate from the view binder. */
+internal fun BytecodePatchContext.findFeedRepostComponent(): Method {
+    val renders = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@forEach
+            if (!AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.size == 1 &&
+                method.parameterTypes.single().startsWith("L") && method.returnType.startsWith("L") &&
+                method.holdsString("android.widget.Button") && code.indexOfLiteral(REPOSTS_UFI_ICON_ID) >= 0 &&
+                code.indexOfLiteral(REPOSTS_LABEL_ID) >= 0) renders += method
+        }
+    }
+    return renders.singleOrNull() ?: refuse("expected one Feed Repost component renderer, found ${renders.size}")
+}
+
+/** Native component rendering accepts null for an empty component; neither icon nor count mounts. */
+internal fun BytecodePatchContext.hideFeedComponent(found: Method) {
+    val method = mutableClassDefBy(found.definingClass).methods.single {
+        it.name == found.name && it.parameterTypes.map(CharSequence::toString) == found.parameterTypes.map(CharSequence::toString) &&
+            it.returnType == found.returnType
+    }
+    method.requireLocals(PATCH, 1)
+    method.addInstructions(
+        0,
+        """
+            invoke-static { }, $REPOSTS_FEED_COMPONENT
+            move-result v0
+            if-eqz v0, :draw
+            const/4 v0, 0x0
+            return-object v0
+            :draw
+            nop
+        """,
+    )
 }
 
 private fun Method.holdsString(value: String) = implementation?.instructions?.any {
@@ -282,12 +326,27 @@ internal fun BytecodePatchContext.hideFeedUfi(site: FeedUfiSite) {
     val registers = method.getFreeRegisterProvider(site.insert, 2, site.holder)
     val icon = registers.getFreeRegister()
     val count = registers.getFreeRegister()
-    method.addInstructions(
+    method.addInstructionsAtControlFlowLabel(
         site.insert,
         """
             iget-object v$icon, v${site.holder}, ${site.icon}
             iget-object v$count, v${site.holder}, ${site.count}
             invoke-static { v$icon, v$count }, $REPOSTS_FEED_UFI
+        """,
+    )
+    // Native rebinding resets listeners/text, but not every icon's visibility. Remove only
+    // our previous hide before it reads the holder, so native state always wins afterwards.
+    val holderParameter = method.parameterTypes.indices.singleOrNull { method.parameterTypes[it] == site.icon.definingClass }
+        ?: refuse("${site.type}->${site.name} has no unique Feed UFI holder parameter")
+    method.requireLocals(PATCH, 3)
+    val holder = method.parameterRegisterNumber(holderParameter)
+    method.addInstructions(
+        0,
+        """
+            move-object/from16 v0, v$holder
+            iget-object v1, v0, ${site.icon}
+            iget-object v2, v0, ${site.count}
+            invoke-static { v1, v2 }, $REPOSTS_FEED_RESTORE
         """,
     )
 }
