@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Tooling:** Verification fixtures find the compiler beside the selected Java executable when Java comes from PATH.
+
 * **Instagram:** Hide the Repost button covers another Feed layout and rows that skipped the hide check. Reused rows restore their previous state when you turn the switch off or pause HushGram. Share stays in place.
 
 * **Tooling:** Advisory checks now hold unread or conflicting severity for review, including CVSS 4 beside a low label. Package ratings stay tied to the queried dependency and version, aliases retain the strongest evidence, and malformed or repeated CVSS 3 metrics are refused.

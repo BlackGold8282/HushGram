@@ -578,6 +578,8 @@ try {
 }
 
 $Java = Resolve-Java -Explicit $Java
+# The resolver can return the PATH command "java". Locate that executable before its sibling compiler.
+$Java = (Get-Command -Name $Java -ErrorAction Stop | Select-Object -First 1).Source
 $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $Root -Required
 $javac = Join-Path (Split-Path -Parent $Java) 'javac.exe'
 if (-not (Test-Path -LiteralPath $javac -PathType Leaf)) { throw "Required tool not found: $javac" }

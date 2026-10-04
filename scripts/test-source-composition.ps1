@@ -18,6 +18,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'script-wiring.ps1')
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $Java = Resolve-Java -Explicit $Java
+$Java = (Get-Command -Name $Java -ErrorAction Stop | Select-Object -First 1).Source
 $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $root -Required
 $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
 if (-not $AndroidJar) {
