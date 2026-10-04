@@ -19,10 +19,10 @@
     about every library the SBOM lists, one query per package URL, and refuses a release that
     carries a high or critical advisory.
 
-    High or critical means OSV's own label says so (the GitHub advisory database's, which every
-    Maven advisory there carries) or a CVSS 3 vector scores 7.0 or more, whichever is worse. An
-    advisory with neither is held as serious until somebody reads it: "OSV couldn't say" is not
-    "fine". Moderate and low advisories are printed and let through.
+    High or critical means an applicable label says so or a CVSS 3 vector scores 7.0 or more.
+    Unread, malformed or ambiguous severity is held for review even beside a lower label.
+    Package-specific ratings belong only to the queried package/version. CVSS 4 is not scored
+    here and needs review. Consistent moderate and low advisories are printed and let through.
 
     An advisory can be accepted in scripts/advisory-exceptions.txt for one package, until a date
     at most 90 days out, with the reason it doesn't apply to what the bundle does with that
@@ -120,16 +120,26 @@ function Get-Cvss3BaseScore {
     .DESCRIPTION
         The formula and the rounding the CVSS 3.1 specification gives, which 3.0 vectors score the
         same way to one decimal. Temporal and environmental metrics after the base ones are
-        ignored, as the base score ignores them. A vector missing a base metric, or with a value
-        the specification doesn't define, has no score here rather than a guessed one.
+        validated but don't change the base score. Missing, repeated or unknown metrics and
+        values the specification doesn't define have no score here rather than a guessed one.
     #>
     param([string]$Vector)
 
-    if ("$Vector" -notmatch '^CVSS:3\.[01]/') { return $null }
+    if ("$Vector" -cnotmatch '^CVSS:3\.[01]/') { return $null }
+    # FIRST's vector grammar allows any order, but each metric appears at most once.
+    # https://www.first.org/cvss/v3.1/specification-document#6-Vector-String
+    $allowed = @{
+        AV = 'NALP'; AC = 'LH'; PR = 'NLH'; UI = 'NR'; S = 'UC'; C = 'HLN'; I = 'HLN'; A = 'HLN'
+        E = 'XHFPU'; RL = 'XUWTO'; RC = 'XCRU'; CR = 'XHML'; IR = 'XHML'; AR = 'XHML'
+        MAV = 'XNALP'; MAC = 'XLH'; MPR = 'XNLH'; MUI = 'XNR'; MS = 'XUC'; MC = 'XNLH'; MI = 'XNLH'; MA = 'XNLH'
+    }
     $metrics = @{}
     foreach ($part in @($Vector -split '/' | Select-Object -Skip 1)) {
         $pair = $part -split ':', 2
-        if ($pair.Count -eq 2) { $metrics[$pair[0]] = $pair[1] }
+        if ($pair.Count -ne 2 -or $pair[0] -cnotmatch '^[A-Z]+$' -or
+            -not $allowed.ContainsKey($pair[0]) -or $metrics.ContainsKey($pair[0]) -or
+            $pair[1] -cnotmatch "^[$($allowed[$pair[0]])]$") { return $null }
+        $metrics[$pair[0]] = $pair[1]
     }
     # A metric the vector leaves out reads as '', which neither check below lets through.
     $scopeChanged = $metrics['S'] -ceq 'C'
@@ -173,37 +183,110 @@ function Get-AdvisorySeverity {
     .SYNOPSIS
         How serious an OSV advisory is: @{ Level; Serious; Why }.
     .DESCRIPTION
-        The worse of OSV's own label (database_specific.severity) and the level each CVSS 3 vector
-        scores to: CRITICAL from 9.0, HIGH from 7.0, MODERATE from 4.0, LOW above 0. Serious is
-        HIGH or CRITICAL, or UNRATED, for an advisory with neither a label nor a vector this can
-        score: a CVSS 4 vector alone, say.
+        Keep the highest applicable rating. Unread evidence and conflicting minor ratings need
+        review, even if a label is present. OSV queried the exact Library.Purl; package-level
+        severity must still be selected from that response, not borrowed from a different
+        package or version. Ambiguous per-version ranges need review rather than a guessed
+        ecosystem version ordering. https://ossf.github.io/osv-schema/#affectedseverity-field
     #>
-    param([Parameter(Mandatory = $true)]$Advisory)
+    param([Parameter(Mandatory = $true)]$Advisory, $Library)
 
     $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; HIGH = 3; CRITICAL = 4 }
     $level = $null
     $why = $null
-    $label = "$($Advisory.database_specific.severity)".Trim().ToUpperInvariant()
-    if ($label -eq 'MEDIUM') { $label = 'MODERATE' }
-    if ($label -and $rank.ContainsKey($label)) {
-        $level = $label
-        $who = if ($Advisory.source -eq 'publisher') { 'The publisher' } else { 'OSV' }
-        $why = "$who rates it $label"
+    $unread = $null
+    $levels = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $containers = @($Advisory)
+    $packageRecords = @()
+    $affectedRecords = @($Advisory.affected | Where-Object { $null -ne $_ })
+    foreach ($affected in $affectedRecords) {
+        if (-not $Library) { $unread = 'package severity has no queried library context'; break }
+        $namedPackage = $affected.package.ecosystem -ceq 'Maven' -and
+            $affected.package.name -ceq "$($Library.Group):$($Library.Name)"
+        $purl = [regex]::Match([string]$affected.package.purl, '^pkg:maven/([^/@?#]+)/([^/@?#]+)(?:@([^/@?#]+))?$')
+        $urlPackage = $purl.Success -and [Uri]::UnescapeDataString($purl.Groups[1].Value) -ceq $Library.Group -and
+            [Uri]::UnescapeDataString($purl.Groups[2].Value) -ceq $Library.Name
+        if (-not $namedPackage -and -not $urlPackage) { continue }
+        $versionKnown = $false
+        if ($affected.package.purl) {
+            if (-not $namedPackage -or -not $urlPackage) {
+                $unread = 'affected package names and package URL disagree'; continue
+            }
+            if ($purl.Groups[3].Success) {
+                if ([Uri]::UnescapeDataString($purl.Groups[3].Value) -cne $Library.Version) {
+                    if (@($affected.versions) -ccontains $Library.Version) {
+                        $unread = 'affected package URL and versions disagree'
+                    }
+                    continue
+                }
+                $versionKnown = $true
+            }
+        }
+        $versions = @($affected.versions | Where-Object { $null -ne $_ })
+        if (@($versions | Where-Object { $_ -isnot [string] }).Count) {
+            $unread = 'affected versions cannot be read'; continue
+        }
+        if ($versions -ccontains $Library.Version) { $versionKnown = $true }
+        elseif ($versions.Count -and -not @($affected.ranges | Where-Object { $null -ne $_ }).Count) {
+            if ($versionKnown) { $unread = 'affected package URL and versions disagree' }
+            continue
+        }
+        $packageRecords += [pscustomobject]@{ Affected = $affected; VersionKnown = $versionKnown }
     }
-    foreach ($entry in @($Advisory.severity | Where-Object { $null -ne $_ })) {
-        if ("$($entry.type)" -ne 'CVSS_V3') { continue }
-        $score = Get-Cvss3BaseScore -Vector ([string]$entry.score)
-        if ($null -eq $score) { continue }
-        $scored = if ($score -ge 9.0) { 'CRITICAL' } elseif ($score -ge 7.0) { 'HIGH' } elseif ($score -ge 4.0) {
-            'MODERATE' } elseif ($score -gt 0) { 'LOW' } else { 'NONE' }
-        if ($null -eq $level -or $rank[$scored] -gt $rank[$level]) {
-            $level = $scored
-            $why = "its CVSS 3 vector scores $score"
+    if ($affectedRecords.Count) {
+        if (-not $packageRecords.Count) { $unread = 'no affected record identifies the queried package/version' }
+        elseif ($packageRecords.Count -gt 1 -and @($packageRecords | Where-Object { -not $_.VersionKnown }).Count) {
+            $unread = 'multiple affected ranges do not identify a unique severity for this version'
+        } else {
+            # For a single matching block, the exact-version OSV query already established
+            # applicability. Multiple blocks need explicit version evidence for each selection.
+            $containers += @($packageRecords | ForEach-Object { $_.Affected })
         }
     }
-    if ($null -eq $level) {
+    foreach ($container in $containers) {
+        $labels = $container.database_specific
+        if ($labels -and ($labels.PSObject.Properties['severity'] -or
+                ($labels -is [System.Collections.IDictionary] -and $labels.Contains('severity')))) {
+            if ($labels.severity -isnot [string]) { $unread = 'a severity label is malformed' }
+            else {
+                $label = $labels.severity.Trim().ToUpperInvariant()
+                if ($label -eq 'MEDIUM') { $label = 'MODERATE' }
+                if (-not $rank.ContainsKey($label)) { $unread = 'a severity label is unknown' }
+                else {
+                    [void]$levels.Add($label)
+                    if ($null -eq $level -or $rank[$label] -gt $rank[$level]) {
+                        $level = $label
+                        $who = if ($Advisory.source -eq 'publisher') { 'The publisher' } else { 'OSV' }
+                        $why = "$who rates it $label"
+                    }
+                }
+            }
+        }
+        if ($container.PSObject.Properties['severity'] -or
+            ($container -is [System.Collections.IDictionary] -and $container.Contains('severity'))) {
+            if ($container.severity -isnot [array]) { $unread = 'severity is not an array'; continue }
+        } else { continue }
+        foreach ($entry in @($container.severity)) {
+            if ($null -eq $entry -or $entry.type -cne 'CVSS_V3' -or $entry.score -isnot [string]) {
+                $unread = 'a severity vector is unreadable or uses an unsupported scoring method'; continue
+            }
+            $score = Get-Cvss3BaseScore -Vector $entry.score
+            if ($null -eq $score) { $unread = 'a CVSS 3 vector is malformed'; continue }
+            $scored = if ($score -ge 9.0) { 'CRITICAL' } elseif ($score -ge 7.0) { 'HIGH' } elseif ($score -ge 4.0) {
+                'MODERATE' } elseif ($score -gt 0) { 'LOW' } else { 'NONE' }
+            [void]$levels.Add($scored)
+            if ($null -eq $level -or $rank[$scored] -gt $rank[$level]) {
+                $level = $scored
+                $why = "its CVSS 3 vector scores $score"
+            }
+        }
+    }
+    if ($levels.Count -gt 1 -and $null -ne $level -and $rank[$level] -lt 3) {
+        $unread = 'applicable minor severity assessments conflict'
+    }
+    if ($null -eq $level -or $unread) {
         return [pscustomobject]@{ Level = 'UNRATED'; Serious = $true
-            Why = 'OSV gives it no severity this check can read, so it counts as serious until somebody reads it' }
+            Why = "OSV gives it no severity this check can certify, so it needs review$(if ($unread) { ': ' + $unread })" }
     }
     return [pscustomobject]@{ Level = $level; Serious = $rank[$level] -ge 3; Why = $why }
 }
@@ -479,7 +562,7 @@ function Read-CurrentDependencyAdvisoryReport {
 function Get-SbomAdvisories {
     <#
     .SYNOPSIS
-        One finding per advisory OSV has for a library the SBOM lists.
+        One finding per advisory identity OSV or the publisher has for an SBOM library.
     .DESCRIPTION
         Each: @{ Package; Version; Purl; Advisory; Aliases; Summary; Severity }. First-party
         components carry no package URL and have nothing to ask about.
@@ -490,17 +573,41 @@ function Get-SbomAdvisories {
     foreach ($library in @($Sbom.Libraries)) {
         $reported = @(@(Invoke-OsvQuery -Purl $library.Purl) + @(Get-VendorAdvisories -Library $library))
         $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; HIGH = 3; CRITICAL = 4; UNRATED = 5 }
-        foreach ($group in @($reported | Group-Object id)) {
-            $advisory = @($group.Group | Sort-Object { $rank[(Get-AdvisorySeverity -Advisory $_).Level] } -Descending)[0]
+        # OSV aliases denote the same vulnerability. Join overlapping identities before
+        # choosing severity, including a record that bridges two earlier groups.
+        $groups = @()
+        foreach ($record in $reported) {
+            $names = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+            foreach ($name in @($record.id) + @($record.aliases)) { if ($name) { [void]$names.Add([string]$name) } }
+            $members = @($record)
+            $separate = @()
+            foreach ($existing in $groups) {
+                if (@($names | Where-Object { $existing.Names.Contains($_) }).Count) {
+                    $members += $existing.Records
+                    foreach ($name in $existing.Names) { [void]$names.Add($name) }
+                } else { $separate += $existing }
+            }
+            $groups = @($separate) + @([pscustomobject]@{ Names = $names; Records = $members })
+        }
+        foreach ($group in $groups) {
+            $rated = @($group.Records | ForEach-Object {
+                [pscustomobject]@{ Record = $_; Severity = Get-AdvisorySeverity -Advisory $_ -Library $library }
+            } | Sort-Object { $rank[$_.Severity.Level] } -Descending)
+            $advisory = $rated[0].Record
+            $severity = $rated[0].Severity
+            if (-not $severity.Serious -and @($rated.Severity.Level | Sort-Object -Unique).Count -gt 1) {
+                $severity = [pscustomobject]@{ Level = 'UNRATED'; Serious = $true
+                    Why = 'Publisher or alias severity assessments conflict, so this finding needs review' }
+            }
             $findings.Add([pscustomobject]@{
                 Package  = "$($library.Group):$($library.Name)"
                 Version  = $library.Version
                 Purl     = $library.Purl
                 Advisory = [string]$advisory.id
-                Aliases  = @($group.Group.aliases | Where-Object { $_ } | ForEach-Object { [string]$_ } | Sort-Object -Unique)
+                Aliases  = @($group.Names | Where-Object { $_ -cne $advisory.id } | Sort-Object)
                 Summary  = "$($advisory.summary)".Trim()
-                Severity = Get-AdvisorySeverity -Advisory $advisory
-                Sources  = @($group.Group | ForEach-Object { if ($_.source) { $_.source } else { 'OSV' } } | Sort-Object -Unique)
+                Severity = $severity
+                Sources  = @($group.Records | ForEach-Object { if ($_.source) { $_.source } else { 'OSV' } } | Sort-Object -Unique)
             })
         }
     }

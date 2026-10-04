@@ -1319,6 +1319,117 @@ try {
             "$($rated.Name) was rated $($severity.Level), serious $($severity.Serious), because $($severity.Why)."
     }
 
+    # Labels alone used to hide unread vectors and affected-package severity. Exercise the
+    # actual SBOM query path so the package/version context cannot be lost by the caller.
+    $lowVector = @{ type = 'CVSS_V3'; score = 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N' }
+    $criticalVector = @{ type = 'CVSS_V3'; score = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H' }
+    $v4Vector = @{ type = 'CVSS_V4'; score = 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N' }
+    function New-AffectedRating([string]$Name, [string]$Version, [object[]]$Severity, [string]$Ecosystem = 'Maven') {
+        return @{ package = @{ ecosystem = $Ecosystem; name = $Name }; versions = @($Version); severity = $Severity }
+    }
+    foreach ($case in @(
+            @{ Name = 'low label and v4'; Fields = @{ severity = @($v4Vector) }; Level = 'UNRATED' },
+            @{ Name = 'low label and malformed v3'; Fields = @{ severity = @(@{ type = 'CVSS_V3'; score = 'CVSS:3.1/AV:N' }) }; Level = 'UNRATED' },
+            @{ Name = 'low label and malformed v4'; Fields = @{ severity = @(@{ type = 'CVSS_V4'; score = 'broken' }) }; Level = 'UNRATED' },
+            @{ Name = 'null severity'; Fields = @{ severity = @($null) }; Level = 'UNRATED' },
+            @{ Name = 'non-array severity'; Fields = @{ severity = $lowVector }; Level = 'UNRATED' },
+            @{ Name = 'numeric score'; Fields = @{ severity = @(@{ type = 'CVSS_V3'; score = 3.3 }) }; Level = 'UNRATED' },
+            @{ Name = 'unsupported severity'; Fields = @{ severity = @(@{ type = 'CVSS_FUTURE'; score = 'low' }) }; Level = 'UNRATED' },
+            @{ Name = 'duplicate metrics lower the score'; Fields = @{ severity = @(@{ type = 'CVSS_V3';
+                score = $criticalVector.score + '/C:N/I:N/A:N' }) }; Level = 'UNRATED' },
+            @{ Name = 'valid v3 and unread v4'; Fields = @{ severity = @($lowVector, $v4Vector) }; Level = 'UNRATED' },
+            @{ Name = 'conflicting minor ratings'; Fields = @{ severity = @($lowVector, ($guavaModerate | ConvertFrom-Json).severity[0]) }; Level = 'UNRATED' },
+            @{ Name = 'package critical'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($criticalVector))) }; Level = 'CRITICAL' },
+            @{ Name = 'another package cannot supply the score'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($lowVector)),
+                (New-AffectedRating 'com.google.code.gson:gson-extras' '2.8.8' @($criticalVector))) }; Level = 'LOW' },
+            @{ Name = 'another ecosystem cannot supply the score'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($lowVector)),
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($criticalVector) 'NuGet')) }; Level = 'LOW' },
+            @{ Name = 'another version cannot supply the score'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($lowVector)),
+                (New-AffectedRating 'com.google.code.gson:gson' '2.7' @($criticalVector))) }; Level = 'LOW' },
+            @{ Name = 'no applicable package'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson-extras' '2.8.8' @($lowVector))) }; Level = 'UNRATED' },
+            @{ Name = 'no applicable version'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.7' @($lowVector))) }; Level = 'UNRATED' },
+            @{ Name = 'package v4'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($v4Vector))) }; Level = 'UNRATED' },
+            @{ Name = 'ambiguous package ranges'; Fields = @{ affected = @(
+                @{ package = @{ ecosystem = 'Maven'; name = 'com.google.code.gson:gson' };
+                    ranges = @(@{ type = 'ECOSYSTEM'; events = @(@{ introduced = '0'; fixed = '2.8' }) }); severity = @($lowVector) },
+                @{ package = @{ ecosystem = 'Maven'; name = 'com.google.code.gson:gson' };
+                    ranges = @(@{ type = 'ECOSYSTEM'; events = @(@{ introduced = '2.8' }) }); severity = @($criticalVector) }) }; Level = 'UNRATED' })) {
+        $record = @{ id = 'GHSA-fixture-severity'; database_specific = @{ severity = 'LOW' } }
+        foreach ($key in $case.Fields.Keys) { $record[$key] = $case.Fields[$key] }
+        $osvAnswers = @{ $gsonPurl = (@{ vulns = @($record) } | ConvertTo-Json -Depth 12 -Compress) }
+        . $osvStandIn
+        $actual = @(Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl)))
+        Assert-True ($actual.Count -eq 1 -and $actual[0].Severity.Level -ceq $case.Level) `
+            "$($case.Name) was classified $($actual[0].Severity.Level), not $($case.Level)."
+        $verdict = Test-AdvisoryFindings -Findings $actual
+        Assert-True ($verdict.Valid -eq ($case.Level -ceq 'LOW')) "$($case.Name) received the wrong release verdict."
+    }
+    $osvAnswers = $osvRecorded
+
+    foreach ($conflict in @('package name', 'package version')) {
+        $scoped = New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($criticalVector)
+        $scoped.package.purl = if ($conflict -eq 'package name') {
+            'pkg:maven/com.google.code.gson/gson-extras@2.8.8'
+        } else { 'pkg:maven/com.google.code.gson/gson@2.7' }
+        $record = @{ id = 'GHSA-fixture-scope'; database_specific = @{ severity = 'LOW' }; affected = @(
+            $scoped, (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($lowVector))) }
+        $osvAnswers = @{ $gsonPurl = (@{ vulns = @($record) } | ConvertTo-Json -Depth 10 -Compress) }
+        $actual = @(Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl)))
+        Assert-True ($actual[0].Severity.Level -ceq 'UNRATED') "A contradictory $conflict hid an affected rating."
+    }
+    $packageLabel = New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @()
+    $packageLabel.database_specific = @{ severity = 'HIGH' }
+    $osvAnswers = @{ $gsonPurl = (@{ vulns = @(@{ id = 'GHSA-fixture-label';
+        database_specific = @{ severity = 'LOW' }; affected = @($packageLabel) }) } | ConvertTo-Json -Depth 10 -Compress) }
+    Assert-True ((Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl))).Severity.Level -ceq 'HIGH') `
+        'The applicable package label was ignored.'
+
+    # A bridge joins aliases transitively. Every identity remains available for a scoped
+    # exception, but neither a lower alias nor input order may downgrade the finding.
+    $aliasRecords = @(
+        @{ id = 'GHSA-fixture-first'; aliases = @('CVE-fixture-first'); database_specific = @{ severity = 'LOW' } },
+        @{ id = 'GHSA-fixture-last'; aliases = @('CVE-fixture-last'); database_specific = @{ severity = 'CRITICAL' } },
+        @{ id = 'GHSA-fixture-bridge'; aliases = @('CVE-fixture-first', 'CVE-fixture-last'); database_specific = @{ severity = 'LOW' } })
+    foreach ($reverse in @($false, $true)) {
+        $ordered = @($aliasRecords)
+        if ($reverse) { [array]::Reverse($ordered) }
+        $osvAnswers = @{ $gsonPurl = (@{ vulns = $ordered } | ConvertTo-Json -Depth 8 -Compress) }
+        $actual = @(Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl)))
+        Assert-True ($actual.Count -eq 1 -and $actual[0].Severity.Level -ceq 'CRITICAL' -and $actual[0].Aliases.Count -eq 4) `
+            'Alias merging lost the strongest rating or an identity.'
+        Assert-True (-not (Test-AdvisoryFindings -Findings $actual).Valid) 'A lower alias allowed a critical finding.'
+        $review = [pscustomobject]@{ Advisory = 'GHSA-fixture-first'; Package = 'com.google.code.gson:gson';
+            Scope = 'shipped'; Expired = $false; Until = $today.AddDays(1); Reason = 'Reviewed controlled fixture only'; Line = 1 }
+        Assert-True ((Test-AdvisoryFindings -Findings $actual -Exceptions @($review)).Valid -and
+            -not (Test-AdvisoryFindings -Findings $actual -Exceptions @($review) -Scope test).Valid) `
+            'An alias exception was lost or escaped its reviewed dependency scope.'
+    }
+    $aliasRecords[1].database_specific.severity = 'MODERATE'
+    $osvAnswers = @{ $gsonPurl = (@{ vulns = $aliasRecords } | ConvertTo-Json -Depth 8 -Compress) }
+    Assert-True ((Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl))).Severity.Level -ceq 'UNRATED') `
+        'Conflicting minor alias ratings were certified without review.'
+    $osvAnswers = $osvRecorded
+
+    foreach ($invalid in @(
+            ($criticalVector.score + '/AV:P'),
+            ($criticalVector.score + '/E:H/E:U'),
+            ($criticalVector.score + '/UNKNOWN:H'),
+            ($criticalVector.score + '/E:Z'),
+            ($criticalVector.score + '/'),
+            $criticalVector.score.Replace('/AV:N', '/av:N'),
+            $criticalVector.score.Replace('CVSS:', 'cvss:'))) {
+        Assert-True ($null -eq (Get-Cvss3BaseScore $invalid)) "Malformed CVSS vector received a score: $invalid"
+    }
+    Assert-True ((Get-Cvss3BaseScore 'CVSS:3.1/S:U/AV:N/AC:L/PR:N/UI:N/C:H/I:H/A:H/E:F/RL:X/RC:C/CR:X/MAV:X') -eq 9.8) `
+        'Valid reordered base metrics and optional metrics changed the base score.'
+
     # The exception list. Each broken line stops the read and names itself.
     $exceptionList = Join-Path $advisoryRoot 'read.txt'
     Set-Content -LiteralPath $exceptionList -Encoding ASCII -Value @('# accepted', '',
@@ -1693,6 +1804,11 @@ try {
     $osvAnswers = @{ 'pkg:maven/com.google.guava/guava@33.7.1-jre' = "{`"vulns`":[$vendorJson]}" }
     Assert-True (@(Get-SbomAdvisories -Sbom (New-GateSbom @('pkg:maven/com.google.guava/guava@33.7.1-jre'))).Count -eq 1) `
         'The same publisher and OSV advisory was counted twice.'
+    $osvOnlyLow = @{ id = 'GHSA-xxph-c9ww-hj94'; database_specific = @{ severity = 'LOW' } }
+    $osvAnswers = @{ 'pkg:maven/com.google.guava/guava@33.7.1-jre' = (@{ vulns = @($osvOnlyLow) } | ConvertTo-Json -Depth 6 -Compress) }
+    $merged = @(Get-SbomAdvisories -Sbom (New-GateSbom @('pkg:maven/com.google.guava/guava@33.7.1-jre')))
+    Assert-True ($merged.Count -eq 1 -and $merged[0].Severity.Level -ceq 'UNRATED' -and $merged[0].Sources.Count -eq 2) `
+        'A publisher/OSV disagreement was certified as minor or lost its sources.'
 
     # Actual OSV controls read on 2026-10-01, reduced to the fields this gate uses.
     $osvAnswers = @{
