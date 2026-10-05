@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Pure black dark mode now reaches the Direct inbox and the Notifications screen, which kept Instagram's near-black gray because they draw from a second color palette the patch didn't change. On a test phone both screens went from the gray to pure black, and the tab bar icons stayed visible. Reported in #51 and #58.
+
 * **Instagram:** Replaced navigation-tab listeners can no longer open settings or call an old native action. Each callback belongs to its current button binding, including tabs with no native long-press handler.
 
 * **Instagram:** Settings backups now include the chosen navigation tab for opening HushGram. Import reports when the change needs a restart, and Undo preserves any choice made after the import. Older backups leave this choice unchanged.
