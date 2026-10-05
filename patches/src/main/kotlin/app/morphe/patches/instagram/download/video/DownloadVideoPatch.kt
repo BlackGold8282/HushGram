@@ -59,6 +59,7 @@ internal const val ALLOW_VIDEO = "$VIDEO_DOWNLOAD->allow(Ljava/util/List;Ljava/l
 internal const val OFFER_ALL = "$VIDEO_DOWNLOAD->offerAll(Ljava/lang/Object;Ljava/util/ArrayList;)V"
 internal const val SAVE_ALL = "$VIDEO_DOWNLOAD->saveAll(Ljava/lang/Object;Landroid/app/Activity;)V"
 internal const val ALL_OPTION = "$VIDEO_DOWNLOAD->allOption()Ljava/lang/Object;"
+internal const val OWN_POST = "$VIDEO_DOWNLOAD->ownPost(ILjava/lang/Object;)I"
 
 /** The options the short feed menu's list of kept options reads first and last: "Why you're seeing this" and Report. */
 internal const val WHY_OPTION = "$OPTION->WHY_AM_I_SEEING_THIS:$OPTION"
@@ -184,6 +185,7 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
     )
     val others = builder.othersRow(eligible)
     val batchAt = builder.batchRow(others)
+    val own = builder.ownPost(eligible, others)
     val option = classDefBy(OPTION)
     val constructor = option.methods.singleOrNull {
         it.name == "<init>" && AccessFlags.PUBLIC.isSet(it.accessFlags) && it.returnType == "V" &&
@@ -279,9 +281,17 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         )
     }
 
+    // Highest index first, so the ones before it stay where they were.
     mutable(builder).addInstructionsAtControlFlowLabel(
         others.at,
         "invoke-static { v${others.state}, v${others.rows} }, $OFFER_VIDEO",
+    )
+    mutable(builder).addInstructions(
+        own.result + 1,
+        """
+            invoke-static { v${own.answer}, v${own.state} }, $OWN_POST
+            move-result v${own.answer}
+        """,
     )
     mutable(builder).addInstructions(batchAt, "invoke-static { v${others.state}, v${others.rows} }, $OFFER_ALL")
 
@@ -504,6 +514,41 @@ internal fun Method.othersRow(eligible: Method): OthersRow {
             ?.takeIf { it.definingClass == stateType && it.type == MEDIA }
     } ?: throw PatchException("$PATCH: in $where anyone else's rows never read the post")
     return OthersRow(at, state, rows, stateType, adder, kind, context, label, media)
+}
+
+/**
+ * Where your own post's rows ask Instagram whether the post may be downloaded: [result], the
+ * move-result of the builder's one call to the download check, holding the answer in [answer].
+ * Instagram adds its Download row to your own post only on a yes, which a photo, and a video it
+ * doesn't allow downloads of, never get (#57). [state] still holds the builder's state there.
+ */
+internal class OwnPost(val result: Int, val answer: Int, val state: Int)
+
+/**
+ * Finds [OwnPost] in [this], the feed menu's builder. Only your own posts reach the check (see
+ * [othersRow]). The post the check is handed is read from the builder's state just before, and
+ * nothing between that read and the answer writes the state's register.
+ */
+internal fun Method.ownPost(eligible: Method, found: OthersRow): OwnPost {
+    val code = code()
+    val where = "$definingClass->$name"
+    val check = code.indices.single { code[it].calls(eligible) }
+    val result = check + 1
+    if (code.getOrNull(result)?.opcode != Opcode.MOVE_RESULT) throw PatchException("$PATCH: $where drops the download check's answer")
+    val answer = (code[result] as OneRegisterInstruction).registerA
+    val offset = if (code[check].opcode in STATIC_CALLS) 0 else 1
+    val post = code[check].argumentRegisters().getOrNull(offset + eligible.parameterTypes.map(Any::toString).indexOf(MEDIA))
+        ?: throw PatchException("$PATCH: $where hands the download check no post")
+    val read = (check - 1 downTo 0).firstOrNull { code[it].writes(post) }
+    if (read == null || code[read].opcode != Opcode.IGET_OBJECT || code[read].referenceText() != found.media.toString()) {
+        throw PatchException("$PATCH: $where doesn't read the post it checks from the menu's state")
+    }
+    val state = (code[read] as TwoRegisterInstruction).registerB
+    if ((read + 1..result).any { code[it].writes(state) } || (read + 1 until check).any { code[it] is OffsetInstruction }) {
+        throw PatchException("$PATCH: in $where the state doesn't reach the download check's answer as it was")
+    }
+    if (state > 15 || answer > 15) throw PatchException("$PATCH: in $where v$answer and v$state are out of an invoke's reach")
+    return OwnPost(result, answer, state)
 }
 
 /** A call to [lookup], one of [MEDIA_EXT]'s (Media, int) methods answering a Media, handed an int read from [field], or null when it isn't one. */

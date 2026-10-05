@@ -4,6 +4,8 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Download any video adds Download to the menu on your own posts too, whenever a tap would save the video or photo. Instagram only lists its own Download on posts it allows outside downloads for, and HushGram's row was only on other people's posts. Reported in #57.
+
 * **Instagram:** Pure black dark mode now reaches the Direct inbox and the Notifications screen, which kept Instagram's near-black gray because they draw from a second color palette the patch didn't change. On a test phone both screens went from the gray to pure black, and the tab bar icons stayed visible. Reported in #51 and #58.
 
 * **Instagram:** Replaced navigation-tab listeners can no longer open settings or call an old native action. Each callback belongs to its current button binding, including tabs with no native long-press handler.
