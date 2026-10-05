@@ -5,7 +5,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Instagram-449.0.0.52.84-E1306C" alt="Instagram 449.0.0.52.84">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.33.0%2B-8A2BE2" alt="For Morphe Manager 1.33.0 or newer">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.34.0%2B-8A2BE2" alt="For Morphe Manager 1.34.0 or newer">
 </p>
 
 # <img src="assets/icon.png" width="36" alt=""> HushGram
@@ -29,7 +29,7 @@ Every feature has its own switch, and one Pause switch turns them all off at onc
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.33.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.34.0 or newer.
 2. Add HushGram as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushGram (or build the bundle yourself, below, and add the `.mpp` file from your phone's storage).
 3. Get Instagram 449.0.0.52.84 from [APKMirror](https://www.apkmirror.com/apk/instagram/instagram-instagram/). Take the variant labelled (arm64-v8a) (640dpi) (Android 9.0+), build 385511871. That's the one these patches are checked against. APKMirror carries other arm64-v8a builds of the same version, and Morphe Manager warns about those because they haven't been checked yet.
 4. Uninstall the Instagram you got from the Play Store. The patched app is signed with your own key, so Android won't install it over Meta's. Uninstalling signs you out, so have your password (and your two-factor codes) ready.
@@ -300,7 +300,7 @@ Every source file says where it came from in its header, and [provenance.json](p
 
 You need JDK 17 or newer and the Android SDK. The Morphe patcher comes from GitHub Packages, so you also need a GitHub token with `read:packages`.
 
-The v0.0.5 release uses Gradle 9.8.0, Android Gradle Plugin 9.1.0 and Kotlin 2.4.20 on patcher 1.15.0. It was verified with Desktop CLI 1.18.0, which carries that patcher, and Morphe Manager 1.33.0 is the first Manager that ships it.
+The source builds with Gradle 9.8.0, Android Gradle Plugin 9.1.0 and Kotlin 2.4.20 on patcher 1.15.1. It's verified with Desktop CLI 1.18.1, which carries that patcher, and Morphe Manager 1.34.0 is the first Manager that ships it. The v0.0.5 release was built on patcher 1.15.0 and loads in Manager 1.33.0 too.
 
 Local builds use two workers at low priority, with parallel project builds off. Gradle has a 2 GB heap limit, patch tests have 4 GB, and Android unit tests have 1 GB. Test JVMs use two processors for garbage collection and compilation. Build caching stays on. Your user-level Gradle properties and command-line options can override these defaults.
 
