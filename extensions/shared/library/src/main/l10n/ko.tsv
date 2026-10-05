@@ -365,4 +365,19 @@ Choose a file for the settings export.	설정을 내보낼 파일을 선택하�
 Exporting HushGram settings...	HushGram 설정 내보내는 중...
 Settings export cancelled.	설정 내보내기가 취소되었습니다.
 Show a Reel seek thumb	릴스 탐색 핸들 표시
+Settings entry	설정 열기
+Open settings with a tab long press	탭을 길게 탭하여 설정 열기
+Choose a tab	탭 선택
+Home	홈
+Search	검색
+Profile	프로필
+Create (+)	만들기 (+)
+Camera	카메라
+Activity	활동
+Creator tools	크리에이터 도구
+Home feed picker	홈 피드 선택기
+Custom tab	사용자 정의 탭
+Off	사용 안함
+Tab long presses keep Instagram's own action. Choose one to open HushGram instead.	탭을 길게 탭하면 Instagram의 기본 동작이 실행됩니다. HushGram을 대신 열 탭을 하나 선택하세요
+Long-press %1$s to open HushGram instead of that tab's usual action. Normal taps and other tabs stay the same. Only tabs your account shows can be used. Restart Instagram after changing it.	%1$s 탭을 길게 탭하면 해당 탭의 기본 동작 대신 HushGram이 열립니다. 일반 탭 동작과 다른 탭은 그대로 유지됩니다. 계정에 표시되는 탭만 사용할 수 있습니다. 변경한 후 Instagram을 다시 시작하세요
 Adds a white circular handle to Instagram's Reel seek bar. Drag to seek. Ads keep their own bar.	릴스 재생바에 흰색 원형 핸들을 추가합니다. 탐색 동작은 그대로 유지되며 광고에서는 기존 재생바를 사용됩니다
